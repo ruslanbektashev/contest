@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load forms %}
+
+{% block title %}
+Задание
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li><a href="{{ course.get_absolute_url }}">{{ course }}</a></li>
+    <li><a href="{% url 'contests:assignment-table' course.id %}">Задания</a></li>
+    {% if assignment %}
+    <li><a href="{{ assignment.get_absolute_url }}">{{ assignment }}</a></li>
+    <li class="active">Редактирование</li>
+    {% else %}
+    <li class="active">Новое задание</li>
+    {% endif %}
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{% if assignment %}Редактирование{% else %}Добавление{% endif %} задания</legend>
+<form action="" method="post" class="form-horizontal">
+    {% csrf_token %}
+    {% render_errors form %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="4" width="8" %}
+    {% render_field form.user class+="form-control selectpicker" %}
+    {% render_field form.problem class+="form-control selectpicker" %}
+    {% render_field form.score class+="form-control" %}
+    {% render_field form.score_max class+="form-control" %}
+    {% render_field form.submission_limit class+="form-control" %}
+    {% render_field form.remark class+="form-control" %}
+    {% endwith %}
+    {% render_button value="Сохранить" %}
+</form>
+{% endblock content %}

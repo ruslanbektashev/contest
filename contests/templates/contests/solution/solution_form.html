@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load forms %}
+
+{% block title %}
+Решение
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    {% if solution %}
+    <li><a href="{{ solution.get_absolute_url }}">{{ solution }}</a></li>
+    <li class="active">Редактирование</li>
+    {% else %}
+    <li class="active">Новое решение</li>
+    {% endif %}
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{% if solution %}Редактирование{% else %}Добавление{% endif %} решения</legend>
+<form action="" method="post" class="form-horizontal">
+    {% csrf_token %}
+    {% render_errors form %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="3" width="9" %}
+    {% render_field form.problems class+="form-control selectpicker" data-none-selected-text="---------" data-actions-box="true" data-select-all-text="Выбрать все" data-deselect-all-text="Очистить выбор" %}
+    {% render_field form.title class+="form-control" %}
+    {% render_field form.description class+="form-control" rows="5" cols="20" %}
+    {% render_field form.pattern class+="form-control" rows="5" cols="20" %}
+    {% endwith %}
+    {% render_button value="Сохранить" %}
+</form>
+{% endblock content %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load contests %}
+
+{% block title %}
+Мои задания
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li class="active">Мои задания</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Мои задания</legend>
+{% render_assignment_user_table assignments credits %}
+{% render_assignment_progress assignments %}
+{% endblock content %}

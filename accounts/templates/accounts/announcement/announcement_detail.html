@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load comments %}
+{% load views %}
+
+{% block title %}
+Объявление
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li><a href="{% url 'accounts:announcement-list' %}">Объявления</a></li>
+    <li class="active">{{ announcement }}</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{{ announcement }}</legend>
+<div>
+    <p>{{ text|safe }}</p>
+</div>
+<div class="pull-right text-right">
+    <p>Для группы: <span class="label label-default">{{ announcement.group }}</span></p>
+</div>
+{% endblock content %}
+
+{% block submenu %}
+<ul class="list-group">
+    {% if perms.accounts.change_announcement %}
+    <a href="{% url 'accounts:announcement-update' announcement.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать объявление</a>
+    {% endif %}
+    {% if perms.accounts.delete_announcement %}
+    <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить объявление</a>
+    {% endif %}
+</ul>
+{% endblock submenu %}
+
+{% block javascript %}
+<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML"></script>
+{% endblock javascript %}

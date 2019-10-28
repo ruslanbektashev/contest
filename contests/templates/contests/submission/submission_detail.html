@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static comments contests %}
+
+{% block title %}
+Посылка
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li><a href="{{ submission.problem.contest.course.get_absolute_url }}">{{ submission.problem.contest.course }}</a></li>
+    <li><a href="{{ submission.problem.contest.get_absolute_url }}">{{ submission.problem.contest }}</a></li>
+    <li><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></li>
+    <li class="active">{{ submission.id }}</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{{ submission }}{% if submission.assignment %} [по <a href="{{ submission.assignment.get_absolute_url }}">заданию</a>]{% endif %}</legend>
+<div class="row">
+    <div class="col-md-12" style="margin: 0 0 20px 0;">
+        <div class="progress" style="position: relative; margin: 0 0 20px 0;">
+            <div id="progress-bar" class="progress-bar progress-bar-{{ submission.status|colorize }}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% else %}100{% endif %}%;"></div>
+            <b><span id="progress-bar-message" style="position: absolute; text-align: center; display: block; width: 100%; color: white;">{{ submission.get_status_display }}</span></b>
+        </div>
+        {% if not submission.problem.is_testable %}
+        <span class="btn btn-warning btn-block" title="Решение может быть проверено вручную преподавателем">Автоматическая проверка решения этой задачи временно отключена</span>
+        {% elif submission.is_un %}
+        <a href="{% url 'contests:submission-evaluate' submission.id %}" class="btn btn-primary btn-block">Проверить</a>
+        {% elif perms.contests.add_problem %}
+        <a href="{% url 'contests:submission-evaluate' submission.id %}" class="btn btn-primary btn-block">Проверить еще раз</a>
+        {% endif %}
+    </div>
+    <div id="execution_list" class="col-md-12">
+        {% render_execution_list submission.execution_set.all %}
+    </div>
+</div>
+<legend>Файлы {% if perms.contests.change_submission %}<a href="{% url 'contests:submission-download' submission.id %}" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a><span class="pull-right text-muted" style="height: 31px;"><span style="vertical-align: middle; font-size: 12px;">на сервере: {{ submission.attachment_set.all.0.dirname }}</span></span>{% endif %}</legend>
+<ul class="list-group">
+{% for attachment in submission.attachment_set.all %}
+    {% if perms.contests.change_submission %}
+    <a href="{{ attachment.file.url }}"><li class="list-group-item">{{ attachment.filename }}</li></a>
+    {% else %}
+    <li class="list-group-item">{{ attachment.filename }}</li>
+    {% endif %}
+{% endfor %}
+</ul>
+{% render_comments submission %}
+{% endblock content %}
+
+{% block submenu %}
+<ul class="list-group">
+    {% if perms.contests.delete_submission %}
+    <a href="{% url 'contests:submission-delete' submission.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить посылку</a>
+    {% endif %}
+</ul>
+{% endblock submenu %}
+
+{% block javascript %}
+<script type="text/javascript" src="{% static 'js/task_progress.js' %}"></script>
+<script type="text/javascript">
+{% if submission.task_id %}
+$(function () {
+    let bar = new TaskProgress("{% url 'contests:submission-get-progress' submission.task_id %}", "{% url 'contests:submission-get-executions' submission.id %}");
+    bar.poll();
+});
+{% endif %}
+</script>
+{% endblock javascript %}

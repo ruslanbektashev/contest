@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load comments %}
+
+{% block title %}
+Комментарий
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li class="active">Ответ на комментарий</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Ответ на комментарий</legend>
+<div class="comment-list">
+    <div class="comment-list-item col-md-12">
+        <div class="comment-avatar pull-left">
+
+        </div>
+        <div class="comment-main col-md-11">
+            <div class="comment-header col-md-12">
+                <div class="comment-user pull-left">
+                    <a href="{{ parent.author.account.get_absolute_url }}">
+                        {{ parent.author.account }}
+                    </a>
+                </div>
+                <div class="comment-timesince text-muted pull-left">
+                    {{ parent.timesince }} назад
+                </div>
+            </div>
+            <div class="comment-text col-md-12">
+                {{ parent.text|linebreaksbr }}
+            </div>
+        </div>
+    </div>
+</div>
+{% render_comment_form parent.object parent %}
+{% endblock content %}

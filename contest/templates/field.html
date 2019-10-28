@@ -1,0 +1,24 @@
+<div class="form-group {% if field.errors %} has-error {% endif %}">
+    {% if field.errors %}
+    <div class="col-md-offset-{{ offset|default:'3' }} col-md-{{ width|default:'9' }}">
+        <div class="alert alert-danger">
+            {{ field.errors }}
+        </div>
+    </div>
+    {% endif %}
+    <label for="{{ field.id_for_label }}" class="control-label col-md-{{ offset|default:'3' }}">
+        {{ field.label }}{{ field.label_suffix }}
+    </label>
+    <div class="col-md-{{ width|default:'9' }}">
+        {% if field.help_text and help_text != "no" %}
+        <div class="input-group">
+            {{ field }}
+            <div class="input-group-addon">
+                {{ field.help_text }}
+            </div>
+        </div>
+        {% else %}
+        {{ field }}
+        {% endif %}
+    </div>
+</div>

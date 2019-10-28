@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load forms %}
+
+{% block title %}
+Пользователи
+{% endblock title %}
+{% load forms %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li class="active">Пользователи</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Студенты {% if graduated %}выпускники{% elif enrolled == False %}отчисленные{% endif %}</legend>
+<form id="account_list_form" action="{{ request.get_full_path }}" method="post" class="form-horizontal">
+    {% csrf_token %}
+    {% render_errors form %}
+    {% if form.accounts.errors %}
+    <div class="col-md-12">
+        <div class="alert alert-danger">
+            {{ form.accounts.errors }}
+        </div>
+    </div>
+    {% endif %}
+    <table class="table table-bordered table-condensed table-hover">
+        <thead>
+            <tr>
+                <th class="text-center col-md-1"><input id="check_all" type="checkbox"></th>
+                <th class="text-center">Фамилия, Имя</th>
+                <th class="col-md-2 text-center">Уровень</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in accounts %}
+            <tr>
+                <td class="text-center col-md-1"><input type="checkbox" class="check" name="accounts" value="{{ account.user_id }}"></td>
+                <td><a href="{{ account.get_absolute_url }}">{{ account }}</a></td>
+                <td>{{ account.get_level_display }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td class="text-center" colspan="3">здесь никого нет</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</form>
+{% endblock content %}
+
+{% block submenu %}
+<ul class="list-group">
+    {% for level, level_display in levels %}
+    <a href="{% url 'accounts:account-list' %}?level={{ level }}" class="list-group-item"><i class="fa fa-circle-o fa-fw"></i> {{ level_display }}</a>
+    {% endfor %}
+</ul>
+<ul class="list-group">
+    <a href="{% url 'accounts:account-list' %}?enrolled=0&graduated=1" class="list-group-item"><i class="fa fa-circle-o fa-fw"></i> Выпускники</a>
+    <a href="{% url 'accounts:account-list' %}?enrolled=0" class="list-group-item"><i class="fa fa-circle-o fa-fw"></i> Отчисленные</a>
+</ul>
+<ul class="list-group">
+    {% if perms.accounts.add_account %}
+    <a href="{% url 'accounts:account-create-set' %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Добавить студентов</a>
+    {% endif %}
+</ul>
+<legend>Действия</legend>
+<ul class="list-group">
+    {% if perms.accounts.change_account %}
+    <button type="submit" name="action" form="account_list_form" value="level_up" class="btn btn-info btn-block text-left"><i class="fa fa-level-up fa-fw"></i> Повысить уровень</button>
+    <button type="submit" name="action" form="account_list_form" value="level_down" class="btn btn-info btn-block"><i class="fa fa-level-down fa-fw"></i> Понизить уровень</button>
+    <button type="submit" name="action" form="account_list_form" value="reset_password" class="btn btn-info btn-block"><i class="fa fa-key fa-fw"></i> Сбросить пароль</button>
+    <button type="submit" name="action" form="account_list_form" value="enroll" class="btn btn-info btn-block"><i class="fa fa-undo fa-fw"></i> Восстановить</button>
+    <button type="submit" name="action" form="account_list_form" value="graduate" class="btn btn-success btn-block"><i class="fa fa-graduation-cap fa-fw"></i> Выпустить</button>
+    <button type="submit" name="action" form="account_list_form" value="expel" class="btn btn-danger btn-block"><i class="fa fa-ban fa-fw"></i> Отчислить</button>
+    {% endif %}
+</ul>
+{% endblock submenu %}
+
+{% block javascript %}
+<script type="text/javascript">
+$("#check_all").click(function () {
+    $(".check").prop('checked', $(this).prop('checked'));
+});
+</script>
+{% endblock javascript %}
+

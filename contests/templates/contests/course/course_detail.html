@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load comments %}
+{% load views %}
+
+{% block title %}
+Курс
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li class="active">{{ course }}</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{{ course }}</legend>
+<div>
+    <p>{{ description|safe }}</p>
+</div>
+<div class="pull-right text-right">
+    <p>{{ course.get_level_display }}</p>
+</div>
+{% render_list course.lecture_set.all legend="Лекции" %}
+{% render_list course.contest_set.all legend="Разделы" %}
+{% render_comments course %}
+{% endblock content %}
+
+{% block submenu %}
+<ul class="list-group">
+    {% if perms.contests.add_assignment %}
+    <a href="{% url 'contests:assignment-table' course.id %}" class="list-group-item"><i class="fa fa-table fa-fw"></i> Таблица заданий</a>
+    {% endif %}
+</ul>
+<ul class="list-group">
+    {% if perms.contests.change_course %}
+    <a href="{% url 'contests:course-update' course.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать курс</a>
+    {% endif %}
+    {% if perms.contests.delete_course %}
+    <a href="{% url 'contests:course-delete' course.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить курс</a>
+    {% endif %}
+</ul>
+<ul class="list-group">
+    {% if perms.contests.add_lecture %}
+    <a href="{% url 'contests:lecture-create' course.id %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Добавить лекцию</a>
+    {% endif %}
+    {% if perms.contests.add_contest %}
+    <a href="{% url 'contests:contest-create' course.id %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Добавить раздел</a>
+    {% endif %}
+</ul>
+{% endblock submenu %}
+
+{% block javascript %}
+<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML"></script>
+{% endblock javascript %}

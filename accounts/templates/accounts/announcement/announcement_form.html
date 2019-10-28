@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load forms %}
+
+{% block title %}
+Объявление
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li><a href="{% url 'accounts:announcement-list' %}">Объявления</a></li>
+    {% if announcement %}
+    <li><a href="{{ announcement.get_absolute_url }}">{{ announcement }}</a></li>
+    <li class="active">Редактирование</li>
+    {% else %}
+    <li class="active">Новое объявление</li>
+    {% endif %}
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{% if announcement %}Редактирование{% else %}Добавление{% endif %} объявления</legend>
+<form action="" method="post" class="form-horizontal">
+    {% csrf_token %}
+    {% render_errors form %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="3" width="9" %}
+    {% render_field form.group class+="form-control selectpicker" %}
+    {% render_field form.title class+="form-control" %}
+    {% render_field form.text class+="form-control" rows="5" cols="20" %}
+    {% endwith %}
+    {% render_button value="Сохранить" %}
+</form>
+{% endblock content %}

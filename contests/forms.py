@@ -1,0 +1,317 @@
+import os
+import re
+
+from django import forms
+from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.template.defaultfilters import filesizeformat
+
+from accounts.models import Account
+from .models import Attachment, Contest, Problem, Solution, UTTest, FNTest, Assignment, Submission, Event
+
+
+class UserChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return "{} {}".format(obj.last_name, obj.first_name)
+
+
+"""=================================================== Attachment ==================================================="""
+
+
+class AttachmentForm(forms.ModelForm):
+    FILES_MAX = 10
+    FILES_MIN = 0
+    FILES_SIZE_LIMIT = 1024 * 1024
+    FILES_ALLOWED_NAMES = tuple()
+    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt']
+
+    files = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}), required=False, label="Файлы")
+
+    class Meta:
+        abstract = True
+        model = Attachment
+        fields = []
+
+    def clean_files(self):
+        if not self.files and self.FILES_MIN == 0:
+            return self.files
+        elif not self.files:
+            raise ValidationError(
+                'Выберите хотя бы %(files_min)i файл для посылки',
+                code='not_enough_files',
+                params={'files_min': self.FILES_MIN}
+            )
+        files = self.files.getlist('files')
+        if len(files) > self.FILES_MAX:
+            raise ValidationError(
+                'Слишком много файлов. Допустимо посылать не более %(files_max)i',
+                code='too_many_files',
+                params={'files_max': self.FILES_MAX}
+            )
+        else:
+            for file in files:
+                if file.size > self.FILES_SIZE_LIMIT:
+                    raise ValidationError(
+                        'Размер каждого файла не должен превышать %(files_size_limit)s',
+                        code='large_file',
+                        params={'files_size_limit': filesizeformat(self.FILES_SIZE_LIMIT)}
+                    )
+                filename = os.path.splitext(file.name)
+                if not filename[1].lower() in self.FILES_ALLOWED_EXTENSIONS:
+                    if not filename[0].startswith(self.FILES_ALLOWED_NAMES):
+                        raise ValidationError(
+                            'Допустимы только файлы с расширениями: %(files_allowed_extensions)s',
+                            code='invalid_extension',
+                            params={'files_allowed_extensions': ', '.join(self.FILES_ALLOWED_EXTENSIONS)}
+                        )
+        return files
+
+    def save(self, commit=True):
+        obj = super().save()
+        if self.files:
+            files = self.files.getlist('files')
+            instance_type = ContentType.objects.get_for_model(obj)
+            new_attachments = []
+            for file in files:
+                new_attachment = Attachment(owner=obj.owner,
+                                            object_type=instance_type,
+                                            object_id=obj.id,
+                                            file=file)
+                new_attachments.append(new_attachment)
+            Attachment.objects.bulk_create(new_attachments)
+        return obj
+
+
+"""===================================================== Credit ====================================================="""
+
+
+class CreditSetForm(forms.Form):
+    runner_ups = forms.ModelMultipleChoiceField(queryset=Account.objects.none(), required=False,
+                                                label="Перевести на этот курс и назначить зачет")
+    non_credited = forms.ModelMultipleChoiceField(queryset=Account.objects.none(), required=False,
+                                                  label="Назначить зачет")
+
+    def __init__(self, course, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        runner_ups = Account.students.enrolled().filter(level=course.level - 1).with_credits()
+        self.fields['runner_ups'].queryset = runner_ups
+        self.fields['runner_ups'].initial = runner_ups.filter(credit_score__gt=2)
+        non_credited = Account.students.enrolled().filter(level=course.level).none_credits()
+        self.fields['non_credited'].queryset = non_credited
+        self.fields['non_credited'].initial = non_credited
+
+
+"""==================================================== Contest ====================================================="""
+
+
+class ContestForm(AttachmentForm):
+    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx']
+
+    class Meta:
+        model = Contest
+        fields = ['title', 'description']
+
+
+"""==================================================== Problem ====================================================="""
+
+
+class ProblemForm(AttachmentForm):
+    class Meta:
+        model = Problem
+        fields = ['title', 'description', 'difficulty', 'language', 'compile_args', 'launch_args', 'time_limit',
+                  'memory_limit', 'is_testable']
+        help_texts = {
+            'time_limit': "секунд",
+            'memory_limit': "КБайт"
+        }
+
+
+"""==================================================== Solution ===================================================="""
+
+
+class SolutionForm(forms.ModelForm):
+    class Meta:
+        model = Solution
+        fields = ['problems', 'title', 'description', 'pattern']
+
+    def __init__(self, *args, problem=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['problems'].choices = grouped_problems(None, problem.contest, multiple=True)
+        self.fields['problems'].initial = (problem,)
+
+
+"""===================================================== UTTest ====================================================="""
+
+
+class UTTestForm(AttachmentForm):
+    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp']
+
+    class Meta:
+        model = UTTest
+        fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override']
+
+
+"""===================================================== FNTest ====================================================="""
+
+
+class FNTestForm(forms.ModelForm):
+    class Meta:
+        model = FNTest
+        fields = ['problems', 'title', 'handler']
+
+    def __init__(self, *args, problem=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['problems'].choices = grouped_problems(None, problem.contest, multiple=True)
+        self.fields['problems'].initial = (problem,)
+
+
+"""=================================================== Assignment ==================================================="""
+
+
+class AssignmentForm(forms.ModelForm):
+    user = UserChoiceField(queryset=User.objects.none(), label="Студент")
+
+    class Meta:
+        model = Assignment
+        fields = ['user', 'problem', 'score', 'score_max', 'submission_limit', 'remark']
+        help_texts = {
+            'remark': "доступно только преподавателям",
+            'submission_limit': "попыток"
+        }
+
+    def __init__(self, course, *args, contest=None, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['user'].queryset = (User.objects
+                                        .filter(groups__name='Студент', account__enrolled=True,
+                                                account__level=course.level)
+                                        .order_by('last_name', 'first_name'))
+        if user:
+            self.fields['user'].initial = user
+        self.fields['problem'].choices = grouped_problems(course, contest)
+
+
+class AssignmentUpdateForm(forms.ModelForm):
+    user = UserChoiceField(queryset=User.objects.all(), label="Студент", disabled=True)
+
+    class Meta(AssignmentForm.Meta):
+        pass
+
+    def __init__(self, course, *args, contest=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['problem'].choices = grouped_problems(course, contest)
+
+
+class AssignmentSetForm(forms.Form):
+    contest = forms.ModelChoiceField(queryset=Contest.objects.none(), label="Раздел")
+    limit_per_user = forms.IntegerField(min_value=1, max_value=5, initial=1, label="Дополнить до", help_text="заданий")
+
+    def __init__(self, course, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['contest'].queryset = course.contest_set.all()
+
+
+# TODO: refactor
+def grouped_problems(course, contest, multiple=False):
+    grouped = []
+    if not multiple:
+        grouped.append((0, '---------'))
+    if contest:
+        contests = [contest]
+    else:
+        contests = course.contest_set.all()
+    for contest in contests:
+        problems = []
+        for problem in contest.problem_set.all():
+            problems.append((problem.id, problem))
+        group = (contest, problems)
+        grouped.append(group)
+    return grouped
+
+
+"""=================================================== Submission ==================================================="""
+
+
+class SubmissionForm(AttachmentForm):
+    FILES_MIN = 1
+
+    class Meta:
+        model = Submission
+        fields = []
+
+    def __init__(self, *args, **kwargs):
+        self.owner = kwargs.pop('owner', None)
+        self.problem = kwargs.pop('problem', None)
+        super().__init__(*args, **kwargs)
+
+    def clean_files(self):
+        files = super().clean_files()
+        solutions = self.problem.solution_set.all()
+        if solutions.exists():
+            patterns = []
+            for solution in solutions:
+                patterns.extend(solution.pattern.split())
+            if len(patterns) != len(files):
+                raise ValidationError(
+                    'Количество файлов не соответствует комплекту поставки решения',
+                    code='no_match'
+                )
+            label = None
+            for f in files:
+                for ptn in patterns:
+                    match = re.match(ptn, f.name)
+                    if match:
+                        patterns.remove(ptn)
+                        if label is None:
+                            label = match.group(1)
+                        elif label != match.group(1):
+                            raise ValidationError(
+                                'Идентификаторы в именах файлов не совпадают',
+                                code='label_mismatch'
+                            )
+                        break
+                else:
+                    raise ValidationError(
+                        'Некорректное имя файла: %(filename)s',
+                        code='invalid_filename',
+                        params={'filename': f.name}
+                    )
+            if int(label[-2:]) != self.problem.number:
+                raise ValidationError(
+                    'Идентификатор %(label)s не соответствует комплекту поставки решения',
+                    code='wrong_label',
+                    params={'label': label}
+                )
+        return files
+
+    def clean(self):
+        last_submission = self.problem.get_latest_submission_by(self.owner)
+        if last_submission and last_submission.is_un:
+            raise ValidationError(
+                'Последнее присланное решение еще не проверено',
+                code='last_submission_is_un'
+            )
+        try:
+            assignment = Assignment.objects.get(user=self.owner, problem=self.problem)
+        except ObjectDoesNotExist:
+            pass
+        else:
+            nsubmissions = Submission.objects.filter(owner=self.owner, problem=self.problem).count()
+            if nsubmissions >= assignment.submission_limit:
+                raise ValidationError(
+                    'Количество попыток исчерпано',
+                    code='limit_reached'
+                )
+        return super().clean()
+
+
+"""===================================================== Event ======================================================"""
+
+
+class EventForm(forms.ModelForm):
+    tutor = UserChoiceField(queryset=User.objects.filter(groups__name='Преподаватель'), required=False,
+                            label="Преподаватель")
+
+    class Meta:
+        model = Event
+        fields = ['tutor', 'title', 'type', 'place', 'date_start', 'date_end', 'tags']

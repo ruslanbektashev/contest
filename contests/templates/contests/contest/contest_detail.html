@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load attachments %}
+{% load comments %}
+{% load views %}
+
+{% block title %}
+Раздел
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li><a href="{{ contest.course.get_absolute_url }}">{{ contest.course }}</a></li>
+    <li class="active">{{ contest }}</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{{ contest }}</legend>
+<div>
+    <p>{{ description|safe }}</p>
+</div>
+{% render_attachment_list contest %}
+{% render_list contest.problem_set.all legend="Задачи" %}
+{% render_comments contest %}
+{% endblock content %}
+
+{% block submenu %}
+<ul class="list-group">
+    {% if perms.contests.change_contest %}
+    <a href="{% url 'contests:contest-update' contest.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать раздел</a>
+    {% endif %}
+    {% if perms.contests.delete_contest %}
+    <a href="{% url 'contests:contest-delete' contest.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить раздел</a>
+    {% endif %}
+</ul>
+<ul class="list-group">
+    {% if perms.contests.add_problem %}
+    <a href="{% url 'contests:problem-create' contest.id %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Добавить задачу</a>
+    {% endif %}
+</ul>
+{% endblock submenu %}
+
+{% block javascript %}
+<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML"></script>
+{% endblock javascript %}

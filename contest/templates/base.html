@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru" style="overflow-y: scroll;">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        <title>{% block title %}Главная{% endblock title %} | МГУ Контест</title>
+        <link rel="stylesheet" href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}"/>
+        <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+        <link rel="stylesheet" href="{% static 'bootstrap-select/dist/css/bootstrap-select.min.css' %}"/>
+        {% block stylesheets %}
+        {% endblock stylesheets %}
+    </head>
+    <body>
+        {% block navigation %}
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="{% url 'contests:index' %}">МГУ <i class="fa fa-graduation-cap fa-lg"></i> Контест<sup> beta</sup></a>
+                </div>
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <ul class="nav navbar-nav">
+                        {% if request.user.is_authenticated %}
+                        <li title="Расписание"><a href="{% url 'contests:event-schedule' %}"><i class="fa fa-calendar fa-fw"></i> Расписание</a></li>
+                        <li title="Объявления"><a href="{% url 'accounts:announcement-list' %}"><i class="fa fa-info fa-fw"></i> Новости</a></li>
+                        <li title="Помощь"><a href="{% url 'support:faq-list' %}"><i class="fa fa-question fa-fw"></i> Помощь</a></li>
+                        {% if request.user.is_staff %}
+                        <li title="Админка"><a href="{% url 'admin:index' %}"><i class="fa fa-gear fa-spin fa-fw"></i> Админка</a></li>
+                        {% endif %}
+                        {% endif %}
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        {% if request.user.is_authenticated %}
+                        <li class="dropdown">
+                            <a id="dLabel" class="dropdown-toggle" href="" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                {{ request.user.account }} <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="dLabel">
+                                <li title="Профиль"><a href="{{ request.user.account.get_absolute_url }}"><i class="fa fa-user-o fa-fw"></i> Профиль</a></li>
+                                {% with request.user.notifications.unread.count as notification_count %}
+                                <li title="Оповещения"><a href="{% url 'accounts:activity-list' %}"><i class="fa fa-bell-o fa-fw"></i> Оповещения{% if notification_count %} <span class="badge">{{ notification_count }}</span>{% endif %}</a></li>
+                                {% endwith %}
+                                {% with request.user.received_messages.unread.count as messages_count %}
+                                <li title="Сообщения"><a href="{% url 'accounts:chat-list' %}"><i class="fa fa-envelope-o fa-fw"></i> Сообщения{% if messages_count %} <span class="badge">{{ messages_count }}</span>{% endif %}</a></li>
+                                {% endwith %}
+                                <li role="separator" class="divider"></li>
+                                <li title="Выйти"><a href="{% url 'logout' %}"><i class="fa fa-sign-out fa-fw"></i> Выйти</a></li>
+                            </ul>
+                        </li>
+                        {% else %}
+                        <li><a href="{% url 'password-reset' %}">Забыли пароль?</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        {% endblock navigation %}
+        <div class="container">
+            {% block container %}
+            <div class="main row">
+                <div class="content col-md-9 col-xs-12 pull-left">
+                    {% block breadcrumbs %}
+                    {% endblock breadcrumbs %}
+                    {% block content %}
+                    {% endblock content %}
+                </div>
+                <div class="col-md-3 col-xs-12 pull-right">
+                    {% if not perms.contests.add_course %}
+                    <ul class="list-group">
+                        <a href="{% url 'contests:course-list' %}" class="list-group-item"><i class="fa fa-book fa-fw"></i> Курсы</a>
+                    </ul>
+                    <ul class="list-group">
+                        <a href="{% url 'contests:assignment-list' %}" class="list-group-item"><i class="fa fa-list-ol fa-fw"></i> Мои задания</a>
+                    </ul>
+                    {% endif %}
+                    {% block submenu %}
+                    {% endblock submenu %}
+                </div>
+            </div>
+            {% endblock container %}
+        </div>
+        {% block footer %}
+        <div class="footer text-center">
+            <div class="container">
+                <p class="copyright">Филиал МГУ им. М.В. Ломоносова в г. Ташкент &copy; {% now "Y" %}</p>
+            </div>
+        </div>
+        {% endblock footer %}
+        <script type="text/javascript" src="{% static 'jquery/dist/jquery.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'bootstrap/dist/js/bootstrap.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'bootstrap-select/dist/js/bootstrap-select.min.js' %}"></script>
+        <script type="text/javascript">
+        $(function () {
+            $('.selectpicker').selectpicker({
+                style: 'form-control'
+            });
+        });
+        </script>
+        {% block javascript %}
+        {% endblock javascript %}
+    </body>
+</html>

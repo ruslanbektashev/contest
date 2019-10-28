@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load forms %}
+
+{% block title %}
+Файл
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li><a href="{{ attachment.object.get_absolute_url }}">{{ attachment.object }}</a></li>
+    <li>{{ attachment }}</li>
+    <li class="active">Удаление</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Удаление файла</legend>
+{% render_delete_form attachment %}
+{% endblock content %}

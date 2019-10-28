@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load forms %}
+
+{% block title %}
+Тест
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    {% if fntest %}
+    <li><a href="{{ fntest.get_absolute_url }}">{{ fntest }}</a></li>
+    <li class="active">Редактирование</li>
+    {% else %}
+    <li class="active">Новый FN-тест</li>
+    {% endif %}
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{% if fntest %}Редактирование{% else %}Добавление{% endif %} FN-теста</legend>
+<form action="" method="post" class="form-horizontal">
+    {% csrf_token %}
+    {% render_errors form %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="3" width="9" %}
+    {% render_field form.problems class+="form-control selectpicker" data-none-selected-text="---------" data-actions-box="true" data-select-all-text="Выбрать все" data-deselect-all-text="Очистить выбор" %}
+    {% render_field form.title class+="form-control" %}
+    {% render_field form.handler class+="form-control selectpicker" %}
+    {% endwith %}
+    {% render_button value="Сохранить" %}
+</form>
+{% endblock content %}

@@ -1,0 +1,11 @@
+<form action="" method="post" class="form-horizontal">
+    {% csrf_token %}
+    <div class="alert alert-danger" role="alert">
+        <p>Вы точно хотите удалить: {{ obj }}?</p>
+    </div>
+    <div class="form-group">
+        <div class="col-md-12">
+            <input class="btn btn-primary btn-block" type="submit" value="Удалить" />
+        </div>
+    </div>
+</form>

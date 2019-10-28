@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load attachments %}
+
+{% block title %}
+Тест
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li><a href="{{ uttest.problem.contest.course.get_absolute_url }}">{{ uttest.problem.contest.course }}</a></li>
+    <li><a href="{{ uttest.problem.contest.get_absolute_url }}">{{ uttest.problem.contest }}</a></li>
+    <li><a href="{{ uttest.problem.get_absolute_url }}">{{ uttest.problem }}</a></li>
+    <li class="active">{{ uttest }}</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{{ uttest }}</legend>
+<div>
+    <p>Параметры компиляции:
+        <code>{{ uttest.compile_args|default:"не указаны" }}</code>
+        {% if uttest.compile_args_override %}
+        <span title="Затирают параметры задачи!" class="label label-danger"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+        {% else %}
+        <span title="Дополняют параметры задачи!" class="label label-info"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+        {% endif %}
+    </p>
+    <p>Параметры запуска:
+        <code>{{ uttest.launch_args|default:"не указаны" }}</code>
+        {% if uttest.launch_args_override %}
+        <span title="Затирают параметры задачи!" class="label label-danger"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+        {% else %}
+        <span title="Дополняют параметры задачи!" class="label label-info"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+        {% endif %}
+    </p>
+</div>
+{% render_attachment_list uttest %}
+{% endblock content %}
+
+{% block submenu %}
+<ul class="list-group">
+    {% if perms.contests.change_uttest %}
+    <a href="{% url 'contests:uttest-update' uttest.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать UT-тест</a>
+    {% endif %}
+    {% if perms.contests.delete_uttest %}
+    <a href="{% url 'contests:uttest-delete' uttest.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить UT-тест</a>
+    {% endif %}
+</ul>
+{% endblock submenu %}

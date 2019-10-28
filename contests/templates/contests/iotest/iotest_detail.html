@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Тест
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li><a href="{{ iotest.problem.contest.course.get_absolute_url }}">{{ iotest.problem.contest.course }}</a></li>
+    <li><a href="{{ iotest.problem.contest.get_absolute_url }}">{{ iotest.problem.contest }}</a></li>
+    <li><a href="{{ iotest.problem.get_absolute_url }}">{{ iotest.problem }}</a></li>
+    <li class="active">{{ iotest }}</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{{ iotest }}</legend>
+<div>
+    <p>Параметры компиляции:
+        <code>{{ iotest.compile_args|default:"не указаны" }}</code>
+        {% if iotest.compile_args_override %}
+        <span title="Затирают параметры задачи!" class="label label-danger"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+        {% else %}
+        <span title="Дополняют параметры задачи!" class="label label-info"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+        {% endif %}
+    </p>
+    <p>Параметры запуска:
+        <code>{{ iotest.launch_args|default:"не указаны" }}</code>
+        {% if iotest.launch_args_override %}
+        <span title="Затирают параметры задачи!" class="label label-danger"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+        {% else %}
+        <span title="Дополняют параметры задачи!" class="label label-info"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+        {% endif %}
+    </p>
+    <p>Входные данные:
+        <pre>{{ iotest.input }}</pre>
+    </p>
+    <p>Выходные данные:
+        <pre>{{ iotest.output }}</pre>
+    </p>
+</div>
+{% endblock content %}
+
+{% block submenu %}
+<ul class="list-group">
+    {% if perms.contests.change_iotest %}
+    <a href="{% url 'contests:iotest-update' iotest.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать IO-тест</a>
+    {% endif %}
+    {% if perms.contests.delete_iotest %}
+    <a href="{% url 'contests:iotest-delete' iotest.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить IO-тест</a>
+    {% endif %}
+</ul>
+{% endblock submenu %}

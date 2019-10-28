@@ -1,0 +1,39 @@
+{% if submissions %}
+{% load contests paginator %}
+<legend>Посылки</legend>
+<table id="panchor" class="table table-bordered table-condensed">
+    <thead>
+        <tr>
+            <th class="col-md-1 text-center">Дата</th>
+            {% if perms.contests.add_problem and not assignment %}
+            <th>Студент</th>
+            {% endif %}
+            {% if not assignment and not problem %}
+            <th class="col-md-7">Задача</th>
+            {% endif %}
+            <th class="col-md-1 text-center">Статус</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for submission in page_obj %}
+        <tr>
+            <td class="text-center">{{ submission.date_created|date:'d.m.y' }}</td>
+            {% if perms.contests.add_problem and not assignment %}
+            <td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>
+            {% endif %}
+            {% if not assignment and not problem %}
+            <td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td>
+            {% endif %}
+            <td class="text-center">
+                <a href="{{ submission.get_absolute_url }}">
+                    <span class="label {% get_label submission.status %}" title="{{ submission.get_status_display }}">
+                        {{ submission.status }}
+                    </span>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% render_page_nav %}
+{% endif %}

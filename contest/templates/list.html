@@ -1,0 +1,10 @@
+{% if lst %}
+{% if legend %}
+<legend>{{ legend }}</legend>
+{% endif %}
+<ul class="list-group">
+    {% for obj in lst %}
+    <a href="{{ obj.get_absolute_url }}"><li class="list-group-item">{{ obj }}</li></a>
+    {% endfor %}
+</ul>
+{% endif %}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load comments %}
+
+{% block title %}
+Лекция
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li><a href="{{ lecture.course.get_absolute_url }}">{{ lecture.course }}</a></li>
+    <li class="active">{{ lecture }}</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{{ lecture }}</legend>
+<div>
+    <p>{{ description|safe }}</p>
+</div>
+{% render_comments lecture %}
+{% endblock content %}
+
+{% block submenu %}
+<ul class="list-group">
+    {% if perms.contests.change_lecture %}
+    <a href="{% url 'contests:lecture-update' lecture.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать лекцию</a>
+    {% endif %}
+    {% if perms.contests.delete_lecture %}
+    <a href="{% url 'contests:lecture-delete' lecture.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить лекцию</a>
+    {% endif %}
+</ul>
+{% endblock submenu %}
+
+{% block javascript %}
+<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML"></script>
+{% endblock javascript %}

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load views %}
+
+{% block title %}
+Курсы
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li class="active">Курсы</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Список курсов</legend>
+{% render_list courses %}
+{% endblock content %}
+
+{% block submenu %}
+<ul class="list-group">
+    {% if perms.contests.add_course %}
+    <a href="{% url 'contests:course-create' %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Добавить курс</a>
+    {% endif %}
+</ul>
+{% endblock submenu %}

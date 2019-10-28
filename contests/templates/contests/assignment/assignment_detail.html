@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load comments %}
+{% load contests %}
+
+{% block title %}
+Задание
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    {% if perms.contests.add_assignment %}
+    <li><a href="{{ assignment.problem.contest.course.get_absolute_url }}">{{ assignment.problem.contest.course }}</a></li>
+    <li><a href="{% url 'contests:assignment-table' assignment.problem.contest.course.id %}">Задания</a></li>
+    {% else %}
+    <li><a href="{% url 'contests:assignment-list' %}">Мои задания</a></li>
+    {% endif %}
+    <li class="active">{{ assignment }}</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Задание</legend>
+<div>
+    <table class="table table-condensed">
+        <tr><td class="col-md-2 text-right">Студент</td><td><a href="{{ assignment.user.account.get_absolute_url }}">{{ assignment.user.account }}</a></td></tr>
+        <tr><td class="col-md-2 text-right">Задача</td><td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td></tr>
+        <tr><td class="col-md-2 text-right">Оценка</td><td><span class="label {% get_label assignment.score %}">{{ assignment.score|default:'-' }}</span></td></tr>
+        <tr><td class="col-md-2 text-right">Посылок</td><td>{{ assignment.get_submissions.count }} / {{ assignment.submission_limit }}</td></tr>
+        {% if perms.contests.change_assignment %}
+        <tr title="Отображается только преподавателям"><td class="col-md-2 text-right text-warning"><i class="fa fa-lock fa-fw"></i>Пометка</td><td>{{ assignment.remark }}</td></tr>
+        {% endif %}
+    </table>
+</div>
+{% render_submission_table %}
+{% render_comments assignment %}
+{% endblock content %}
+
+{% block submenu %}
+<ul class="list-group">
+    {% if perms.contests.change_assignment %}
+    <a href="{% url 'contests:assignment-update' assignment.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать задание</a>
+    {% endif %}
+    {% if perms.contests.delete_assignment %}
+    <a href="{% url 'contests:assignment-delete' assignment.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить задание</a>
+    {% endif %}
+    {% if request.user == assignment.user %}
+    {% if assignment.submission_limit > assignment.get_submissions.count %}
+    <a href="{% url 'contests:submission-create' assignment.problem.id %}" class="btn btn-info btn-block"><i class="fa fa-file-code-o fa-fw"></i> Отправить решение</a>
+    {% else %}
+    <button class="btn btn-warning btn-block">Все попытки потрачены</button>
+    {% endif %}
+    {% endif %}
+</ul>
+{% endblock submenu %}

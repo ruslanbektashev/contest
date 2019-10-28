@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load contests %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="active">Главная</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<div class="row">
+    {% for course in courses %}
+    <div class="col-md-6">
+        <div class="thumbnail lake">
+            <table class="table table-condensed" style="margin-bottom: 5px;" title="последние посылки по заданиям">
+                <thead>
+                    <tr>
+                        <th colspan="3"><a href="{% url 'contests:course-detail' course.id %}">{{ course.title }}</a></th>
+                    </tr>
+                </thead>
+                <tbody style="min-height: 93px; display: block;">
+                    {% for submission in course.get_latest_submissions|slice:':3' %}
+                    <tr>
+                        <td class="col-md-2 text-center">{{ submission.date_created|date:'d.m.y' }}</td>
+                        <td >
+                            <a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a>
+                        </td>
+                        <td class="col-md-1 text-center">
+                            <a href="{{ submission.get_absolute_url }}">
+                                <span class="label {% get_label submission.status %}" title="{{ submission.get_status_display }}">
+                                    {{ submission.status }}
+                                </span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <a href="{% url 'contests:assignment-table' course.id %}" class="btn btn-primary btn-block pebble"><i class="fa fa-table fa-fw"></i> Таблица заданий</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock content %}
+
+{% block submenu %}
+<ul class="list-group">
+    <a href="{% url 'contests:submission-list' %}" class="list-group-item"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
+    <a href="{% url 'accounts:account-list' %}" class="list-group-item"><i class="fa fa-users fa-fw"></i> Студенты</a>
+</ul>
+{% endblock submenu %}

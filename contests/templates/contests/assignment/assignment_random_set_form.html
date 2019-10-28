@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load forms %}
+
+{% block title %}
+Задания
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li><a href="{{ course.get_absolute_url }}">{{ course }}</a></li>
+    <li><a href="{% url 'contests:assignment-table' course.id %}">Задания</a></li>
+    <li class="active">Случайные задания</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Добавление случайного набора задач</legend>
+<form action="" method="post" class="form-horizontal">
+    {% csrf_token %}
+    {% render_errors form %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="2" width="10" %}
+    {% render_field form.contest class+="form-control selectpicker" %}
+    {% render_field form.limit_per_user class+="form-control selectpicker" %}
+    {% endwith %}
+    {% render_button value="Распределить" %}
+</form>
+{% endblock content %}

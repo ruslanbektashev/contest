@@ -1,0 +1,75 @@
+{% load contests %}
+{% for execution in executions %}
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <span>
+            {% if execution.test_is_passed %}
+            <span class="label label-success" title="Тест пройден"><i class="fa fa-check fa-fw"></i></span>
+            {% else %}
+            <span class="label label-warning" title="Тест провален"><i class="fa fa-close fa-fw"></i></span>
+            {% endif %}
+            <span style="margin: 0 0 0 10px;">
+            {% if request.user.is_staff and execution.test %}
+            <a href="{{ execution.test.get_absolute_url }}">{{ execution.test }}</a>
+            {% else %}
+            Тест {{ forloop.counter }}
+            {% endif %}
+            </span>
+        </span>
+        <span class="pull-right">
+            <span class="text-muted" style="margin: 0 10px 0 0;">{{ execution.date_created|date:'d.m.y, H:i' }}</span>
+            <a href="#test_{{ execution.test.id }}_{{ forloop.counter }}" data-toggle="collapse" aria-expanded="false" aria-controls="test_{{ execution.test.id }}_{{ forloop.counter }}"><i class="fa fa-angle-down fa-lg"></i></a>
+        </span>
+    </div>
+    <div class="panel-body collapse {% if not execution.test_is_passed %}in{% endif %}" id="test_{{ execution.test.id }}_{{ forloop.counter }}">
+        <table class="table table-condensed">
+            <tr><td class="col-md-3 text-right">Команда компиляции</td><td><code>{{ execution.compilation_command|remove_pwd|default:"-" }}</code></td></tr>
+            <tr><td class="col-md-3 text-right">Время компиляции</td><td>{{ execution.compilation_time|floatformat:"-4" }} с</td></tr>
+            <tr><td class="col-md-3 text-right">Команда исполнения</td><td><code>{{ execution.execution_command|remove_pwd|default:"-" }}</code></td></tr>
+            <tr><td class="col-md-3 text-right">Время исполнения</td><td>{{ execution.execution_time|floatformat:"-4" }} с</td></tr>
+            <tr><td class="col-md-3 text-right">Код возврата</td><td>{{ execution.execution_returncode }}</td></tr>
+            <tr><td class="col-md-3 text-right">Использовано памяти</td><td>{{ execution.execution_memory|filesizeformat }}</td></tr>
+        </table>
+    {% if execution.compilation_stdout %}
+        <span class="label label-default">Вывод компилятора в stdout:</span>
+        <pre>{{ execution.compilation_stdout|remove_pwd }}</pre>
+    {% endif %}
+    {% if execution.compilation_stderr %}
+        <span class="label label-default">Вывод компилятора в stderr:</span>
+        <pre>{{ execution.compilation_stderr|remove_pwd }}</pre>
+    {% endif %}
+    {% if request.user.is_staff %}
+        {% if execution.execution_stdout %}
+        <span title="Отображается только для преподавателя" class="label label-warning"><i class="fa fa-lock fa-fw"></i>Вывод программы в stdout:</span>
+        <pre>{{ execution.execution_stdout }}</pre>
+        {% endif %}
+        {% if execution.execution_stderr %}
+        <span title="Отображается только для преподавателя" class="label label-warning"><i class="fa fa-lock fa-fw"></i>Вывод программы в stderr:</span>
+        <pre>{{ execution.execution_stderr }}</pre>
+        {% endif %}
+    {% endif %}
+    {% if execution.test_input %}
+        <span class="label label-default">Входные данные:</span>
+        <pre>{{ execution.test_input|linebreaksbr }}</pre>
+    {% endif %}
+    {% if execution.test_output %}
+        <span class="label label-default">Выходные данные:</span>
+        <pre>{{ execution.test_output|linebreaksbr }}</pre>
+    {% endif %}
+    {% if execution.test_output_correct %}
+        <span class="label label-default">Верные выходные данные:</span>
+        <pre>{{ execution.test_output_correct|linebreaksbr }}</pre>
+    {% endif %}
+    {% if execution.test_summary %}
+        <span class="label label-default">Сводка:</span>
+        <pre>{{ execution.test_summary|linebreaksbr }}</pre>
+    {% endif %}
+    {% if request.user.is_staff %}
+        {% if execution.exception %}
+        <span title="Отображается только для преподавателя" class="label label-warning">Исключение: <i class="fa fa-lock fa-fw"></i></span>
+        <pre>{{ execution.exception }}</pre>
+        {% endif %}
+    {% endif %}
+    </div>
+</div>
+{% endfor %}

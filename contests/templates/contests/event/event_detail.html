@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load views %}
+
+{% block title %}
+Событие
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li><a href="{% url 'contests:event-schedule' %}">Расписание</a></li>
+    <li class="active">{{ event }}</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{{ event }}</legend>
+<div>
+    <p>Место проведения: {{ event.place|default:'-' }}</p>
+    <p>Преподаватель: {{ event.tutor.account }}</p>
+</div>
+<div class="pull-right text-right">
+    {% if event.tags.all %}
+    <p>Метки:
+    {% for tag in event.tags.all %}
+        <a href="{{ tag.object.get_absolute_url }}"><span class="label label-default">{{ tag }}</span></a>
+    {% endfor %}
+    {% endif %}
+    </p>
+    <p>Начало: {{ event.date_start|date:'d.m.y, H:i' }}</p>
+    <p>Окончание: {{ event.date_end|date:'d.m.y, H:i' }}</p>
+</div>
+{% endblock content %}
+
+{% block submenu %}
+<ul class="list-group">
+    {% if perms.contests.change_event %}
+    <a href="{% url 'contests:event-update' event.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать событие</a>
+    {% endif %}
+    {% if perms.contests.delete_event %}
+    <a href="{% url 'contests:event-delete' event.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить событие</a>
+    {% endif %}
+</ul>
+{% endblock submenu %}

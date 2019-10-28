@@ -1,0 +1,17 @@
+{% load forms %}
+<form action="{% url 'accounts:comment-create' %}" method="post" class="form-horizontal">
+    {% csrf_token %}
+    {{ form.parent_id }}
+    {{ form.object_type }}
+    {{ form.object_id }}
+    <div class="form-group">
+        <div class="col-md-12">
+            {% render_field form.text class+="form-control" rows="3" cols="20" placeholder="Ваш комментарий" %}
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-12">
+            <input class="btn btn-primary btn-block" type="submit" value="Отправить" tabindex="0"/>
+        </div>
+    </div>
+</form>
