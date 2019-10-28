@@ -74,6 +74,7 @@ contest/server_settings.py*
 contest/bower_components/
 contest/bower_components_old/
 upload/
+celery.sh
 
 # Private Tests
 tools/
