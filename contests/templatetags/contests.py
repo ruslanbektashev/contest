@@ -1,6 +1,6 @@
 from django import template
 
-from tools.sandbox import secure
+from tools.security import secure
 
 register = template.Library()
 
