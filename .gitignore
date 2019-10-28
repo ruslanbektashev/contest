@@ -75,6 +75,7 @@ contest/bower_components/
 contest/bower_components_old/
 upload/
 celery.sh
+test.py
 
 # Private Tests
 tools/
