@@ -236,7 +236,7 @@ class Problem(CRUDEntry):
             try:
                 state, stats = test.run(submission.files, observer, self)
             except Exception as e:
-                state, stats['exception'] = Status.PE, str(e)
+                state, stats['exception'] = Status.EX, str(e)
             executions.append((test, stats))
             if state != Status.OK:
                 break
@@ -513,6 +513,7 @@ class Submission(CRDEntry):
         ('CE', "Ошибка компиляции"),
         ('UE', "Ошибка кодировки"),
         ('PE', "Ошибка комплектации"),
+        ('EX', "Неизвестная ошибка"),
         ('UN', "Посылка не проверена")
     )
     DEFAULT_STATUS = 'UN'

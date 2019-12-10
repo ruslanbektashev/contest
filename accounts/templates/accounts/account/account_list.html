@@ -52,13 +52,13 @@
 
 {% block submenu %}
 <ul class="list-group">
-    {% for level, level_display in levels %}
-    <a href="{% url 'accounts:account-list' %}?level={{ level }}" class="list-group-item"><i class="fa fa-circle-o fa-fw"></i> {{ level_display }}</a>
+    {% for lvl, lvl_display in levels %}
+    <a href="{% url 'accounts:account-list' %}?level={{ lvl }}" class="list-group-item"><i class="fa fa-circle{% if enrolled is None and lvl != level %}-o{% endif %} fa-fw"></i> {{ lvl_display }}</a>
     {% endfor %}
 </ul>
 <ul class="list-group">
-    <a href="{% url 'accounts:account-list' %}?enrolled=0&graduated=1" class="list-group-item"><i class="fa fa-circle-o fa-fw"></i> Выпускники</a>
-    <a href="{% url 'accounts:account-list' %}?enrolled=0" class="list-group-item"><i class="fa fa-circle-o fa-fw"></i> Отчисленные</a>
+    <a href="{% url 'accounts:account-list' %}?enrolled=0&graduated=1" class="list-group-item"><i class="fa fa-circle{% if enrolled or not graduated %}-o{% endif %} fa-fw"></i> Выпускники</a>
+    <a href="{% url 'accounts:account-list' %}?enrolled=0" class="list-group-item"><i class="fa fa-circle{% if enrolled or graduated %}-o{% endif %} fa-fw"></i> Отчисленные</a>
 </ul>
 <ul class="list-group">
     {% if perms.accounts.add_account %}

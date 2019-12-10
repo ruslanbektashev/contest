@@ -242,7 +242,7 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         context['description'] = markdown(self.object.description)
         context['contest_description'] = markdown(self.object.contest.description)
         context['latest_submission'] = self.object.get_latest_submission_by(self.request.user)
-        if self.request.user.is_staff:
+        if self.request.user.has_perm('contests.add_problem'):
             submissions = self.object.submission_set.all()
         else:
             submissions = self.object.submission_set.filter(owner_id=self.request.user.id)
@@ -999,7 +999,7 @@ class CourseStart(LoginRequiredMixin, PermissionRequiredMixin, FormView):
 
 @login_required
 def index(request):
-    if request.user.is_staff:
+    if request.user.has_perm('contests.add_problem'):
         return render(request, 'contests/index.html', {'courses': Course.objects.all()})
     else:
         return redirect(reverse('contests:assignment-list'))

@@ -34,6 +34,9 @@
     <div id="execution_list" class="col-md-12">
         {% render_execution_list submission.execution_set.all %}
     </div>
+    <div class="col-md-12 text-right text-muted">
+        отправлена: {{ submission.date_created|date:'d.m.y, H:i' }}
+    </div>
 </div>
 <legend>Файлы {% if perms.contests.change_submission %}<a href="{% url 'contests:submission-download' submission.id %}" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a><span class="pull-right text-muted" style="height: 31px;"><span style="vertical-align: middle; font-size: 12px;">на сервере: {{ submission.attachment_set.all.0.dirname }}</span></span>{% endif %}</legend>
 <ul class="list-group">
