@@ -1,51 +1,53 @@
 {% load contests %}
-<table class="table table-bordered table-condensed table-responsive">
-    <thead>
-        <tr>
-            <th>Курс</th>
-            <th>Раздел</th>
-            <th>Задача</th>
-            <th class="col-md-1 text-center">Оценка</th>
-            <th class="col-md-1 text-center">Зачет</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% regroup assignments by credit.course as course_group %}
-        {% for course, course_assignments in course_group %}
-        {% regroup course_assignments by problem.contest as contest_group %}
-        {% for contest, contest_assignments in contest_group %}
-        {% for assignment in contest_assignments %}
-        <tr>
-            {% if forloop.parentloop.first and forloop.first %}
-            <td rowspan="{{ course_assignments|length }}" style="vertical-align: middle;"><a href="{{ course.get_absolute_url }}">{{ course }}</a></td>
-            {% endif %}
-            {% if forloop.first %}
-            <td rowspan="{{ contest_assignments|length }}" style="vertical-align: middle;"><a href="{{ contest.get_absolute_url }}">{{ contest }}</a></td>
-            {% endif %}
-            <td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td>
-            <td class="text-center" style="vertical-align: middle;">
-                <a href="{% url 'contests:assignment-detail' assignment.id %}">
-                    <span class="label {% get_label assignment.score %}">{{ assignment.score|default:'-' }}</span>
-                </a>
-            </td>
-            {% if forloop.parentloop.first and forloop.first and assignment.credit %}
-            <td class="text-center" rowspan="{{ course_assignments|length }}" style="vertical-align: middle;">
-                {% if perms.contests.change_credit %}
-                <a href="{% url 'contests:credit-update' assignment.credit.id %}">
+<div class="table-responsive">
+    <table class="table table-bordered table-condensed">
+        <thead>
+            <tr>
+                <th>Курс</th>
+                <th>Раздел</th>
+                <th>Задача</th>
+                <th class="col-md-1 text-center">Оценка</th>
+                <th class="col-md-1 text-center">Зачет</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% regroup assignments by credit.course as course_group %}
+            {% for course, course_assignments in course_group %}
+            {% regroup course_assignments by problem.contest as contest_group %}
+            {% for contest, contest_assignments in contest_group %}
+            {% for assignment in contest_assignments %}
+            <tr>
+                {% if forloop.parentloop.first and forloop.first %}
+                <td rowspan="{{ course_assignments|length }}" style="vertical-align: middle;"><a href="{{ course.get_absolute_url }}">{{ course }}</a></td>
+                {% endif %}
+                {% if forloop.first %}
+                <td rowspan="{{ contest_assignments|length }}" style="vertical-align: middle;"><a href="{{ contest.get_absolute_url }}">{{ contest }}</a></td>
+                {% endif %}
+                <td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td>
+                <td class="text-center" style="vertical-align: middle;">
+                    <a href="{% url 'contests:assignment-detail' assignment.id %}">
+                        <span class="label {% get_label assignment.score %}">{{ assignment.score|default:'-' }}</span>
+                    </a>
+                </td>
+                {% if forloop.parentloop.first and forloop.first and assignment.credit %}
+                <td class="text-center" rowspan="{{ course_assignments|length }}" style="vertical-align: middle;">
+                    {% if perms.contests.change_credit %}
+                    <a href="{% url 'contests:credit-update' assignment.credit.id %}">
+                        <span class="label {% get_label assignment.credit.score %}" title="{{ assignment.credit.get_score_display }}">
+                            {{ assignment.credit.score|default:'-' }}
+                        </span>
+                    </a>
+                    {% else  %}
                     <span class="label {% get_label assignment.credit.score %}" title="{{ assignment.credit.get_score_display }}">
                         {{ assignment.credit.score|default:'-' }}
                     </span>
-                </a>
-                {% else  %}
-                <span class="label {% get_label assignment.credit.score %}" title="{{ assignment.credit.get_score_display }}">
-                    {{ assignment.credit.score|default:'-' }}
-                </span>
+                    {% endif %}
+                </td>
                 {% endif %}
-            </td>
-            {% endif %}
-        </tr>
-        {% endfor %}
-        {% endfor %}
-        {% endfor %}
-    </tbody>
-</table>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
