@@ -13,13 +13,13 @@
     <li><a href="{{ report.get_absolute_url }}">{{ report }}</a></li>
     <li class="active">Редактирование</li>
     {% else %}
-    <li class="active">Новый отчёт</li>
+    <li class="active">Новый отчет</li>
     {% endif %}
 </ol>
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if report %}Редактирование{% else %}Добавление{% endif %} отчёта</legend>
+<legend>{% if report %}Редактирование{% else %}Добавление{% endif %} отчета</legend>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_errors form %}

@@ -27,10 +27,10 @@
 {% block submenu %}
 <ul class="list-group">
     {% if perms.support.change_report %}
-    <a href="{% url 'support:report-update' report.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать отчёт</a>
+    <a href="{% url 'support:report-update' report.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать отчет</a>
     {% endif %}
     {% if perms.support.delete_report %}
-    <a href="{% url 'support:report-delete' report.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить отчёт</a>
+    <a href="{% url 'support:report-delete' report.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить отчет</a>
     {% endif %}
 </ul>
 {% endblock submenu %}
