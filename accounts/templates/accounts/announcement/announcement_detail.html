@@ -20,7 +20,7 @@
     <p>{{ text|safe }}</p>
 </div>
 <div class="pull-right text-right">
-    <p>Для группы: <span class="label label-default">{{ announcement.group }}</span></p>
+    <p><span class="label label-default">{{ announcement.group }}</span> | {{ announcement.date_created|date:'' }}</p>
 </div>
 {% endblock content %}
 

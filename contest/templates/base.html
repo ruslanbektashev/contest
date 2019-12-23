@@ -23,8 +23,8 @@
                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                     <ul class="nav navbar-nav">
                         {% if request.user.is_authenticated %}
+                        <li title="Объявления"><a href="{% url 'accounts:announcement-list' %}"><i class="fa fa-info fa-fw"></i> Объявления</a></li>
                         <li title="Расписание"><a href="{% url 'contests:event-schedule' %}"><i class="fa fa-calendar fa-fw"></i> Расписание</a></li>
-                        <li title="Объявления"><a href="{% url 'accounts:announcement-list' %}"><i class="fa fa-info fa-fw"></i> Новости</a></li>
                         <li title="Помощь"><a href="{% url 'support:faq-list' %}"><i class="fa fa-question fa-fw"></i> Помощь</a></li>
                         {% if request.user.is_staff %}
                         <li title="Админка"><a href="{% url 'admin:index' %}"><i class="fa fa-gear fa-spin fa-fw"></i> Админка</a></li>
@@ -35,7 +35,7 @@
                         {% if request.user.is_authenticated %}
                         <li class="dropdown">
                             <a id="dLabel" class="dropdown-toggle" href="" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                                {{ request.user.account }} <span class="caret"></span>
+                                {{ request.user.get_full_name }} <span class="caret"></span>
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="dLabel">
                                 <li title="Профиль"><a href="{{ request.user.account.get_absolute_url }}"><i class="fa fa-user-o fa-fw"></i> Профиль</a></li>

@@ -151,12 +151,15 @@ class Account(models.Model):
     def last_name(self):
         return self.user.last_name
 
-    @property
-    def short_name(self):
-        if self.user.first_name.strip() or self.user.last_name.strip():
-            return "%s %s" % (self.user.last_name, self.user.first_name)
+    def get_full_name(self):
+        full_name = '%s %s' % (self.user.last_name, self.user.first_name)
+        return full_name.strip() or self.user.username
+
+    def get_short_name(self):
+        if self.user.first_name:
+            return "%s %s." % (self.user.last_name, self.user.first_name[0])
         else:
-            return "%s" % self.user.username
+            return self.user.username
 
     @property
     def email(self):
@@ -174,7 +177,7 @@ class Account(models.Model):
         return reverse('accounts:account-detail', kwargs={'pk': self.pk})
 
     def __str__(self):
-        return "%s" % self.short_name
+        return self.get_short_name()
 
 
 """==================================================== Activity ===================================================="""

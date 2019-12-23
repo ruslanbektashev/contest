@@ -14,7 +14,15 @@
 
 {% block content %}
 <legend>Объявления</legend>
-{% render_media_list announcements %}
+{% for announcement in announcements %}
+<div>
+    <h4><a href="{{ announcement.get_absolute_url }}">{{ announcement.title }}</a></h4>
+    <p>{{ announcement.text|safe }}</p>
+    <div class="text-right">
+        <p><span class="label label-default">{{ announcement.group }}</span> | {{ announcement.date_created|date:'' }}</p>
+    </div>
+</div>
+{% endfor %}
 {% endblock content %}
 
 {% block submenu %}
