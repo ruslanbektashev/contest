@@ -1,7 +1,6 @@
 from django.contrib import admin
 
-from .models import FAQ
-from .models import Report
+from .models import FAQ, Report
 
 
 @admin.register(FAQ)

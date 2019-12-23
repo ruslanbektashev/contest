@@ -2,14 +2,14 @@
 {% load forms %}
 
 {% block title %}
-Report
+Отчет об ошибке
 {% endblock title %}
 
 {% block breadcrumbs %}
 <ol class="breadcrumb">
     <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li><a href="{% url 'support:report-list' %}">Отчеты об ошибках</a></li>
     {% if report %}
-    <li><a href="{% url 'support:report-list' %}">Отчёты об ошибках</a></li>
     <li><a href="{{ report.get_absolute_url }}">{{ report }}</a></li>
     <li class="active">Редактирование</li>
     {% else %}
@@ -19,15 +19,14 @@ Report
 {% endblock breadcrumbs %}
 
 {% block content %}
-    <legend>{% if report %}Редактирование{% else %}Добавление{% endif %} отчёта</legend>
-    {% load report_extras %}
-    <form action="" method="post" class="form-horizontal">
-        {% csrf_token %}
-        {% render_errors form %}
-        {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="2" width="10" %}
-        {% render_field form.title class+="form-control" %}
-        {% render_field form.text class+="form-control" rows="5" cols="20" %}
-        {% endwith %}
-        {% render_button value="Сохранить" %}
-    </form>
+<legend>{% if report %}Редактирование{% else %}Добавление{% endif %} отчёта</legend>
+<form action="" method="post" class="form-horizontal">
+    {% csrf_token %}
+    {% render_errors form %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="2" width="10" %}
+    {% render_field form.title class+="form-control" %}
+    {% render_field form.text class+="form-control" rows="5" cols="20" %}
+    {% endwith %}
+    {% render_button value="Сохранить" %}
+</form>
 {% endblock content %}

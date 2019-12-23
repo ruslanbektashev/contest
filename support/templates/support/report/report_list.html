@@ -2,17 +2,17 @@
 {% load views %}
 
 {% block title %}
-Reports List
+Отчеты об ошибках
 {% endblock title %}
 
 {% block breadcrumbs %}
 <ol class="breadcrumb">
     <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li class="active">Отчёты об ошибках</li>
+    <li class="active">Отчеты об ошибках</li>
 </ol>
 {% endblock breadcrumbs %}
 
 {% block content %}
-    <legend>Отчёты об ошибках</legend>
-    {% render_list reports %}
+<legend>Отчеты об ошибках</legend>
+{% render_list reports %}
 {% endblock content %}

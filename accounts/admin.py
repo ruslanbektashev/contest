@@ -19,9 +19,13 @@ class AccountAdmin(admin.ModelAdmin):
             'fields': ('user',)
         }),
         ('Детали', {
-            'fields': ('level', 'admission_year')
+            'fields': ('level', 'type', 'admission_year', 'enrolled', 'graduated')
+        }),
+        ('Даты', {
+            'fields': ('date_updated',)
         })
     )
+    readonly_fields = ('date_updated',)
 
 
 @admin.register(Activity)

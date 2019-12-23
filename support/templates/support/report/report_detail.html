@@ -1,32 +1,27 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Report Details
+Отчет об ошибке
 {% endblock title %}
 
 {% block breadcrumbs %}
 <ol class="breadcrumb">
     <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{% url 'support:report-list' %}">Отчёты об ошибках</a></li>
-    {% if report %}
+    <li><a href="{% url 'support:report-list' %}">Отчеты об ошибках</a></li>
     <li class="active">{{ report }}</li>
-    {% endif %}
 </ol>
 {% endblock breadcrumbs %}
 
 {% block content %}
-    <legend>{{ report.title }}</legend>
-    <div>
-        <p>{{ report.text|safe }}</p>
-    </div>
-    <div class="pull-right text-right">
-        <small>
-            <p>{{ object.sender }}</p>
-            <p>{{ object.page_url }}</p>
-            <p>{{ object.sending_time|date:"P, F d, Y" }}</p>
-        </small>
-    </div>
-
+<legend>{{ report }}</legend>
+<div>
+    <p>{{ report.text }}</p>
+</div>
+<div class="pull-right text-right">
+    <p>{{ object.sender }}</p>
+    <p><a href="{{ object.page_url }}">{{ object.page_url }}</a></p>
+    <p>{{ object.sending_time|date:"P, F d, Y" }}</p>
+</div>
 {% endblock content %}
 
 {% block submenu %}
