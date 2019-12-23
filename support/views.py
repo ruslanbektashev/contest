@@ -1,9 +1,11 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView
 from markdown import markdown
 
 from .models import FAQ
+from .models import Report
+
 
 """====================================================== FAQ ======================================================="""
 
@@ -53,3 +55,53 @@ class FAQList(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return FAQ.objects.filter(is_published=True)
+
+
+"""===================================================== Report ====================================================="""
+
+
+class ReportListView(PermissionRequiredMixin, LoginRequiredMixin, ListView):
+    permission_required = 'user.is_staff'
+    model = Report
+    template_name = 'support/report/report_list.html'
+    context_object_name = 'reports'
+    ordering = ['-sending_time']
+
+
+class ReportDetailView(PermissionRequiredMixin, DetailView):
+    permission_required = 'user.is_staff'
+    model = Report
+    template_name = 'support/report/report_detail.html'
+
+
+class ReportCreateView(LoginRequiredMixin, CreateView):
+    model = Report
+    template_name = 'support/report/report_form.html'
+    fields = ['title', 'text']
+
+    def form_valid(self, form):
+        form.instance.sender = self.request.user
+        form.instance.page_url = self.request.GET.get("from", "")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return self.request.GET.get("from", "")
+
+
+class ReportUpdateView(PermissionRequiredMixin, LoginRequiredMixin, UpdateView):
+    permission_required = 'user.is_staff'
+    model = Report
+    template_name = 'support/report/report_form.html'
+    fields = ['title', 'text']
+    success_url = reverse_lazy('support:report-list')
+
+    def form_valid(self, form):
+        form.instance.sender = self.request.user
+        return super().form_valid(form)
+
+
+class ReportDeleteView(PermissionRequiredMixin, LoginRequiredMixin, DeleteView):
+    permission_required = 'user.is_staff'
+    model = Report
+    template_name = 'support/report/report_delete.html'
+    success_url = reverse_lazy('support:report-list')

@@ -18,12 +18,6 @@
         <nav class="navbar navbar-default navbar-fixed-top">
             <div class="container">
                 <div class="navbar-header">
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
                     <a class="navbar-brand" href="{% url 'contests:index' %}">МГУ <i class="fa fa-graduation-cap fa-lg"></i> Контест<sup> beta</sup></a>
                 </div>
                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -51,6 +45,13 @@
                                 {% with request.user.received_messages.unread.count as messages_count %}
                                 <li title="Сообщения"><a href="{% url 'accounts:chat-list' %}"><i class="fa fa-envelope-o fa-fw"></i> Сообщения{% if messages_count %} <span class="badge">{{ messages_count }}</span>{% endif %}</a></li>
                                 {% endwith %}
+                                {% if not request.user.is_staff %}
+                                    {% load report_extras %}
+                                    <li title="Сообщить об ошибке"><a href="{% get_prev_url request.get_full_path %}"><i class="fa fa-bug"></i> Сообщить об ошибке</a></li>
+                                {% endif %}
+                                {% if request.user.is_staff %}
+                                    <li title="Отчёты об ошибках"><a href="{% url 'support:report-list' %}"><i class="fa fa-bug"></i> Отчёты об ошибках</a></li>
+                                {% endif %}
                                 <li role="separator" class="divider"></li>
                                 <li title="Выйти"><a href="{% url 'logout' %}"><i class="fa fa-sign-out fa-fw"></i> Выйти</a></li>
                             </ul>

@@ -1,4 +1,6 @@
+from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
 from contest.abstract import CRUDEntry
 
@@ -18,3 +20,20 @@ class FAQ(CRUDEntry):
 
     def __str__(self):
         return "%s" % self.question
+
+
+"""===================================================== Report ====================================================="""
+
+
+class Report(models.Model):
+    title = models.CharField(max_length=100, verbose_name="Заголовок")
+    text = models.TextField(blank=True, verbose_name="Отчёт")
+    sending_time = models.DateTimeField(default=timezone.now, verbose_name="Время отправки")
+    page_url = models.URLField(verbose_name="Откуда отправлено")
+    sender = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="Отправитель")
+
+    def __str__(self):
+        return self.title
+
+    # def get_absolute_url(self):
+    #     return reverse('support:report-detail', kwargs={'pk': self.pk})

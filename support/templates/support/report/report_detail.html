@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Report Details
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li><a href="{% url 'support:report-list' %}">Отчёты об ошибках</a></li>
+    {% if report %}
+    <li class="active">{{ report }}</li>
+    {% endif %}
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+    <legend>{{ report.title }}</legend>
+    <div>
+        <p>{{ report.text|safe }}</p>
+    </div>
+    <div class="pull-right text-right">
+        <small>
+            <p>{{ object.sender }}</p>
+            <p>{{ object.page_url }}</p>
+            <p>{{ object.sending_time|date:"P, F d, Y" }}</p>
+        </small>
+    </div>
+
+{% endblock content %}
+
+{% block submenu %}
+<ul class="list-group">
+    {% if perms.support.change_report %}
+    <a href="{% url 'support:report-update' report.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать отчёт</a>
+    {% endif %}
+    {% if perms.support.delete_report %}
+    <a href="{% url 'support:report-delete' report.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить отчёт</a>
+    {% endif %}
+</ul>
+{% endblock submenu %}

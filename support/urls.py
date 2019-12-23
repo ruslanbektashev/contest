@@ -14,4 +14,13 @@ urlpatterns = [
         ])),
         path('list', views.FAQList.as_view(), name='faq-list'),
     ])),
+    path('report/', include([
+        path('create/', views.ReportCreateView.as_view(), name='report-create'),
+        path('<int:pk>/', include([
+            path('', views.ReportDetailView.as_view(), name='report-detail'),
+            path('update/', views.ReportUpdateView.as_view(), name='report-update'),
+            path('delete/', views.ReportDeleteView.as_view(), name='report-delete')
+        ])),
+        path('list/', views.ReportListView.as_view(), name='report-list'),
+    ])),
 ]

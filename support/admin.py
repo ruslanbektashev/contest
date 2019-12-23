@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import FAQ
+from .models import Report
 
 
 @admin.register(FAQ)
@@ -18,3 +19,6 @@ class FAQAdmin(admin.ModelAdmin):
             'fields': ('date_created', 'date_updated')
         })
     )
+
+
+admin.site.register(Report)
