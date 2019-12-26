@@ -26,19 +26,19 @@
                 <td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td>
                 <td class="text-center" style="vertical-align: middle;">
                     <a href="{% url 'contests:assignment-detail' assignment.id %}">
-                        <span class="label {% get_label assignment.score %}">{{ assignment.score|default:'-' }}</span>
+                        <span class="label label-{{ assignment.score|colorize }}">{{ assignment.score|default:'-' }}</span>
                     </a>
                 </td>
                 {% if forloop.parentloop.first and forloop.first and assignment.credit %}
                 <td class="text-center" rowspan="{{ course_assignments|length }}" style="vertical-align: middle;">
                     {% if perms.contests.change_credit %}
                     <a href="{% url 'contests:credit-update' assignment.credit.id %}">
-                        <span class="label {% get_label assignment.credit.score %}" title="{{ assignment.credit.get_score_display }}">
+                        <span class="label label-{{ assignment.credit.score|colorize }}" title="{{ assignment.credit.get_score_display }}">
                             {{ assignment.credit.score|default:'-' }}
                         </span>
                     </a>
                     {% else  %}
-                    <span class="label {% get_label assignment.credit.score %}" title="{{ assignment.credit.get_score_display }}">
+                    <span class="label label-{{ assignment.credit.score|colorize }}" title="{{ assignment.credit.get_score_display }}">
                         {{ assignment.credit.score|default:'-' }}
                     </span>
                     {% endif %}

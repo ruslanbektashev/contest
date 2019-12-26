@@ -38,7 +38,7 @@
     {% if latest_submission %}
     <p>Мой результат:
         <a href="{{ latest_submission.get_absolute_url }}">
-            <span class="label {% get_label latest_submission.status %}" title="{{ latest_submission.get_status_display }}">
+            <span class="label label-{{ latest_submission.status|colorize }}" title="{{ latest_submission.get_status_display }}">
                 {{ latest_submission.get_status_display }}
             </span>
         </a>

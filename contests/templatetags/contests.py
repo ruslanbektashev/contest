@@ -11,18 +11,20 @@ STATE_COLORS = {
     'NA': 'warning',
     'TL': 'danger',
     'ML': 'danger',
+    'CL': 'danger',
     'FE': 'danger',
     'SF': 'danger',
     'RE': 'danger',
     'CE': 'danger',
     'UE': 'danger',
     'PE': 'danger',
+    'EX': 'danger',
     'UN': 'default',
     '5': 'success',
     '4': 'success',
     '3': 'warning',
     '2': 'danger',
-    '1': 'default',
+    '1': 'danger',
     '0': 'default'
 }
 
@@ -34,7 +36,7 @@ def remove_pwd(string):
 
 @register.filter
 def colorize(value):
-    return STATE_COLORS[value]
+    return STATE_COLORS.get(value, 'info')
 
 
 @register.simple_tag

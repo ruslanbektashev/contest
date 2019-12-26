@@ -27,7 +27,7 @@
                         </td>
                         <td class="col-lg-1 col-md-1 col-sm-1 col-xs-1 text-center">
                             <a href="{{ submission.get_absolute_url }}">
-                                <span class="label {% get_label submission.status %}" title="{{ submission.get_status_display }}">
+                                <span class="label label-{{ submission.status|colorize }}" title="{{ submission.get_status_display }}">
                                     {{ submission.status }}
                                 </span>
                             </a>

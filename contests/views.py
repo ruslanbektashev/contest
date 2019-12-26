@@ -745,6 +745,7 @@ class SubmissionDetail(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         try:
             context['from_url'] = reverse('contests:' + self.storage['from_url_name'])
+            context['from_url_name'] = self.storage['from_url_name']
         except NoReverseMatch:
             pass
         return context
@@ -810,7 +811,12 @@ class SubmissionEvaluate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView
     permission_required = 'contests.add_submission'
     raise_exception = True
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
     def get(self, request, *args, **kwargs):
+        self.storage['from_url_name'] = request.GET.get('from', '')
         self.object = self.get_object()
         if self.object.problem.is_testable and request.user.account.can_evaluate(self.object):
             task = evaluate_submission.delay(self.object.pk, request.user.id)
@@ -819,7 +825,11 @@ class SubmissionEvaluate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse('contests:submission-detail', kwargs={'pk': self.object.pk})
+        url = reverse('contests:submission-detail', kwargs={'pk': self.object.pk})
+        if self.storage['from_url_name']:
+            return url + '?from=' + self.storage['from_url_name']
+        else:
+            return url
 
 
 def submission_get_progress(request, task_id):

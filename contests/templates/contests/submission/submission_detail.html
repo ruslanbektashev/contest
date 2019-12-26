@@ -28,7 +28,7 @@
         {% elif submission.is_un %}
         <a href="{% url 'contests:submission-evaluate' submission.id %}" class="btn btn-primary btn-block">Проверить</a>
         {% elif perms.contests.add_problem %}
-        <a href="{% url 'contests:submission-evaluate' submission.id %}" class="btn btn-primary btn-block">Проверить еще раз</a>
+        <a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url_name %}?from={{ from_url_name }}{% endif %}" class="btn btn-primary btn-block">Проверить еще раз</a>
         {% endif %}
     </div>
     <div id="execution_list" class="col-md-12">

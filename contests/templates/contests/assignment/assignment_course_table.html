@@ -22,7 +22,7 @@
                 <td class="msu-problem-set lake">
                     {% for assignment in col.assignments %}
                     <a href="{% url 'contests:assignment-detail' assignment.id %}">
-                        <span class="label {% get_label assignment.score %}">{{ assignment.problem.number }}<sup>{{ assignment.remark.0 }}</sup></span>
+                        <span class="label label-{{ assignment.score|colorize %}">{{ assignment.problem.number }}<sup>{{ assignment.remark.0 }}</sup></span>
                     </a>
                     {% if forloop.last %}
                     <a href="{% url 'contests:assignment-create' course.id %}?user_id={{ assignment.user_id }}&contest_id={{ assignment.problem.contest_id }}" class="pebble"><span class="label label-info" title="Добавить задачу">+</span></a>
@@ -35,7 +35,7 @@
                 <td class="text-center">
                     {% if row.student.credit_id %}
                     <a href="{% url 'contests:credit-update' row.student.credit_id %}">
-                        <span class="label {% get_label row.student.credit_score %}" title="Оценка">{{ row.student.credit_score|default:'-' }}</span>
+                        <span class="label label-{{ row.student.credit_score|colorize }}" title="Оценка">{{ row.student.credit_score|default:'-' }}</span>
                     </a>
                     {% endif %}
                 </td>
