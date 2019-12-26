@@ -218,7 +218,7 @@ def activity_handler(**kwargs):
             activity.reference_type = ContentType.objects.get_for_model(reference)
             activity.reference_id = reference.id
         new_activities.append(activity)
-    return Activity.objects.bulk_create(new_activities)
+    return new_activities
 
 
 class ActivityQuerySet(models.QuerySet):
@@ -238,11 +238,13 @@ class ActivityQuerySet(models.QuerySet):
 class ActivityManager(models.Manager):
     def notify_group(self, sender, group_name, **kwargs):
         group = Group.objects.get(name=group_name)
-        activity_handler(sender=sender, recipient=group, **kwargs)
+        new_activities = activity_handler(sender=sender, recipient=group, **kwargs)
+        Activity.objects.bulk_create(new_activities)
 
     def notify_user(self, sender, username, **kwargs):
         user = User.objects.get(username=username)
-        activity_handler(sender=sender, recipient=user, **kwargs)
+        new_activities = activity_handler(sender=sender, recipient=user, **kwargs)
+        Activity.objects.bulk_create(new_activities)
 
     def on_assignment_updated(self, assignment):
         pass  # self.notify_group(assignment.user, 'Преподаватель', action="решил задачу", object=assignment.problem, reference=assignment, level=2)
