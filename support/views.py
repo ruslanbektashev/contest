@@ -66,27 +66,28 @@ class FAQList(LoginRequiredMixin, ListView):
 """===================================================== Report ====================================================="""
 
 
-class ReportListView(LoginRequiredMixin, ListView):
+class ReportList(PermissionRequiredMixin, LoginRequiredMixin, ListView):
     permission_required = 'user.is_staff'
     model = Report
     template_name = 'support/report/report_list.html'
     context_object_name = 'reports'
-    ordering = ['-sending_time']
+    ordering = ['-date_created']
 
 
-class ReportDetailView(PermissionRequiredMixin, DetailView):
+class ReportDetail(PermissionRequiredMixin, DetailView):
     permission_required = 'user.is_staff'
     model = Report
     template_name = 'support/report/report_detail.html'
 
 
-class ReportCreateView(LoginRequiredMixin, CreateView):
+class ReportCreate(LoginRequiredMixin, CreateView):
     model = Report
     template_name = 'support/report/report_form.html'
     fields = ['title', 'text']
+    raise_exception = True
 
     def form_valid(self, form):
-        form.instance.sender = self.request.user
+        form.instance.owner = self.request.user
         form.instance.page_url = self.request.GET.get("from", "")
         return super().form_valid(form)
 
@@ -94,7 +95,7 @@ class ReportCreateView(LoginRequiredMixin, CreateView):
         return self.request.GET.get("from", "")
 
 
-class ReportUpdateView(PermissionRequiredMixin, LoginRequiredMixin, UpdateView):
+class ReportUpdate(PermissionRequiredMixin, LoginRequiredMixin, UpdateView):
     permission_required = 'user.is_staff'
     model = Report
     template_name = 'support/report/report_form.html'
@@ -106,7 +107,7 @@ class ReportUpdateView(PermissionRequiredMixin, LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class ReportDeleteView(PermissionRequiredMixin, LoginRequiredMixin, DeleteView):
+class ReportDelete(PermissionRequiredMixin, LoginRequiredMixin, DeleteView):
     permission_required = 'user.is_staff'
     model = Report
     template_name = 'support/report/report_delete.html'

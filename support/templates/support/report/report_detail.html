@@ -19,9 +19,9 @@
     <p>{{ report.text }}</p>
 </div>
 <div class="pull-right text-right">
-    <p>{{ object.sender }}</p>
+    <p>{{ object.owner }}</p>
     <p><a href="{{ object.page_url }}">{{ object.page_url }}</a></p>
-    <p>{{ object.sending_time|date:"P, F d, Y" }}</p>
+    <p>{{ object.date_created|date:"P, F d, Y" }}</p>
 </div>
 {% endblock content %}
 

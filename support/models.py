@@ -26,15 +26,16 @@ class FAQ(CRUDEntry):
 """===================================================== Report ====================================================="""
 
 
-class Report(models.Model):
+class Report(CRUDEntry):
     title = models.CharField(max_length=100, verbose_name="Заголовок")
-    text = models.TextField(blank=True, verbose_name="Отчёт")
-    sending_time = models.DateTimeField(default=timezone.now, verbose_name="Время отправки")
+    text = models.TextField(blank=True, verbose_name="Отчет")
     page_url = models.URLField(verbose_name="Откуда отправлено")
-    sender = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="Отправитель")
+    date_created = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ('-date_created',)
+        verbose_name = "Отчет об ошибке"
+        verbose_name_plural = "Отчеты об ошибках"
 
     def __str__(self):
         return self.title
-
-    def get_absolute_url(self):
-        return reverse('support:report-detail', kwargs={'pk': self.pk})
