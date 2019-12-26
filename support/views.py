@@ -100,11 +100,7 @@ class ReportUpdate(PermissionRequiredMixin, LoginRequiredMixin, UpdateView):
     model = Report
     template_name = 'support/report/report_form.html'
     fields = ['title', 'text']
-    success_url = reverse_lazy('support:report-list')
-
-    def form_valid(self, form):
-        form.instance.sender = self.request.user
-        return super().form_valid(form)
+    raise_exception = True
 
 
 class ReportDelete(PermissionRequiredMixin, LoginRequiredMixin, DeleteView):
