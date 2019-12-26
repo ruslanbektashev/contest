@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+from django.urls import reverse
 
 from contest.abstract import CRUDEntry
 
@@ -35,5 +36,5 @@ class Report(models.Model):
     def __str__(self):
         return self.title
 
-    # def get_absolute_url(self):
-    #     return reverse('support:report-detail', kwargs={'pk': self.pk})
+    def get_absolute_url(self):
+        return reverse('support:report-detail', kwargs={'pk': self.pk})

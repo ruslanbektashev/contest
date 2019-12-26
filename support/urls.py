@@ -5,6 +5,7 @@ from . import views
 app_name = 'support'
 
 urlpatterns = [
+    path('', views.Support.as_view(), name='index'),
     path('faq/', include([
         path('create', views.FAQCreate.as_view(), name='faq-create'),
         path('<int:pk>/', include([

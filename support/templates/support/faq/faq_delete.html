@@ -8,6 +8,7 @@ FAQ
 {% block breadcrumbs %}
 <ol class="breadcrumb">
     <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li><a href="{% url 'support:index' %}">Помощь</a></li>
     <li><a href="{% url 'support:faq-list' %}">FAQ</a></li>
     <li><a href="{{ faq.get_absolute_url }}">{{ faq }}</a></li>
     <li class="active">Удаление</li>

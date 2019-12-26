@@ -7,6 +7,12 @@ from .models import FAQ
 from .models import Report
 
 
+class Support(LoginRequiredMixin, ListView):
+    model = FAQ
+    template_name = 'support/index.html'
+    context_object_name = 'contents'
+
+
 """====================================================== FAQ ======================================================="""
 
 
@@ -60,7 +66,7 @@ class FAQList(LoginRequiredMixin, ListView):
 """===================================================== Report ====================================================="""
 
 
-class ReportListView(PermissionRequiredMixin, LoginRequiredMixin, ListView):
+class ReportListView(LoginRequiredMixin, ListView):
     permission_required = 'user.is_staff'
     model = Report
     template_name = 'support/report/report_list.html'

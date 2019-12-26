@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load views %}
+
+{% block title %}
+Помощь
+{% endblock title %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li class="active">Помощь</li>
+</ol>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Помощь</legend>
+{#{% render_list faqs %}#}
+{% endblock content %}
+
+{% block submenu %}
+<ul class="list-group">
+    {% if perms.support.add_faq %}
+        <a href="{% url 'support:faq-create' %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Задать вопрос</a>
+    {% endif %}
+    <a href="{% url 'support:faq-list' %}" class="list-group-item"><i class="fa fa-list fa-fw"></i> FAQ</a>
+    {% if user.is_staff %}
+        <a href="{% url 'support:report-list' %}" class="list-group-item"><i class="fa fa-list fa-fw"></i> Отчеты об ошибках</a>
+    {% endif %}
+</ul>
+{% endblock submenu %}

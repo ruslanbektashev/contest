@@ -31,7 +31,11 @@
                         {% if request.user.is_authenticated %}
                         <li title="Объявления"><a href="{% url 'accounts:announcement-list' %}"><i class="fa fa-info fa-fw"></i> Объявления</a></li>
                         <li title="Расписание"><a href="{% url 'contests:event-schedule' %}"><i class="fa fa-calendar fa-fw"></i> Расписание</a></li>
-                        <li title="Помощь"><a href="{% url 'support:faq-list' %}"><i class="fa fa-question fa-fw"></i> Помощь</a></li>
+                        <li title="Помощь"><a href="{% url 'support:index' %}"><i class="fa fa-question fa-fw"></i> Помощь</a></li>
+                        {% if not request.user.is_staff %}
+                        {% load report_extras %}
+                            <li title="Сообщить об ошибке"><a href="{% get_prev_url request.get_full_path %}"><i class="fa fa-bug"></i> Сообщить об ошибке</a></li>
+                        {% endif %}
                         {% if request.user.is_staff %}
                         <li title="Админка"><a href="{% url 'admin:index' %}"><i class="fa fa-gear fa-spin fa-fw"></i> Админка</a></li>
                         {% endif %}
@@ -51,13 +55,6 @@
                                 {% with request.user.received_messages.unread.count as messages_count %}
                                 <li title="Сообщения"><a href="{% url 'accounts:chat-list' %}"><i class="fa fa-envelope-o fa-fw"></i> Сообщения{% if messages_count %} <span class="badge">{{ messages_count }}</span>{% endif %}</a></li>
                                 {% endwith %}
-                                {% if not request.user.is_staff %}
-                                    {% load report_extras %}
-                                    <li title="Сообщить об ошибке"><a href="{% get_prev_url request.get_full_path %}"><i class="fa fa-bug"></i> Сообщить об ошибке</a></li>
-                                {% endif %}
-                                {% if request.user.is_staff %}
-                                    <li title="Отчёты об ошибках"><a href="{% url 'support:report-list' %}"><i class="fa fa-bug"></i> Отчёты об ошибках</a></li>
-                                {% endif %}
                                 <li role="separator" class="divider"></li>
                                 <li title="Выйти"><a href="{% url 'logout' %}"><i class="fa fa-sign-out fa-fw"></i> Выйти</a></li>
                             </ul>
