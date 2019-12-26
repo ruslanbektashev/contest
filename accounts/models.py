@@ -239,12 +239,12 @@ class ActivityManager(models.Manager):
     def notify_group(self, sender, group_name, **kwargs):
         group = Group.objects.get(name=group_name)
         new_activities = activity_handler(sender=sender, recipient=group, **kwargs)
-        Activity.objects.bulk_create(new_activities)
+        self.bulk_create(new_activities)
 
     def notify_user(self, sender, username, **kwargs):
         user = User.objects.get(username=username)
         new_activities = activity_handler(sender=sender, recipient=user, **kwargs)
-        Activity.objects.bulk_create(new_activities)
+        self.bulk_create(new_activities)
 
     def on_assignment_updated(self, assignment):
         pass  # self.notify_group(assignment.user, 'Преподаватель', action="решил задачу", object=assignment.problem, reference=assignment, level=2)
