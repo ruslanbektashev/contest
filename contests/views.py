@@ -6,7 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse, reverse_lazy, NoReverseMatch
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView
 from django.views.generic.detail import BaseDetailView
 
@@ -733,6 +733,22 @@ class SubmissionDetail(LoginRequiredMixin, DetailView):
     model = Submission
     template_name = 'contests/submission/submission_detail.html'
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def get(self, request, *args, **kwargs):
+        self.storage['from_url_name'] = request.GET.get('from')
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            context['from_url'] = reverse('contests:' + self.storage['from_url_name'])
+        except NoReverseMatch:
+            pass
+        return context
+
 
 class SubmissionDownload(LoginRequiredMixin, PermissionRequiredMixin, BaseDetailView):
     model = Submission
@@ -829,6 +845,11 @@ class SubmissionList(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return super().get_queryset().select_related('owner', 'problem')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['from_url_name'] = 'submission-list'
+        return context
 
 
 """=================================================== Execution ===================================================="""

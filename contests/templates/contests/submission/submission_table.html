@@ -26,7 +26,7 @@
             <td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td>
             {% endif %}
             <td class="text-center">
-                <a href="{{ submission.get_absolute_url }}">
+                <a href="{{ submission.get_absolute_url }}{% if from_url_name %}?from={{ from_url_name }}{% endif %}">
                     <span class="label {% get_label submission.status %}" title="{{ submission.get_status_display }}">
                         {{ submission.status }}
                     </span>
