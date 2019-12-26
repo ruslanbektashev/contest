@@ -738,7 +738,7 @@ class SubmissionDetail(LoginRequiredMixin, DetailView):
         self.storage = dict()
 
     def get(self, request, *args, **kwargs):
-        self.storage['from_url_name'] = request.GET.get('from')
+        self.storage['from_url_name'] = request.GET.get('from', '')
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
