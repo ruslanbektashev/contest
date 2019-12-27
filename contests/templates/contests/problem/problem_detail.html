@@ -23,28 +23,31 @@
     <p>{{ description|safe }}</p>
     <p>{{ contest_description|safe }}</p>
 </div>
-<div class="text-right">
-    <p>Сложность: {{ problem.get_difficulty_display }}</p>
-    <p>Язык: {{ problem.get_language_display }}</p>
-    <p>Параметры компиляции:
-        <code>{{ problem.compile_args|default:"-" }}</code>
-    </p>
-    <p>Параметры запуска:
-        <code>{{ problem.launch_args|default:"-" }}</code>
-    </p>
-    <p>Ограничение по времени: {{ problem.time_limit }} с</p>
-    <p>Ограничение по памяти: {{ problem.memory_limit|filesizeformat }}</p>
-    <p>Доступно для тестирования: {{ problem.is_testable|yesno:'да,нет' }}</p>
-    {% if latest_submission %}
-    <p>Мой результат:
-        <a href="{{ latest_submission.get_absolute_url }}">
-            <span class="label label-{{ latest_submission.status|colorize }}" title="{{ latest_submission.get_status_display }}">
-                {{ latest_submission.get_status_display }}
-            </span>
-        </a>
-    </p>
+<table class="table table-condensed">
+    <tr><td class="col-md-11 text-right">Сложность</td><td>{{ problem.get_difficulty_display }}</td></tr>
+    <tr><td class="col-md-11 text-right">Язык</td><td>{{ problem.get_language_display }}</td></tr>
+    {% if problem.compile_args %}
+    <tr><td class="col-md-11 text-right">Параметры компиляции</td><td><code>{{ problem.compile_args|default:"-" }}</code></td></tr>
     {% endif %}
-</div>
+    {% if problem.launch_args %}
+    <tr><td class="col-md-11 text-right">Параметры запуска</td><td><code>{{ problem.launch_args|default:"-" }}</code></td></tr>
+    {% endif %}
+    <tr><td class="col-md-11 text-right">Ограничение по времени</td><td>{{ problem.time_limit }} с</td></tr>
+    <tr><td class="col-md-11 text-right">Ограничение по памяти</td><td>{{ problem.memory_limit|filesizeformat }}</td></tr>
+    <tr><td class="col-md-11 text-right">Доступно для тестирования</td><td>{{ problem.is_testable|yesno:'да,нет' }}</td></tr>
+    {% if latest_submission %}
+    <tr>
+        <td class="col-md-11 text-right">Мой результат</td>
+        <td>
+            <a href="{{ latest_submission.get_absolute_url }}">
+                <span class="label label-{{ latest_submission.status|colorize }}" title="{{ latest_submission.get_status_display }}">
+                    {{ latest_submission.get_status_display }}
+                </span>
+            </a>
+        </td>
+    </tr>
+    {% endif %}
+</table>
 {% render_attachment_list problem.contest legend="Файлы раздела" %}
 {% render_attachment_list problem legend="Файлы задачи" %}
 {% if perms.contests.add_solution %}

@@ -1,16 +1,14 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.urls import reverse, reverse_lazy
-from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView
+from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, TemplateView
 from markdown import markdown
 
 from .models import FAQ
 from .models import Report
 
 
-class Support(LoginRequiredMixin, ListView):
-    model = FAQ
+class Support(LoginRequiredMixin, TemplateView):
     template_name = 'support/index.html'
-    context_object_name = 'contents'
 
 
 """====================================================== FAQ ======================================================="""
@@ -66,45 +64,54 @@ class FAQList(LoginRequiredMixin, ListView):
 """===================================================== Report ====================================================="""
 
 
-class ReportList(PermissionRequiredMixin, LoginRequiredMixin, ListView):
-    permission_required = 'user.is_staff'
-    model = Report
-    template_name = 'support/report/report_list.html'
-    context_object_name = 'reports'
-    ordering = ['-date_created']
-
-
-class ReportDetail(PermissionRequiredMixin, DetailView):
-    permission_required = 'user.is_staff'
+class ReportDetail(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Report
     template_name = 'support/report/report_detail.html'
+    permission_required = 'user.is_staff'
+    raise_exception = True
 
 
 class ReportCreate(LoginRequiredMixin, CreateView):
     model = Report
     template_name = 'support/report/report_form.html'
     fields = ['title', 'text']
-    raise_exception = True
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, *args, **kwargs):
+        self.storage['from_url'] = self.request.GET.get('from', '')
+        return super().dispatch(*args, **kwargs)
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
-        form.instance.page_url = self.request.GET.get("from", "")
+        form.instance.page_url = self.storage['from_url']
         return super().form_valid(form)
 
     def get_success_url(self):
-        return self.request.GET.get("from", "")
+        return self.storage['from_url'] or reverse('support:report-list')
 
 
-class ReportUpdate(PermissionRequiredMixin, LoginRequiredMixin, UpdateView):
-    permission_required = 'user.is_staff'
+class ReportUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Report
-    template_name = 'support/report/report_form.html'
     fields = ['title', 'text']
+    template_name = 'support/report/report_form.html'
+    permission_required = 'user.is_staff'
     raise_exception = True
 
 
-class ReportDelete(PermissionRequiredMixin, LoginRequiredMixin, DeleteView):
-    permission_required = 'user.is_staff'
+class ReportDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Report
-    template_name = 'support/report/report_delete.html'
     success_url = reverse_lazy('support:report-list')
+    template_name = 'support/report/report_delete.html'
+    permission_required = 'user.is_staff'
+    raise_exception = True
+
+
+class ReportList(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = Report
+    template_name = 'support/report/report_list.html'
+    context_object_name = 'reports'
+    permission_required = 'user.is_staff'
+    raise_exception = True

@@ -10,13 +10,13 @@
     <li><a href="{% url 'contests:index' %}">Главная</a></li>
     <li><a href="{% url 'support:index' %}">Помощь</a></li>
     {% if user.is_staff %}
-        <li><a href="{% url 'support:report-list' %}">Отчеты об ошибках</a></li>
+    <li><a href="{% url 'support:report-list' %}">Отчеты об ошибках</a></li>
     {% endif %}
     {% if report %}
-        <li><a href="{{ report.get_absolute_url }}">{{ report }}</a></li>
-        <li class="active">Редактирование</li>
+    <li><a href="{{ report.get_absolute_url }}">{{ report }}</a></li>
+    <li class="active">Редактирование</li>
     {% else %}
-        <li class="active">Новый отчет</li>
+    <li class="active">Новый отчет</li>
     {% endif %}
 </ol>
 {% endblock breadcrumbs %}

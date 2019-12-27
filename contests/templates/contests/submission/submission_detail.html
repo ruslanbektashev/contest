@@ -26,7 +26,7 @@
         {% if not submission.problem.is_testable %}
         <span class="btn btn-warning btn-block" title="Решение может быть проверено вручную преподавателем">Автоматическая проверка решения этой задачи временно отключена</span>
         {% elif submission.is_un %}
-        <a href="{% url 'contests:submission-evaluate' submission.id %}" class="btn btn-primary btn-block">Проверить</a>
+        <a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url_name %}?from={{ from_url_name }}{% endif %}" class="btn btn-primary btn-block">Проверить</a>
         {% elif perms.contests.add_problem %}
         <a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url_name %}?from={{ from_url_name }}{% endif %}" class="btn btn-primary btn-block">Проверить еще раз</a>
         {% endif %}

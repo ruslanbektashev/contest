@@ -21,11 +21,17 @@ STATE_COLORS = {
     'EX': 'danger',
     'UN': 'default',
     '5': 'success',
+    5: 'success',
     '4': 'success',
+    4: 'success',
     '3': 'warning',
+    3: 'warning',
     '2': 'danger',
+    2: 'danger',
     '1': 'danger',
-    '0': 'default'
+    1: 'danger',
+    '0': 'default',
+    0: 'default'
 }
 
 

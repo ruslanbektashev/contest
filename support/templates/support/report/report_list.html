@@ -2,18 +2,18 @@
 {% load views %}
 
 {% block title %}
-    Отчеты об ошибках
+Отчеты об ошибках
 {% endblock title %}
 
 {% block breadcrumbs %}
-    <ol class="breadcrumb">
-        <li><a href="{% url 'contests:index' %}">Главная</a></li>
-        <li><a href="{% url 'support:index' %}">Помощь</a></li>
-        <li class="active">Отчеты об ошибках</li>
-    </ol>
+<ol class="breadcrumb">
+    <li><a href="{% url 'contests:index' %}">Главная</a></li>
+    <li><a href="{% url 'support:index' %}">Помощь</a></li>
+    <li class="active">Отчеты об ошибках</li>
+</ol>
 {% endblock breadcrumbs %}
 
 {% block content %}
-    <legend>Отчеты об ошибках</legend>
-    {% render_list reports %}
+<legend>Отчеты об ошибках</legend>
+{% render_list reports %}
 {% endblock content %}

@@ -32,10 +32,7 @@
                         <li title="Объявления"><a href="{% url 'accounts:announcement-list' %}"><i class="fa fa-info fa-fw"></i> Объявления</a></li>
                         <li title="Расписание"><a href="{% url 'contests:event-schedule' %}"><i class="fa fa-calendar fa-fw"></i> Расписание</a></li>
                         <li title="Помощь"><a href="{% url 'support:index' %}"><i class="fa fa-question fa-fw"></i> Помощь</a></li>
-                        {% if not request.user.is_staff %}
-                        {% load report_extras %}
-                            <li title="Сообщить об ошибке"><a href="{% get_prev_url request.get_full_path %}"><i class="fa fa-bug"></i> Сообщить об ошибке</a></li>
-                        {% endif %}
+                        <li title="Сообщить об ошибке"><a href="{% url 'support:report-create' %}?from={{ request.get_full_path }}"><i class="fa fa-bug fa-fw"></i> Сообщить об ошибке</a></li>
                         {% if request.user.is_staff %}
                         <li title="Админка"><a href="{% url 'admin:index' %}"><i class="fa fa-gear fa-spin fa-fw"></i> Админка</a></li>
                         {% endif %}

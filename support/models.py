@@ -1,7 +1,4 @@
-from django.contrib.auth.models import User
 from django.db import models
-from django.utils import timezone
-from django.urls import reverse
 
 from contest.abstract import CRUDEntry
 
@@ -30,7 +27,6 @@ class Report(CRUDEntry):
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     text = models.TextField(blank=True, verbose_name="Отчет")
     page_url = models.URLField(verbose_name="Откуда отправлено")
-    date_created = models.DateTimeField(default=timezone.now)
 
     class Meta:
         ordering = ('-date_created',)
