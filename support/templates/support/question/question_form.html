@@ -2,16 +2,16 @@
 {% load forms %}
 
 {% block title %}
-FAQ
+Вопрос
 {% endblock title %}
 
 {% block breadcrumbs %}
 <ol class="breadcrumb">
     <li><a href="{% url 'contests:index' %}">Главная</a></li>
     <li><a href="{% url 'support:index' %}">Помощь</a></li>
-    <li><a href="{% url 'support:faq-list' %}">FAQ</a></li>
-    {% if faq %}
-    <li><a href="{{ faq.get_absolute_url }}">{{ faq }}</a></li>
+    <li><a href="{% url 'support:question-list' %}">Вопросы</a></li>
+    {% if question %}
+    <li><a href="{{ question.get_absolute_url }}">{{ question }}</a></li>
     <li class="active">Редактирование</li>
     {% else %}
     <li class="active">Новый вопрос</li>
@@ -20,13 +20,13 @@ FAQ
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if faq %}Редактирование{% else %}Добавление{% endif %} вопроса</legend>
+<legend>{% if question %}Редактирование{% else %}Задание{% endif %} вопроса</legend>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="2" width="10" %}
     {% render_field form.question class+="form-control" %}
-    {% if perms.support.change_faq %}
+    {% if perms.support.change_question %}
     {% render_field form.answer class+="form-control" rows="5" cols="20" %}
     {% render_field form.is_published class+="form-control" %}
     {% endif %}

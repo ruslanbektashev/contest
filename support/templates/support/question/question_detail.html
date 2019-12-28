@@ -3,37 +3,37 @@
 {% load views %}
 
 {% block title %}
-FAQ
+Вопрос
 {% endblock title %}
 
 {% block breadcrumbs %}
 <ol class="breadcrumb">
     <li><a href="{% url 'contests:index' %}">Главная</a></li>
     <li><a href="{% url 'support:index' %}">Помощь</a></li>
-    <li><a href="{% url 'support:faq-list' %}">FAQ</a></li>
-    <li class="active">{{ faq }}</li>
+    <li><a href="{% url 'support:question-list' %}">Вопросы</a></li>
+    <li class="active">{{ question }}</li>
 </ol>
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ faq.question }}</legend>
+<legend>{{ question.question }}</legend>
 <div>
     <p>{{ answer|safe }}</p>
 </div>
 <div class="pull-right text-right">
-    {% if perms.support.change_faq %}
-    <p>{{ faq.is_published|yesno:'опубликовано,скрыто' }}</p>
+    {% if perms.support.change_question %}
+    <p>{{ question.is_published|yesno:'опубликован,скрыт' }}</p>
     {% endif %}
 </div>
 {% endblock content %}
 
 {% block submenu %}
 <ul class="list-group">
-    {% if perms.support.change_faq %}
-    <a href="{% url 'support:faq-update' faq.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать вопрос</a>
+    {% if perms.support.change_question %}
+    <a href="{% url 'support:question-update' question.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать вопрос</a>
     {% endif %}
-    {% if perms.support.delete_faq %}
-    <a href="{% url 'support:faq-delete' faq.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить вопрос</a>
+    {% if perms.support.delete_question %}
+    <a href="{% url 'support:question-delete' question.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить вопрос</a>
     {% endif %}
 </ul>
 {% endblock submenu %}

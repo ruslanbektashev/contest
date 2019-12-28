@@ -2,20 +2,20 @@
 {% load forms %}
 
 {% block title %}
-Отчет об ошибке
+Багрепорт
 {% endblock title %}
 
 {% block breadcrumbs %}
 <ol class="breadcrumb">
     <li><a href="{% url 'contests:index' %}">Главная</a></li>
     <li><a href="{% url 'support:index' %}">Помощь</a></li>
-    <li><a href="{% url 'support:report-list' %}">Отчеты об ошибках</a></li>
+    <li><a href="{% url 'support:report-list' %}">Багрепорты</a></li>
     <li><a href="{{ report.get_absolute_url }}">{{ report }}</a></li>
     <li class="active">Удаление</li>
 </ol>
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Отчет об ошибке</legend>
+<legend>Удаление багрепорта</legend>
 {% render_delete_form report %}
 {% endblock content %}

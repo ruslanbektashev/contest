@@ -2,7 +2,7 @@
 {% load forms %}
 
 {% block title %}
-Отчет об ошибке
+Сообщение об ошибке
 {% endblock title %}
 
 {% block breadcrumbs %}
@@ -10,19 +10,19 @@
     <li><a href="{% url 'contests:index' %}">Главная</a></li>
     <li><a href="{% url 'support:index' %}">Помощь</a></li>
     {% if user.is_staff %}
-    <li><a href="{% url 'support:report-list' %}">Отчеты об ошибках</a></li>
+    <li><a href="{% url 'support:report-list' %}">Багрепорты</a></li>
     {% endif %}
     {% if report %}
     <li><a href="{{ report.get_absolute_url }}">{{ report }}</a></li>
     <li class="active">Редактирование</li>
     {% else %}
-    <li class="active">Новый отчет</li>
+    <li class="active">Новое сообщение об ошибке</li>
     {% endif %}
 </ol>
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if report %}Редактирование{% else %}Добавление{% endif %} отчета</legend>
+<legend>{% if report %}Редактирование{% else %}Отправка{% endif %} сообщения об ошибке</legend>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_errors form %}
@@ -30,6 +30,6 @@
     {% render_field form.title class+="form-control" %}
     {% render_field form.text class+="form-control" rows="5" cols="20" %}
     {% endwith %}
-    {% render_button value="Сохранить" %}
+    {% render_button value="Отправить" %}
 </form>
 {% endblock content %}

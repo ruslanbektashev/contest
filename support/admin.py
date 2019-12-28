@@ -1,10 +1,10 @@
 from django.contrib import admin
 
-from .models import FAQ, Report
+from .models import Question, Report
 
 
-@admin.register(FAQ)
-class FAQAdmin(admin.ModelAdmin):
+@admin.register(Question)
+class QuestionAdmin(admin.ModelAdmin):
     list_display = ('owner', 'question', 'is_published')
     list_editable = ('is_published',)
     fieldsets = (
@@ -20,4 +20,17 @@ class FAQAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(Report)
+@admin.register(Report)
+class ReportAdmin(admin.ModelAdmin):
+    list_display = ('owner', 'title')
+    fieldsets = (
+        ('Пользователь', {
+            'fields': ('owner',)
+        }),
+        ('Детали', {
+            'fields': ('title', 'text', 'page_url')
+        }),
+        ('Даты', {
+            'fields': ('date_created', 'date_updated')
+        })
+    )

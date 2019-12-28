@@ -3,20 +3,19 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, TemplateView
 from markdown import markdown
 
-from .models import FAQ
-from .models import Report
+from .models import Question, Report
 
 
 class Support(LoginRequiredMixin, TemplateView):
     template_name = 'support/index.html'
 
 
-"""====================================================== FAQ ======================================================="""
+"""==================================================== Question ===================================================="""
 
 
-class FAQDetail(LoginRequiredMixin, DetailView):
-    model = FAQ
-    template_name = 'support/faq/faq_detail.html'
+class QuestionDetail(LoginRequiredMixin, DetailView):
+    model = Question
+    template_name = 'support/question/question_detail.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -24,11 +23,11 @@ class FAQDetail(LoginRequiredMixin, DetailView):
         return context
 
 
-class FAQCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
-    model = FAQ
+class QuestionCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    model = Question
     fields = ['question', 'answer', 'is_published']
-    template_name = 'support/faq/faq_form.html'
-    permission_required = 'support.add_faq'
+    template_name = 'support/question/question_form.html'
+    permission_required = 'support.add_question'
     raise_exception = True
 
     def form_valid(self, form):
@@ -36,29 +35,29 @@ class FAQCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class FAQUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    model = FAQ
+class QuestionUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = Question
     fields = ['question', 'answer', 'is_published']
-    template_name = 'support/faq/faq_form.html'
-    permission_required = 'support.change_faq'
+    template_name = 'support/question/question_form.html'
+    permission_required = 'support.change_question'
     raise_exception = True
 
 
-class FAQDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-    model = FAQ
-    success_url = reverse_lazy('support:faq-list')
-    template_name = 'support/faq/faq_delete.html'
-    permission_required = 'support.delete_faq'
+class QuestionDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = Question
+    success_url = reverse_lazy('support:question-list')
+    template_name = 'support/question/question_delete.html'
+    permission_required = 'support.delete_question'
     raise_exception = True
 
 
-class FAQList(LoginRequiredMixin, ListView):
-    model = FAQ
-    template_name = 'support/faq/faq_list.html'
-    context_object_name = 'faqs'
+class QuestionList(LoginRequiredMixin, ListView):
+    model = Question
+    template_name = 'support/question/question_list.html'
+    context_object_name = 'questions'
 
     def get_queryset(self):
-        return FAQ.objects.filter(is_published=True)
+        return Question.objects.filter(is_published=True)
 
 
 """===================================================== Report ====================================================="""

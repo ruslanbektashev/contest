@@ -2,26 +2,26 @@
 {% load views %}
 
 {% block title %}
-FAQ
+Вопросы
 {% endblock title %}
 
 {% block breadcrumbs %}
 <ol class="breadcrumb">
     <li><a href="{% url 'contests:index' %}">Главная</a></li>
     <li><a href="{% url 'support:index' %}">Помощь</a></li>
-    <li class="active">FAQ</li>
+    <li class="active">Вопросы</li>
 </ol>
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Часто задаваемые вопросы</legend>
-{% render_list faqs %}
+<legend>Вопросы</legend>
+{% render_list questions %}
 {% endblock content %}
 
 {% block submenu %}
 <ul class="list-group">
-    {% if perms.support.add_faq %}
-    <a href="{% url 'support:faq-create' %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Задать вопрос</a>
+    {% if perms.support.add_question %}
+    <a href="{% url 'support:question-create' %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Задать вопрос</a>
     {% endif %}
 </ul>
 {% endblock submenu %}

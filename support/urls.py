@@ -6,14 +6,14 @@ app_name = 'support'
 
 urlpatterns = [
     path('', views.Support.as_view(), name='index'),
-    path('faq/', include([
-        path('create', views.FAQCreate.as_view(), name='faq-create'),
+    path('question/', include([
+        path('create', views.QuestionCreate.as_view(), name='question-create'),
         path('<int:pk>/', include([
-            path('', views.FAQDetail.as_view(), name='faq-detail'),
-            path('update', views.FAQUpdate.as_view(), name='faq-update'),
-            path('delete', views.FAQDelete.as_view(), name='faq-delete')
+            path('', views.QuestionDetail.as_view(), name='question-detail'),
+            path('update', views.QuestionUpdate.as_view(), name='question-update'),
+            path('delete', views.QuestionDelete.as_view(), name='question-delete')
         ])),
-        path('list', views.FAQList.as_view(), name='faq-list'),
+        path('list', views.QuestionList.as_view(), name='question-list'),
     ])),
     path('report/', include([
         path('create/', views.ReportCreate.as_view(), name='report-create'),
