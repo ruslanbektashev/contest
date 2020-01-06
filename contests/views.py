@@ -2,7 +2,7 @@ from datetime import date, datetime
 from markdown import markdown
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
@@ -11,7 +11,7 @@ from django.views.generic import DetailView, CreateView, UpdateView, DeleteView,
 from django.views.generic.detail import BaseDetailView
 
 from accounts.models import Account, Activity
-from contest.mixins import PaginatorMixin
+from contest.mixins import LoginAndPermissionRequiredMixin, PaginatorMixin
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission
 from .forms import (
@@ -24,7 +24,7 @@ from .models import (
 """=================================================== Attachment ==================================================="""
 
 
-class AttachmentDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class AttachmentDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = Attachment
     template_name = 'contests/attachment/attachment_delete.html'
     permission_required = 'contests.delete_attachment'
@@ -47,7 +47,7 @@ class CourseDetail(LoginRequiredMixin, DetailView):
         return context
 
 
-class CourseCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class CourseCreate(LoginAndPermissionRequiredMixin, CreateView):
     model = Course
     fields = ['title', 'description', 'level']
     template_name = 'contests/course/course_form.html'
@@ -59,7 +59,7 @@ class CourseCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class CourseUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class CourseUpdate(LoginAndPermissionRequiredMixin, UpdateView):
     model = Course
     fields = ['title', 'description', 'level']
     template_name = 'contests/course/course_form.html'
@@ -67,7 +67,7 @@ class CourseUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     raise_exception = True
 
 
-class CourseDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class CourseDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = Course
     success_url = reverse_lazy('contests:course-list')
     template_name = 'contests/course/course_delete.html'
@@ -84,7 +84,7 @@ class CourseList(LoginRequiredMixin, ListView):
 """===================================================== Credit ====================================================="""
 
 
-class CreditUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class CreditUpdate(LoginAndPermissionRequiredMixin, UpdateView):
     model = Credit
     fields = ['score']
     template_name = 'contests/credit/credit_form.html'
@@ -95,7 +95,7 @@ class CreditUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         return reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
 
 
-class CreditDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class CreditDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = Credit
     template_name = 'contests/credit/credit_delete.html'
     permission_required = 'contests.delete_credit'
@@ -105,7 +105,7 @@ class CreditDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
         return reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
 
 
-"""===================================================== Lesson ====================================================="""
+"""===================================================== Lecture ===================================================="""
 
 
 class LectureDetail(LoginRequiredMixin, DetailView):
@@ -118,7 +118,7 @@ class LectureDetail(LoginRequiredMixin, DetailView):
         return context
 
 
-class LectureCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class LectureCreate(LoginAndPermissionRequiredMixin, CreateView):
     model = Lecture
     fields = ['title', 'description']
     template_name = 'contests/lecture/lecture_form.html'
@@ -144,7 +144,7 @@ class LectureCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return context
 
 
-class LectureUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class LectureUpdate(LoginAndPermissionRequiredMixin, UpdateView):
     model = Lecture
     fields = ['title', 'description']
     template_name = 'contests/lecture/lecture_form.html'
@@ -157,7 +157,7 @@ class LectureUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         return context
 
 
-class LectureDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class LectureDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = Lecture
     template_name = 'contests/lecture/lecture_delete.html'
     permission_required = 'contests.delete_lecture'
@@ -180,7 +180,7 @@ class ContestDetail(LoginRequiredMixin, DetailView):
         return context
 
 
-class ContestCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class ContestCreate(LoginAndPermissionRequiredMixin, CreateView):
     model = Contest
     form_class = ContestForm
     template_name = 'contests/contest/contest_form.html'
@@ -206,7 +206,7 @@ class ContestCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return context
 
 
-class ContestUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class ContestUpdate(LoginAndPermissionRequiredMixin, UpdateView):
     model = Contest
     form_class = ContestForm
     template_name = 'contests/contest/contest_form.html'
@@ -219,7 +219,7 @@ class ContestUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         return context
 
 
-class ContestDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class ContestDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = Contest
     template_name = 'contests/contest/contest_delete.html'
     permission_required = 'contests.delete_contest'
@@ -253,7 +253,7 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         return context
 
 
-class ProblemCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class ProblemCreate(LoginAndPermissionRequiredMixin, CreateView):
     model = Problem
     form_class = ProblemForm
     template_name = 'contests/problem/problem_form.html'
@@ -279,7 +279,7 @@ class ProblemCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return context
 
 
-class ProblemUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class ProblemUpdate(LoginAndPermissionRequiredMixin, UpdateView):
     model = Problem
     form_class = ProblemForm
     template_name = 'contests/problem/problem_form.html'
@@ -292,7 +292,7 @@ class ProblemUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         return context
 
 
-class ProblemDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class ProblemDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = Problem
     template_name = 'contests/problem/problem_delete.html'
     permission_required = 'contests.delete_problem'
@@ -305,14 +305,14 @@ class ProblemDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 """==================================================== Solution ===================================================="""
 
 
-class SolutionDetail(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class SolutionDetail(LoginAndPermissionRequiredMixin, DetailView):
     model = Solution
     template_name = 'contests/solution/solution_detail.html'
     permission_required = 'contests.add_solution'
     raise_exception = True
 
 
-class SolutionCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class SolutionCreate(LoginAndPermissionRequiredMixin, CreateView):
     model = Solution
     form_class = SolutionForm
     template_name = 'contests/solution/solution_form.html'
@@ -343,7 +343,7 @@ class SolutionCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return context
 
 
-class SolutionUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class SolutionUpdate(LoginAndPermissionRequiredMixin, UpdateView):
     model = Solution
     form_class = SolutionForm
     template_name = 'contests/solution/solution_form.html'
@@ -356,7 +356,7 @@ class SolutionUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         return kwargs
 
 
-class SolutionDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class SolutionDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = Solution
     template_name = 'contests/solution/solution_delete.html'
     permission_required = 'contests.delete_solution'
@@ -369,14 +369,14 @@ class SolutionDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 """===================================================== IOTest ====================================================="""
 
 
-class IOTestDetail(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class IOTestDetail(LoginAndPermissionRequiredMixin, DetailView):
     model = IOTest
     template_name = 'contests/iotest/iotest_detail.html'
     permission_required = 'contests.add_iotest'
     raise_exception = True
 
 
-class IOTestCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class IOTestCreate(LoginAndPermissionRequiredMixin, CreateView):
     model = IOTest
     fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input', 'output']
     template_name = 'contests/iotest/iotest_form.html'
@@ -402,7 +402,7 @@ class IOTestCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return context
 
 
-class IOTestUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class IOTestUpdate(LoginAndPermissionRequiredMixin, UpdateView):
     model = IOTest
     fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input', 'output']
     template_name = 'contests/iotest/iotest_form.html'
@@ -415,7 +415,7 @@ class IOTestUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         return context
 
 
-class IOTestDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class IOTestDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = IOTest
     template_name = 'contests/iotest/iotest_delete.html'
     permission_required = 'contests.delete_iotest'
@@ -428,14 +428,14 @@ class IOTestDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 """===================================================== UTTest ====================================================="""
 
 
-class UTTestDetail(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class UTTestDetail(LoginAndPermissionRequiredMixin, DetailView):
     model = UTTest
     template_name = 'contests/uttest/uttest_detail.html'
     permission_required = 'contests.add_uttest'
     raise_exception = True
 
 
-class UTTestCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class UTTestCreate(LoginAndPermissionRequiredMixin, CreateView):
     model = UTTest
     form_class = UTTestForm
     template_name = 'contests/uttest/uttest_form.html'
@@ -461,7 +461,7 @@ class UTTestCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return context
 
 
-class UTTestUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class UTTestUpdate(LoginAndPermissionRequiredMixin, UpdateView):
     model = UTTest
     form_class = UTTestForm
     template_name = 'contests/uttest/uttest_form.html'
@@ -474,7 +474,7 @@ class UTTestUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         return context
 
 
-class UTTestDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class UTTestDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = UTTest
     template_name = 'contests/uttest/uttest_delete.html'
     permission_required = 'contests.delete_uttest'
@@ -487,14 +487,14 @@ class UTTestDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 """===================================================== FNTest ====================================================="""
 
 
-class FNTestDetail(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class FNTestDetail(LoginAndPermissionRequiredMixin, DetailView):
     model = FNTest
     template_name = 'contests/fntest/fntest_detail.html'
     permission_required = 'contests.add_fntest'
     raise_exception = True
 
 
-class FNTestCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class FNTestCreate(LoginAndPermissionRequiredMixin, CreateView):
     model = FNTest
     form_class = FNTestForm
     template_name = 'contests/fntest/fntest_form.html'
@@ -525,7 +525,7 @@ class FNTestCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return context
 
 
-class FNTestUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class FNTestUpdate(LoginAndPermissionRequiredMixin, UpdateView):
     model = FNTest
     form_class = FNTestForm
     template_name = 'contests/fntest/fntest_form.html'
@@ -538,7 +538,7 @@ class FNTestUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         return kwargs
 
 
-class FNTestDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class FNTestDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = FNTest
     template_name = 'contests/fntest/fntest_delete.html'
     permission_required = 'contests.delete_fntest'
@@ -566,7 +566,7 @@ class AssignmentDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         return context
 
 
-class AssignmentCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class AssignmentCreate(LoginAndPermissionRequiredMixin, CreateView):
     model = Assignment
     form_class = AssignmentForm
     template_name = 'contests/assignment/assignment_form.html'
@@ -606,7 +606,7 @@ class AssignmentCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
 
 
-class AssignmentCreateRandomSet(LoginRequiredMixin, PermissionRequiredMixin, FormView):
+class AssignmentCreateRandomSet(LoginAndPermissionRequiredMixin, FormView):
     form_class = AssignmentSetForm
     template_name = 'contests/assignment/assignment_random_set_form.html'
     permission_required = 'contests.add_assignment'
@@ -642,7 +642,7 @@ class AssignmentCreateRandomSet(LoginRequiredMixin, PermissionRequiredMixin, For
         return reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
 
 
-class AssignmentUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class AssignmentUpdate(LoginAndPermissionRequiredMixin, UpdateView):
     model = Assignment
     form_class = AssignmentUpdateForm
     template_name = 'contests/assignment/assignment_form.html'
@@ -660,7 +660,7 @@ class AssignmentUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         return context
 
 
-class AssignmentDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class AssignmentDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = Assignment
     template_name = 'contests/assignment/assignment_delete.html'
     permission_required = 'contests.delete_assignment'
@@ -687,7 +687,7 @@ class AssignmentUserTable(LoginRequiredMixin, ListView):
         return context
 
 
-class AssignmentCourseTable(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class AssignmentCourseTable(LoginAndPermissionRequiredMixin, ListView):
     model = Assignment
     template_name = 'contests/assignment/assignment_course_base.html'
     context_object_name = 'assignments'
@@ -751,7 +751,7 @@ class SubmissionDetail(LoginRequiredMixin, DetailView):
         return context
 
 
-class SubmissionDownload(LoginRequiredMixin, PermissionRequiredMixin, BaseDetailView):
+class SubmissionDownload(LoginAndPermissionRequiredMixin, BaseDetailView):
     model = Submission
     permission_required = 'contests.delete_submission'
     raise_exception = True
@@ -763,7 +763,7 @@ class SubmissionDownload(LoginRequiredMixin, PermissionRequiredMixin, BaseDetail
         return response
 
 
-class SubmissionCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class SubmissionCreate(LoginAndPermissionRequiredMixin, CreateView):
     model = Submission
     form_class = SubmissionForm
     template_name = 'contests/submission/submission_form.html'
@@ -805,7 +805,7 @@ class SubmissionCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return context
 
 
-class SubmissionEvaluate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class SubmissionEvaluate(LoginAndPermissionRequiredMixin, UpdateView):
     model = Submission
     http_method_names = ['get']
     permission_required = 'contests.add_submission'
@@ -837,7 +837,7 @@ def submission_get_progress(request, task_id):
     return JsonResponse(progress.get_info())
 
 
-class SubmissionDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class SubmissionDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = Submission
     template_name = 'contests/submission/submission_delete.html'
     permission_required = 'contests.delete_submission'
@@ -890,7 +890,7 @@ class EventDetail(LoginRequiredMixin, DetailView):
     template_name = 'contests/event/event_detail.html'
 
 
-class EventCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class EventCreate(LoginAndPermissionRequiredMixin, CreateView):
     model = Event
     form_class = EventForm
     template_name = 'contests/event/event_form.html'
@@ -928,7 +928,7 @@ class EventCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return reverse('contests:event-schedule') + '?year=' + str(iso_date[0]) + '&week=' + str(iso_date[1])
 
 
-class EventUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class EventUpdate(LoginAndPermissionRequiredMixin, UpdateView):
     model = Event
     form_class = EventForm
     template_name = 'contests/event/event_form.html'
@@ -944,7 +944,7 @@ class EventUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         return kwargs
 
 
-class EventDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class EventDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = Event
     success_url = reverse_lazy('contests:event-list')
     template_name = 'contests/event/event_delete.html'
@@ -991,7 +991,7 @@ class EventSchedule(LoginRequiredMixin, ListView):
 """==================================================== Specific ===================================================="""
 
 
-class CourseStart(LoginRequiredMixin, PermissionRequiredMixin, FormView):
+class CourseStart(LoginAndPermissionRequiredMixin, FormView):
     form_class = CreditSetForm
     template_name = 'contests/course/course_start_form.html'
     permission_required = 'contests.add_credit'

@@ -3,6 +3,7 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, TemplateView
 from markdown import markdown
 
+from contest.mixins import LoginAndPermissionRequiredMixin
 from .models import Question, Report
 
 
@@ -23,7 +24,7 @@ class QuestionDetail(LoginRequiredMixin, DetailView):
         return context
 
 
-class QuestionCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class QuestionCreate(LoginAndPermissionRequiredMixin, CreateView):
     model = Question
     fields = ['question', 'answer', 'is_published']
     template_name = 'support/question/question_form.html'
@@ -35,7 +36,7 @@ class QuestionCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class QuestionUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class QuestionUpdate(LoginAndPermissionRequiredMixin, UpdateView):
     model = Question
     fields = ['question', 'answer', 'is_published']
     template_name = 'support/question/question_form.html'
@@ -43,7 +44,7 @@ class QuestionUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     raise_exception = True
 
 
-class QuestionDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class QuestionDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = Question
     success_url = reverse_lazy('support:question-list')
     template_name = 'support/question/question_delete.html'
@@ -63,7 +64,7 @@ class QuestionList(LoginRequiredMixin, ListView):
 """===================================================== Report ====================================================="""
 
 
-class ReportDetail(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class ReportDetail(LoginAndPermissionRequiredMixin, DetailView):
     model = Report
     template_name = 'support/report/report_detail.html'
     permission_required = 'user.is_staff'
@@ -92,7 +93,7 @@ class ReportCreate(LoginRequiredMixin, CreateView):
         return self.storage['from_url'] or reverse('support:report-list')
 
 
-class ReportUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class ReportUpdate(LoginAndPermissionRequiredMixin, UpdateView):
     model = Report
     fields = ['title', 'text']
     template_name = 'support/report/report_form.html'
@@ -100,7 +101,7 @@ class ReportUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     raise_exception = True
 
 
-class ReportDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class ReportDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = Report
     success_url = reverse_lazy('support:report-list')
     template_name = 'support/report/report_delete.html'
@@ -108,7 +109,7 @@ class ReportDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     raise_exception = True
 
 
-class ReportList(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class ReportList(LoginAndPermissionRequiredMixin, ListView):
     model = Report
     template_name = 'support/report/report_list.html'
     context_object_name = 'reports'

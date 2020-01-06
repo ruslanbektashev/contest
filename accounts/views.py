@@ -7,7 +7,7 @@ from django.views.generic import DetailView, UpdateView, ListView, FormView, Cre
 from django.views.generic.list import BaseListView
 from markdown import markdown
 
-from contest.mixins import PaginatorMixin
+from contest.mixins import LoginAndPermissionRequiredMixin, PaginatorMixin
 from .forms import AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm, CommentForm
 from .models import Account, Activity, Comment, Message, Chat, Announcement
 
@@ -27,7 +27,7 @@ class AccountDetail(LoginRequiredMixin, DetailView):
         return context
 
 
-class AccountUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class AccountUpdate(LoginAndPermissionRequiredMixin, UpdateView):
     model = Account
     form_class = AccountForm
     template_name = 'accounts/account/account_form.html'
@@ -45,7 +45,7 @@ class AccountUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         return super().get_initial()
 
 
-class AccountFormList(LoginRequiredMixin, PermissionRequiredMixin, BaseListView, FormView):
+class AccountFormList(LoginAndPermissionRequiredMixin, BaseListView, FormView):
     model = Account
     form_class = AccountListForm
     template_name = 'accounts/account/account_list.html'
@@ -109,7 +109,7 @@ class AccountFormList(LoginRequiredMixin, PermissionRequiredMixin, BaseListView,
         return self.request.get_full_path()
 
 
-class AccountCredentials(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class AccountCredentials(LoginAndPermissionRequiredMixin, TemplateView):
     template_name = 'accounts/account/account_credentials.html'
     permission_required = 'accounts.add_account'
     raise_exception = True
@@ -128,7 +128,7 @@ class AccountCredentials(LoginRequiredMixin, PermissionRequiredMixin, TemplateVi
         return context
 
 
-class AccountCreateSet(LoginRequiredMixin, PermissionRequiredMixin, FormView):
+class AccountCreateSet(LoginAndPermissionRequiredMixin, FormView):
     form_class = AccountSetForm
     template_name = 'accounts/account/account_set_form.html'
     permission_required = 'accounts.add_account'
@@ -175,7 +175,7 @@ class ActivityList(LoginRequiredMixin, ListView):
         return super().get_queryset().filter(recipient=self.request.user).actual()
 
 
-class ActivityMark(LoginRequiredMixin, PermissionRequiredMixin, FormView):
+class ActivityMark(LoginAndPermissionRequiredMixin, FormView):
     form_class = ActivityMarkForm
     http_method_names = ['post']
     template_name = 'accounts/activity/activity_list.html'
@@ -200,7 +200,7 @@ class ActivityMark(LoginRequiredMixin, PermissionRequiredMixin, FormView):
 """==================================================== Comment ====================================================="""
 
 
-class CommentCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class CommentCreate(LoginAndPermissionRequiredMixin, CreateView):
     model = Comment
     form_class = CommentForm
     template_name = 'accounts/comment/comment_reply.html'
@@ -234,7 +234,7 @@ class CommentCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
 """==================================================== Message ====================================================="""
 
 
-class MessageCreate(LoginRequiredMixin, PermissionRequiredMixin, PaginatorMixin, CreateView):
+class MessageCreate(LoginAndPermissionRequiredMixin, PaginatorMixin, CreateView):
     model = Message
     fields = ['text']
     template_name = 'accounts/message/message_form.html'
@@ -302,7 +302,7 @@ class AnnouncementDetail(LoginRequiredMixin, DetailView):
         return context
 
 
-class AnnouncementCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class AnnouncementCreate(LoginAndPermissionRequiredMixin, CreateView):
     model = Announcement
     fields = ['group', 'title', 'text']
     template_name = 'accounts/announcement/announcement_form.html'
@@ -314,7 +314,7 @@ class AnnouncementCreate(LoginRequiredMixin, PermissionRequiredMixin, CreateView
         return super().form_valid(form)
 
 
-class AnnouncementUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class AnnouncementUpdate(LoginAndPermissionRequiredMixin, UpdateView):
     model = Announcement
     fields = ['group', 'title', 'text']
     template_name = 'accounts/announcement/announcement_form.html'
@@ -322,7 +322,7 @@ class AnnouncementUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView
     raise_exception = True
 
 
-class AnnouncementDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class AnnouncementDelete(LoginAndPermissionRequiredMixin, DeleteView):
     model = Announcement
     success_url = reverse_lazy('accounts:announcement-list')
     template_name = 'accounts/announcement/announcement_delete.html'
