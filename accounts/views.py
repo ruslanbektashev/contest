@@ -1,4 +1,4 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -7,37 +7,36 @@ from django.views.generic import DetailView, CreateView, UpdateView, DeleteView,
 from django.views.generic.list import BaseListView
 from markdown import markdown
 
-from contest.mixins import LoginAndPermissionRequiredMixin, PaginatorMixin
+from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
+                            PaginatorMixin)
 from accounts.forms import AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm, CommentForm
 from accounts.models import Account, Activity, Comment, Message, Chat, Announcement
 
 """==================================================== Account ====================================================="""
 
 
-class AccountDetail(LoginRequiredMixin, DetailView):
+class AccountDetail(LoginRedirectPermissionRequiredMixin, DetailView):
     model = Account
     template_name = 'accounts/account/account_detail.html'
+    permission_required = 'accounts.view_account'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['assignments'] = (self.object.user.assignment_set
-            .select_related('problem', 'problem__contest', 'problem__contest__course')
-            .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
+                                  .select_related('problem', 'problem__contest', 'problem__contest__course')
+                                  .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
         context['credits'] = self.object.user.credit_set.select_related('course')
         return context
 
 
-class AccountUpdate(LoginAndPermissionRequiredMixin, UpdateView):
+class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView):
     model = Account
     form_class = AccountForm
     template_name = 'accounts/account/account_form.html'
-    permission_required = 'auth.change_user_email'
-    raise_exception = True
+    permission_required = 'account.change_account'
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if not request.user.is_staff and request.user.id != self.object.user.id:
-            return self.handle_no_permission()
         return super().get(request, *args, **kwargs)
 
     def get_initial(self):
@@ -45,13 +44,12 @@ class AccountUpdate(LoginAndPermissionRequiredMixin, UpdateView):
         return super().get_initial()
 
 
-class AccountFormList(LoginAndPermissionRequiredMixin, BaseListView, FormView):
+class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormView):
     model = Account
     form_class = AccountListForm
     template_name = 'accounts/account/account_list.html'
     context_object_name = 'accounts'
     permission_required = 'accounts.change_account'
-    raise_exception = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -109,10 +107,9 @@ class AccountFormList(LoginAndPermissionRequiredMixin, BaseListView, FormView):
         return self.request.get_full_path()
 
 
-class AccountCredentials(LoginAndPermissionRequiredMixin, TemplateView):
+class AccountCredentials(LoginRedirectPermissionRequiredMixin, TemplateView):
     template_name = 'accounts/account/account_credentials.html'
     permission_required = 'accounts.add_account'
-    raise_exception = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -128,11 +125,10 @@ class AccountCredentials(LoginAndPermissionRequiredMixin, TemplateView):
         return context
 
 
-class AccountCreateSet(LoginAndPermissionRequiredMixin, FormView):
+class AccountCreateSet(LoginRedirectPermissionRequiredMixin, FormView):
     form_class = AccountSetForm
     template_name = 'accounts/account/account_set_form.html'
     permission_required = 'accounts.add_account'
-    raise_exception = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -175,12 +171,10 @@ class ActivityList(LoginRequiredMixin, ListView):
         return super().get_queryset().filter(recipient=self.request.user).actual()
 
 
-class ActivityMark(LoginAndPermissionRequiredMixin, FormView):
+class ActivityMark(LoginRequiredMixin, FormView):
     form_class = ActivityMarkForm
     http_method_names = ['post']
     template_name = 'accounts/activity/activity_list.html'
-    permission_required = 'accounts.change_activity'
-    raise_exception = True
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
@@ -200,12 +194,11 @@ class ActivityMark(LoginAndPermissionRequiredMixin, FormView):
 """==================================================== Comment ====================================================="""
 
 
-class CommentCreate(LoginAndPermissionRequiredMixin, CreateView):
+class CommentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Comment
     form_class = CommentForm
     template_name = 'accounts/comment/comment_reply.html'
     permission_required = 'accounts.add_comment'
-    raise_exception = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -234,12 +227,11 @@ class CommentCreate(LoginAndPermissionRequiredMixin, CreateView):
 """==================================================== Message ====================================================="""
 
 
-class MessageCreate(LoginAndPermissionRequiredMixin, PaginatorMixin, CreateView):
+class MessageCreate(LoginRedirectPermissionRequiredMixin, PaginatorMixin, CreateView):
     model = Message
     fields = ['text']
     template_name = 'accounts/message/message_form.html'
     permission_required = 'accounts.add_message'
-    raise_exception = True
     # TODO: set proper items-per-page
     paginate_by = 100
 
@@ -255,11 +247,7 @@ class MessageCreate(LoginAndPermissionRequiredMixin, PaginatorMixin, CreateView)
         form.instance.sender = self.request.user
         form.instance.recipient = self.storage['recipient']
         response = super().form_valid(form)
-        Chat.objects.update_or_create_chat(
-            self.request.user,
-            self.storage['recipient'],
-            self.object
-        )
+        Chat.objects.update_or_create_chat(self.request.user, self.storage['recipient'], self.object)
         return response
 
     def get_context_data(self, **kwargs):
@@ -292,9 +280,10 @@ class ChatList(LoginRequiredMixin, ListView):
 """================================================== Announcement =================================================="""
 
 
-class AnnouncementDetail(LoginRequiredMixin, DetailView):
+class AnnouncementDetail(LoginRedirectPermissionRequiredMixin, DetailView):
     model = Announcement
     template_name = 'accounts/announcement/announcement_detail.html'
+    permission_required = 'accounts.view_announcement'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -302,32 +291,29 @@ class AnnouncementDetail(LoginRequiredMixin, DetailView):
         return context
 
 
-class AnnouncementCreate(LoginAndPermissionRequiredMixin, CreateView):
+class AnnouncementCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Announcement
     fields = ['group', 'title', 'text']
     template_name = 'accounts/announcement/announcement_form.html'
     permission_required = 'accounts.add_announcement'
-    raise_exception = True
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
 
 
-class AnnouncementUpdate(LoginAndPermissionRequiredMixin, UpdateView):
+class AnnouncementUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Announcement
     fields = ['group', 'title', 'text']
     template_name = 'accounts/announcement/announcement_form.html'
     permission_required = 'accounts.change_announcement'
-    raise_exception = True
 
 
-class AnnouncementDelete(LoginAndPermissionRequiredMixin, DeleteView):
+class AnnouncementDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Announcement
     success_url = reverse_lazy('accounts:announcement-list')
     template_name = 'accounts/announcement/announcement_delete.html'
     permission_required = 'accounts.delete_announcement'
-    raise_exception = True
 
 
 class AnnouncementList(LoginRequiredMixin, ListView):

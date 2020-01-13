@@ -1,13 +1,30 @@
-from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.mixins import AccessMixin, PermissionRequiredMixin
 from django.contrib.auth.views import redirect_to_login
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
 
-class LoginAndPermissionRequiredMixin(PermissionRequiredMixin):
+class LoginRedirectMixin(AccessMixin):
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect_to_login(self.request.get_full_path(), self.get_login_url(), self.get_redirect_field_name())
         return super().dispatch(request, *args, **kwargs)
+
+
+class LoginRedirectPermissionRequiredMixin(LoginRedirectMixin, PermissionRequiredMixin):
+    raise_exception = True
+
+
+class OwnershipOrPermissionRequiredMixin(PermissionRequiredMixin):
+    def has_ownership(self):
+        self.object = self.get_object()
+        return self.object.owner.pk == self.request.user.pk
+
+    def has_permission(self):
+        return super().has_permission() or self.has_ownership()
+
+
+class LoginRedirectOwnershipOrPermissionRequiredMixin(LoginRedirectMixin, OwnershipOrPermissionRequiredMixin):
+    raise_exception = True
 
 
 class PaginatorMixin:

@@ -11,7 +11,8 @@ from django.views.generic import DetailView, CreateView, UpdateView, DeleteView,
 from django.views.generic.detail import BaseDetailView
 
 from accounts.models import Account, Activity
-from contest.mixins import LoginAndPermissionRequiredMixin, PaginatorMixin
+from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
+                            PaginatorMixin)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission
 from contests.forms import (CreditSetForm, ContestForm, ProblemForm, SolutionForm, UTTestForm, FNTestForm,
@@ -22,11 +23,10 @@ from contests.models import (Attachment, Course, Credit, Lecture, Contest, Probl
 """=================================================== Attachment ==================================================="""
 
 
-class AttachmentDelete(LoginAndPermissionRequiredMixin, DeleteView):
+class AttachmentDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Attachment
     template_name = 'contests/attachment/attachment_delete.html'
     permission_required = 'contests.delete_attachment'
-    raise_exception = True
 
     def get_success_url(self):
         return self.object.object.get_absolute_url()
@@ -45,32 +45,29 @@ class CourseDetail(LoginRequiredMixin, DetailView):
         return context
 
 
-class CourseCreate(LoginAndPermissionRequiredMixin, CreateView):
+class CourseCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Course
     fields = ['title', 'description', 'level']
     template_name = 'contests/course/course_form.html'
     permission_required = 'contests.add_course'
-    raise_exception = True
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
 
 
-class CourseUpdate(LoginAndPermissionRequiredMixin, UpdateView):
+class CourseUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Course
     fields = ['title', 'description', 'level']
     template_name = 'contests/course/course_form.html'
     permission_required = 'contests.change_course'
-    raise_exception = True
 
 
-class CourseDelete(LoginAndPermissionRequiredMixin, DeleteView):
+class CourseDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Course
     success_url = reverse_lazy('contests:course-list')
     template_name = 'contests/course/course_delete.html'
     permission_required = 'contests.delete_course'
-    raise_exception = True
 
 
 class CourseList(LoginRequiredMixin, ListView):
@@ -82,22 +79,56 @@ class CourseList(LoginRequiredMixin, ListView):
 """===================================================== Credit ====================================================="""
 
 
-class CreditUpdate(LoginAndPermissionRequiredMixin, UpdateView):
+class CourseStart(LoginRedirectPermissionRequiredMixin, FormView):
+    form_class = CreditSetForm
+    template_name = 'contests/course/course_start_form.html'
+    permission_required = 'contests.add_credit'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['course'] = self.storage['course']
+        return kwargs
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            Credit.objects.create_set(request.user, self.storage['course'],
+                                      form.cleaned_data['non_credited'].union(form.cleaned_data['runner_ups']))
+            form.cleaned_data['runner_ups'].level_up()
+            return self.form_valid(form)
+        return self.form_invalid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['course'] = self.storage['course']
+        return context
+
+    def get_success_url(self):
+        return reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
+
+
+class CreditUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Credit
     fields = ['score']
     template_name = 'contests/credit/credit_form.html'
     permission_required = 'contests.change_credit'
-    raise_exception = True
 
     def get_success_url(self):
         return reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
 
 
-class CreditDelete(LoginAndPermissionRequiredMixin, DeleteView):
+class CreditDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Credit
     template_name = 'contests/credit/credit_delete.html'
     permission_required = 'contests.delete_credit'
-    raise_exception = True
 
     def get_success_url(self):
         return reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
@@ -116,20 +147,19 @@ class LectureDetail(LoginRequiredMixin, DetailView):
         return context
 
 
-class LectureCreate(LoginAndPermissionRequiredMixin, CreateView):
+class LectureCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Lecture
     fields = ['title', 'description']
     template_name = 'contests/lecture/lecture_form.html'
     permission_required = 'contests.add_lecture'
-    raise_exception = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.storage = dict()
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -142,12 +172,11 @@ class LectureCreate(LoginAndPermissionRequiredMixin, CreateView):
         return context
 
 
-class LectureUpdate(LoginAndPermissionRequiredMixin, UpdateView):
+class LectureUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Lecture
     fields = ['title', 'description']
     template_name = 'contests/lecture/lecture_form.html'
     permission_required = 'contests.change_lecture'
-    raise_exception = True
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -155,11 +184,10 @@ class LectureUpdate(LoginAndPermissionRequiredMixin, UpdateView):
         return context
 
 
-class LectureDelete(LoginAndPermissionRequiredMixin, DeleteView):
+class LectureDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Lecture
     template_name = 'contests/lecture/lecture_delete.html'
     permission_required = 'contests.delete_lecture'
-    raise_exception = True
 
     def get_success_url(self):
         return reverse('contests:course-detail', kwargs={'pk': self.object.course_id})
@@ -178,20 +206,19 @@ class ContestDetail(LoginRequiredMixin, DetailView):
         return context
 
 
-class ContestCreate(LoginAndPermissionRequiredMixin, CreateView):
+class ContestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Contest
     form_class = ContestForm
     template_name = 'contests/contest/contest_form.html'
     permission_required = 'contests.add_contest'
-    raise_exception = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.storage = dict()
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -204,12 +231,11 @@ class ContestCreate(LoginAndPermissionRequiredMixin, CreateView):
         return context
 
 
-class ContestUpdate(LoginAndPermissionRequiredMixin, UpdateView):
+class ContestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Contest
     form_class = ContestForm
     template_name = 'contests/contest/contest_form.html'
     permission_required = 'contests.change_contest'
-    raise_exception = True
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -217,11 +243,10 @@ class ContestUpdate(LoginAndPermissionRequiredMixin, UpdateView):
         return context
 
 
-class ContestDelete(LoginAndPermissionRequiredMixin, DeleteView):
+class ContestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Contest
     template_name = 'contests/contest/contest_delete.html'
     permission_required = 'contests.delete_contest'
-    raise_exception = True
 
     def get_success_url(self):
         return reverse('contests:course-detail', kwargs={'pk': self.object.course_id})
@@ -251,20 +276,19 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         return context
 
 
-class ProblemCreate(LoginAndPermissionRequiredMixin, CreateView):
+class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Problem
     form_class = ProblemForm
     template_name = 'contests/problem/problem_form.html'
     permission_required = 'contests.add_problem'
-    raise_exception = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.storage = dict()
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -277,12 +301,11 @@ class ProblemCreate(LoginAndPermissionRequiredMixin, CreateView):
         return context
 
 
-class ProblemUpdate(LoginAndPermissionRequiredMixin, UpdateView):
+class ProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Problem
     form_class = ProblemForm
     template_name = 'contests/problem/problem_form.html'
     permission_required = 'contests.change_problem'
-    raise_exception = True
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -290,11 +313,10 @@ class ProblemUpdate(LoginAndPermissionRequiredMixin, UpdateView):
         return context
 
 
-class ProblemDelete(LoginAndPermissionRequiredMixin, DeleteView):
+class ProblemDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Problem
     template_name = 'contests/problem/problem_delete.html'
     permission_required = 'contests.delete_problem'
-    raise_exception = True
 
     def get_success_url(self):
         return reverse('contests:contest-detail', kwargs={'pk': self.object.contest_id})
@@ -303,27 +325,25 @@ class ProblemDelete(LoginAndPermissionRequiredMixin, DeleteView):
 """==================================================== Solution ===================================================="""
 
 
-class SolutionDetail(LoginAndPermissionRequiredMixin, DetailView):
+class SolutionDetail(LoginRedirectPermissionRequiredMixin, DetailView):
     model = Solution
     template_name = 'contests/solution/solution_detail.html'
-    permission_required = 'contests.add_solution'
-    raise_exception = True
+    permission_required = 'contests.view_solution'
 
 
-class SolutionCreate(LoginAndPermissionRequiredMixin, CreateView):
+class SolutionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Solution
     form_class = SolutionForm
     template_name = 'contests/solution/solution_form.html'
     permission_required = 'contests.add_solution'
-    raise_exception = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.storage = dict()
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['problem'] = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -341,12 +361,11 @@ class SolutionCreate(LoginAndPermissionRequiredMixin, CreateView):
         return context
 
 
-class SolutionUpdate(LoginAndPermissionRequiredMixin, UpdateView):
+class SolutionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Solution
     form_class = SolutionForm
     template_name = 'contests/solution/solution_form.html'
     permission_required = 'contests.change_solution'
-    raise_exception = True
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -354,11 +373,10 @@ class SolutionUpdate(LoginAndPermissionRequiredMixin, UpdateView):
         return kwargs
 
 
-class SolutionDelete(LoginAndPermissionRequiredMixin, DeleteView):
+class SolutionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Solution
     template_name = 'contests/solution/solution_delete.html'
     permission_required = 'contests.delete_solution'
-    raise_exception = True
 
     def get_success_url(self):
         return reverse('contests:solution-detail', kwargs={'pk': self.object.problem_id})
@@ -367,27 +385,25 @@ class SolutionDelete(LoginAndPermissionRequiredMixin, DeleteView):
 """===================================================== IOTest ====================================================="""
 
 
-class IOTestDetail(LoginAndPermissionRequiredMixin, DetailView):
+class IOTestDetail(LoginRedirectPermissionRequiredMixin, DetailView):
     model = IOTest
     template_name = 'contests/iotest/iotest_detail.html'
-    permission_required = 'contests.add_iotest'
-    raise_exception = True
+    permission_required = 'contests.view_iotest'
 
 
-class IOTestCreate(LoginAndPermissionRequiredMixin, CreateView):
+class IOTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = IOTest
     fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input', 'output']
     template_name = 'contests/iotest/iotest_form.html'
     permission_required = 'contests.add_iotest'
-    raise_exception = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.storage = dict()
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['problem'] = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -400,12 +416,11 @@ class IOTestCreate(LoginAndPermissionRequiredMixin, CreateView):
         return context
 
 
-class IOTestUpdate(LoginAndPermissionRequiredMixin, UpdateView):
+class IOTestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = IOTest
     fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input', 'output']
     template_name = 'contests/iotest/iotest_form.html'
     permission_required = 'contests.change_iotest'
-    raise_exception = True
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -413,11 +428,10 @@ class IOTestUpdate(LoginAndPermissionRequiredMixin, UpdateView):
         return context
 
 
-class IOTestDelete(LoginAndPermissionRequiredMixin, DeleteView):
+class IOTestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = IOTest
     template_name = 'contests/iotest/iotest_delete.html'
     permission_required = 'contests.delete_iotest'
-    raise_exception = True
 
     def get_success_url(self):
         return reverse('contests:problem-detail', kwargs={'pk': self.object.problem_id})
@@ -426,27 +440,25 @@ class IOTestDelete(LoginAndPermissionRequiredMixin, DeleteView):
 """===================================================== UTTest ====================================================="""
 
 
-class UTTestDetail(LoginAndPermissionRequiredMixin, DetailView):
+class UTTestDetail(LoginRedirectPermissionRequiredMixin, DetailView):
     model = UTTest
     template_name = 'contests/uttest/uttest_detail.html'
-    permission_required = 'contests.add_uttest'
-    raise_exception = True
+    permission_required = 'contests.view_uttest'
 
 
-class UTTestCreate(LoginAndPermissionRequiredMixin, CreateView):
+class UTTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = UTTest
     form_class = UTTestForm
     template_name = 'contests/uttest/uttest_form.html'
     permission_required = 'contests.add_uttest'
-    raise_exception = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.storage = dict()
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['problem'] = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -459,12 +471,11 @@ class UTTestCreate(LoginAndPermissionRequiredMixin, CreateView):
         return context
 
 
-class UTTestUpdate(LoginAndPermissionRequiredMixin, UpdateView):
+class UTTestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = UTTest
     form_class = UTTestForm
     template_name = 'contests/uttest/uttest_form.html'
     permission_required = 'contests.change_uttest'
-    raise_exception = True
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -472,11 +483,10 @@ class UTTestUpdate(LoginAndPermissionRequiredMixin, UpdateView):
         return context
 
 
-class UTTestDelete(LoginAndPermissionRequiredMixin, DeleteView):
+class UTTestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = UTTest
     template_name = 'contests/uttest/uttest_delete.html'
     permission_required = 'contests.delete_uttest'
-    raise_exception = True
 
     def get_success_url(self):
         return reverse('contests:problem-detail', kwargs={'pk': self.object.problem_id})
@@ -485,27 +495,25 @@ class UTTestDelete(LoginAndPermissionRequiredMixin, DeleteView):
 """===================================================== FNTest ====================================================="""
 
 
-class FNTestDetail(LoginAndPermissionRequiredMixin, DetailView):
+class FNTestDetail(LoginRedirectPermissionRequiredMixin, DetailView):
     model = FNTest
     template_name = 'contests/fntest/fntest_detail.html'
-    permission_required = 'contests.add_fntest'
-    raise_exception = True
+    permission_required = 'contests.view_fntest'
 
 
-class FNTestCreate(LoginAndPermissionRequiredMixin, CreateView):
+class FNTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = FNTest
     form_class = FNTestForm
     template_name = 'contests/fntest/fntest_form.html'
     permission_required = 'contests.add_fntest'
-    raise_exception = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.storage = dict()
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['problem'] = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -523,12 +531,11 @@ class FNTestCreate(LoginAndPermissionRequiredMixin, CreateView):
         return context
 
 
-class FNTestUpdate(LoginAndPermissionRequiredMixin, UpdateView):
+class FNTestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = FNTest
     form_class = FNTestForm
     template_name = 'contests/fntest/fntest_form.html'
     permission_required = 'contests.change_fntest'
-    raise_exception = True
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -536,11 +543,10 @@ class FNTestUpdate(LoginAndPermissionRequiredMixin, UpdateView):
         return kwargs
 
 
-class FNTestDelete(LoginAndPermissionRequiredMixin, DeleteView):
+class FNTestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = FNTest
     template_name = 'contests/fntest/fntest_delete.html'
     permission_required = 'contests.delete_fntest'
-    raise_exception = True
 
     def get_success_url(self):
         return reverse('contests:problem-detail', kwargs={'pk': self.object.problem_id})
@@ -564,20 +570,19 @@ class AssignmentDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         return context
 
 
-class AssignmentCreate(LoginAndPermissionRequiredMixin, CreateView):
+class AssignmentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Assignment
     form_class = AssignmentForm
     template_name = 'contests/assignment/assignment_form.html'
     permission_required = 'contests.add_assignment'
-    raise_exception = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.storage = dict()
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         contest_id, user_id = request.GET.get('contest_id'), request.GET.get('user_id')
@@ -604,19 +609,18 @@ class AssignmentCreate(LoginAndPermissionRequiredMixin, CreateView):
         return reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
 
 
-class AssignmentCreateRandomSet(LoginAndPermissionRequiredMixin, FormView):
+class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
     form_class = AssignmentSetForm
     template_name = 'contests/assignment/assignment_random_set_form.html'
     permission_required = 'contests.add_assignment'
-    raise_exception = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.storage = dict()
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -640,12 +644,11 @@ class AssignmentCreateRandomSet(LoginAndPermissionRequiredMixin, FormView):
         return reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
 
 
-class AssignmentUpdate(LoginAndPermissionRequiredMixin, UpdateView):
+class AssignmentUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Assignment
     form_class = AssignmentUpdateForm
     template_name = 'contests/assignment/assignment_form.html'
     permission_required = 'contests.change_assignment'
-    raise_exception = True
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -658,11 +661,10 @@ class AssignmentUpdate(LoginAndPermissionRequiredMixin, UpdateView):
         return context
 
 
-class AssignmentDelete(LoginAndPermissionRequiredMixin, DeleteView):
+class AssignmentDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Assignment
     template_name = 'contests/assignment/assignment_delete.html'
     permission_required = 'contests.delete_assignment'
-    raise_exception = True
 
     def get_success_url(self):
         return reverse('contests:assignment-table', kwargs={'course_id': self.object.problem.contest.course_id})
@@ -685,20 +687,19 @@ class AssignmentUserTable(LoginRequiredMixin, ListView):
         return context
 
 
-class AssignmentCourseTable(LoginAndPermissionRequiredMixin, ListView):
+class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
     model = Assignment
     template_name = 'contests/assignment/assignment_course_base.html'
     context_object_name = 'assignments'
-    permission_required = 'contests.add_assignment'
-    raise_exception = True
+    permission_required = 'contests.view_assignment_table'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.storage = dict()
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         self.storage['debts'] = request.GET.get('debts')
@@ -727,17 +728,18 @@ class AssignmentCourseTable(LoginAndPermissionRequiredMixin, ListView):
 """=================================================== Submission ==================================================="""
 
 
-class SubmissionDetail(LoginRequiredMixin, DetailView):
+class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
     model = Submission
     template_name = 'contests/submission/submission_detail.html'
+    permission_required = 'contests.view_submission'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.storage = dict()
 
-    def get(self, request, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['from_url_name'] = request.GET.get('from', '')
-        return super().get(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -749,10 +751,9 @@ class SubmissionDetail(LoginRequiredMixin, DetailView):
         return context
 
 
-class SubmissionDownload(LoginAndPermissionRequiredMixin, BaseDetailView):
+class SubmissionDownload(LoginRedirectPermissionRequiredMixin, BaseDetailView):
     model = Submission
-    permission_required = 'contests.delete_submission'
-    raise_exception = True
+    permission_required = 'contests.download_submission'
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -761,20 +762,19 @@ class SubmissionDownload(LoginAndPermissionRequiredMixin, BaseDetailView):
         return response
 
 
-class SubmissionCreate(LoginAndPermissionRequiredMixin, CreateView):
+class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Submission
     form_class = SubmissionForm
     template_name = 'contests/submission/submission_form.html'
     permission_required = 'contests.add_submission'
-    raise_exception = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.storage = dict()
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['problem'] = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -803,20 +803,22 @@ class SubmissionCreate(LoginAndPermissionRequiredMixin, CreateView):
         return context
 
 
-class SubmissionEvaluate(LoginAndPermissionRequiredMixin, UpdateView):
+class SubmissionEvaluate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView):
     model = Submission
     http_method_names = ['get']
-    permission_required = 'contests.add_submission'
-    raise_exception = True
+    permission_required = 'contests.evaluate_submission'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.storage = dict()
 
-    def get(self, request, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['from_url_name'] = request.GET.get('from', '')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if self.object.problem.is_testable and request.user.account.can_evaluate(self.object):
+        if self.object.problem.is_testable:
             task = evaluate_submission.delay(self.object.pk, request.user.id)
             self.object.task_id = task.id
             self.object.save()
@@ -835,21 +837,21 @@ def submission_get_progress(request, task_id):
     return JsonResponse(progress.get_info())
 
 
-class SubmissionDelete(LoginAndPermissionRequiredMixin, DeleteView):
+class SubmissionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Submission
     template_name = 'contests/submission/submission_delete.html'
     permission_required = 'contests.delete_submission'
-    raise_exception = True
 
     def get_success_url(self):
         return reverse('contests:assignment-table', kwargs={'course_id': self.object.problem.contest.course_id})
 
 
-class SubmissionList(LoginRequiredMixin, ListView):
+class SubmissionList(LoginRedirectPermissionRequiredMixin, ListView):
     model = Submission
     template_name = 'contests/submission/submission_list.html'
     context_object_name = 'submissions'
     paginate_by = 20
+    permission_required = 'contests.view_submission_list'
 
     def get_queryset(self):
         return super().get_queryset().select_related('owner', 'problem')
@@ -872,9 +874,9 @@ class ExecutionList(LoginRequiredMixin, ListView):
         super().__init__(**kwargs)
         self.storage = dict()
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['submission_id'] = kwargs.pop('pk')
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return Execution.objects.filter(submission_id=self.storage['submission_id'])
@@ -888,12 +890,11 @@ class EventDetail(LoginRequiredMixin, DetailView):
     template_name = 'contests/event/event_detail.html'
 
 
-class EventCreate(LoginAndPermissionRequiredMixin, CreateView):
+class EventCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Event
     form_class = EventForm
     template_name = 'contests/event/event_form.html'
     permission_required = 'contests.add_event'
-    raise_exception = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -926,12 +927,11 @@ class EventCreate(LoginAndPermissionRequiredMixin, CreateView):
         return reverse('contests:event-schedule') + '?year=' + str(iso_date[0]) + '&week=' + str(iso_date[1])
 
 
-class EventUpdate(LoginAndPermissionRequiredMixin, UpdateView):
+class EventUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Event
     form_class = EventForm
     template_name = 'contests/event/event_form.html'
     permission_required = 'contests.change_event'
-    raise_exception = True
 
     def get_form_kwargs(self):
         initial = {
@@ -942,12 +942,11 @@ class EventUpdate(LoginAndPermissionRequiredMixin, UpdateView):
         return kwargs
 
 
-class EventDelete(LoginAndPermissionRequiredMixin, DeleteView):
+class EventDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Event
     success_url = reverse_lazy('contests:event-list')
     template_name = 'contests/event/event_delete.html'
     permission_required = 'contests.delete_event'
-    raise_exception = True
 
 
 class EventSchedule(LoginRequiredMixin, ListView):
@@ -959,7 +958,7 @@ class EventSchedule(LoginRequiredMixin, ListView):
         super().__init__(**kwargs)
         self.storage = dict()
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         iso_today = list(date.today().isocalendar())
         if iso_today[2] == 7:
             iso_today[1] += 1
@@ -974,7 +973,7 @@ class EventSchedule(LoginRequiredMixin, ListView):
             last_week = date(self.storage['year'] - 1, 12, 28).isocalendar()[1]
             self.storage['year'] -= 1
             self.storage['week'] = last_week
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return Event.objects.weekly(self.storage['year'], self.storage['week'])
@@ -987,43 +986,6 @@ class EventSchedule(LoginRequiredMixin, ListView):
 
 
 """==================================================== Specific ===================================================="""
-
-
-class CourseStart(LoginAndPermissionRequiredMixin, FormView):
-    form_class = CreditSetForm
-    template_name = 'contests/course/course_start_form.html'
-    permission_required = 'contests.add_credit'
-    raise_exception = True
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, *args, **kwargs):
-        self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
-        return super().dispatch(*args, **kwargs)
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['course'] = self.storage['course']
-        return kwargs
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        if form.is_valid():
-            Credit.objects.create_set(request.user, self.storage['course'],
-                                      form.cleaned_data['non_credited'].union(form.cleaned_data['runner_ups']))
-            form.cleaned_data['runner_ups'].level_up()
-            return self.form_valid(form)
-        return self.form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['course'] = self.storage['course']
-        return context
-
-    def get_success_url(self):
-        return reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
 
 
 @login_required

@@ -134,10 +134,6 @@ class Account(models.Model):
         verbose_name = "Аккаунт"
         verbose_name_plural = "Аккаунты"
 
-    def can_evaluate(self, submission):
-        return self.user.is_staff or self.user.is_superuser or self.user.has_perm('contests.add_problem') or (
-                submission.owner_id == self.user.id and submission.is_un)
-
     @property
     def username(self):
         return self.user.username
