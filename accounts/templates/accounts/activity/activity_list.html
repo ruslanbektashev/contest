@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load paginator %}
+{% load paginator humanize %}
 
 {% block title %}
 Оповещения
@@ -50,7 +50,7 @@
                     </label>
                 </td>
                 <td>
-                    <span class="text-muted">{{ activity.timesince }} назад</span>
+                    <span class="text-muted">{{ activity.date_created|naturaltime }}</span>
                 </td>
             </tr>
             {% endfor %}

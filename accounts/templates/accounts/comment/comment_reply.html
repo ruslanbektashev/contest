@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load comments %}
+{% load comments humanize %}
 
 {% block title %}
 Комментарий
@@ -27,7 +27,7 @@
                     </a>
                 </div>
                 <div class="comment-timesince text-muted pull-left">
-                    {{ parent.timesince }} назад
+                    {{ parent.date_created|naturaltime }}
                 </div>
             </div>
             <div class="comment-text col-md-12">

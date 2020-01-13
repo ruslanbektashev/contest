@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
-{% load forms %}
-{% load static %}
+{% load forms static humanize %}
 
 {% block title %}
 Чат
@@ -28,7 +27,7 @@
                     {{ message.text }}
                 </div>
                 <div class="message-footer">
-                    <span class="text-muted">{{ message.timesince }} назад</span>
+                    <span class="text-muted">{{ message.date_created|naturaltime }}</span>
                 </div>
             </div>
         </div>

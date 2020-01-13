@@ -1,11 +1,10 @@
 from django.contrib.auth.models import User, Group
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.db import models
 from django.db.transaction import atomic
 from django.urls import reverse
-from django.utils.timesince import timesince as _timesince_
 from django.utils import timezone
 
 from contest.abstract import CRUDEntry
@@ -290,9 +289,6 @@ class Activity(models.Model):
         verbose_name = "Действие"
         verbose_name_plural = "Действия"
 
-    def timesince(self, now=None):
-        return _timesince_(self.date_created, now)
-
     def __str__(self):
         context = {
             'recipient': self.recipient.account,
@@ -300,7 +296,7 @@ class Activity(models.Model):
             'object': '',
             'slash': '',
             'reference': '',
-            'timesince': self.timesince()
+            'timesince': naturaltime(self.date_created)
         }
         if self.object:
             context['object'] = self.object
@@ -396,16 +392,13 @@ class Comment(models.Model):
     def is_repliable(self):
         return self.level < self.MAX_LEVEL
 
-    def timesince(self, now=None):
-        return _timesince_(self.date_created, now)
-
     def __str__(self):
         context = {
             'author': self.author.account,
             'object': self.object,
             'text': self.text[:30],
             'dots': '',
-            'timesince': self.timesince()
+            'timesince': naturaltime(self.date_created)
         }
         if len(self.text) > 30:
             context['dots'] = '...'
@@ -451,16 +444,13 @@ class Message(models.Model):
         verbose_name = "Сообщение"
         verbose_name_plural = "Сообщения"
 
-    def timesince(self, now=None):
-        return _timesince_(self.date_created, now)
-
     def __str__(self):
         context = {
             'sender': self.sender.account,
             'recipient': self.recipient.account,
             'text': self.text[:30],
             'dots': '',
-            'timesince': self.timesince()
+            'timesince': naturaltime(self.date_created)
         }
         if len(self.text) > 30:
             context['dots'] = '...'
