@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('contests', '0055_connect_submissions_to_assignments'),
+        ('contests', '0054_submission_assignment'),
     ]
 
     operations = [

@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from . import views
+from support import views
 
 app_name = 'support'
 

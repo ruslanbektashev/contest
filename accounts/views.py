@@ -3,13 +3,13 @@ from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
-from django.views.generic import DetailView, UpdateView, ListView, FormView, CreateView, DeleteView, TemplateView
+from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView, TemplateView
 from django.views.generic.list import BaseListView
 from markdown import markdown
 
 from contest.mixins import LoginAndPermissionRequiredMixin, PaginatorMixin
-from .forms import AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm, CommentForm
-from .models import Account, Activity, Comment, Message, Chat, Announcement
+from accounts.forms import AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm, CommentForm
+from accounts.models import Account, Activity, Comment, Message, Chat, Announcement
 
 """==================================================== Account ====================================================="""
 

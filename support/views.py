@@ -4,7 +4,7 @@ from django.views.generic import DetailView, CreateView, UpdateView, DeleteView,
 from markdown import markdown
 
 from contest.mixins import LoginAndPermissionRequiredMixin
-from .models import Question, Report
+from support.models import Question, Report
 
 
 class Support(LoginRequiredMixin, TemplateView):

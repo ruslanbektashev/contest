@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 
-from .models import Account, Activity, Comment, Message, Chat, Announcement
+from accounts.models import Account, Activity, Comment, Message, Chat, Announcement
 
 
 @admin.register(Permission)

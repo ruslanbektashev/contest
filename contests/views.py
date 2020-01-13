@@ -14,12 +14,10 @@ from accounts.models import Account, Activity
 from contest.mixins import LoginAndPermissionRequiredMixin, PaginatorMixin
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission
-from .forms import (
-    CreditSetForm, ContestForm, ProblemForm, SolutionForm, UTTestForm, FNTestForm, SubmissionForm, AssignmentForm,
-    AssignmentUpdateForm, AssignmentSetForm, EventForm)
-from .models import (
-    Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, UTTest, Assignment, Submission, Execution,
-    Event, FNTest)
+from contests.forms import (CreditSetForm, ContestForm, ProblemForm, SolutionForm, UTTestForm, FNTestForm,
+                            SubmissionForm, AssignmentForm, AssignmentUpdateForm, AssignmentSetForm, EventForm)
+from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, UTTest, FNTest,
+                             Assignment, Submission, Execution, Event)
 
 """=================================================== Attachment ==================================================="""
 

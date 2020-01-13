@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
-from .models import Attachment, Contest, Problem, Solution, UTTest, FNTest, Assignment, Submission, Event
+from contests.models import Attachment, Contest, Problem, Solution, UTTest, FNTest, Assignment, Submission, Event
 
 
 class UserChoiceField(forms.ModelChoiceField):

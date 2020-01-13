@@ -1,10 +1,8 @@
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericStackedInline
 
-from .models import (
-    Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, UTTest, FNTest, Assignment, Submission,
-    Execution, Tag, Event
-)
+from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, UTTest, FNTest,
+                             Assignment, Submission, Execution, Tag, Event)
 
 
 class AttachmentInline(GenericStackedInline):
