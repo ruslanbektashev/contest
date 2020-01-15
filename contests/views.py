@@ -741,6 +741,12 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailVi
         self.storage['from_url_name'] = request.GET.get('from', '')
         return super().dispatch(request, *args, **kwargs)
 
+    def get(self, request, *args, **kwargs):
+        if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
+            self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         try:
@@ -817,7 +823,8 @@ class SubmissionEvaluate(LoginRedirectOwnershipOrPermissionRequiredMixin, Update
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
+        if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
+            self.object = self.get_object()
         if self.object.problem.is_testable:
             task = evaluate_submission.delay(self.object.pk, request.user.id)
             self.object.task_id = task.id
@@ -990,7 +997,7 @@ class EventSchedule(LoginRequiredMixin, ListView):
 
 @login_required
 def index(request):
-    if request.user.has_perm('contests.add_problem'):
+    if request.user.has_perm('contests.view_assignment_table'):
         return render(request, 'contests/index.html', {'courses': Course.objects.all()})
     else:
         return redirect(reverse('contests:assignment-list'))

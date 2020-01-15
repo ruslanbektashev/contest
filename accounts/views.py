@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView, TemplateView
+from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 from markdown import markdown
 
@@ -15,10 +16,16 @@ from accounts.models import Account, Activity, Comment, Message, Chat, Announcem
 """==================================================== Account ====================================================="""
 
 
-class AccountDetail(LoginRedirectPermissionRequiredMixin, DetailView):
+class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
     model = Account
     template_name = 'accounts/account/account_detail.html'
     permission_required = 'accounts.view_account'
+
+    def get(self, request, *args, **kwargs):
+        if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
+            self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -29,6 +36,39 @@ class AccountDetail(LoginRedirectPermissionRequiredMixin, DetailView):
         return context
 
 
+class AccountCreateSet(LoginRedirectPermissionRequiredMixin, FormView):
+    form_class = AccountSetForm
+    template_name = 'accounts/account/account_set_form.html'
+    permission_required = 'accounts.add_account'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = {}
+
+    def dispatch(self, *args, **kwargs):
+        self.storage['level'] = int(self.request.GET.get('level') or 1)
+        return super().dispatch(*args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['level'] = self.storage['level']
+        return kwargs
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            _, self.request.session['credentials'] = Account.students.create_set(
+                form.cleaned_data['level'],
+                form.cleaned_data['admission_year'],
+                form.cleaned_data['names']
+            )
+            return self.form_valid(form)
+        return self.form_invalid(form)
+
+    def get_success_url(self):
+        return reverse('accounts:account-credentials')
+
+
 class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView):
     model = Account
     form_class = AccountForm
@@ -36,8 +76,9 @@ class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView)
     permission_required = 'account.change_account'
 
     def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return super().get(request, *args, **kwargs)
+        if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
+            self.object = self.get_object()
+        return super(BaseUpdateView, self).get(request, *args, **kwargs)
 
     def get_initial(self):
         self.initial['email'] = self.object.email
@@ -123,39 +164,6 @@ class AccountCredentials(LoginRedirectPermissionRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['credentials'] = self.storage.pop('credentials')
         return context
-
-
-class AccountCreateSet(LoginRedirectPermissionRequiredMixin, FormView):
-    form_class = AccountSetForm
-    template_name = 'accounts/account/account_set_form.html'
-    permission_required = 'accounts.add_account'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = {}
-
-    def dispatch(self, *args, **kwargs):
-        self.storage['level'] = int(self.request.GET.get('level') or 1)
-        return super().dispatch(*args, **kwargs)
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['level'] = self.storage['level']
-        return kwargs
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        if form.is_valid():
-            _, self.request.session['credentials'] = Account.students.create_set(
-                form.cleaned_data['level'],
-                form.cleaned_data['admission_year'],
-                form.cleaned_data['names']
-            )
-            return self.form_valid(form)
-        return self.form_invalid(form)
-
-    def get_success_url(self):
-        return reverse('accounts:account-credentials')
 
 
 """==================================================== Activity ===================================================="""
