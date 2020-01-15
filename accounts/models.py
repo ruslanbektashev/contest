@@ -135,6 +135,10 @@ class Account(models.Model):
         verbose_name_plural = "Аккаунты"
 
     @property
+    def owner(self):
+        return self.user
+
+    @property
     def username(self):
         return self.user.username
 
