@@ -182,32 +182,23 @@ class Account(models.Model):
 """==================================================== Activity ===================================================="""
 
 
-def activity_handler(**kwargs):
-    """ handler function to create Activity instance upon notification signal call. """
-    kwargs.pop('signal', None)
-    subject = kwargs.pop('sender')
-    recipient = kwargs.pop('recipient')
-    action = kwargs.pop('action')
-    object = kwargs.pop('object', None)
-    reference = kwargs.pop('reference', None)
-    level = kwargs.pop('level', None)
-    date_created = kwargs.pop('date_created', None)
-    if isinstance(recipient, Group):
-        recipients = recipient.user_set.all()
-    elif isinstance(recipient, models.QuerySet) or isinstance(recipient, list):
-        recipients = recipient
+def make_activities(recipients, subject, action, object=None, reference=None, level=None, date_created=None):
+    if isinstance(recipients, Group):
+        recipient_ids = recipients.user_set.all().values_list('id', flat=True)
+    elif isinstance(recipients, models.QuerySet) or isinstance(recipients, list):
+        recipient_ids = recipients
     else:
-        recipients = [recipient]
+        recipient_ids = [recipients.id]
     optional = dict()
     if level:
         optional['level'] = level
     if date_created:
         optional['date_created'] = date_created
     new_activities = []
-    for recipient in recipients:
+    for recipient_id in recipient_ids:
         activity = Activity(subject_type=ContentType.objects.get_for_model(subject),
                             subject_id=subject.id,
-                            recipient=recipient,
+                            recipient_id=recipient_id,
                             action=action,
                             **optional)
         if object:
@@ -235,22 +226,23 @@ class ActivityQuerySet(models.QuerySet):
 
 
 class ActivityManager(models.Manager):
-    def notify_group(self, sender, group_name, **kwargs):
+    def notify_group(self, group_name, **kwargs):
         group = Group.objects.get(name=group_name)
-        new_activities = activity_handler(sender=sender, recipient=group, **kwargs)
+        new_activities = make_activities(group, **kwargs)
         self.bulk_create(new_activities)
 
-    def notify_user(self, sender, username, **kwargs):
+    def notify_user(self, username, **kwargs):
         user = User.objects.get(username=username)
-        new_activities = activity_handler(sender=sender, recipient=user, **kwargs)
+        new_activities = make_activities(user, **kwargs)
         self.bulk_create(new_activities)
 
     def on_assignment_updated(self, assignment):
-        pass  # self.notify_group(assignment.user, 'Преподаватель', action="решил задачу", object=assignment.problem, reference=assignment, level=2)
+        pass
 
     def on_submission_created(self, submission):
         if submission.problem.contest.course.level in (6, 7):
-            self.notify_user(submission.owner, 'sbr', action="отправил решение задачи", object=submission.problem,
+            self.notify_user('sbr',
+                             subject=submission.owner, action="отправил решение задачи", object=submission.problem,
                              level=2)
 
 
@@ -465,10 +457,10 @@ class ChatQuerySet(models.QuerySet):
         return self.filter(models.Q(user_a=user) | models.Q(user_b=user))
 
     def update_or_create_chat(self, user_one, user_two, latest_message):
-        users = sorted((user_one, user_two), key=lambda user: user.id)
+        user_a, user_b = sorted((user_one, user_two), key=lambda user: user.id)
         return Chat.objects.update_or_create(
-            user_a=users[0],
-            user_b=users[1],
+            user_a=user_a,
+            user_b=user_b,
             defaults={
                 'latest_message': latest_message
             }
