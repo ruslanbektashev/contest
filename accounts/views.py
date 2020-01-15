@@ -330,7 +330,7 @@ class AnnouncementList(LoginRequiredMixin, ListView):
     context_object_name = 'announcements'
 
     def get_queryset(self):
-        if self.request.user.has_perm('contests.add_problem'):
+        if self.request.user.has_perm('contests.change_announcement'):
             return super().get_queryset().all()
         else:
             return super().get_queryset().filter(group__in=self.request.user.groups.all())

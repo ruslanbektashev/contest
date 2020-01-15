@@ -74,7 +74,7 @@
                     {% endblock content %}
                 </div>
                 <div class="col-md-3 col-xs-12 pull-right">
-                    {% if not perms.contests.add_course %}
+                    {% if not perms.contests.view_assignment_table %}
                     <ul class="list-group">
                         <a href="{% url 'contests:course-list' %}" class="list-group-item"><i class="fa fa-book fa-fw"></i> Курсы</a>
                     </ul>

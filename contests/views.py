@@ -265,7 +265,7 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         context['description'] = markdown(self.object.description)
         context['contest_description'] = markdown(self.object.contest.description)
         context['latest_submission'] = self.object.get_latest_submission_by(self.request.user)
-        if self.request.user.has_perm('contests.add_problem'):
+        if self.request.user.has_perm('contests.view_submission_list'):
             submissions = self.object.submission_set.all()
         else:
             submissions = self.object.submission_set.filter(owner_id=self.request.user.id)

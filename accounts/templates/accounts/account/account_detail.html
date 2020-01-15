@@ -18,14 +18,14 @@
 <table class="table table-condensed">
     <tr><td class="col-md-3 text-right">Имя</td><td>{{ account.first_name }}</td></tr>
     <tr><td class="col-md-3 text-right">Фамилия</td><td>{{ account.last_name }}</td></tr>
-    <tr><td class="col-md-3 text-right">E-mail</td><td>{% if account.email %}{{ account.email }}{% elif perms.auth.change_account or perms.auth.change_user_email and account.user_id == request.user.id %}<a href="{% url 'accounts:account-update' account.user_id %}" class="text-danger" >укажите e-mail</a>{% else %}-{% endif %}</td></tr>
+    <tr><td class="col-md-3 text-right">E-mail</td><td>{% if account.email %}{{ account.email }}{% elif perms.auth.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}<a href="{% url 'accounts:account-update' account.user_id %}" class="text-danger" >укажите e-mail</a>{% else %}-{% endif %}</td></tr>
     <tr><td class="col-md-3 text-right">Группа</td><td>{% for group in account.user.groups.all %} <span class="label label-default">{{ group }}</span>{% endfor %}</td></tr>
     <tr><td class="col-md-3 text-right">Уровень</td><td>{{ account.get_level_display }}</td></tr>
     <tr><td class="col-md-3 text-right">Тип</td><td>{{ account.get_type_display }}</td></tr>
     <tr><td class="col-md-3 text-right">Год поступления</td><td>{{ account.admission_year }}</td></tr>
     <tr><td class="col-md-3 text-right">Обучается</td><td>{{ account.enrolled|yesno:'да,нет' }}</td></tr>
     <tr><td class="col-md-3 text-right">Закончил обучение</td><td>{{ account.graduated|yesno:'да,нет' }}</td></tr>
-    {% if perms.auth.change_user %}
+    {% if perms.auth.change_account %}
     <tr><td class="col-md-3 text-right">Логин</td><td>{{ account.username }}</td></tr>
     <tr><td class="col-md-3 text-right">Последний вход</td><td>{{ account.last_login|date:'d.m.y, H:i' }}</td></tr>
     <tr><td class="col-md-3 text-right">Дата регистрации</td><td>{{ account.date_joined|date:'d.m.y' }}</td></tr>
