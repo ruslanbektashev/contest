@@ -27,7 +27,7 @@
         <span class="btn btn-warning btn-block" title="Решение может быть проверено вручную преподавателем">Автоматическая проверка решения этой задачи временно отключена</span>
         {% elif submission.is_un %}
         <a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url_name %}?from={{ from_url_name }}{% endif %}" class="btn btn-primary btn-block">Проверить</a>
-        {% elif perms.contests.add_problem %}
+        {% elif perms.contests.evaluate_submission %}
         <a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url_name %}?from={{ from_url_name }}{% endif %}" class="btn btn-primary btn-block">Проверить еще раз</a>
         {% endif %}
     </div>
@@ -36,15 +36,15 @@
     </div>
     <div class="col-md-12 text-right text-muted">
         <p>отправлена: {{ submission.date_created|date:'d.m.y, H:i' }}</p>
-        {% if perms.contests.change_submission %}
+        {% if perms.contests.download_submission %}
         <p class="text-warning" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>директория на сервере: {{ submission.attachment_set.all.0.dirname }}</p>
         {% endif %}
     </div>
 </div>
-<legend>Файлы {% if perms.contests.change_submission %}<a href="{% url 'contests:submission-download' submission.id %}" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>{% endif %}</legend>
+<legend>Файлы {% if perms.contests.download_submission %}<a href="{% url 'contests:submission-download' submission.id %}" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>{% endif %}</legend>
 <ul class="list-group">
 {% for attachment in submission.attachment_set.all %}
-    {% if perms.contests.change_submission %}
+    {% if perms.contests.download_submission %}
     <a href="{{ attachment.file.url }}"><li class="list-group-item">{{ attachment.filename }}</li></a>
     {% else %}
     <li class="list-group-item">{{ attachment.filename }}</li>

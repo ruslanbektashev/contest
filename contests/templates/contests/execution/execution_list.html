@@ -9,7 +9,7 @@
             <span class="label label-warning" title="Тест провален"><i class="fa fa-close fa-fw"></i></span>
             {% endif %}
             <span style="margin: 0 0 0 10px;">
-            {% if perms.contests.add_problem and execution.test %}
+            {% if perms.contests.evaluate_submission and execution.test %}
             <a href="{{ execution.test.get_absolute_url }}">{{ execution.test }}</a>
             {% else %}
             Тест {{ forloop.counter }}
@@ -38,7 +38,7 @@
         <span class="label label-default">Вывод компилятора в stderr:</span>
         <pre>{{ execution.compilation_stderr|remove_pwd }}</pre>
     {% endif %}
-    {% if perms.contests.add_problem %}
+    {% if perms.contests.evaluate_submission %}
         {% if execution.execution_stdout %}
         <span title="Отображается только для преподавателя" class="label label-warning"><i class="fa fa-lock fa-fw"></i>Вывод программы в stdout:</span>
         <pre>{{ execution.execution_stdout }}</pre>
@@ -64,7 +64,7 @@
         <span class="label label-default">Сводка:</span>
         <pre>{{ execution.test_summary|linebreaksbr }}</pre>
     {% endif %}
-    {% if perms.contests.add_problem %}
+    {% if perms.contests.evaluate_submission %}
         {% if execution.exception %}
         <span title="Отображается только для преподавателя" class="label label-warning">Исключение: <i class="fa fa-lock fa-fw"></i></span>
         <pre>{{ execution.exception }}</pre>

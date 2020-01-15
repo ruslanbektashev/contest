@@ -28,7 +28,7 @@
 
 {% block submenu %}
 <ul class="list-group">
-    {% if perms.contests.add_assignment %}
+    {% if perms.contests.view_assignment_table %}
     <a href="{% url 'contests:assignment-table' course.id %}" class="list-group-item"><i class="fa fa-table fa-fw"></i> Таблица заданий</a>
     {% endif %}
 </ul>

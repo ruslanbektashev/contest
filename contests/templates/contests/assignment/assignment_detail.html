@@ -9,7 +9,7 @@
 {% block breadcrumbs %}
 <ol class="breadcrumb">
     <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    {% if perms.contests.add_assignment %}
+    {% if perms.contests.view_assignment_table %}
     <li><a href="{{ assignment.problem.contest.course.get_absolute_url }}">{{ assignment.problem.contest.course }}</a></li>
     <li><a href="{% url 'contests:assignment-table' assignment.problem.contest.course.id %}">Задания</a></li>
     {% else %}
@@ -27,7 +27,7 @@
         <tr><td class="col-md-2 text-right">Задача</td><td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td></tr>
         <tr><td class="col-md-2 text-right">Оценка</td><td><span class="label label-{{ assignment.score|colorize }}">{{ assignment.score|default:'-' }}</span></td></tr>
         <tr><td class="col-md-2 text-right">Посылок</td><td>{{ assignment.get_submissions.count }} / {{ assignment.submission_limit }}</td></tr>
-        {% if perms.contests.change_assignment %}
+        {% if perms.contests.view_assignment_table %}
         <tr title="Отображается только преподавателям"><td class="col-md-2 text-right text-warning"><i class="fa fa-lock fa-fw"></i>Пометка</td><td>{{ assignment.remark }}</td></tr>
         {% endif %}
     </table>

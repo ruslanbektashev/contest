@@ -6,7 +6,7 @@
         <thead>
             <tr>
                 <th class="col-md-2 text-center">Дата</th>
-                {% if perms.contests.add_problem and not assignment %}
+                {% if perms.contests.view_submission_list and not assignment %}
                 <th>Студент</th>
                 {% endif %}
                 {% if not assignment and not problem %}
@@ -20,7 +20,7 @@
             {% for submission in page_obj %}
             <tr>
                 <td class="text-center">{% if submission.date_created|date:'Y' == current_year %}{{ submission.date_created|date:'d b в H:i' }}{% else %}{{ submission.date_created|date:'d b y г. в H:i' }}{% endif %}</td>
-                {% if perms.contests.add_problem and not assignment %}
+                {% if perms.contests.view_submission_list and not assignment %}
                 <td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>
                 {% endif %}
                 {% if not assignment and not problem %}

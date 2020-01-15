@@ -50,16 +50,16 @@
 </table>
 {% render_attachment_list problem.contest legend="Файлы раздела" %}
 {% render_attachment_list problem legend="Файлы задачи" %}
-{% if perms.contests.add_solution %}
+{% if perms.contests.view_solution %}
 {% render_list problem.solution_set.all legend="Решения" %}
 {% endif %}
-{% if perms.contests.add_iotest %}
+{% if perms.contests.view_iotest %}
 {% render_list problem.iotest_set.all legend="IO-тесты" %}
 {% endif %}
-{% if perms.contests.add_uttest %}
+{% if perms.contests.view_uttest %}
 {% render_list problem.uttest_set.all legend="UT-тесты" %}
 {% endif %}
-{% if perms.contests.add_fntest %}
+{% if perms.contests.view_fntest %}
 {% render_list problem.fntest_set.all legend="FN-тесты" %}
 {% endif %}
 {% render_submission_table %}

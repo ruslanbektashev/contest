@@ -31,7 +31,7 @@
     <tr><td class="col-md-3 text-right">Дата регистрации</td><td>{{ account.date_joined|date:'d.m.y' }}</td></tr>
     {% endif %}
 </table>
-{% if perms.assignments.add_assignment and account.type == 1 %}
+{% if perms.assignments.view_assignment_table and account.type == 1 %}
 <legend>Задания</legend>
 {% render_assignment_user_table assignments credits %}
 {% render_assignment_progress assignments %}
@@ -40,7 +40,7 @@
 
 {% block submenu %}
 <ul class="list-group">
-    {% if perms.auth.change_account or perms.auth.change_user_email and account.user_id == request.user.id %}
+    {% if perms.auth.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
     <a href="{% url 'accounts:account-update' account.user.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать профиль</a>
     {% endif %}
 </ul>
