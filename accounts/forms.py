@@ -5,18 +5,24 @@ from django.utils import timezone
 from accounts.models import Account, Activity, Comment
 
 
-class AccountForm(forms.ModelForm):
+class AccountPartialForm(forms.ModelForm):
     email = forms.EmailField(label="E-mail", required=False)
 
     class Meta:
         model = Account
-        fields = ['level', 'type', 'admission_year', 'enrolled', 'graduated']
+        fields = []
 
     def save(self, commit=True):
-        obj = super().save()
-        obj.user.email = self.cleaned_data['email']
-        obj.user.save()
-        return obj
+        super().save(commit)
+        self.instance.user.email = self.cleaned_data['email']
+        self.instance.user.save()
+        return self.instance
+
+
+class AccountForm(AccountPartialForm):
+    class Meta:
+        model = Account
+        fields = ['level', 'type', 'admission_year', 'enrolled', 'graduated']
 
 
 class AccountListForm(forms.Form):

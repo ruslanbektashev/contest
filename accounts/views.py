@@ -10,7 +10,8 @@ from markdown import markdown
 
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from accounts.forms import AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm, CommentForm
+from accounts.forms import (AccountPartialForm, AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm,
+                            CommentForm)
 from accounts.models import Account, Activity, Comment, Message, Chat, Announcement
 
 """==================================================== Account ====================================================="""
@@ -79,6 +80,17 @@ class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView)
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
             self.object = self.get_object()
         return super(BaseUpdateView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
+            self.object = self.get_object()
+        return super(BaseUpdateView, self).post(request, *args, **kwargs)
+
+    def get_form_class(self):
+        if self.request.user.has_perm('accounts.change_account'):
+            return self.form_class
+        else:
+            return AccountPartialForm
 
     def get_initial(self):
         self.initial['email'] = self.object.email
