@@ -227,12 +227,18 @@ class ActivityQuerySet(models.QuerySet):
 
 class ActivityManager(models.Manager):
     def notify_group(self, group_name, **kwargs):
-        group = Group.objects.get(name=group_name)
+        try:
+            group = Group.objects.get(name=group_name)
+        except Group.DoesNotExist:
+            return
         new_activities = make_activities(group, **kwargs)
         self.bulk_create(new_activities)
 
     def notify_user(self, username, **kwargs):
-        user = User.objects.get(username=username)
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return
         new_activities = make_activities(user, **kwargs)
         self.bulk_create(new_activities)
 
