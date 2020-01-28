@@ -21,7 +21,7 @@
     {% csrf_token %}
     {% render_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
-    {% render_field form.problems class+="form-control selectpicker" data-none-selected-text="---------" data-actions-box="true" data-select-all-text="Выбрать все" data-deselect-all-text="Очистить выбор" %}
+    {% render_field form.problems class+="form-control selectpicker" data-actions-box="true" %}
     {% render_field form.title class+="form-control" %}
     {% render_field form.description class+="form-control" %}
     {% render_field form.pattern class+="form-control" %}

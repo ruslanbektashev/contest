@@ -14,7 +14,7 @@
             Тест {{ forloop.counter }}
             {% endif %}
         </span>
-        <span class="text-muted" style="margin: 0 10px 0 0;">{{ execution.date_created|date:'d.m.y, H:i' }}</span>
+        <span class="text-muted" style="margin: 0 10px 0 0;">{{ execution.date_created }}</span>
         <a class="ml-2" href="#test_{{ execution.test.id }}_{{ forloop.counter }}" data-toggle="collapse" aria-expanded="false" aria-controls="test_{{ execution.test.id }}_{{ forloop.counter }}"><i class="fa fa-angle-down fa-lg"></i></a>
     </div>
     <div class="collapse {% if not execution.test_is_passed %}in{% endif %}" id="test_{{ execution.test.id }}_{{ forloop.counter }}">

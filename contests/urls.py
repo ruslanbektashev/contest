@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.urls import path, include
+from django.views.generic import TemplateView
 
 from contests import views
 
@@ -107,12 +109,22 @@ urlpatterns = [
         path('list', views.SubmissionList.as_view(), name='submission-list')
     ])),
     path('event/', include([
-        path('create', views.EventCreate.as_view(), name='event-create'),
+        path('create',
+             views.EventCreate.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),
+             name='event-create'),
         path('<int:pk>/', include([
-            path('', views.EventDetail.as_view(), name='event-detail'),
-            path('update', views.EventUpdate.as_view(), name='event-update'),
-            path('delete', views.EventDelete.as_view(), name='event-delete')
+            path('',
+                 views.EventDetail.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),
+                 name='event-detail'),
+            path('update',
+                 views.EventUpdate.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),
+                 name='event-update'),
+            path('delete',
+                 views.EventDelete.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),
+                 name='event-delete')
         ])),
-        path('schedule', views.EventSchedule.as_view(), name='event-schedule')
+        path('schedule',
+             views.EventSchedule.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),
+             name='event-schedule')
     ]))
 ]

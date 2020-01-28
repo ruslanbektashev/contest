@@ -17,7 +17,7 @@
 <legend>{{ iotest }}</legend>
 <table class="table table-sm">
     <tr>
-        <td class="text-right" style="width: 20%;">Сложность</td>
+        <td class="text-right" style="width: 20%;">Параметры компиляции</td>
         <td>
             <code class="mr-2">{{ iotest.compile_args|default:"не указаны" }}</code>
             {% if iotest.compile_args_override %}
@@ -28,7 +28,7 @@
         </td>
     </tr>
     <tr>
-        <td class="text-right" style="width: 20%;">Язык</td>
+        <td class="text-right" style="width: 20%;">Параметры запуска</td>
         <td>
             <code class="mr-2">{{ iotest.launch_args|default:"не указаны" }}</code>
             {% if iotest.launch_args_override %}
@@ -50,7 +50,7 @@
 {% endblock content %}
 
 {% block submenu %}
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.contests.change_iotest %}
     <a href="{% url 'contests:iotest-update' iotest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать IO-тест</a>
     {% endif %}

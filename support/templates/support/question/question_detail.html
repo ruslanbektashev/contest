@@ -23,7 +23,7 @@
 {% endblock content %}
 
 {% block submenu %}
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.support.change_question %}
     <a href="{% url 'support:question-update' question.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать вопрос</a>
     {% endif %}

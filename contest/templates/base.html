@@ -73,7 +73,7 @@
 <div class="container content">
     {% block container %}
     <div class="row">
-        <div class="col-md-9 col-xs-12">
+        <div class="col-12 col-md-9">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     {% block breadcrumbs %}
@@ -83,14 +83,14 @@
             {% block content %}
             {% endblock content %}
         </div>
-        <div class="col-md-3 col-xs-12">
+        <div class="col-12 col-md-3">
             {% if not perms.contests.view_assignment_table %}
-            <div class="list-group">
+            <div class="list-group mb-3">
                 <a class="list-group-item list-group-item-action" href="{% url 'contests:course-list' %}">
                     <i class="fa fa-book fa-fw"></i> Курсы
                 </a>
             </div>
-            <div class="list-group">
+            <div class="list-group mb-3">
                 <a class="list-group-item list-group-item-action" href="{% url 'contests:assignment-list' %}">
                     <i class="fa fa-list-ol fa-fw"></i> Мои задания
                 </a>
@@ -112,6 +112,7 @@
 <script src="{% static 'jquery/dist/jquery.min.js' %}" type="text/javascript"></script>
 <script src="{% static 'bootstrap/dist/js/bootstrap.bundle.min.js' %}" type="text/javascript"></script>
 <script src="{% static 'bootstrap-select/dist/js/bootstrap-select.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'bootstrap-select/dist/js/i18n/defaults-ru_RU.min.js' %}" type="text/javascript"></script>
 <script type="text/javascript">
     $(function () {
         $('.selectpicker').selectpicker({

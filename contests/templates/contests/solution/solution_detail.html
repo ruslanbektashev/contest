@@ -27,7 +27,7 @@
 {% endblock content %}
 
 {% block submenu %}
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.contests.change_solution %}
     <a href="{% url 'contests:solution-update' solution.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать решение</a>
     {% endif %}

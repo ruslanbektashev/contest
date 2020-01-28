@@ -17,8 +17,8 @@
     {% csrf_token %}
     {% render_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
-    {% render_field form.runner_ups class+="form-control selectpicker" data-none-selected-text="---------" data-actions-box="true" data-select-all-text="Выбрать всех" data-deselect-all-text="Очистить выбор" %}
-    {% render_field form.non_credited class+="form-control selectpicker" data-none-selected-text="---------" data-actions-box="true" data-select-all-text="Выбрать всех" data-deselect-all-text="Очистить выбор" %}
+    {% render_field form.runner_ups class+="form-control selectpicker" data-actions-box="true" %}
+    {% render_field form.non_credited class+="form-control selectpicker" data-actions-box="true" %}
     {% endwith %}
     {% render_button value="Начать" %}
 </form>

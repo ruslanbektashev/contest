@@ -12,7 +12,7 @@
 
 {% block content %}
 <legend>{{ course }} <small class="text-muted">{{ course.get_level_display }}</small></legend>
-<ul class="nav nav-tabs" role="tablist">
+<ul class="nav nav-tabs mb-3" role="tablist">
     <li class="nav-item">
         <a aria-controls="description" aria-selected="true" class="nav-link active" data-toggle="tab" href="#description" id="description-tab"
            role="tab">Описание</a>
@@ -40,12 +40,12 @@
 {% endblock content %}
 
 {% block submenu %}
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.contests.view_assignment_table %}
     <a href="{% url 'contests:assignment-table' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-table fa-fw"></i> Таблица заданий</a>
     {% endif %}
 </div>
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.contests.change_course %}
     <a href="{% url 'contests:course-update' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать курс</a>
     {% endif %}
@@ -53,7 +53,7 @@
     <a href="{% url 'contests:course-delete' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить курс</a>
     {% endif %}
 </div>
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.contests.add_lecture %}
     <a href="{% url 'contests:lecture-create' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить лекцию</a>
     {% endif %}

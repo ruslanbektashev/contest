@@ -18,20 +18,20 @@
 {% endblock content %}
 
 {% block submenu %}
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.contests.add_credit %}
     <a href="{% url 'contests:course-start' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-terminal fa-fw"></i> Начать курс</a>
     {% endif %}
 
 </div>
-<div class="list-group">
+<div class="list-group mb-3">
     {% if debts %}
     <a href="{% url 'contests:assignment-table' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-table fa-fw"></i> Таблица заданий</a>
     {% else %}
     <a href="{% url 'contests:assignment-table' course.id %}?debts=1" class="list-group-item list-group-item-action"><i class="fa fa-table fa-fw"></i> Должники</a>
     {% endif %}
 </div>
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.contests.add_assignment %}
     <a href="{% url 'contests:assignment-randomize' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-random fa-fw"></i> Случайные задания</a>
     <a href="{% url 'contests:assignment-create' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить задание</a>

@@ -8,7 +8,7 @@
 {% block content %}
 <div class="row">
     {% for course in courses %}
-    <div class="col-6 mb-3">
+    <div class="col-12 col-md-6 mb-3">
         <div class="card">
             <div class="card-header">
                 <a href="{% url 'contests:course-detail' course.id %}">{{ course.title }}</a>
@@ -40,7 +40,7 @@
 {% endblock content %}
 
 {% block submenu %}
-<div class="list-group">
+<div class="list-group mb-3">
     <a href="{% url 'contests:submission-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
     <a href="{% url 'accounts:account-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-users fa-fw"></i> Студенты</a>
 </div>

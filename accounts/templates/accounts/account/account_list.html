@@ -46,22 +46,22 @@
 {% endblock content %}
 
 {% block submenu %}
-<div class="list-group">
+<div class="list-group mb-3">
     {% for lvl, lvl_display in levels %}
     <a href="{% url 'accounts:account-list' %}?level={{ lvl }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled is None and lvl != level %}-o{% endif %} fa-fw"></i> {{ lvl_display }}</a>
     {% endfor %}
 </div>
-<div class="list-group">
+<div class="list-group mb-3">
     <a href="{% url 'accounts:account-list' %}?enrolled=0&graduated=1" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != True %}-o{% endif %} fa-fw"></i> Выпускники</a>
     <a href="{% url 'accounts:account-list' %}?enrolled=0" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != False %}-o{% endif %} fa-fw"></i> Отчисленные</a>
 </div>
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.accounts.add_account %}
     <a href="{% url 'accounts:account-create-set' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить студентов</a>
     {% endif %}
 </div>
 <legend>Действия</legend>
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.accounts.change_account %}
     <button type="submit" name="action" form="account_list_form" value="level_up" class="btn btn-info btn-block"><i class="fa fa-level-up fa-fw"></i> Повысить уровень</button>
     <button type="submit" name="action" form="account_list_form" value="level_down" class="btn btn-info btn-block"><i class="fa fa-level-down fa-fw"></i> Понизить уровень</button>

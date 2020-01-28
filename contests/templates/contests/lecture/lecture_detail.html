@@ -20,7 +20,7 @@
 {% endblock content %}
 
 {% block submenu %}
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.contests.change_lecture %}
     <a href="{% url 'contests:lecture-update' lecture.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать лекцию</a>
     {% endif %}

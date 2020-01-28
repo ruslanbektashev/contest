@@ -13,7 +13,7 @@
 
 {% block content %}
 <legend>{{ account.get_full_name }}</legend>
-<ul class="nav nav-tabs" role="tablist">
+<ul class="nav nav-tabs mb-3" role="tablist">
     <li class="nav-item">
         <a aria-controls="profile" aria-selected="true" class="nav-link active" data-toggle="tab" href="#profile" id="profile-tab"
            role="tab">Профиль</a>
@@ -54,12 +54,12 @@
 {% endblock content %}
 
 {% block submenu %}
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.auth.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
     <a href="{% url 'accounts:account-update' account.user.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать профиль</a>
     {% endif %}
 </div>
-<div class="list-group">
+<div class="list-group mb-3">
     {% if account.user_id == request.user.id %}
     <a href="{% url 'password-change' %}" class="list-group-item list-group-item-action"><i class="fa fa-lock fa-fw"></i> Изменить пароль</a>
     {% else %}

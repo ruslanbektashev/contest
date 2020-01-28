@@ -22,7 +22,7 @@
 {% endblock content %}
 
 {% block submenu %}
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.accounts.change_announcement %}
     <a href="{% url 'accounts:announcement-update' announcement.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать объявление</a>
     {% endif %}

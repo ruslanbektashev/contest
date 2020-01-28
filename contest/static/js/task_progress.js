@@ -32,7 +32,7 @@ class TaskProgress {
     }
 
     onSuccess(json) {
-        this.progress_bar_element.classList.remove('bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-default', 'bg-primary');
+        this.progress_bar_element.classList.remove('bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-secondary', 'bg-primary');
         this.progress_bar_element.classList.add('bg-' + json.class);
         this.progress_bar_element.style.width = '100%';
         this.progress_bar_message_element.style.color = 'white';
@@ -44,7 +44,7 @@ class TaskProgress {
     }
 
     onError(error) {
-        this.progress_bar_element.classList.remove('bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-default', 'bg-primary');
+        this.progress_bar_element.classList.remove('bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-secondary', 'bg-primary');
         this.progress_bar_element.classList.add('bg-danger');
         this.progress_bar_element.style.width = '100%';
         this.progress_bar_message_element.style.color = 'white';

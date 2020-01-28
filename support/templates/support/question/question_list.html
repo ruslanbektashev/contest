@@ -17,7 +17,7 @@
 {% endblock content %}
 
 {% block submenu %}
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.support.add_question %}
     <a href="{% url 'support:question-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Задать вопрос</a>
     {% endif %}

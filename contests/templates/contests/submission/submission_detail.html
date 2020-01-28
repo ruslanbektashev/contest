@@ -14,33 +14,41 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ submission }}{% if submission.assignment %} [по <a href="{{ submission.assignment.get_absolute_url }}">заданию</a>]{% endif %}</legend>
-    <div class="progress justify-content-center mb-3" style="height: 25px;">
-        <div id="progress-bar" class="progress-bar bg-{{ submission.status|colorize }}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% else %}100{% endif %}%;"></div>
-        <span class="status-display align-self-center" style="position: absolute;"><strong id="progress-bar-message" style="color: white;">{{ submission.get_status_display }}</strong></span>
-    </div>
-    {% if not submission.problem.is_testable %}
-    <span class="btn btn-warning btn-block mb-3" title="Решение может быть проверено вручную преподавателем">Автоматическая проверка решения этой задачи временно отключена</span>
-    {% elif submission.is_un %}
-    <a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url_name %}?from={{ from_url_name }}{% endif %}" class="btn btn-light btn-block border mb-3">Проверить</a>
-    {% elif perms.contests.evaluate_submission %}
-    <a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url_name %}?from={{ from_url_name }}{% endif %}" class="btn btn-light btn-block border mb-3">Проверить еще раз</a>
+<legend>Посылка {{ submission.id }}</legend>
+<table class="table table-sm">
+    <tr><td class="text-right" style="width: 20%;">Автор</td><td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td></tr>
+    <tr><td class="text-right" style="width: 20%;">К задаче</td><td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td></tr>
+    {% if submission.assignment %}
+    <tr><td class="text-right" style="width: 20%;">По заданию</td><td><a href="{{ submission.assignment.get_absolute_url }}">да</a></td></tr>
     {% endif %}
-    <div class="accordion mb-3" id="execution_list">
-        {% render_execution_list submission.execution_set.all %}
-    </div>
-    <div class="text-right text-muted">
-        <p>отправлена: {{ submission.date_created|date:'d.m.y, H:i' }}</p>
-        {% if perms.contests.download_submission %}
-        <p class="text-warning" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>директория на сервере: {{ submission.attachment_set.all.0.dirname }}</p>
+    <tr><td class="text-right" style="width: 20%;">Отправлена</td><td>{{ submission.date_created }}</td></tr>
+    {# <tr><td class="text-right" style="width: 20%;">Проверена</td><td>{{ submission.date_updated|date:'d.m.y, H:i' }}</td></tr> #}
+</table>
+<div class="progress justify-content-center mb-3" style="height: 25px;">
+    <div id="progress-bar" class="progress-bar bg-{{ submission.status|colorize }}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% else %}100{% endif %}%;"></div>
+    <span class="status-display align-self-center" style="position: absolute;"><strong id="progress-bar-message" style="color: white;">{{ submission.get_status_display }}</strong></span>
+</div>
+{% if not submission.problem.is_testable %}
+<span class="btn btn-warning btn-block mb-3" title="Решение может быть проверено вручную преподавателем">Автоматическая проверка решения этой задачи временно отключена</span>
+{% elif submission.is_un %}
+<a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url_name %}?from={{ from_url_name }}{% endif %}" class="btn btn-light btn-block border mb-3">Проверить</a>
+{% elif perms.contests.evaluate_submission %}
+<a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url_name %}?from={{ from_url_name }}{% endif %}" class="btn btn-light btn-block border mb-3">Проверить еще раз</a>
+{% endif %}
+<div class="accordion mb-3" id="execution_list">
+    {% render_execution_list submission.execution_set.all %}
+</div>
+<div class="text-right text-muted">
+    {% if perms.contests.download_submission %}
+    <p class="text-warning text-break" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>директория на сервере: {{ submission.attachment_set.all.0.dirname }}</p>
+    {% endif %}
+    {% if perms.contests.moss_submission %}
+        {% if submission.moss_to_submissions %}
+    <p class="text-warning text-wrap" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>с посылками MOSS: {% for to_submission_id in submission.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+    <p class="text-warning text-wrap" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>ссылка на отчет MOSS: {% if submission.moss_report_url %}<a href="{{ submission.moss_report_url }}" target="_blank">{{ submission.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
         {% endif %}
-        {% if perms.contests.moss_submission %}
-            {% if submission.moss_to_submissions %}
-        <p class="text-warning" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>с посылками MOSS: {% for to_submission_id in submission.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-        <p class="text-warning" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>ссылка на отчет MOSS: {% if submission.moss_report_url %}<a href="{{ submission.moss_report_url }}" target="_blank">{{ submission.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
-            {% endif %}
-        {% endif %}
-    </div>
+    {% endif %}
+</div>
 <legend>Файлы {% if perms.contests.download_submission %}<a href="{% url 'contests:submission-download' submission.id %}" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>{% endif %}</legend>
 <div class="list-group mb-3">
     {% for attachment in submission.attachment_set.all %}
@@ -64,16 +72,16 @@
 
 {% block submenu %}
 {% if from_url %}
-<div class="list-group">
+<div class="list-group mb-3">
     <a href="{{ from_url }}" class="list-group-item list-group-item-action"><i class="fa fa-chevron-left fa-fw"></i> Вернуться к посылкам</a>
 </div>
 {% endif %}
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.contests.moss_submission %}
     <a href="{% url 'contests:submission-moss' submission.id %}" class="list-group-item list-group-item-action"><i class="fa fa-maxcdn fa-fw"></i> MOSS</a>
     {% endif %}
 </div>
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.contests.delete_submission %}
     <a href="{% url 'contests:submission-delete' submission.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить посылку</a>
     {% endif %}

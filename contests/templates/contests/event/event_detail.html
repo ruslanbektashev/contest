@@ -33,7 +33,7 @@
 {% endblock content %}
 
 {% block submenu %}
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.contests.change_event %}
     <a href="{% url 'contests:event-update' event.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать событие</a>
     {% endif %}

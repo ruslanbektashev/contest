@@ -14,7 +14,7 @@
 
 {% block content %}
 <legend>{{ problem }}</legend>
-<ul class="nav nav-tabs" role="tablist">
+<ul class="nav nav-tabs mb-3" role="tablist">
     <li class="nav-item">
         <a aria-controls="description" aria-selected="true" class="nav-link {% if not focus_page %}active{% endif %}" data-toggle="tab" href="#description" id="description-tab"
            role="tab">Описание</a>
@@ -94,7 +94,7 @@
 {% endblock content %}
 
 {% block submenu %}
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.contests.change_problem %}
     <a href="{% url 'contests:problem-update' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать задачу</a>
     {% endif %}
@@ -102,12 +102,12 @@
     <a href="{% url 'contests:problem-delete' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить задачу</a>
     {% endif %}
 </div>
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.contests.add_solution %}
     <a href="{% url 'contests:solution-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить решение</a>
     {% endif %}
 </div>
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.contests.add_iotest %}
     <a href="{% url 'contests:iotest-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить IO-тест</a>
     {% endif %}
@@ -118,7 +118,7 @@
     <a href="{% url 'contests:fntest-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить FN-тест</a>
     {% endif %}
 </div>
-<div class="list-group">
+<div class="list-group mb-3">
     {% if perms.contests.add_submission %}
     <a href="{% url 'contests:submission-create' problem.id %}" class="btn btn-info btn-block"><i class="fa fa-file-code-o fa-fw"></i> Отправить решение</a>
     {% endif %}
