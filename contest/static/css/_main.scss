@@ -1,0 +1,115 @@
+html {
+    overflow-y: scroll;
+}
+
+body {
+	padding-top: 70px;
+}
+
+pre, code, kbd, samp {
+  @include font-size($font-size-base); // Correct the odd `em` font sizing in all browsers.
+}
+
+.content {
+	min-height: 850px;
+}
+
+.breadcrumb {
+    padding: .5rem .75rem;
+    font-size: .7rem;
+}
+
+.nav-tabs {
+    margin-bottom: 1rem;
+}
+
+.list-group + .list-group {
+    margin-top: .5rem;
+}
+
+.list-group + legend {
+    margin-top: .5rem;
+}
+
+.status {
+    @extend .badge;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    width: 30px;
+    padding: .25rem .3rem;
+    font-size: .75rem;
+    color: #fff;
+    border-radius: .2rem;
+}
+
+.numtus {
+    @extend .badge;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    display: inline-block;
+    padding: .25rem .3rem;
+    font-size: .75rem;
+    color: #fff;
+    border-radius: .2rem;
+}
+
+.status:hover,
+.status:focus,
+.numtus:hover,
+.numtus:focus {
+    color: #fff;
+    text-decoration: none;
+}
+
+.status-default {
+  background-color: #777;
+}
+.status-default[href]:hover,
+.status-default[href]:focus {
+  background-color: #5e5e5e;
+}
+.status-primary {
+  background-color: #337ab7;
+}
+.status-primary[href]:hover,
+.status-primary[href]:focus {
+  background-color: #286090;
+}
+.status-success {
+  background-color: #5cb85c;
+}
+.status-success[href]:hover,
+.status-success[href]:focus {
+  background-color: #449d44;
+}
+.status-info {
+  background-color: #5bc0de;
+}
+.status-info[href]:hover,
+.status-info[href]:focus {
+  background-color: #31b0d5;
+}
+.status-warning {
+  background-color: #f0ad4e;
+}
+.status-warning[href]:hover,
+.status-warning[href]:focus {
+  background-color: #ec971f;
+}
+.status-danger {
+  background-color: #d9534f;
+}
+.status-danger[href]:hover,
+.status-danger[href]:focus {
+  background-color: #c9302c;
+}
+
+.pebble {
+	visibility: hidden;
+}
+
+.lake:hover > .pebble {
+	visibility: visible;
+}
+
+.progress > .status-display {
+    font-size: .9rem !important;
+}

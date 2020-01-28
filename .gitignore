@@ -71,7 +71,6 @@ contest/test_settings.py*
 .idea
 
 # Local Files
-static/
 contest/bower_components/
 contest/bower_components_old/
 upload/
