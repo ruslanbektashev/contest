@@ -1,46 +1,63 @@
 {% extends 'base.html' %}
-{% load attachments %}
-{% load comments %}
-{% load views %}
+{% load views attachments comments static %}
 
 {% block title %}
 Раздел
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{{ contest.course.get_absolute_url }}">{{ contest.course }}</a></li>
-    <li class="active">{{ contest }}</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb contest.course contest.course %}
+{% breadcrumb contest %}
 {% endblock breadcrumbs %}
 
 {% block content %}
 <legend>{{ contest }}</legend>
-<div>
-    <p>{{ description|safe }}</p>
+<ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item">
+        <a aria-controls="description" aria-selected="true" class="nav-link active" data-toggle="tab" href="#description" id="description-tab"
+           role="tab">Описание</a>
+    </li>
+    <li class="nav-item">
+        <a aria-controls="problems" aria-selected="false" class="nav-link" data-toggle="tab" href="#problems" id="problems-tab"
+           role="tab">Задачи</a>
+    </li>
+    <li class="nav-item">
+        <a aria-controls="discussion" aria-selected="false" class="nav-link" data-toggle="tab" href="#discussion" id="discussion-tab"
+           role="tab">Обсуждение</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div aria-labelledby="description-tab" class="tab-pane fade show active" id="description" role="tabpanel">
+        <p>{{ description|safe }}</p>
+        {% render_attachment_list contest %}
+    </div>
+    <div aria-labelledby="problems-tab" class="tab-pane fade" id="problems" role="tabpanel">
+        {% render_list contest.problem_set.all %}
+    </div>
+    <div aria-labelledby="discussion-tab" class="tab-pane fade" id="discussion" role="tabpanel">
+        {% render_comments contest %}
+    </div>
 </div>
-{% render_attachment_list contest %}
-{% render_list contest.problem_set.all legend="Задачи" %}
-{% render_comments contest %}
 {% endblock content %}
 
 {% block submenu %}
-<ul class="list-group">
+<div class="list-group">
     {% if perms.contests.change_contest %}
-    <a href="{% url 'contests:contest-update' contest.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать раздел</a>
+    <a href="{% url 'contests:contest-update' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать раздел</a>
     {% endif %}
     {% if perms.contests.delete_contest %}
-    <a href="{% url 'contests:contest-delete' contest.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить раздел</a>
+    <a href="{% url 'contests:contest-delete' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить раздел</a>
     {% endif %}
-</ul>
-<ul class="list-group">
+</div>
+<div class="list-group">
     {% if perms.contests.add_problem %}
-    <a href="{% url 'contests:problem-create' contest.id %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Добавить задачу</a>
+    <a href="{% url 'contests:problem-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить задачу</a>
     {% endif %}
-</ul>
+</div>
 {% endblock submenu %}
 
 {% block javascript %}
-<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML"></script>
+<script src="{% static 'MathJax/es5/tex-chtml.js' %}" type="text/javascript"></script>
+<!--<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML"></script>-->
 {% endblock javascript %}

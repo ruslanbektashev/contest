@@ -6,21 +6,19 @@
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li class="active">Курсы</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Курсы" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Список курсов</legend>
+<legend>Курсы</legend>
 {% render_list courses %}
 {% endblock content %}
 
 {% block submenu %}
-<ul class="list-group">
+<div class="list-group">
     {% if perms.contests.add_course %}
-    <a href="{% url 'contests:course-create' %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Добавить курс</a>
+    <a href="{% url 'contests:course-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить курс</a>
     {% endif %}
-</ul>
+</div>
 {% endblock submenu %}

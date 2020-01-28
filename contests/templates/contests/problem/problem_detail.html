@@ -1,103 +1,131 @@
 {% extends 'base.html' %}
-{% load attachments %}
-{% load comments %}
-{% load contests %}
-{% load views %}
+{% load views contests attachments comments static %}
 
 {% block title %}
 Задача
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{{ problem.contest.course.get_absolute_url }}">{{ problem.contest.course }}</a></li>
-    <li><a href="{{ problem.contest.get_absolute_url }}">{{ problem.contest }}</a></li>
-    <li class="active">{{ problem }}</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb problem.contest.course problem.contest.course %}
+{% breadcrumb problem.contest problem.contest %}
+{% breadcrumb problem %}
 {% endblock breadcrumbs %}
 
 {% block content %}
 <legend>{{ problem }}</legend>
-<div>
-    <p>{{ description|safe }}</p>
-    <p>{{ contest_description|safe }}</p>
+<ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item">
+        <a aria-controls="description" aria-selected="true" class="nav-link {% if not focus_page %}active{% endif %}" data-toggle="tab" href="#description" id="description-tab"
+           role="tab">Описание</a>
+    </li>
+    <li class="nav-item">
+        <a aria-controls="submissions" aria-selected="false" class="nav-link {% if focus_page %}active{% endif %}" data-toggle="tab" href="#submissions" id="submissions-tab"
+           role="tab">Посылки</a>
+    </li>
+    {% if perms.contests.view_solution %}
+    <li class="nav-item">
+        <a aria-controls="solutions" aria-selected="false" class="nav-link" data-toggle="tab" href="#solutions" id="solutions-tab"
+           role="tab"><i class="fa fa-lock fa-fw"></i> Решение</a>
+    </li>
+    {% endif %}
+    {% if perms.contests.view_iotest or perms.contests.view_uttest or perms.contests.view_fntest %}
+    <li class="nav-item">
+        <a aria-controls="tests" aria-selected="false" class="nav-link" data-toggle="tab" href="#tests" id="tests-tab"
+           role="tab"><i class="fa fa-lock fa-fw"></i> Тесты</a>
+    </li>
+    {% endif %}
+    <li class="nav-item">
+        <a aria-controls="discussion" aria-selected="false" class="nav-link" data-toggle="tab" href="#discussion" id="discussion-tab"
+           role="tab">Обсуждение</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div aria-labelledby="description-tab" class="tab-pane fade {% if not focus_page %}show active{% endif %}" id="description" role="tabpanel">
+        <p>{{ description|safe }}</p>
+        <table class="table table-sm">
+            <tr><td class="text-right">Сложность</td><td style="width: 20%;">{{ problem.get_difficulty_display }}</td></tr>
+            <tr><td class="text-right">Язык</td><td style="width: 20%;">{{ problem.get_language_display }}</td></tr>
+            {% if problem.compile_args %}
+            <tr><td class="text-right">Параметры компиляции</td><td style="width: 20%;"><code>{{ problem.compile_args|default:"-" }}</code></td></tr>
+            {% endif %}
+            {% if problem.launch_args %}
+            <tr><td class="text-right">Параметры запуска</td><td style="width: 20%;"><code>{{ problem.launch_args|default:"-" }}</code></td></tr>
+            {% endif %}
+            <tr><td class="text-right">Ограничение по времени</td><td style="width: 20%;">{{ problem.time_limit }} с</td></tr>
+            <tr><td class="text-right">Ограничение по памяти</td><td style="width: 20%;">{{ problem.memory_limit|filesizeformat }}</td></tr>
+            <tr><td class="text-right">Доступно для тестирования</td><td style="width: 20%;">{{ problem.is_testable|yesno:'да,нет' }}</td></tr>
+            {% if latest_submission %}
+            <tr>
+                <td class="text-right">Мой результат</td>
+                <td>
+                    <a href="{{ latest_submission.get_absolute_url }}" class="badge badge-{{ latest_submission.status|colorize }}" title="{{ latest_submission.get_status_display }}">
+                        {{ latest_submission.get_status_display }}
+                    </a>
+                </td>
+            </tr>
+            {% endif %}
+        </table>
+        {% render_attachment_list problem %}
+        <p>{{ contest_description|safe }}</p>
+        {% render_attachment_list problem.contest %}
+    </div>
+    <div aria-labelledby="submissions-tab" class="tab-pane fade {% if focus_page %}show active{% endif %}" id="submissions" role="tabpanel">
+        {% render_submission_table %}
+    </div>
+    {% if perms.contests.view_solution %}
+    <div aria-labelledby="solutions-tab" class="tab-pane fade" id="solutions" role="tabpanel">
+        <div class="alert alert-warning">Доступно только преподавателям</div>
+        {% render_list problem.solution_set.all %}
+    </div>
+    {% endif %}
+    {% if perms.contests.view_iotest or perms.contests.view_uttest or perms.contests.view_fntest %}
+    <div aria-labelledby="tests-tab" class="tab-pane fade" id="tests" role="tabpanel">
+        <div class="alert alert-warning">Доступно только преподавателям</div>
+        {% render_list problem.iotest_set.all %}
+        {% render_list problem.uttest_set.all %}
+        {% render_list problem.fntest_set.all %}
+    </div>
+    {% endif %}
+    <div aria-labelledby="discussion-tab" class="tab-pane fade" id="discussion" role="tabpanel">
+        {% render_comments problem %}
+    </div>
 </div>
-<table class="table table-condensed">
-    <tr><td class="col-md-11 text-right">Сложность</td><td>{{ problem.get_difficulty_display }}</td></tr>
-    <tr><td class="col-md-11 text-right">Язык</td><td>{{ problem.get_language_display }}</td></tr>
-    {% if problem.compile_args %}
-    <tr><td class="col-md-11 text-right">Параметры компиляции</td><td><code>{{ problem.compile_args|default:"-" }}</code></td></tr>
-    {% endif %}
-    {% if problem.launch_args %}
-    <tr><td class="col-md-11 text-right">Параметры запуска</td><td><code>{{ problem.launch_args|default:"-" }}</code></td></tr>
-    {% endif %}
-    <tr><td class="col-md-11 text-right">Ограничение по времени</td><td>{{ problem.time_limit }} с</td></tr>
-    <tr><td class="col-md-11 text-right">Ограничение по памяти</td><td>{{ problem.memory_limit|filesizeformat }}</td></tr>
-    <tr><td class="col-md-11 text-right">Доступно для тестирования</td><td>{{ problem.is_testable|yesno:'да,нет' }}</td></tr>
-    {% if latest_submission %}
-    <tr>
-        <td class="col-md-11 text-right">Мой результат</td>
-        <td>
-            <a href="{{ latest_submission.get_absolute_url }}">
-                <span class="label label-{{ latest_submission.status|colorize }}" title="{{ latest_submission.get_status_display }}">
-                    {{ latest_submission.get_status_display }}
-                </span>
-            </a>
-        </td>
-    </tr>
-    {% endif %}
-</table>
-{% render_attachment_list problem.contest legend="Файлы раздела" %}
-{% render_attachment_list problem legend="Файлы задачи" %}
-{% if perms.contests.view_solution %}
-{% render_list problem.solution_set.all legend="Решения" %}
-{% endif %}
-{% if perms.contests.view_iotest %}
-{% render_list problem.iotest_set.all legend="IO-тесты" %}
-{% endif %}
-{% if perms.contests.view_uttest %}
-{% render_list problem.uttest_set.all legend="UT-тесты" %}
-{% endif %}
-{% if perms.contests.view_fntest %}
-{% render_list problem.fntest_set.all legend="FN-тесты" %}
-{% endif %}
-{% render_submission_table %}
-{% render_comments problem %}
 {% endblock content %}
 
 {% block submenu %}
-<ul class="list-group">
+<div class="list-group">
     {% if perms.contests.change_problem %}
-    <a href="{% url 'contests:problem-update' problem.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать задачу</a>
+    <a href="{% url 'contests:problem-update' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать задачу</a>
     {% endif %}
     {% if perms.contests.delete_problem %}
-    <a href="{% url 'contests:problem-delete' problem.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить задачу</a>
+    <a href="{% url 'contests:problem-delete' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить задачу</a>
     {% endif %}
-</ul>
-<ul class="list-group">
+</div>
+<div class="list-group">
     {% if perms.contests.add_solution %}
-    <a href="{% url 'contests:solution-create' problem.id %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Добавить решение</a>
+    <a href="{% url 'contests:solution-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить решение</a>
     {% endif %}
-</ul>
-<ul class="list-group">
+</div>
+<div class="list-group">
     {% if perms.contests.add_iotest %}
-    <a href="{% url 'contests:iotest-create' problem.id %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Добавить IO-тест</a>
+    <a href="{% url 'contests:iotest-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить IO-тест</a>
     {% endif %}
     {% if perms.contests.add_uttest %}
-    <a href="{% url 'contests:uttest-create' problem.id %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Добавить UT-тест</a>
+    <a href="{% url 'contests:uttest-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить UT-тест</a>
     {% endif %}
     {% if perms.contests.add_fntest %}
-    <a href="{% url 'contests:fntest-create' problem.id %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Добавить FN-тест</a>
+    <a href="{% url 'contests:fntest-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить FN-тест</a>
     {% endif %}
-</ul>
-<ul class="list-group">
+</div>
+<div class="list-group">
     {% if perms.contests.add_submission %}
     <a href="{% url 'contests:submission-create' problem.id %}" class="btn btn-info btn-block"><i class="fa fa-file-code-o fa-fw"></i> Отправить решение</a>
     {% endif %}
-</ul>
+</div>
 {% endblock submenu %}
 
 {% block javascript %}
-<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML"></script>
+<script src="{% static 'MathJax/es5/tex-chtml.js' %}" type="text/javascript"></script>
+<!--<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML"></script>-->
 {% endblock javascript %}

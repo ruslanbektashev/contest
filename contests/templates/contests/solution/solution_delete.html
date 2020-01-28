@@ -1,16 +1,14 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Решение
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{{ solution.get_absolute_url }}">{{ solution }}</a></li>
-    <li class="active">Удаление</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb solution solution %}
+{% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
 {% block content %}

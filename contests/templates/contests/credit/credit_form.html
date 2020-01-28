@@ -1,18 +1,16 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Зачет
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{{ credit.course.get_absolute_url }}">{{ credit.course }}</a></li>
-    <li><a href="{% url 'contests:assignment-table' credit.course.id %}">Задания</a></li>
-    <li>{{ credit }}</li>
-    <li class="active">Редактирование</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb credit.course credit.course %}
+{% breadcrumb "Задания" credit.course 'contests:assignment-table' credit.course.id %}
+{% breadcrumb credit %}
+{% breadcrumb "Редактирование" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -20,7 +18,7 @@
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="2" width="10" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.score class+="form-control selectpicker" %}
     {% endwith %}
     {% render_button value="Сохранить" %}

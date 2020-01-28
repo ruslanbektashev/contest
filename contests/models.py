@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
 from django.dispatch import receiver
 
@@ -524,6 +525,9 @@ class Submission(CRDEntry):
 
     status = models.CharField(max_length=2, choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
     task_id = models.UUIDField(null=True, verbose_name="Идентификатор асинхронной задачи")
+    moss_to_submissions = models.CharField(max_length=200, null=True, validators=[validate_comma_separated_integer_list],
+                                           verbose_name="С посылками MOSS")
+    moss_report_url = models.URLField(null=True, verbose_name="Ссылка на отчет MOSS")
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
@@ -540,6 +544,9 @@ class Submission(CRDEntry):
     @property
     def is_un(self):
         return self.status == 'UN'
+
+    def moss_to_submissions_list(self):
+        return self.moss_to_submissions.split(',')
 
     @property
     def files(self):
@@ -655,7 +662,7 @@ class Tag(models.Model):
 
 class EventQuerySet(models.QuerySet):
     def weekly(self, year, week):
-        return self.filter(date_start__year=year, date_start__week=week)
+        return self.filter(date_start__iso_year=year, date_start__week=week)
 
 
 class Event(CRUDEntry):

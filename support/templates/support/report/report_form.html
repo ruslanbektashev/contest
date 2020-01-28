@@ -1,24 +1,22 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Сообщение об ошибке
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{% url 'support:index' %}">Помощь</a></li>
-    {% if user.is_staff %}
-    <li><a href="{% url 'support:report-list' %}">Багрепорты</a></li>
-    {% endif %}
-    {% if report %}
-    <li><a href="{{ report.get_absolute_url }}">{{ report }}</a></li>
-    <li class="active">Редактирование</li>
-    {% else %}
-    <li class="active">Новое сообщение об ошибке</li>
-    {% endif %}
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Помощь" 'support:index' %}
+{% if perms.support.view_report %}
+{% breadcrumb "Багрепорты" 'support:report-list' %}
+{% endif %}
+{% if report %}
+{% breadcrumb report report %}
+{% breadcrumb "Редактирование" %}
+{% else %}
+{% breadcrumb "Новое сообщение об ошибке" %}
+{% endif %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -26,9 +24,9 @@
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="2" width="10" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.title class+="form-control" %}
-    {% render_field form.text class+="form-control" rows="5" cols="20" %}
+    {% render_field form.text class+="form-control" %}
     {% endwith %}
     {% render_button value="Отправить" %}
 </form>

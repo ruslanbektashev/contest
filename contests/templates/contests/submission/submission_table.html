@@ -1,18 +1,17 @@
 {% if submissions %}
-{% load contests paginator %}
-<legend>Посылки</legend>
+{% load views contests %}
 <div class="table-responsive">
-    <table id="panchor" class="table table-bordered table-condensed">
+    <table id="p" class="table table-bordered table-sm">
         <thead>
             <tr>
-                <th class="col-md-2 text-center">Дата</th>
+                <th class="text-center" style="width: 18%;">Дата</th>
                 {% if perms.contests.view_submission_list and not assignment %}
                 <th>Студент</th>
                 {% endif %}
                 {% if not assignment and not problem %}
-                <th class="col-md-6">Задача</th>
+                <th>Задача</th>
                 {% endif %}
-                <th class="col-md-1 text-center">Статус</th>
+                <th class="text-center" style="width: 9%;">Статус</th>
             </tr>
         </thead>
         <tbody>
@@ -27,10 +26,8 @@
                 <td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td>
                 {% endif %}
                 <td class="text-center">
-                    <a href="{{ submission.get_absolute_url }}{% if from_url_name %}?from={{ from_url_name }}{% endif %}">
-                        <span class="label label-{{ submission.status|colorize }}" title="{{ submission.get_status_display }}">
-                            {{ submission.status }}
-                        </span>
+                    <a href="{{ submission.get_absolute_url }}{% if from_url_name %}?from={{ from_url_name }}{% endif %}" class="status status-{{ submission.status|colorize }}" title="{{ submission.get_status_display }}">
+                        {{ submission.status }}
                     </a>
                 </td>
             </tr>

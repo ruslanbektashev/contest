@@ -1,48 +1,67 @@
 {% extends 'base.html' %}
-{% load comments %}
-{% load contests %}
+{% load views contests comments %}
 
 {% block title %}
 Задание
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    {% if perms.contests.view_assignment_table %}
-    <li><a href="{{ assignment.problem.contest.course.get_absolute_url }}">{{ assignment.problem.contest.course }}</a></li>
-    <li><a href="{% url 'contests:assignment-table' assignment.problem.contest.course.id %}">Задания</a></li>
-    {% else %}
-    <li><a href="{% url 'contests:assignment-list' %}">Мои задания</a></li>
-    {% endif %}
-    <li class="active">{{ assignment }}</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% if perms.contests.view_assignment_table %}
+{% breadcrumb assignment.problem.contest.course assignment.problem.contest.course %}
+{% breadcrumb "Задания" 'contests:assignment-table' assignment.problem.contest.course.id %}
+{% else %}
+{% breadcrumb "Мои задания" 'contests:assignment-list' %}
+{% endif %}
+{% breadcrumb assignment %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Задание</legend>
-<div>
-    <table class="table table-condensed">
-        <tr><td class="col-md-2 text-right">Студент</td><td><a href="{{ assignment.user.account.get_absolute_url }}">{{ assignment.user.account }}</a></td></tr>
-        <tr><td class="col-md-2 text-right">Задача</td><td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td></tr>
-        <tr><td class="col-md-2 text-right">Оценка</td><td><span class="label label-{{ assignment.score|colorize }}">{{ assignment.score|default:'-' }}</span></td></tr>
-        <tr><td class="col-md-2 text-right">Посылок</td><td>{{ assignment.get_submissions.count }} / {{ assignment.submission_limit }}</td></tr>
-        {% if perms.contests.view_assignment_table %}
-        <tr title="Отображается только преподавателям"><td class="col-md-2 text-right text-warning"><i class="fa fa-lock fa-fw"></i>Пометка</td><td>{{ assignment.remark }}</td></tr>
-        {% endif %}
-    </table>
+<legend>{{ assignment }}</legend>
+<ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item">
+        <a aria-controls="description" aria-selected="true" class="nav-link {% if not focus_page %}active{% endif %}" data-toggle="tab" href="#description" id="description-tab"
+           role="tab">Описание</a>
+    </li>
+    <li class="nav-item">
+        <a aria-controls="submissions" aria-selected="false" class="nav-link {% if focus_page %}active{% endif %}" data-toggle="tab" href="#submissions" id="submissions-tab"
+           role="tab">Посылки</a>
+    </li>
+    <li class="nav-item">
+        <a aria-controls="discussion" aria-selected="false" class="nav-link" data-toggle="tab" href="#discussion" id="discussion-tab"
+           role="tab">Обсуждение</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div aria-labelledby="description-tab" class="tab-pane fade {% if not focus_page %}show active{% endif %}" id="description" role="tabpanel">
+        <table class="table table-sm">
+            <tr><td class="text-right" style="width: 20%;">Студент</td><td><a href="{{ assignment.user.account.get_absolute_url }}">{{ assignment.user.account }}</a></td></tr>
+            <tr><td class="text-right" style="width: 20%;">Задача</td><td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td></tr>
+            <tr><td class="text-right" style="width: 20%;">Оценка</td><td><span class="numtus status-{{ assignment.score|colorize }}">{{ assignment.score|default:'-' }}</span></td></tr>
+            <tr><td class="text-right" style="width: 20%;">Посылок</td><td>{{ assignment.get_submissions.count }} / {{ assignment.submission_limit }}</td></tr>
+            {% if perms.contests.view_assignment_table %}
+            <tr title="Отображается только преподавателям">
+                <td class="text-right text-warning" style="width: 20%;"><i class="fa fa-lock fa-fw"></i>Пометка</td><td>{{ assignment.remark }}</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+    <div aria-labelledby="submissions-tab" class="tab-pane fade {% if focus_page %}show active{% endif %}" id="submissions" role="tabpanel">
+        {% render_submission_table %}
+    </div>
+    <div aria-labelledby="discussion-tab" class="tab-pane fade" id="discussion" role="tabpanel">
+        {% render_comments assignment %}
+    </div>
 </div>
-{% render_submission_table %}
-{% render_comments assignment %}
 {% endblock content %}
 
 {% block submenu %}
-<ul class="list-group">
+<div class="list-group">
     {% if perms.contests.change_assignment %}
-    <a href="{% url 'contests:assignment-update' assignment.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать задание</a>
+    <a href="{% url 'contests:assignment-update' assignment.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать задание</a>
     {% endif %}
     {% if perms.contests.delete_assignment %}
-    <a href="{% url 'contests:assignment-delete' assignment.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить задание</a>
+    <a href="{% url 'contests:assignment-delete' assignment.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить задание</a>
     {% endif %}
     {% if request.user == assignment.user %}
     {% if assignment.submission_limit > assignment.get_submissions.count %}
@@ -51,5 +70,5 @@
     <button class="btn btn-warning btn-block">Все попытки потрачены</button>
     {% endif %}
     {% endif %}
-</ul>
+</div>
 {% endblock submenu %}

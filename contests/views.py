@@ -1,22 +1,27 @@
+from pygments import highlight
+from pygments.lexers import CppLexer
+from pygments.formatters import HtmlFormatter
+
 from datetime import date, datetime
 from markdown import markdown
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse, reverse_lazy, NoReverseMatch
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView
-from django.views.generic.detail import BaseDetailView
+from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 
 from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
 from contests.results import TaskProgress
-from contests.tasks import evaluate_submission
+from contests.tasks import evaluate_submission, moss_submission
 from contests.forms import (CreditSetForm, ContestForm, ProblemForm, SolutionForm, UTTestForm, FNTestForm,
-                            SubmissionForm, AssignmentForm, AssignmentUpdateForm, AssignmentSetForm, EventForm)
+                            SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
+                            AssignmentSetForm, EventForm)
 from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, UTTest, FNTest,
                              Assignment, Submission, Execution, Event)
 
@@ -768,6 +773,34 @@ class SubmissionDownload(LoginRedirectPermissionRequiredMixin, BaseDetailView):
         return response
 
 
+class SubmissionDisplay(LoginRedirectPermissionRequiredMixin, DetailView):
+    model = Submission
+    template_name = 'contests/submission/submission_display.html'
+    permission_required = 'contests.view_submission'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['attachment_id'] = kwargs.pop('attachment_id')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            context['attachment'] = self.object.attachment_set.get(id=self.storage['attachment_id'])
+        except Attachment.DoesNotExist:
+            raise Http404('Attachment with id = %s does not exist.' % self.storage['attachment_id'])
+        try:
+            content = context['attachment'].file.read()
+        except FileNotFoundError:
+            raise Http404('File %s does not exist.' % context['attachment'].filename)
+        formatter = HtmlFormatter(linenos='inline', wrapcode=True)
+        context['code'] = highlight(content.decode().replace('\t', ' ' * 4), CppLexer(), formatter)
+        return context
+
+
 class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Submission
     form_class = SubmissionForm
@@ -807,6 +840,37 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['problem'] = self.storage['problem']
         return context
+
+
+class SubmissionMoss(LoginRedirectPermissionRequiredMixin, SingleObjectMixin, FormView):
+    model = Submission
+    form_class = SubmissionMossForm
+    template_name = 'contests/submission/submission_moss_form.html'
+    permission_required = 'contests.moss_submission'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        to_submission_ids = list(form.cleaned_data['to_submissions'].values_list('id', flat=True))
+        self.object.moss_to_submissions = ','.join(map(str, to_submission_ids))
+        self.object.moss_report_url = None
+        self.object.save()
+        moss_submission.delay(self.object.id, to_submission_ids)
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['submission'] = self.object
+        return kwargs
+
+    def get_success_url(self):
+        return reverse('contests:submission-detail', kwargs={'pk': self.kwargs['pk']})
 
 
 class SubmissionEvaluate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView):

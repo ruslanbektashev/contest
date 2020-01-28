@@ -1,15 +1,13 @@
 {% extends 'base.html' %}
-{% load comments humanize %}
+{% load views comments humanize %}
 
 {% block title %}
 Комментарий
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li class="active">Ответ на комментарий</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Ответ на комментарий" %}
 {% endblock breadcrumbs %}
 
 {% block content %}

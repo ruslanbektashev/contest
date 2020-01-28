@@ -1,15 +1,13 @@
 {% extends 'base.html' %}
-{% load events %}
+{% load views events %}
 
 {% block title %}
 Расписание
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li class="active">Расписание</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Расписание" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -18,9 +16,9 @@
 {% endblock content %}
 
 {% block submenu %}
-<ul class="list-group">
+<div class="list-group">
     {% if perms.contests.add_event %}
-    <a href="{% url 'contests:event-create' %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Добавить событие</a>
+    <a href="{% url 'contests:event-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить событие</a>
     {% endif %}
-</ul>
+</div>
 {% endblock submenu %}

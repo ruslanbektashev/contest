@@ -1,16 +1,15 @@
 {% extends 'base.html' %}
+{% load views %}
 
 {% block title %}
 Багрепорт
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{% url 'support:index' %}">Помощь</a></li>
-    <li><a href="{% url 'support:report-list' %}">Багрепорты</a></li>
-    <li class="active">{{ report }}</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Помощь" 'support:index' %}
+{% breadcrumb "Багрепорты" 'support:report-list' %}
+{% breadcrumb report %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -26,12 +25,12 @@
 {% endblock content %}
 
 {% block submenu %}
-<ul class="list-group">
+<div class="list-group">
     {% if perms.support.change_report %}
-    <a href="{% url 'support:report-update' report.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать багрепорт</a>
+    <a href="{% url 'support:report-update' report.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать багрепорт</a>
     {% endif %}
     {% if perms.support.delete_report %}
-    <a href="{% url 'support:report-delete' report.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить багрепорт</a>
+    <a href="{% url 'support:report-delete' report.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить багрепорт</a>
     {% endif %}
-</ul>
+</div>
 {% endblock submenu %}

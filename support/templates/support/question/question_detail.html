@@ -1,25 +1,20 @@
 {% extends 'base.html' %}
-{% load comments %}
-{% load views %}
+{% load views comments %}
 
 {% block title %}
 Вопрос
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{% url 'support:index' %}">Помощь</a></li>
-    <li><a href="{% url 'support:question-list' %}">Вопросы</a></li>
-    <li class="active">{{ question }}</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Помощь" 'support:index' %}
+{% breadcrumb "Вопросы" 'support:question-list' %}
+{% breadcrumb "Вопрос" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
 <legend>{{ question.question }}</legend>
-<div>
-    <p>{{ answer|safe }}</p>
-</div>
+<p>{{ answer|safe }}</p>
 <div class="pull-right text-right">
     {% if perms.support.change_question %}
     <p>{{ question.is_published|yesno:'опубликован,скрыт' }}</p>
@@ -28,16 +23,12 @@
 {% endblock content %}
 
 {% block submenu %}
-<ul class="list-group">
+<div class="list-group">
     {% if perms.support.change_question %}
-    <a href="{% url 'support:question-update' question.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать вопрос</a>
+    <a href="{% url 'support:question-update' question.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать вопрос</a>
     {% endif %}
     {% if perms.support.delete_question %}
-    <a href="{% url 'support:question-delete' question.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить вопрос</a>
+    <a href="{% url 'support:question-delete' question.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить вопрос</a>
     {% endif %}
-</ul>
+</div>
 {% endblock submenu %}
-
-{% block javascript %}
-<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML"></script>
-{% endblock javascript %}

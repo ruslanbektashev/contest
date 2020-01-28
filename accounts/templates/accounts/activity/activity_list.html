@@ -1,27 +1,25 @@
 {% extends 'base.html' %}
-{% load paginator humanize %}
+{% load views humanize %}
 
 {% block title %}
 Оповещения
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li class="active">Оповещения</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Оповещения" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
 <legend>Оповещения</legend>
 <form action="{% url 'accounts:activity-mark' %}" method="post" id="marker">
     {% csrf_token %}
-    <table id="panchor" class="table table-hover">
+    <table id="p" class="table table-hover">
         <thead>
             <tr>
-                <th class="col-md-1 text-center"></th>
-                <th class="col-md-8">Событие</th>
-                <th class="col-md-3">Произошло</th>
+                <th class="text-center"></th>
+                <th>Событие</th>
+                <th>Произошло</th>
             </tr>
         </thead>
         <tbody>
@@ -33,7 +31,7 @@
                 <td>
                     <label for="choices" class="label-activity">
                         {% if not activity.is_read %}
-                        <span class="label label-info">Новое</span>
+                        <span class="badge badge-primary">Новое</span>
                         {% endif %}
                         {% if activity.subject.last_name %}
                         <a href="{{ activity.subject.account.get_absolute_url }}">{{ activity.subject.account }}</a>
@@ -61,10 +59,10 @@
 {% endblock content %}
 
 {% block submenu %}
-<ul class="list-group">
-    <button type=submit form="marker" name="mark" value="read" class="list-group-item"><i class="fa fa-check fa-fw"></i> Отметить как прочтенные</button>
-</ul>
-<ul class="list-group">
-    <button type=submit form="marker" name="mark" value="delete" class="list-group-item"><i class="fa fa-trash fa-fw"></i> Удалить отмеченные</button>
-</ul>
+<div class="list-group">
+    <button type=submit form="marker" name="mark" value="read" class="list-group-item list-group-item-action"><i class="fa fa-check fa-fw"></i> Отметить как прочтенные</button>
+</div>
+<div class="list-group">
+    <button type=submit form="marker" name="mark" value="delete" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить отмеченные</button>
+</div>
 {% endblock submenu %}

@@ -1,55 +1,69 @@
 {% extends 'base.html' %}
-{% load comments %}
-{% load views %}
+{% load views comments static %}
 
 {% block title %}
 Курс
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li class="active">{{ course }}</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb course %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ course }}</legend>
-<div>
-    <p>{{ description|safe }}</p>
+<legend>{{ course }} <small class="text-muted">{{ course.get_level_display }}</small></legend>
+<ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item">
+        <a aria-controls="description" aria-selected="true" class="nav-link active" data-toggle="tab" href="#description" id="description-tab"
+           role="tab">Описание</a>
+    </li>
+    <li class="nav-item">
+        <a aria-controls="contests" aria-selected="false" class="nav-link" data-toggle="tab" href="#contests" id="contests-tab"
+           role="tab">Разделы</a>
+    </li>
+    <li class="nav-item">
+        <a aria-controls="discussion" aria-selected="false" class="nav-link" data-toggle="tab" href="#discussion" id="discussion-tab"
+           role="tab">Обсуждение</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div aria-labelledby="description-tab" class="tab-pane fade show active" id="description" role="tabpanel">
+        <p>{{ description|safe }}</p>
+    </div>
+    <div aria-labelledby="contests-tab" class="tab-pane fade" id="contests" role="tabpanel">
+        {% render_list course.contest_set.all %}
+    </div>
+    <div aria-labelledby="discussion-tab" class="tab-pane fade" id="discussion" role="tabpanel">
+        {% render_comments course %}
+    </div>
 </div>
-<div class="pull-right text-right">
-    <p>{{ course.get_level_display }}</p>
-</div>
-{% render_list course.lecture_set.all legend="Лекции" %}
-{% render_list course.contest_set.all legend="Разделы" %}
-{% render_comments course %}
 {% endblock content %}
 
 {% block submenu %}
-<ul class="list-group">
+<div class="list-group">
     {% if perms.contests.view_assignment_table %}
-    <a href="{% url 'contests:assignment-table' course.id %}" class="list-group-item"><i class="fa fa-table fa-fw"></i> Таблица заданий</a>
+    <a href="{% url 'contests:assignment-table' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-table fa-fw"></i> Таблица заданий</a>
     {% endif %}
-</ul>
-<ul class="list-group">
+</div>
+<div class="list-group">
     {% if perms.contests.change_course %}
-    <a href="{% url 'contests:course-update' course.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать курс</a>
+    <a href="{% url 'contests:course-update' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать курс</a>
     {% endif %}
     {% if perms.contests.delete_course %}
-    <a href="{% url 'contests:course-delete' course.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить курс</a>
+    <a href="{% url 'contests:course-delete' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить курс</a>
     {% endif %}
-</ul>
-<ul class="list-group">
+</div>
+<div class="list-group">
     {% if perms.contests.add_lecture %}
-    <a href="{% url 'contests:lecture-create' course.id %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Добавить лекцию</a>
+    <a href="{% url 'contests:lecture-create' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить лекцию</a>
     {% endif %}
     {% if perms.contests.add_contest %}
-    <a href="{% url 'contests:contest-create' course.id %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Добавить раздел</a>
+    <a href="{% url 'contests:contest-create' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить раздел</a>
     {% endif %}
-</ul>
+</div>
 {% endblock submenu %}
 
 {% block javascript %}
-<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML"></script>
+<script src="{% static 'MathJax/es5/tex-chtml.js' %}" type="text/javascript"></script>
+<!--<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML"></script>-->
 {% endblock javascript %}

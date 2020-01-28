@@ -1,7 +1,6 @@
 from django.contrib.auth.models import User, Group
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.db import models
 from django.db.transaction import atomic
 from django.urls import reverse
@@ -293,8 +292,7 @@ class Activity(models.Model):
             'action': self.action,
             'object': '',
             'slash': '',
-            'reference': '',
-            'timesince': naturaltime(self.date_created)
+            'reference': ''
         }
         if self.object:
             context['object'] = self.object
@@ -305,7 +303,7 @@ class Activity(models.Model):
             context['subject'] = self.subject.last_name
         else:
             context['subject'] = self.subject
-        return "Действие: {subject} {action} {object}{slash}{reference} {timesince} назад".format(**context)
+        return "{subject} {action} {object}{slash}{reference}".format(**context)
 
 
 """==================================================== Comment ====================================================="""
@@ -392,15 +390,12 @@ class Comment(models.Model):
 
     def __str__(self):
         context = {
-            'author': self.author.account,
-            'object': self.object,
-            'text': self.text[:30],
-            'dots': '',
-            'timesince': naturaltime(self.date_created)
+            'text': self.text[:100],
+            'dots': ''
         }
-        if len(self.text) > 30:
+        if len(self.text) > 100:
             context['dots'] = '...'
-        return "Комментарий к {object} от {author}: {text}{dots} {timesince} назад".format(**context)
+        return "{text}{dots}".format(**context)
 
 
 """==================================================== Message ====================================================="""
@@ -444,15 +439,12 @@ class Message(models.Model):
 
     def __str__(self):
         context = {
-            'sender': self.sender.account,
-            'recipient': self.recipient.account,
-            'text': self.text[:30],
+            'text': self.text[:100],
             'dots': '',
-            'timesince': naturaltime(self.date_created)
         }
-        if len(self.text) > 30:
+        if len(self.text) > 100:
             context['dots'] = '...'
-        return "Сообщение от {sender} для {recipient}: {text}{dots} {timesince} назад".format(**context)
+        return "{text}{dots}".format(**context)
 
 
 """====================================================== Chat ======================================================"""

@@ -1,18 +1,16 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Зачет
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{{ credit.course.get_absolute_url }}">{{ credit.course }}</a></li>
-    <li><a href="{% url 'contests:assignment-table' credit.course.id %}">Задания</a></li>
-    <li>{{ credit }}</li>
-    <li class="active">Удаление</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb credit.course credit.course %}
+{% breadcrumb Задания credit.course 'contests:assignment-table' credit.course.id %}
+{% breadcrumb credit %}
+{% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
 {% block content %}

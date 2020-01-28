@@ -1,17 +1,15 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 События
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{% url 'contests:event-schedule' %}">Расписание</a></li>
-    <li><a href="{{ event.get_absolute_url }}">{{ event }}</a></li>
-    <li class="active">Удаление</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Расписание" 'contests:event-schedule' %}
+{% breadcrumb event event %}
+{% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
 {% block content %}

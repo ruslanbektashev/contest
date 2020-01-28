@@ -1,18 +1,16 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Задание
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{{ assignment.problem.contest.course.get_absolute_url }}">{{ assignment.problem.contest.course }}</a></li>
-    <li><a href="{% url 'contests:assignment-table' assignment.problem.contest.course.id %}">Задания</a></li>
-    <li><a href="{{ assignment.get_absolute_url }}">{{ assignment }}</a></li>
-    <li class="active">Удаление</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb assignment.problem.contest.course assignment.problem.contest.course %}
+{% breadcrumb "Задания" 'contests:assignment-table' assignment.problem.contest.course.id %}
+{% breadcrumb assignment assignment %}
+{% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
 {% block content %}

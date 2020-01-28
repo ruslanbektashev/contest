@@ -1,39 +1,38 @@
 {% extends 'base.html' %}
+{% load views %}
 
 {% block title %}
 Решение
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li class="active">{{ solution }}</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb solution %}
 {% endblock breadcrumbs %}
 
 {% block content %}
 <legend>{{ solution }}</legend>
 <div>
+    <p>Описание:</p>
+    <div class="alert alert-secondary">
+        {{ solution.description|safe|linebreaksbr }}
+    </div>
+    <p>Шаблон:</p>
+    <div class="alert alert-secondary">
+        <samp>{{ solution.pattern|safe|linebreaksbr }}</samp>
+    </div>
     <p>Задачи:</p>
-    <ul>
-    {% for problem in solution.problems.all %}
-        <li>{{ problem }}</li>
-    {% endfor %}
-    </ul>
-    Описание:
-    <div class="alert alert-info" role="contentinfo">{{ solution.description|safe|linebreaksbr }}</div>
-    Шаблон:
-    <div class="alert alert-info" role="contentinfo"><pre>{{ solution.pattern|safe }}</pre></div>
+    {% render_list solution.problems.all %}
 </div>
 {% endblock content %}
 
 {% block submenu %}
-<ul class="list-group">
+<div class="list-group">
     {% if perms.contests.change_solution %}
-    <a href="{% url 'contests:solution-update' solution.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать решение</a>
+    <a href="{% url 'contests:solution-update' solution.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать решение</a>
     {% endif %}
     {% if perms.contests.delete_solution %}
-    <a href="{% url 'contests:solution-delete' solution.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить решение</a>
+    <a href="{% url 'contests:solution-delete' solution.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить решение</a>
     {% endif %}
-</ul>
+</div>
 {% endblock submenu %}

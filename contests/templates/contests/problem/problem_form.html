@@ -1,22 +1,20 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Задача
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{{ contest.course.get_absolute_url }}">{{ contest.course }}</a></li>
-    <li><a href="{{ contest.get_absolute_url }}">{{ contest }}</a></li>
-    {% if problem %}
-    <li><a href="{{ problem.get_absolute_url }}">{{ problem }}</a></li>
-    <li class="active">Редактирование</li>
-    {% else %}
-    <li class="active">Новая задача</li>
-    {% endif %}
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb contest.course contest.course %}
+{% breadcrumb contest contest %}
+{% if problem %}
+{% breadcrumb problem problem %}
+{% breadcrumb "Редактирование" %}
+{% else %}
+{% breadcrumb "Новая задача" %}
+{% endif %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -24,9 +22,9 @@
 <form action="" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}
     {% render_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="3" width="9" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.title class+="form-control" %}
-    {% render_field form.description class+="form-control" rows="5" cols="20" %}
+    {% render_field form.description class+="form-control" %}
     {% render_field form.difficulty class+="form-control selectpicker" %}
     {% render_field form.language class+="form-control selectpicker" %}
     {% render_field form.compile_args class+="form-control" %}
@@ -34,8 +32,22 @@
     {% render_field form.time_limit class+="form-control" %}
     {% render_field form.memory_limit class+="form-control" %}
     {% render_field form.is_testable class+="form-control" %}
-    {% render_field form.files class+="form-control" %}
     {% endwith %}
+    <div class="form-group">
+        <div class="custom-file">
+            {% with is_invalid=form.files.errors|yesno:"is-invalid," %}
+            {% render_field form.files class+="custom-file-input" class+=is_invalid %}
+            {% endwith %}
+            <label class="custom-file-label" for="{{ form.files.id_for_label }}">{{ form.files.label }}</label>
+            {% if form.files.errors %}
+            <div class="invalid-feedback">
+                {% for error in form.files.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
     {% render_button value="Сохранить" %}
 </form>
 {% endblock content %}

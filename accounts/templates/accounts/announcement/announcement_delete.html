@@ -1,17 +1,15 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Объявление
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{% url 'accounts:announcement-list' %}">Объявления</a></li>
-    <li><a href="{{ announcement.get_absolute_url }}">{{ announcement }}</a></li>
-    <li class="active">Удаление</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Объявления" 'accounts:announcement-list' %}
+{% breadcrumb announcement announcement %}
+{% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
 {% block content %}

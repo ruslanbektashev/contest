@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
-{% load forms %}
-{% load static %}
+{% load views forms static %}
 
 {% block title %}
 Событие
@@ -11,16 +10,14 @@
 {% endblock stylesheets %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{% url 'contests:event-schedule' %}">Расписание</a></li>
-    {% if event %}
-    <li><a href="{{ event.get_absolute_url }}">{{ event }}</a></li>
-    <li class="active">Редактирование</li>
-    {% else %}
-    <li class="active">Новое событие</li>
-    {% endif %}
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Расписание" 'contests:event-schedule' %}
+{% if event %}
+{% breadcrumb event event %}
+{% breadcrumb "Редактирование" %}
+{% else %}
+{% breadcrumb "Новое событие" %}
+{% endif %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -28,7 +25,7 @@
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="3" width="9" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.title class+="form-control" %}
     {% render_field form.place class+="form-control" %}
     {% render_field form.tutor class+="form-control selectpicker" %}

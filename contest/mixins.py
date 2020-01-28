@@ -46,3 +46,7 @@ class PaginatorMixin:
             return paginator, page_obj, page_obj.object_list, page_obj.has_other_pages()
         else:
             return None, None, queryset, False
+
+    def get_context_data(self, **kwargs):
+        kwargs.update(focus_page=self.page_kwarg in self.request.GET)
+        return super().get_context_data(**kwargs)

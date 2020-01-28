@@ -4,6 +4,7 @@ import re
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.template.defaultfilters import filesizeformat
 
@@ -121,10 +122,11 @@ class ProblemForm(AttachmentForm):
         model = Problem
         fields = ['title', 'description', 'difficulty', 'language', 'compile_args', 'launch_args', 'time_limit',
                   'memory_limit', 'is_testable']
-        help_texts = {
-            'time_limit': "секунд",
-            'memory_limit': "КБайт"
-        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['time_limit'].append_text = "секунд"
+        self.fields['memory_limit'].append_text = "КБайт"
 
 
 """==================================================== Solution ===================================================="""
@@ -175,10 +177,7 @@ class AssignmentForm(forms.ModelForm):
     class Meta:
         model = Assignment
         fields = ['user', 'problem', 'score', 'score_max', 'submission_limit', 'remark']
-        help_texts = {
-            'remark': "доступно только преподавателям",
-            'submission_limit': "попыток"
-        }
+        help_texts = {'remark': "доступно только преподавателям"}
 
     def __init__(self, course, *args, contest=None, user=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -204,11 +203,12 @@ class AssignmentUpdateForm(forms.ModelForm):
 
 class AssignmentSetForm(forms.Form):
     contest = forms.ModelChoiceField(queryset=Contest.objects.none(), label="Раздел")
-    limit_per_user = forms.IntegerField(min_value=1, max_value=5, initial=1, label="Дополнить до", help_text="заданий")
+    limit_per_user = forms.IntegerField(min_value=1, max_value=5, initial=1, label="Дополнить до")
 
     def __init__(self, course, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['contest'].queryset = course.contest_set.all()
+        self.fields['limit_per_user'].append_text = "заданий"
 
 
 # TODO: refactor
@@ -303,6 +303,24 @@ class SubmissionForm(AttachmentForm):
                     code='limit_reached'
                 )
         return super().clean()
+
+
+class ToSubmissionsChoiceField(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, obj):
+        return "{}: {}, {}".format(obj.owner.account, obj.status, naturaltime(obj.date_created))
+
+
+class SubmissionMossForm(forms.Form):
+    to_submissions = ToSubmissionsChoiceField(queryset=Submission.objects.none(), required=True,
+                                              label="С посылками")
+
+    def __init__(self, *args, **kwargs):
+        self.submission = kwargs.pop('submission')
+        super().__init__(*args, **kwargs)
+        to_submissions = (Submission.objects.filter(problem_id=self.submission.problem_id,
+                                                    owner__account__enrolled=True)
+                                            .exclude(owner_id=self.submission.owner_id))
+        self.fields['to_submissions'].queryset = to_submissions
 
 
 """===================================================== Event ======================================================"""

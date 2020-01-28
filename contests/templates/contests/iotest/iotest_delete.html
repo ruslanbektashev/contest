@@ -1,19 +1,17 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Тест
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{{ iotest.problem.contest.course.get_absolute_url }}">{{ iotest.problem.contest.course }}</a></li>
-    <li><a href="{{ iotest.problem.contest.get_absolute_url }}">{{ iotest.problem.contest }}</a></li>
-    <li><a href="{{ iotest.problem.get_absolute_url }}">{{ iotest.problem }}</a></li>
-    <li><a href="{{ iotest.get_absolute_url }}">{{ iotest }}</a></li>
-    <li class="active">Удаление</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb iotest.problem.contest.course iotest.problem.contest.course %}
+{% breadcrumb iotest.problem.contest iotest.problem.contest %}
+{% breadcrumb iotest.problem iotest.problem %}
+{% breadcrumb iotest iotest %}
+{% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
 {% block content %}

@@ -1,15 +1,13 @@
 {% extends 'base.html' %}
-{% load humanize %}
+{% load views humanize %}
 
 {% block title %}
 Сообщения
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li class="active">Сообщения</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Сообщения" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -35,7 +33,7 @@
                 <div class="message-footer">
                     <span class="text-muted">{{ chat.latest_message.date_created|naturaltime }}
                         {% if request.user.id != chat.latest_message.sender.id and not chat.latest_message.is_read %}
-                        <span class="label label-info">Новое</span>
+                        <span class="badge badge-primary">Новое</span>
                         {% endif %}
                     </span>
                 </div>

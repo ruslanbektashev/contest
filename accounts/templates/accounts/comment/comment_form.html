@@ -5,13 +5,9 @@
     {{ form.object_type }}
     {{ form.object_id }}
     <div class="form-group">
-        <div class="col-md-12">
-            {% render_field form.text class+="form-control" rows="3" cols="20" placeholder="Ваш комментарий" %}
-        </div>
+        {% render_field form.text class+="form-control" rows="5" placeholder="Ваш комментарий" %}
     </div>
     <div class="form-group">
-        <div class="col-md-12">
-            <input class="btn btn-primary btn-block" type="submit" value="Отправить" tabindex="0"/>
-        </div>
+        <input class="btn btn-light btn-block border" type="submit" value="Отправить" tabindex="0"/>
     </div>
 </form>

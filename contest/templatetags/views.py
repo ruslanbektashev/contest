@@ -1,21 +1,33 @@
 from django import template
+from django.shortcuts import resolve_url
 
 register = template.Library()
 
 
-@register.inclusion_tag('list.html')
-def render_list(lst, legend=None):
+@register.inclusion_tag('breadcrumb.html')
+def breadcrumb(title, *args, **kwargs):
     context = {
-        'lst': lst,
-        'legend': legend or ""
+        'title': title,
+        'url': resolve_url(*args, **kwargs) if args else None
     }
     return context
 
 
+@register.inclusion_tag('list.html')
+def render_list(lst):
+    return {'lst': lst}
+
+
 @register.inclusion_tag('media_list.html')
-def render_media_list(lst, legend=None):
-    context = {
-        'lst': lst,
-        'legend': legend or ""
-    }
+def render_media_list(lst):
+    return {'lst': lst}
+
+
+@register.inclusion_tag('page_nav.html', takes_context=True)
+def render_page_nav(context):
+    if context['page_obj'].number < 3:
+        left_page = 0
+    else:
+        left_page = context['page_obj'].number - 3
+    context['page_range'] = context['paginator'].page_range[left_page:context['page_obj'].number + 2]
     return context

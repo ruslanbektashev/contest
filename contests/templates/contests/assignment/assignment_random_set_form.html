@@ -1,17 +1,15 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Задания
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{{ course.get_absolute_url }}">{{ course }}</a></li>
-    <li><a href="{% url 'contests:assignment-table' course.id %}">Задания</a></li>
-    <li class="active">Случайные задания</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb course course %}
+{% breadcrumb "Задания" 'contests:assignment-table' course.id %}
+{% breadcrumb "Случайные задания" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -19,7 +17,7 @@
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="2" width="10" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.contest class+="form-control selectpicker" %}
     {% render_field form.limit_per_user class+="form-control selectpicker" %}
     {% endwith %}

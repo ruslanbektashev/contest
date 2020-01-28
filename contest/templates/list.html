@@ -1,10 +1,5 @@
-{% if lst %}
-{% if legend %}
-<legend>{{ legend }}</legend>
-{% endif %}
-<ul class="list-group">
+<div class="list-group">
     {% for obj in lst %}
-    <a href="{{ obj.get_absolute_url }}"><li class="list-group-item">{{ obj }}</li></a>
+    <a href="{{ obj.get_absolute_url }}" class="list-group-item list-group-item-action">{{ obj }}</a>
     {% endfor %}
-</ul>
-{% endif %}
+</div>

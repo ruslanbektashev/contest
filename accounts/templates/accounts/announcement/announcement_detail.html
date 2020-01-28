@@ -1,17 +1,14 @@
 {% extends 'base.html' %}
-{% load comments %}
-{% load views %}
+{% load views comments %}
 
 {% block title %}
 Объявление
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{% url 'accounts:announcement-list' %}">Объявления</a></li>
-    <li class="active">{{ announcement }}</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Объявления" 'accounts:announcement-list' %}
+{% breadcrumb announcement %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -20,21 +17,17 @@
     <p>{{ text|safe }}</p>
 </div>
 <div class="pull-right text-right">
-    <p><span class="label label-default">{{ announcement.group }}</span> | {{ announcement.date_created|date:'' }}</p>
+    <p><span class="badge badge-secondary">{{ announcement.group }}</span> | {{ announcement.date_created|date:'' }}</p>
 </div>
 {% endblock content %}
 
 {% block submenu %}
-<ul class="list-group">
+<div class="list-group">
     {% if perms.accounts.change_announcement %}
-    <a href="{% url 'accounts:announcement-update' announcement.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать объявление</a>
+    <a href="{% url 'accounts:announcement-update' announcement.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать объявление</a>
     {% endif %}
     {% if perms.accounts.delete_announcement %}
-    <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить объявление</a>
+    <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить объявление</a>
     {% endif %}
-</ul>
+</div>
 {% endblock submenu %}
-
-{% block javascript %}
-<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML"></script>
-{% endblock javascript %}

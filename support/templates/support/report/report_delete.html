@@ -1,18 +1,16 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Багрепорт
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{% url 'support:index' %}">Помощь</a></li>
-    <li><a href="{% url 'support:report-list' %}">Багрепорты</a></li>
-    <li><a href="{{ report.get_absolute_url }}">{{ report }}</a></li>
-    <li class="active">Удаление</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Помощь" 'support:index' %}
+{% breadcrumb "Багрепорты" 'support:report-list' %}
+{% breadcrumb report report %}
+{% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
 {% block content %}

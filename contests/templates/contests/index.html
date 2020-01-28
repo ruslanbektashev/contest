@@ -1,42 +1,38 @@
 {% extends 'base.html' %}
-{% load contests %}
+{% load views contests %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li class="active">Главная</li>
-</ol>
+{% breadcrumb "Главная" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
 <div class="row">
     {% for course in courses %}
-    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-        <div class="thumbnail lake">
-            <table class="table table-condensed" style="margin-bottom: 5px;" title="последние посылки по заданиям">
-                <thead>
-                    <tr>
-                        <th colspan="3"><a href="{% url 'contests:course-detail' course.id %}">{{ course.title }}</a></th>
-                    </tr>
-                </thead>
+    <div class="col-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <a href="{% url 'contests:course-detail' course.id %}">{{ course.title }}</a>
+            </div>
+            <table class="table table-sm mb-1" title="последние посылки по заданиям">
                 <tbody>
                     {% for submission in course.get_latest_submissions|slice:':3' %}
-                    <tr class="row">
-                        <td class="col-lg-2 col-md-2 col-sm-2 col-xs-2 text-center">{{ submission.date_created|date:'d.m.y' }}</td>
+                    <tr>
+                        <td class="text-right" style="width: 18%;">{{ submission.date_created|date:'d.m.y' }}</td>
                         <td>
                             <a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a>
                         </td>
-                        <td class="col-lg-1 col-md-1 col-sm-1 col-xs-1 text-center">
-                            <a href="{{ submission.get_absolute_url }}">
-                                <span class="label label-{{ submission.status|colorize }}" title="{{ submission.get_status_display }}">
-                                    {{ submission.status }}
-                                </span>
+                        <td class="text-center" style="width: 13%;">
+                            <a href="{{ submission.get_absolute_url }}" class="status status-{{ submission.status|colorize }}" title="{{ submission.get_status_display }}">
+                                {{ submission.status }}
                             </a>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            <a href="{% url 'contests:assignment-table' course.id %}" class="btn btn-primary btn-block pebble"><i class="fa fa-table fa-fw"></i> Таблица заданий</a>
+            <div class="card-footer text-right lake p-1">
+                <a href="{% url 'contests:assignment-table' course.id %}" class="btn btn-light btn-sm pebble">Перейти к таблице <i class="fa fa-arrow-circle-right fa-fw"></i></a>
+            </div>
         </div>
     </div>
     {% endfor %}
@@ -44,8 +40,8 @@
 {% endblock content %}
 
 {% block submenu %}
-<ul class="list-group">
-    <a href="{% url 'contests:submission-list' %}" class="list-group-item"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
-    <a href="{% url 'accounts:account-list' %}" class="list-group-item"><i class="fa fa-users fa-fw"></i> Студенты</a>
-</ul>
+<div class="list-group">
+    <a href="{% url 'contests:submission-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
+    <a href="{% url 'accounts:account-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-users fa-fw"></i> Студенты</a>
+</div>
 {% endblock submenu %}

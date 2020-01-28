@@ -1,16 +1,14 @@
 {% extends 'base.html' %}
-{% load views %}
+{% load views views %}
 
 {% block title %}
 Багрепорты
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{% url 'support:index' %}">Помощь</a></li>
-    <li class="active">Багрепорты</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Помощь" 'support:index' %}
+{% breadcrumb "Багрепорты" 'support:index' %}
 {% endblock breadcrumbs %}
 
 {% block content %}

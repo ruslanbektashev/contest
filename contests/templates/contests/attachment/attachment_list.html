@@ -1,16 +1,13 @@
-{% if attachments %}
-<legend>{{ legend }}</legend>
 <ul class="list-group">
     {% for attachment in attachments %}
-    <li class="list-group-item">
-        <a href="{{ attachment.file.url }}">{{ attachment.filename }}</a>
-        <span class="text-muted">{{ attachment.date_created|date:'d.m.y, H:i' }}</span>
+    <li class="list-group-item d-flex">
+        <a href="{{ attachment.file.url }}" class="mr-auto">{{ attachment.filename }}</a>
+        <span class="text-muted mr-2">{{ attachment.date_created|date:'d.m.y, H:i' }}</span>
         {% if perms.contests.delete_attachment %}
-        <a href="{% url 'contests:attachment-delete' attachment.id %}" type="button" class="close" aria-label="Удалить">
-            <span aria-hidden="true">&times;</span>
+        <a href="{% url 'contests:attachment-delete' attachment.id %}">
+            <i class="fa fa-trash-o fa-fw"></i>
         </a>
         {% endif %}
     </li>
     {% endfor %}
 </ul>
-{% endif %}

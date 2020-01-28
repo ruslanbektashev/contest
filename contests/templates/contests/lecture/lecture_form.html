@@ -1,21 +1,19 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Лекция
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{{ course.get_absolute_url }}">{{ course }}</a></li>
-    {% if lecture %}
-    <li><a href="{{ lecture.get_absolute_url }}">{{ lecture }}</a></li>
-    <li class="active">Редактирование</li>
-    {% else %}
-    <li class="active">Новая лекция</li>
-    {% endif %}
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb course course %}
+{% if lecture %}
+{% breadcrumb lecture lecture %}
+{% breadcrumb "Редактирование" %}
+{% else %}
+{% breadcrumb "Новая лекция" %}
+{% endif %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -23,9 +21,9 @@
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="2" width="10" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.title class+="form-control" %}
-    {% render_field form.description class+="form-control" rows="5" cols="20" %}
+    {% render_field form.description class+="form-control" %}
     {% endwith %}
     {% render_button value="Сохранить" %}
 </form>

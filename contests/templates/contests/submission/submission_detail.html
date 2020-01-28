@@ -1,70 +1,83 @@
 {% extends 'base.html' %}
-{% load static comments contests %}
+{% load views contests comments static %}
 
 {% block title %}
 Посылка
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{{ submission.problem.contest.course.get_absolute_url }}">{{ submission.problem.contest.course }}</a></li>
-    <li><a href="{{ submission.problem.contest.get_absolute_url }}">{{ submission.problem.contest }}</a></li>
-    <li><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></li>
-    <li class="active">{{ submission.id }}</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb submission.problem.contest.course submission.problem.contest.course %}
+{% breadcrumb submission.problem.contest submission.problem.contest %}
+{% breadcrumb submission.problem submission.problem %}
+{% breadcrumb submission.id %}
 {% endblock breadcrumbs %}
 
 {% block content %}
 <legend>{{ submission }}{% if submission.assignment %} [по <a href="{{ submission.assignment.get_absolute_url }}">заданию</a>]{% endif %}</legend>
-<div class="row">
-    <div class="col-md-12" style="margin: 0 0 20px 0;">
-        <div class="progress" style="position: relative; margin: 0 0 20px 0;">
-            <div id="progress-bar" class="progress-bar progress-bar-{{ submission.status|colorize }}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% else %}100{% endif %}%;"></div>
-            <b><span id="progress-bar-message" style="position: absolute; text-align: center; display: block; width: 100%; color: white;">{{ submission.get_status_display }}</span></b>
-        </div>
-        {% if not submission.problem.is_testable %}
-        <span class="btn btn-warning btn-block" title="Решение может быть проверено вручную преподавателем">Автоматическая проверка решения этой задачи временно отключена</span>
-        {% elif submission.is_un %}
-        <a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url_name %}?from={{ from_url_name }}{% endif %}" class="btn btn-primary btn-block">Проверить</a>
-        {% elif perms.contests.evaluate_submission %}
-        <a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url_name %}?from={{ from_url_name }}{% endif %}" class="btn btn-primary btn-block">Проверить еще раз</a>
-        {% endif %}
+    <div class="progress justify-content-center mb-3" style="height: 25px;">
+        <div id="progress-bar" class="progress-bar bg-{{ submission.status|colorize }}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% else %}100{% endif %}%;"></div>
+        <span class="status-display align-self-center" style="position: absolute;"><strong id="progress-bar-message" style="color: white;">{{ submission.get_status_display }}</strong></span>
     </div>
-    <div id="execution_list" class="col-md-12">
+    {% if not submission.problem.is_testable %}
+    <span class="btn btn-warning btn-block mb-3" title="Решение может быть проверено вручную преподавателем">Автоматическая проверка решения этой задачи временно отключена</span>
+    {% elif submission.is_un %}
+    <a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url_name %}?from={{ from_url_name }}{% endif %}" class="btn btn-light btn-block border mb-3">Проверить</a>
+    {% elif perms.contests.evaluate_submission %}
+    <a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url_name %}?from={{ from_url_name }}{% endif %}" class="btn btn-light btn-block border mb-3">Проверить еще раз</a>
+    {% endif %}
+    <div class="accordion mb-3" id="execution_list">
         {% render_execution_list submission.execution_set.all %}
     </div>
-    <div class="col-md-12 text-right text-muted">
+    <div class="text-right text-muted">
         <p>отправлена: {{ submission.date_created|date:'d.m.y, H:i' }}</p>
         {% if perms.contests.download_submission %}
         <p class="text-warning" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>директория на сервере: {{ submission.attachment_set.all.0.dirname }}</p>
         {% endif %}
+        {% if perms.contests.moss_submission %}
+            {% if submission.moss_to_submissions %}
+        <p class="text-warning" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>с посылками MOSS: {% for to_submission_id in submission.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+        <p class="text-warning" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>ссылка на отчет MOSS: {% if submission.moss_report_url %}<a href="{{ submission.moss_report_url }}" target="_blank">{{ submission.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
+            {% endif %}
+        {% endif %}
     </div>
-</div>
 <legend>Файлы {% if perms.contests.download_submission %}<a href="{% url 'contests:submission-download' submission.id %}" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>{% endif %}</legend>
-<ul class="list-group">
-{% for attachment in submission.attachment_set.all %}
-    {% if perms.contests.download_submission %}
-    <a href="{{ attachment.file.url }}"><li class="list-group-item">{{ attachment.filename }}</li></a>
-    {% else %}
-    <li class="list-group-item">{{ attachment.filename }}</li>
-    {% endif %}
-{% endfor %}
-</ul>
+<div class="list-group mb-3">
+    {% for attachment in submission.attachment_set.all %}
+    <span class="list-group-item d-flex">
+        {% if perms.contests.download_submission %}
+        <a class="mr-auto" href="{% url 'contests:submission-display' submission.id attachment.id %}">
+            <samp>{{ attachment.filename }}</samp>
+        </a>
+        <a href="{{ attachment.file.url }}">
+            <i class="fa fa-download fa-fw"></i>
+        </a>
+        {% else %}
+        <samp>{{ attachment.filename }}</samp>
+        {% endif %}
+    </span>
+    {% endfor %}
+</div>
+<legend>Комментарии</legend>
 {% render_comments submission %}
 {% endblock content %}
 
 {% block submenu %}
 {% if from_url %}
-<ul class="list-group">
-    <a href="{{ from_url }}" class="list-group-item"><i class="fa fa-chevron-left fa-fw"></i> Вернуться к посылкам</a>
-</ul>
+<div class="list-group">
+    <a href="{{ from_url }}" class="list-group-item list-group-item-action"><i class="fa fa-chevron-left fa-fw"></i> Вернуться к посылкам</a>
+</div>
 {% endif %}
-<ul class="list-group">
-    {% if perms.contests.delete_submission %}
-    <a href="{% url 'contests:submission-delete' submission.id %}" class="list-group-item"><i class="fa fa-trash-o fa-fw"></i> Удалить посылку</a>
+<div class="list-group">
+    {% if perms.contests.moss_submission %}
+    <a href="{% url 'contests:submission-moss' submission.id %}" class="list-group-item list-group-item-action"><i class="fa fa-maxcdn fa-fw"></i> MOSS</a>
     {% endif %}
-</ul>
+</div>
+<div class="list-group">
+    {% if perms.contests.delete_submission %}
+    <a href="{% url 'contests:submission-delete' submission.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить посылку</a>
+    {% endif %}
+</div>
 {% endblock submenu %}
 
 {% block javascript %}

@@ -1,17 +1,16 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Лекция
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{{ lecture.course.get_absolute_url }}">{{ lecture.course }}</a></li>
-    <li><a href="{{ lecture.get_absolute_url }}">{{ lecture }}</a></li>
-    <li class="active">Удаление</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb lecture.course lecture.course %}
+{% breadcrumb lecture.course lecture.course %}
+{% breadcrumb lecture lecture %}
+{% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
 {% block content %}

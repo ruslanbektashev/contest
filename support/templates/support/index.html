@@ -6,10 +6,8 @@
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li class="active">Помощь</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Помощь" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -18,16 +16,16 @@
 {% endblock content %}
 
 {% block submenu %}
-<ul class="list-group">
-    <a href="{% url 'support:question-list' %}" class="list-group-item"><i class="fa fa-question fa-fw"></i> Вопросы</a>
+<div class="list-group">
+    <a href="{% url 'support:question-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-question fa-fw"></i> Вопросы</a>
     {% if user.is_staff %}
-    <a href="{% url 'support:report-list' %}" class="list-group-item"><i class="fa fa-bug fa-fw"></i> Багрепорты</a>
+    <a href="{% url 'support:report-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-bug fa-fw"></i> Багрепорты</a>
     {% endif %}
-</ul>
-<ul class="list-group">
+</div>
+<div class="list-group">
     {% if perms.support.add_question %}
-    <a href="{% url 'support:question-create' %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Задать вопрос</a>
+    <a href="{% url 'support:question-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Задать вопрос</a>
     {% endif %}
-    <a href="{% url 'support:report-create' %}" class="list-group-item"><i class="fa fa-plus fa-fw"></i> Сообщить об ошибке</a>
-</ul>
+    <a href="{% url 'support:report-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Сообщить об ошибке</a>
+</div>
 {% endblock submenu %}

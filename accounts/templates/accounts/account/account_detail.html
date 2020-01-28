@@ -1,54 +1,69 @@
 {% extends 'base.html' %}
-{% load contests %}
+{% load views contests %}
 
 {% block title %}
 Профиль
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{% url 'accounts:account-list' %}">Пользователи</a></li>
-    <li class="active">{{ account }}</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Пользователи" 'accounts:account-list' %}
+{% breadcrumb account %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Профиль</legend>
-<table class="table table-condensed">
-    <tr><td class="col-md-3 text-right">Имя</td><td>{{ account.first_name }}</td></tr>
-    <tr><td class="col-md-3 text-right">Фамилия</td><td>{{ account.last_name }}</td></tr>
-    <tr><td class="col-md-3 text-right">E-mail</td><td>{% if account.email %}{{ account.email }}{% elif perms.auth.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}<a href="{% url 'accounts:account-update' account.user_id %}" class="text-danger" >укажите e-mail</a>{% else %}-{% endif %}</td></tr>
-    <tr><td class="col-md-3 text-right">Группа</td><td>{% for group in account.user.groups.all %} <span class="label label-default">{{ group }}</span>{% endfor %}</td></tr>
-    <tr><td class="col-md-3 text-right">Уровень</td><td>{{ account.get_level_display }}</td></tr>
-    <tr><td class="col-md-3 text-right">Тип</td><td>{{ account.get_type_display }}</td></tr>
-    <tr><td class="col-md-3 text-right">Год поступления</td><td>{{ account.admission_year }}</td></tr>
-    <tr><td class="col-md-3 text-right">Обучается</td><td>{{ account.enrolled|yesno:'да,нет' }}</td></tr>
-    <tr><td class="col-md-3 text-right">Закончил обучение</td><td>{{ account.graduated|yesno:'да,нет' }}</td></tr>
-    {% if perms.auth.change_account %}
-    <tr><td class="col-md-3 text-right">Логин</td><td>{{ account.username }}</td></tr>
-    <tr><td class="col-md-3 text-right">Последний вход</td><td>{{ account.last_login|date:'d.m.y, H:i' }}</td></tr>
-    <tr><td class="col-md-3 text-right">Дата регистрации</td><td>{{ account.date_joined|date:'d.m.y' }}</td></tr>
+<legend>{{ account.get_full_name }}</legend>
+<ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item">
+        <a aria-controls="profile" aria-selected="true" class="nav-link active" data-toggle="tab" href="#profile" id="profile-tab"
+           role="tab">Профиль</a>
+    </li>
+    {% if perms.assignments.view_assignment_table and account.type == 1 %}
+    <li class="nav-item">
+        <a aria-controls="assignments" aria-selected="false" class="nav-link" data-toggle="tab" href="#assignments" id="assignments-tab"
+           role="tab">Задания</a>
+    </li>
     {% endif %}
-</table>
-{% if perms.assignments.view_assignment_table and account.type == 1 %}
-<legend>Задания</legend>
-{% render_assignment_user_table assignments credits %}
-{% render_assignment_progress assignments %}
-{% endif %}
+</ul>
+<div class="tab-content">
+    <div aria-labelledby="profile-tab" class="tab-pane fade show active" id="profile" role="tabpanel">
+        <table class="table table-sm">
+            <tr><td class="text-right" style="width: 20%;">Имя</td><td>{{ account.first_name }}</td></tr>
+            <tr><td class="text-right" style="width: 20%;">Фамилия</td><td>{{ account.last_name }}</td></tr>
+            <tr><td class="text-right" style="width: 20%;">E-mail</td><td>{% if account.email %}{{ account.email }}{% elif perms.auth.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}<a href="{% url 'accounts:account-update' account.user_id %}" class="text-danger" >укажите e-mail</a>{% else %}-{% endif %}</td></tr>
+            <tr><td class="text-right" style="width: 20%;">Группа</td><td>{% for group in account.user.groups.all %} <span class="badge badge-secondary">{{ group }}</span>{% endfor %}</td></tr>
+            <tr><td class="text-right" style="width: 20%;">Уровень</td><td>{{ account.get_level_display }}</td></tr>
+            <tr><td class="text-right" style="width: 20%;">Тип</td><td>{{ account.get_type_display }}</td></tr>
+            <tr><td class="text-right" style="width: 20%;">Год поступления</td><td>{{ account.admission_year }}</td></tr>
+            <tr><td class="text-right" style="width: 20%;">Обучается</td><td>{{ account.enrolled|yesno:'да,нет' }}</td></tr>
+            <tr><td class="text-right" style="width: 20%;">Закончил обучение</td><td>{{ account.graduated|yesno:'да,нет' }}</td></tr>
+            {% if perms.auth.change_account %}
+            <tr><td class="text-right" style="width: 20%;">Логин</td><td>{{ account.username }}</td></tr>
+            <tr><td class="text-right" style="width: 20%;">Последний вход</td><td>{{ account.last_login|date:'d.m.y, H:i' }}</td></tr>
+            <tr><td class="text-right" style="width: 20%;">Дата регистрации</td><td>{{ account.date_joined|date:'d.m.y' }}</td></tr>
+            {% endif %}
+        </table>
+    </div>
+    {% if perms.assignments.view_assignment_table and account.type == 1 %}
+    <div aria-labelledby="assignments-tab" class="tab-pane fade" id="assignments" role="tabpanel">
+        {% render_assignment_user_table assignments credits %}
+        {% render_assignment_progress assignments %}
+    </div>
+    {% endif %}
+</div>
 {% endblock content %}
 
 {% block submenu %}
-<ul class="list-group">
+<div class="list-group">
     {% if perms.auth.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
-    <a href="{% url 'accounts:account-update' account.user.id %}" class="list-group-item"><i class="fa fa-edit fa-fw"></i> Редактировать профиль</a>
+    <a href="{% url 'accounts:account-update' account.user.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать профиль</a>
     {% endif %}
-</ul>
-<ul class="list-group">
+</div>
+<div class="list-group">
     {% if account.user_id == request.user.id %}
-    <a href="{% url 'password-change' %}" class="list-group-item"><i class="fa fa-lock fa-fw"></i> Изменить пароль</a>
+    <a href="{% url 'password-change' %}" class="list-group-item list-group-item-action"><i class="fa fa-lock fa-fw"></i> Изменить пароль</a>
     {% else %}
-    <a href="{% url 'accounts:message-create' account.user.id %}" class="list-group-item"><i class="fa fa-envelope-o fa-fw"></i> Написать сообщение</a>
+    <a href="{% url 'accounts:message-create' account.user.id %}" class="list-group-item list-group-item-action"><i class="fa fa-envelope-o fa-fw"></i> Написать сообщение</a>
     {% endif %}
-</ul>
+</div>
 {% endblock submenu %}

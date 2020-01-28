@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block container %}
+<div class="row">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                {% block breadcrumbs %}
+                {% endblock breadcrumbs %}
+            </ol>
+        </nav>
+        {% block content %}
+        {% endblock content %}
+    </div>
+</div>
+{% endblock container %}

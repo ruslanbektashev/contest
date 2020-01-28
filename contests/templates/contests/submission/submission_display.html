@@ -1,5 +1,5 @@
-{% extends 'base.html' %}
-{% load views forms %}
+{% extends 'base_wide.html' %}
+{% load views comments contests static %}
 
 {% block title %}
 Посылка
@@ -11,10 +11,15 @@
 {% breadcrumb submission.problem.contest submission.problem.contest %}
 {% breadcrumb submission.problem submission.problem %}
 {% breadcrumb submission.id submission %}
-{% breadcrumb "Удаление" %}
+{% breadcrumb attachment.filename %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Удаление посылки</legend>
-{% render_delete_form submission %}
+<legend>{{ submission }}</legend>
+<samp>{{ attachment.filename }}</samp>
+<div class="alert alert-light border mt-2">{{ code|safe }}</div>
 {% endblock content %}
+
+{% block stylesheets %}
+<link href="{% static 'css/highlight.css' %}" rel="stylesheet"/>
+{% endblock stylesheets %}

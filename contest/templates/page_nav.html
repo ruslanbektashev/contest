@@ -1,0 +1,27 @@
+{% if is_paginated %}
+<nav aria-label="Страницы">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+            <a class="page-link" href="?page=1" aria-label="Первая страница">
+                <span aria-hidden="true"><i class="fa fa-angle-double-left fa-fw"></i></span>
+            </a>
+        </li>
+        {% for i in page_range %}
+            {% if page_obj.number == i %}
+        <li class="page-item active">
+            <span class="page-link">{{ i }}<span class="sr-only">Текущая страница</span></span>
+        </li>
+            {% else %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+        </li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Последняя страница">
+                <span aria-hidden="true"><i class="fa fa-angle-double-right fa-fw"></i></span>
+            </a>
+        </li>
+    </ul>
+</nav>
+{% endif %}

@@ -1,17 +1,15 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Профиль
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{% url 'accounts:account-list' %}">Пользователи</a></li>
-    <li><a href="{{ account.get_absolute_url }}">{{ account }}</a></li>
-    <li class="active">Редактирование</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Пользователи" 'accounts:account-list' %}
+{% breadcrumb account account %}
+{% breadcrumb "Редактирование" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -19,7 +17,7 @@
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="3" width="9" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.email class+="form-control" %}
     {% if perms.accounts.change_account %}
     {% render_field form.level class+="form-control selectpicker" %}

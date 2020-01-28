@@ -1,27 +1,27 @@
-<table class="table table-condensed">
+<table class="table table-sm">
     {% for day in week.days %}
     <thead>
         <tr>
-            <th class="col-md-3 text-center" colspan="2">{{ day.date_day|date:'D, d b' }}</th>
-            <th class="col-md-4 text-center">{% if forloop.first %}Событие{% endif %}</th>
-            <th class="col-md-1 text-center">{% if forloop.first %}Место проведения{% endif %}</th>
-            <th class="col-md-3 text-center">{% if forloop.first %}Преподаватель{% endif %}</th>
-            <th class="col-md-1 text-center">{% if forloop.first %}<i class="fa fa-plus fa-fw"></i>{% endif %}</th>
+            <th class="col-date text-center" colspan="2">{{ day.date_day|date:'D, d b' }}</th>
+            <th class="text-center">{% if forloop.first %}Событие{% endif %}</th>
+            <th class="text-center">{% if forloop.first %}Преподаватель{% endif %}</th>
+            <th class="text-center">{% if forloop.first %}Место проведения{% endif %}</th>
+            <th class="text-center">{% if forloop.first %}<i class="fa fa-plus fa-fw"></i>{% endif %}</th>
         </tr>
     </thead>
     <tbody>
         {% for row in day.rows %}
         {% if forloop.counter < 5 or row.event %}
         <tr>
-            <td class="col-md-1 text-center">{{ forloop.counter }}</td>
-            <td class="col-md-2 text-center">{{ row.date_row_start|date:'H:i' }} - {{ row.date_row_end|date:'H:i' }}</td>
+            <td class="text-center">{{ forloop.counter }}</td>
+            <td class="text-center">{{ row.date_row_start|date:'H:i' }} - {{ row.date_row_end|date:'H:i' }}</td>
             {% if row.event %}
             <td class="text-center"><a href="{{ row.event.get_absolute_url }}">{{ row.event.get_type_display }}: {{ row.event.title }}</a></td>
-            <td class="text-center">{{ row.event.place }}</td>
             <td class="text-center">{{ row.event.tutor.account|default:'не указан' }}</td>
+            <td class="text-center">{{ row.event.place }}</td>
             <td class="text-center lake">
                 {% if perms.contests.delete_event %}
-                <a href="{% url 'contests:event-delete' row.event.id %}" class="pebble"><span class="label label-info" title="Удалить событие"><i class="fa fa-times fa-fw"></i></span></a>
+                <a href="{% url 'contests:event-delete' row.event.id %}" class="pebble"><span class="badge badge-danger" title="Удалить событие"><i class="fa fa-times fa-fw"></i></span></a>
                 {% endif %}
             </td>
             {% else %}
@@ -30,7 +30,7 @@
             <td></td>
             <td class="text-center lake">
                 {% if perms.contests.add_event %}
-                <a href="{% url 'contests:event-create' %}?date_start={{ row.date_row_start|date:'c' }}&date_end={{ row.date_row_end|date:'c' }}" class="pebble"><span class="label label-info" title="Добавить событие"><i class="fa fa-plus fa-fw"></i></span></a>
+                <a href="{% url 'contests:event-create' %}?date_start={{ row.date_row_start|date:'c' }}&date_end={{ row.date_row_end|date:'c' }}" class="pebble"><span class="badge badge-info" title="Добавить событие"><i class="fa fa-plus fa-fw"></i></span></a>
                 {% endif %}
             </td>
             {% endif %}
@@ -40,22 +40,20 @@
     </tbody>
     {% endfor %}
 </table>
-<div id="panchor" class="text-center">
-    <nav aria-label="Страницы">
-        <ul class="pagination">
-            <li>
-                <a href="?year={{ year }}&week={{ week.number|add:'-1' }}#panchor" aria-label="Первая страница">
-                    <span aria-hidden="true"><i class="fa fa-arrow-left fa-fw"></i></span>
-                </a>
-            </li>
-            <li class="active">
-                <span>{{ week.date_week_start|date:'d b' }} - {{ week.date_week_end|date:'d b' }}<span class="sr-only">Текущая страница</span></span>
-            </li>
-            <li>
-                <a href="?year={{ year }}&week={{ week.number|add:'1' }}#panchor" aria-label="Последняя страница">
-                    <span aria-hidden="true"><i class="fa fa-arrow-right fa-fw"></i></span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</div>
+<nav id="p" aria-label="Страницы">
+    <ul class="pagination justify-content-center">
+        <li class="page-item">
+            <a class="page-link" href="?year={{ year }}&week={{ week.number|add:'-1' }}#p" aria-label="Первая страница">
+                <span aria-hidden="true"><i class="fa fa-arrow-left fa-fw"></i></span>
+            </a>
+        </li>
+        <li class="page-item active">
+            <span class="page-link">{{ week.date_week_start|date:'d b' }} - {{ week.date_week_end|date:'d b' }}<span class="sr-only">Текущая страница</span></span>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?year={{ year }}&week={{ week.number|add:'1' }}#p" aria-label="Последняя страница">
+                <span aria-hidden="true"><i class="fa fa-arrow-right fa-fw"></i></span>
+            </a>
+        </li>
+    </ul>
+</nav>

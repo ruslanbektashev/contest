@@ -1,23 +1,21 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Тест
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{{ problem.contest.course.get_absolute_url }}">{{ problem.contest.course }}</a></li>
-    <li><a href="{{ problem.contest.get_absolute_url }}">{{ problem.contest }}</a></li>
-    <li><a href="{{ problem.get_absolute_url }}">{{ problem }}</a></li>
-    {% if iotest %}
-    <li><a href="{{ iotest.get_absolute_url }}">{{ iotest }}</a></li>
-    <li class="active">Редактирование</li>
-    {% else %}
-    <li class="active">Новый IO-тест</li>
-    {% endif %}
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb problem.contest.course problem.contest.course %}
+{% breadcrumb problem.contest problem.contest %}
+{% breadcrumb problem problem %}
+{% if iotest %}
+{% breadcrumb iotest iotest %}
+{% breadcrumb "Редактирование" %}
+{% else %}
+{% breadcrumb "Новый IO-тест" %}
+{% endif %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -25,14 +23,14 @@
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="3" width="9" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.title class+="form-control" %}
     {% render_field form.compile_args class+="form-control" %}
     {% render_field form.compile_args_override class+="form-control" %}
     {% render_field form.launch_args class+="form-control" %}
     {% render_field form.launch_args_override class+="form-control" %}
-    {% render_field form.input class+="form-control" rows="5" cols="20" %}
-    {% render_field form.output class+="form-control" rows="5" cols="20" %}
+    {% render_field form.input class+="form-control" %}
+    {% render_field form.output class+="form-control" %}
     {% endwith %}
     {% render_button value="Сохранить" %}
 </form>

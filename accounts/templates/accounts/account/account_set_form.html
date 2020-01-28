@@ -1,16 +1,14 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Регистрация
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{% url 'accounts:account-list' %}">Пользователи</a></li>
-    <li class="active">Регистрация</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Пользователи" 'accounts:account-list' %}
+{% breadcrumb "Регистрация" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -18,10 +16,10 @@
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="3" width="9" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.level class+="form-control selectpicker" %}
     {% render_field form.admission_year class+="form-control selectpicker" %}
-    {% render_field form.names class+="form-control" rows="5" cols="20" placeholder="в формате: Фамилия Имя Отчество" %}
+    {% render_field form.names class+="form-control" placeholder="в формате: Фамилия Имя Отчество" %}
     {% endwith %}
     {% render_button value="Зарегистрировать" %}
 </form>

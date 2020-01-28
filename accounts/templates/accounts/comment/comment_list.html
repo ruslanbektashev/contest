@@ -1,25 +1,25 @@
 {% load humanize %}
 <div class="comment-list">
     {% for comment in comments %}
-    <div id="comment_{{ comment.id }}" class="comment-list-item col-md-12 col-md-offset-{{ comment.level|add:'-1' }}">
-        <div class="comment-avatar pull-left">
+    <div id="comment_{{ comment.id }}" class="comment-list-item col{{ comment.level|add:'-13' }} offset-{{ comment.level|add:'-1' }}">
+        <div class="comment-avatar">
 
         </div>
-        <div class="comment-main col-md-11">
-            <div class="comment-header col-md-12">
-                <div class="comment-user pull-left">
+        <div class="comment-main">
+            <div class="comment-header">
+                <div class="comment-user">
                     <a href="{{ comment.author.account.get_absolute_url }}">
                         {{ comment.author.account }}
                     </a>
                 </div>
-                <div class="comment-timesince text-muted pull-left">
+                <div class="comment-timesince text-muted">
                     {{ comment.date_created|naturaltime }}
                 </div>
             </div>
-            <div class="comment-text col-md-12">
+            <div class="comment-text">
                 {{ comment.text|linebreaksbr }}
             </div>
-            <div class="comment-footer col-md-12">
+            <div class="comment-footer">
                 {% if comment.is_repliable %}
                 <a href="{% url 'accounts:comment-reply' comment.id %}" class="text-muted">Ответить</a>
                 {% endif %}

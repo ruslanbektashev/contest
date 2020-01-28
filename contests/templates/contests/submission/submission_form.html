@@ -1,18 +1,16 @@
 {% extends 'base.html' %}
-{% load forms %}
+{% load views forms %}
 
 {% block title %}
 Посылка
 {% endblock title %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-    <li><a href="{% url 'contests:index' %}">Главная</a></li>
-    <li><a href="{{ problem.contest.course.get_absolute_url }}">{{ problem.contest.course }}</a></li>
-    <li><a href="{{ problem.contest.get_absolute_url }}">{{ problem.contest }}</a></li>
-    <li><a href="{{ problem.get_absolute_url }}">{{ problem }}</a></li>
-    <li class="active">Новая посылка</li>
-</ol>
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb problem.contest.course problem.contest.course %}
+{% breadcrumb problem.contest problem.contest %}
+{% breadcrumb problem problem %}
+{% breadcrumb "Новая посылка" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -20,21 +18,33 @@
 <form action="" id="submission-form" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}
     <div class="alert alert-warning" role="alert">
-        <p>Решения компилируются средствами gcc под операционной системой семейства Linux.</p>
-        <p>Некоторые ошибки компиляции могут быть связаны с различием компиляторов.</p>
-        <p>Принимаются файлы только с кодировкой UTF-8.</p>
+        Решения компилируются средствами gcc под операционной системой семейства Linux.<br>
+        Некоторые ошибки компиляции могут быть связаны с различием компиляторов.<br>
+        Принимаются файлы только с кодировкой UTF-8.<br>
     </div>
     {% if problem.solution_set.exists %}
     <div class="alert alert-info" role="contentinfo">
         {% for solution in problem.solution_set.all %}
-        <p>{{ solution.description|safe|linebreaksbr }}</p>
+        {{ solution.description|safe|linebreaksbr }}
         {% endfor %}
     </div>
     {% endif %}
     {% render_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" offset="1" width="11" %}
-    {% render_field form.files class+="form-control" %}
-    {% endwith %}
+    <div class="form-group">
+        <div class="custom-file">
+            {% with is_invalid=form.files.errors|yesno:"is-invalid," %}
+            {% render_field form.files class+="custom-file-input" class+=is_invalid %}
+            {% endwith %}
+            <label class="custom-file-label" for="{{ form.files.id_for_label }}">{{ form.files.label }}</label>
+            {% if form.files.errors %}
+            <div class="invalid-feedback">
+                {% for error in form.files.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
     {% render_button value="Отправить" %}
 </form>
 {% endblock content %}

@@ -1,30 +1,28 @@
 {% extends 'base.html' %}
 {% load forms %}
 
+{% block title %}
+Вход
+{% endblock title %}
+
 {% block container %}
-<form method="post" class="form-signin text-center">
-    {% csrf_token %}
-    <h4 class="form-signin-heading mb20 mt-clear">Авторизация</h4>
-    {% if form.non_field_errors %}
-    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-    {% endif %}
-    <div class="form-group {% if form.username.errors %} has-error {% endif %}">
-    {% if form.username.errors %}
-        <div class="alert alert-danger">{{ form.username.errors }}</div>
-    {% endif %}
-        {% render_field form.username class+="form-control" placeholder="Логин" %}
-    </div>
-    <div class="form-group {% if form.password.errors %} has-error {% endif %}">
-    {% if form.password.errors %}
-        <div class="alert alert-danger">{{ form.password.errors }}</div>
-    {% endif %}
-        {% render_field form.password class+="form-control" placeholder="Пароль" %}
-    </div>
-    <!-- <div class="checkbox">
-        <label>
-            <input type="checkbox" value="remember-me"> Запомнить меня
-        </label>
-    </div> -->
-    <button class="btn btn-primary btn-block" type="submit">Войти</button>
-</form>
+<div class="d-flex justify-content-center align-items-center mt-5">
+    <form method="post" class="w-25">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+            {{ error }}
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div class="form-group">
+            {% render_field form.username class+="form-control" placeholder="Логин" %}
+        </div>
+        <div class="form-group">
+            {% render_field form.password class+="form-control" placeholder="Пароль" %}
+        </div>
+        <button class="btn btn-light btn-block border" type="submit">Войти</button>
+    </form>
+</div>
 {% endblock container %}

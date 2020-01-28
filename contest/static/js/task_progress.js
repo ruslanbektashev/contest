@@ -12,8 +12,8 @@ class TaskProgress {
     }
 
     onProgress(json) {
-        this.progress_bar_element.classList.remove('progress-bar-success', 'progress-bar-info', 'progress-bar-warning', 'progress-bar-danger', 'progress-bar-default', 'progress-bar-primary');
-        this.progress_bar_element.classList.add('progress-bar-info');
+        this.progress_bar_element.classList.remove('bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-secondary', 'bg-primary');
+        this.progress_bar_element.classList.add('bg-info');
         if (this.progress_bar_element.style.width.slice(0, -1) <= json.progress) {
             this.progress_bar_element.style.width = json.progress + '%';
             if (json.progress <= 50 && this.progress_bar_message_element.style.color == 'white') {
@@ -32,8 +32,8 @@ class TaskProgress {
     }
 
     onSuccess(json) {
-        this.progress_bar_element.classList.remove('progress-bar-success', 'progress-bar-info', 'progress-bar-warning', 'progress-bar-danger', 'progress-bar-default', 'progress-bar-primary');
-        this.progress_bar_element.classList.add('progress-bar-' + json.class);
+        this.progress_bar_element.classList.remove('bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-default', 'bg-primary');
+        this.progress_bar_element.classList.add('bg-' + json.class);
         this.progress_bar_element.style.width = '100%';
         this.progress_bar_message_element.style.color = 'white';
         if (json.success) {
@@ -44,8 +44,8 @@ class TaskProgress {
     }
 
     onError(error) {
-        this.progress_bar_element.classList.remove('progress-bar-success', 'progress-bar-info', 'progress-bar-warning', 'progress-bar-danger', 'progress-bar-default', 'progress-bar-primary');
-        this.progress_bar_element.classList.add('progress-bar-danger');
+        this.progress_bar_element.classList.remove('bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-default', 'bg-primary');
+        this.progress_bar_element.classList.add('bg-danger');
         this.progress_bar_element.style.width = '100%';
         this.progress_bar_message_element.style.color = 'white';
         this.progress_bar_message_element.textContent = "Произошла ошибка при получении статуса";

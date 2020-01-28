@@ -1,13 +1,13 @@
 {% load contests %}
 <div class="table-responsive">
-    <table class="table table-bordered table-condensed">
+    <table class="table table-bordered table-sm">
         <thead>
             <tr>
                 <th>Курс</th>
                 <th>Раздел</th>
                 <th>Задача</th>
-                <th class="col-md-1 text-center">Оценка</th>
-                <th class="col-md-1 text-center">Зачет</th>
+                <th class="text-center" style="width: 8%;">Оценка</th>
+                <th class="text-center" style="width: 8%;">Зачет</th>
             </tr>
         </thead>
         <tbody>
@@ -25,20 +25,18 @@
                 {% endif %}
                 <td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td>
                 <td class="text-center" style="vertical-align: middle;">
-                    <a href="{% url 'contests:assignment-detail' assignment.id %}">
-                        <span class="label label-{{ assignment.score|colorize }}">{{ assignment.score|default:'-' }}</span>
+                    <a href="{% url 'contests:assignment-detail' assignment.id %}" class="numtus status-{{ assignment.score|colorize }}">
+                        {{ assignment.score|default:'-' }}
                     </a>
                 </td>
                 {% if forloop.parentloop.first and forloop.first and assignment.credit %}
                 <td class="text-center" rowspan="{{ course_assignments|length }}" style="vertical-align: middle;">
                     {% if perms.contests.change_credit %}
-                    <a href="{% url 'contests:credit-update' assignment.credit.id %}">
-                        <span class="label label-{{ assignment.credit.score|colorize }}" title="{{ assignment.credit.get_score_display }}">
-                            {{ assignment.credit.score|default:'-' }}
-                        </span>
+                    <a href="{% url 'contests:credit-update' assignment.credit.id %}" class="numtus status-{{ assignment.credit.score|colorize }}" title="{{ assignment.credit.get_score_display }}">
+                        {{ assignment.credit.score|default:'-' }}
                     </a>
                     {% else  %}
-                    <span class="label label-{{ assignment.credit.score|colorize }}" title="{{ assignment.credit.get_score_display }}">
+                    <span class="numtus status-{{ assignment.credit.score|colorize }}" title="{{ assignment.credit.get_score_display }}">
                         {{ assignment.credit.score|default:'-' }}
                     </span>
                     {% endif %}
