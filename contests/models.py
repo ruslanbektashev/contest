@@ -171,6 +171,10 @@ class Contest(CRUDEntry):
         verbose_name = "Раздел"
         verbose_name_plural = "Разделы"
 
+    @property
+    def files(self):
+        return [attachment.file.path for attachment in self.attachment_set.all()]
+
     def __str__(self):
         return "%s" % self.title
 
