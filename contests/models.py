@@ -215,6 +215,10 @@ class Problem(CRUDEntry):
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
 
+    @property
+    def files(self):
+        return [attachment.file.path for attachment in self.attachment_set.all()]
+
     def save(self, *args, **kwargs):
         if self.pk is None:
             max_number = Problem.objects.filter(contest=self.contest).aggregate(models.Max('number')).get('number__max', 0) or 0
