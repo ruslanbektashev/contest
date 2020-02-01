@@ -37,6 +37,7 @@ urlpatterns = [
     path('contest/', include([
         path('<int:pk>/', include([
             path('', views.ContestDetail.as_view(), name='contest-detail'),
+            path('attachment/<int:attachment_id>', views.ContestAttachment.as_view(), name='contest-attachment'),
             path('update', views.ContestUpdate.as_view(), name='contest-update'),
             path('delete', views.ContestDelete.as_view(), name='contest-delete')
         ]))
@@ -45,6 +46,7 @@ urlpatterns = [
     path('problem/', include([
         path('<int:pk>/', include([
             path('', views.ProblemDetail.as_view(), name='problem-detail'),
+            path('attachment/<int:attachment_id>', views.ProblemAttachment.as_view(), name='problem-attachment'),
             path('update', views.ProblemUpdate.as_view(), name='problem-update'),
             path('delete', views.ProblemDelete.as_view(), name='problem-delete')
         ]))
@@ -102,7 +104,7 @@ urlpatterns = [
             path('evaluate', views.SubmissionEvaluate.as_view(), name='submission-evaluate'),
             path('moss', views.SubmissionMoss.as_view(), name='submission-moss'),
             path('download', views.SubmissionDownload.as_view(), name='submission-download'),
-            path('display/<int:attachment_id>', views.SubmissionDisplay.as_view(), name='submission-display'),
+            path('attachment/<int:attachment_id>', views.SubmissionAttachment.as_view(), name='submission-attachment'),
             path('get_executions', views.ExecutionList.as_view(), name='submission-get-executions'),
         ])),
         path('get_progress/<str:task_id>', views.submission_get_progress, name='submission-get-progress'),

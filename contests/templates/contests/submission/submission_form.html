@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views forms %}
+{% load views forms static %}
 
 {% block title %}
 Посылка
@@ -48,3 +48,12 @@
     {% render_button value="Отправить" %}
 </form>
 {% endblock content %}
+
+{% block javascript %}
+<script type="text/javascript" src="{% static 'js/bs-custom-file-input.min.js' %}"></script>
+<script>
+    $(document).ready(function () {
+        bsCustomFileInput.init()
+    })
+</script>
+{% endblock %}

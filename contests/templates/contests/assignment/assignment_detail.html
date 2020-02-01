@@ -37,7 +37,12 @@
         <table class="table table-sm">
             <tr><td class="text-right" style="width: 20%;">Студент</td><td><a href="{{ assignment.user.account.get_absolute_url }}">{{ assignment.user.account }}</a></td></tr>
             <tr><td class="text-right" style="width: 20%;">Задача</td><td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td></tr>
-            <tr><td class="text-right" style="width: 20%;">Оценка</td><td><span class="numtus status-{{ assignment.score|colorize }}">{{ assignment.score|default:'-' }}</span></td></tr>
+            <tr>
+                <td class="text-right" style="width: 20%;">Оценка</td>
+                <td>
+                    <span class="numtus status-{{ assignment.score|colorize }}">{{ assignment.score|default:'-' }}</span>{% if perms.contests.change_assignment %} {% if assignment.score_max < 5 %}/ {{ assignment.score_max }}{% endif %}{% if assignment.score_is_locked %} <span class="numtus status-warning" title="Оценка заблокирована и не может быть изменена системой автоматической проверки посылок"><i class="fa fa-lock"></i></span>{% endif %}{% endif %}
+                </td>
+            </tr>
             <tr><td class="text-right" style="width: 20%;">Посылок</td><td>{{ assignment.get_submissions.count }} / {{ assignment.submission_limit }}</td></tr>
             {% if perms.contests.view_assignment_table %}
             <tr title="Отображается только преподавателям">

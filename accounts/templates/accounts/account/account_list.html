@@ -12,7 +12,7 @@
 
 {% block content %}
 <legend>Студенты {% if graduated %}выпускники{% elif enrolled == False %}отчисленные{% endif %}</legend>
-<form id="account_list_form" action="{{ request.get_full_path }}" method="post" class="form-horizontal">
+<form id="account_list_form" action="{{ request.get_full_path }}" method="post">
     {% csrf_token %}
     {% render_errors form %}
     {% if form.accounts.errors %}

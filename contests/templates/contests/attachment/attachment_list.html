@@ -1,12 +1,13 @@
 <ul class="list-group mb-3">
     {% for attachment in attachments %}
     <li class="list-group-item d-flex">
-        <a href="{{ attachment.file.url }}" class="mr-auto">{{ attachment.filename }}</a>
-        <span class="text-muted mr-2">{{ attachment.date_created|date:'d.m.y, H:i' }}</span>
-        {% if perms.contests.delete_attachment %}
-        <a href="{% url 'contests:attachment-delete' attachment.id %}">
-            <i class="fa fa-trash-o fa-fw"></i>
+        <a class="mr-auto" href="{% url path_name obj.id attachment.id %}">
+            <samp>{{ attachment.filename }}</samp>
         </a>
+        <span class="text-muted mr-2">{{ attachment.date_created }}</span>
+        <a href="{{ attachment.file.url }}" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
+        {% if perms.contests.delete_attachment %}
+        <a class="ml-2" href="{% url 'contests:attachment-delete' attachment.id %}" title="Удалить"><i class="fa fa-trash-o fa-fw"></i></a>
         {% endif %}
     </li>
     {% endfor %}

@@ -1,14 +1,14 @@
-<div class="form-group {% if field.errors %} has-error {% endif %}">
-    {% if field.errors %}
-    <div class="alert alert-danger">
-        {% for error in field.errors %}
-        {{ error }}
-        {% endfor %}
-    </div>
-    {% endif %}
+<div class="form-group">
     <label for="{{ field.id_for_label }}">
         {{ field.label }}{{ field.label_suffix }}
     </label>
+    {% if field.errors %}
+    <div class="alert alert-danger">
+        {% for error in field.errors %}
+        {{ error }}<br>
+        {% endfor %}
+    </div>
+    {% endif %}
     <div class="input-group">
         {{ field }}
         {% if field.field.append_text %}

@@ -31,8 +31,16 @@
     {% render_field form.launch_args class+="form-control" %}
     {% render_field form.time_limit class+="form-control" %}
     {% render_field form.memory_limit class+="form-control" %}
-    {% render_field form.is_testable class+="form-control" %}
     {% endwith %}
+    <div class="form-group">
+        <div class="custom-control custom-switch">
+            {% render_field form.is_testable class+="custom-control-input" %}
+            <label class="custom-control-label" for="{{ form.is_testable.id_for_label }}">{{ form.is_testable.label }}{{ form.is_testable.label_suffix }}</label>
+        </div>
+        {% if form.is_testable.help_text %}
+        <small class="form-text text-muted">{{ form.is_testable.help_text }}</small>
+        {% endif %}
+    </div>
     <div class="form-group">
         <div class="custom-file">
             {% with is_invalid=form.files.errors|yesno:"is-invalid," %}

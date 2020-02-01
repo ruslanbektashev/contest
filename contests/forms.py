@@ -176,8 +176,7 @@ class AssignmentForm(forms.ModelForm):
 
     class Meta:
         model = Assignment
-        fields = ['user', 'problem', 'score', 'score_max', 'submission_limit', 'remark']
-        help_texts = {'remark': "доступно только преподавателям"}
+        fields = ['user', 'problem', 'score', 'score_max', 'score_is_locked', 'submission_limit', 'remark']
 
     def __init__(self, course, *args, contest=None, user=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -188,17 +187,21 @@ class AssignmentForm(forms.ModelForm):
         if user:
             self.fields['user'].initial = user
         self.fields['problem'].choices = grouped_problems(course, contest)
+        self.fields['score'].widget.attrs['max'] = 5
+        self.fields['score_max'].widget.attrs['max'] = 5
 
 
-class AssignmentUpdateForm(forms.ModelForm):
+class AssignmentUpdateForm(AssignmentForm):
     user = UserChoiceField(queryset=User.objects.all(), label="Студент", disabled=True)
 
     class Meta(AssignmentForm.Meta):
         pass
 
     def __init__(self, course, *args, contest=None, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(AssignmentForm, self).__init__(*args, **kwargs)
         self.fields['problem'].choices = grouped_problems(course, contest)
+        self.fields['score'].widget.attrs['max'] = 5
+        self.fields['score_max'].widget.attrs['max'] = 5
 
 
 class AssignmentSetForm(forms.Form):

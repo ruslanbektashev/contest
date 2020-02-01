@@ -14,7 +14,7 @@
 
 {% block content %}
 <legend>Редактирование профиля</legend>
-<form action="" method="post" class="form-horizontal">
+<form action="" method="post">
     {% csrf_token %}
     {% render_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
@@ -23,10 +23,28 @@
     {% render_field form.level class+="form-control selectpicker" %}
     {% render_field form.type class+="form-control selectpicker" %}
     {% render_field form.admission_year class+="form-control selectpicker" %}
-    {% render_field form.enrolled class+="form-control" %}
-    {% render_field form.graduated class+="form-control" %}
     {% endif %}
     {% endwith %}
+    {% if perms.accounts.change_account %}
+    <div class="form-group">
+        <div class="custom-control custom-switch">
+            {% render_field form.enrolled class+="custom-control-input" %}
+            <label class="custom-control-label" for="{{ form.enrolled.id_for_label }}">{{ form.enrolled.label }}{{ form.enrolled.label_suffix }}</label>
+        </div>
+        {% if form.enrolled.help_text %}
+        <small class="form-text text-muted">{{ form.enrolled.help_text }}</small>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <div class="custom-control custom-switch">
+            {% render_field form.graduated class+="custom-control-input" %}
+            <label class="custom-control-label" for="{{ form.graduated.id_for_label }}">{{ form.graduated.label }}{{ form.graduated.label_suffix }}</label>
+        </div>
+        {% if form.graduated.help_text %}
+        <small class="form-text text-muted">{{ form.graduated.help_text }}</small>
+        {% endif %}
+    </div>
+    {% endif %}
     {% render_button value="Сохранить" %}
 </form>
 {% endblock content %}

@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.validators import validate_comma_separated_integer_list
+from django.core.validators import validate_comma_separated_integer_list, MinValueValidator, MaxValueValidator
 from django.db import models
 from django.dispatch import receiver
 
@@ -460,10 +460,11 @@ class Assignment(CRUDEntry):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Студент")
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE, verbose_name="Задача")
 
-    score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE, verbose_name="Оценка")
-    score_max = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_MAX, verbose_name="Максимальная оценка")
+    score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE, validators=[MinValueValidator(0), MaxValueValidator(5)], verbose_name="Оценка")
+    score_max = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_MAX, validators=[MinValueValidator(3), MaxValueValidator(5)], verbose_name="Максимальная оценка", help_text="при прохождении посылкой всех тестов, система автоматической проверки ставит максимальную оценку минус один")
+    score_is_locked = models.BooleanField(default=False, verbose_name="Оценка заблокирована", help_text="заблокированная оценка не может быть изменена системой автоматической проверки")
     submission_limit = models.PositiveSmallIntegerField(default=DEFAULT_SUBMISSION_LIMIT, verbose_name="Ограничение количества посылок")
-    remark = models.CharField(max_length=255, blank=True, verbose_name="Пометка")
+    remark = models.CharField(max_length=255, blank=True, verbose_name="Пометка", help_text="для преподавателей")
 
     comment_set = GenericRelation(Comment, content_type_field='object_type')
 
@@ -481,6 +482,8 @@ class Assignment(CRUDEntry):
         return self.problem.submission_set.filter(owner_id=self.user.id)
 
     def update(self, submission):
+        if self.score_is_locked:
+            return
         score = 2
         if submission.status == 'OK':
             score = self.score_max - 1

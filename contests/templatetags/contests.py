@@ -121,3 +121,11 @@ def render_assignment_progress(assignments):
 def render_execution_list(context, executions):
     context['executions'] = executions
     return context
+
+
+@register.inclusion_tag('contests/attachment/attachment_list.html', takes_context=True)
+def render_attachment_list(context, obj):
+    context['attachments'] = obj.attachment_set.all()
+    context['obj'] = obj
+    context['path_name'] = 'contests:{}-attachment'.format(obj.__class__.__name__.lower())
+    return context

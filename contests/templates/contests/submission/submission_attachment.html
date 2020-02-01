@@ -1,0 +1,25 @@
+{% extends 'base_wide.html' %}
+{% load views static %}
+
+{% block title %}
+Посылка
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb submission.problem.contest.course submission.problem.contest.course %}
+{% breadcrumb submission.problem.contest submission.problem.contest %}
+{% breadcrumb submission.problem submission.problem %}
+{% breadcrumb submission.id submission %}
+{% breadcrumb attachment.filename %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{{ submission }}</legend>
+<samp>{{ attachment.filename }}</samp>
+<div class="alert alert-light border mt-2">{{ code|safe }}</div>
+{% endblock content %}
+
+{% block stylesheets %}
+<link href="{% static 'css/highlight.css' %}" rel="stylesheet"/>
+{% endblock stylesheets %}

@@ -1,21 +1,19 @@
 {% extends 'base_wide.html' %}
-{% load views comments contests static %}
+{% load views static %}
 
 {% block title %}
-Посылка
+Раздел
 {% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
-{% breadcrumb submission.problem.contest.course submission.problem.contest.course %}
-{% breadcrumb submission.problem.contest submission.problem.contest %}
-{% breadcrumb submission.problem submission.problem %}
-{% breadcrumb submission.id submission %}
+{% breadcrumb contest.course contest.course %}
+{% breadcrumb contest contest %}
 {% breadcrumb attachment.filename %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ submission }}</legend>
+<legend>{{ contest }}</legend>
 <samp>{{ attachment.filename }}</samp>
 <div class="alert alert-light border mt-2">{{ code|safe }}</div>
 {% endblock content %}

@@ -7,7 +7,16 @@ body {
 }
 
 pre, code, kbd, samp {
-  @include font-size($font-size-base); // Correct the odd `em` font sizing in all browsers.
+    @include font-size($font-size-base); // Correct the odd `em` font sizing in all browsers.
+}
+
+label {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .content {

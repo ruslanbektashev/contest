@@ -54,12 +54,8 @@
     {% for attachment in submission.attachment_set.all %}
     <span class="list-group-item d-flex">
         {% if perms.contests.download_submission %}
-        <a class="mr-auto" href="{% url 'contests:submission-display' submission.id attachment.id %}">
-            <samp>{{ attachment.filename }}</samp>
-        </a>
-        <a href="{{ attachment.file.url }}">
-            <i class="fa fa-download fa-fw"></i>
-        </a>
+        <a class="mr-auto" href="{% url 'contests:submission-attachment' submission.id attachment.id %}"><samp>{{ attachment.filename }}</samp></a>
+        <a href="{{ attachment.file.url }}" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
         {% else %}
         <samp>{{ attachment.filename }}</samp>
         {% endif %}

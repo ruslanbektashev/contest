@@ -14,7 +14,7 @@
 
 {% block content %}
 <legend>Добавление случайного набора задач</legend>
-<form action="" method="post" class="form-horizontal">
+<form action="" method="post">
     {% csrf_token %}
     {% render_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}

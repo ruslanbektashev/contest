@@ -35,7 +35,7 @@
     {% endfor %}
     </div>
 </div>
-<form action="" method="post" class="form-horizontal">
+<form action="" method="post">
     {% csrf_token %}
     <div class="form-group">
         {% render_field form.text class+="form-control" autofocus="true" placeholder="Ваше сообщение" %}

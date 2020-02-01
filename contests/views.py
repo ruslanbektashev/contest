@@ -211,6 +211,33 @@ class ContestDetail(LoginRequiredMixin, DetailView):
         return context
 
 
+class ContestAttachment(LoginRequiredMixin, DetailView):
+    model = Contest
+    template_name = 'contests/contest/contest_attachment.html'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['attachment_id'] = kwargs.pop('attachment_id')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            context['attachment'] = self.object.attachment_set.get(id=self.storage['attachment_id'])
+        except Attachment.DoesNotExist:
+            raise Http404('Attachment with id = %s does not exist.' % self.storage['attachment_id'])
+        try:
+            content = context['attachment'].file.read()
+        except FileNotFoundError:
+            raise Http404('File %s does not exist.' % context['attachment'].filename)
+        formatter = HtmlFormatter(linenos='inline', wrapcode=True)
+        context['code'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter)
+        return context
+
+
 class ContestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Contest
     form_class = ContestForm
@@ -278,6 +305,33 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
             context['page_obj'], \
             context['submissions'], \
             context['is_paginated'] = self.paginate_queryset(submissions)
+        return context
+
+
+class ProblemAttachment(LoginRequiredMixin, DetailView):
+    model = Problem
+    template_name = 'contests/problem/problem_attachment.html'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['attachment_id'] = kwargs.pop('attachment_id')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            context['attachment'] = self.object.attachment_set.get(id=self.storage['attachment_id'])
+        except Attachment.DoesNotExist:
+            raise Http404('Attachment with id = %s does not exist.' % self.storage['attachment_id'])
+        try:
+            content = context['attachment'].file.read()
+        except FileNotFoundError:
+            raise Http404('File %s does not exist.' % context['attachment'].filename)
+        formatter = HtmlFormatter(linenos='inline', wrapcode=True)
+        context['code'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter)
         return context
 
 
@@ -773,9 +827,9 @@ class SubmissionDownload(LoginRedirectPermissionRequiredMixin, BaseDetailView):
         return response
 
 
-class SubmissionDisplay(LoginRedirectPermissionRequiredMixin, DetailView):
+class SubmissionAttachment(LoginRedirectPermissionRequiredMixin, DetailView):
     model = Submission
-    template_name = 'contests/submission/submission_display.html'
+    template_name = 'contests/submission/submission_attachment.html'
     permission_required = 'contests.view_submission'
 
     def __init__(self, **kwargs):
@@ -797,7 +851,7 @@ class SubmissionDisplay(LoginRedirectPermissionRequiredMixin, DetailView):
         except FileNotFoundError:
             raise Http404('File %s does not exist.' % context['attachment'].filename)
         formatter = HtmlFormatter(linenos='inline', wrapcode=True)
-        context['code'] = highlight(content.decode().replace('\t', ' ' * 4), CppLexer(), formatter)
+        context['code'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter)
         return context
 
 
