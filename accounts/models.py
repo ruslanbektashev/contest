@@ -175,7 +175,7 @@ class Account(models.Model):
         return reverse('accounts:account-detail', kwargs={'pk': self.pk})
 
     def __str__(self):
-        return self.get_short_name()
+        return self.get_full_name()
 
 
 """==================================================== Activity ===================================================="""

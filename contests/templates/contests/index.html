@@ -31,7 +31,8 @@
                 </tbody>
             </table>
             <div class="card-footer text-right lake p-1">
-                <a href="{% url 'contests:assignment-table' course.id %}" class="btn btn-light btn-sm pebble">Перейти к таблице <i class="fa fa-arrow-circle-right fa-fw"></i></a>
+                <a href="{% url 'contests:submission-list' course.id %}" class="btn btn-light btn-sm pebble">Посылки <i class="fa fa-tasks fa-fw"></i></a>
+                <a href="{% url 'contests:assignment-table' course.id %}" class="btn btn-light btn-sm pebble">Таблица <i class="fa fa-table fa-fw"></i></a>
             </div>
         </div>
     </div>

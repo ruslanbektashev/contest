@@ -39,9 +39,11 @@
             <span title="Отображается только для преподавателя" class="badge badge-warning"><i class="fa fa-lock fa-fw"></i>Вывод программы в stdout:</span>
             <pre class="alert alert-secondary">{{ execution.execution_stdout }}</pre>
             {% endif %}
-            {% if perms.contests.view_submission and execution.execution_stderr %}
-            <span title="Отображается только для преподавателя" class="badge badge-warning"><i class="fa fa-lock fa-fw"></i>Вывод программы в stderr:</span>
-            <pre class="alert alert-secondary">{{ execution.execution_stderr }}</pre>
+            {% if execution.execution_stderr %}
+                {% if perms.contests.view_submission or execution.execution_returncode > -32 and execution.execution_returncode < 0 %}
+            <span class="badge badge-secondary">Вывод программы в stderr:</span>
+            <pre class="alert alert-secondary">{{ execution.execution_stderr|remove_pwd }}</pre>
+                {% endif %}
             {% endif %}
             {% if execution.test_input %}
             <span class="badge badge-secondary">Входные данные:</span>

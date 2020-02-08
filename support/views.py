@@ -72,13 +72,13 @@ class ReportCreate(LoginRequiredMixin, CreateView):
     template_name = 'support/report/report_form.html'
     fields = ['title', 'text']
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.storage = dict()
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['from_url'] = self.request.GET.get('from', '')
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.owner = self.request.user

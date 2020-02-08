@@ -1,5 +1,5 @@
-{% extends 'base.html' %}
-{% load views contests %}
+{% extends 'base_wide.html' %}
+{% load views contests humanize %}
 
 {% block title %}
 Посылки
@@ -11,6 +11,41 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Посылки</legend>
-{% render_submission_table %}
+<legend>Посылки {% if course %}<small class="text-muted">{{ course }}</small>{% endif %}</legend>
+<div class="table-responsive">
+    <table id="p" class="table table-bordered table-sm">
+        <thead>
+            <tr>
+                <th class="text-center" style="width: 15%;">Дата</th>
+                <th>Студент</th>
+                {% if not course %}
+                <th>Курс</th>
+                {% endif %}
+                <th>Раздел</th>
+                <th style="width: 6%;">Задача</th>
+                <th class="text-center" style="width: 6%;">Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% now 'Y' as current_year %}
+            {% for submission in page_obj %}
+            <tr>
+                <td class="text-center" title="{{ submission.date_created|naturaltime }}">{% if submission.date_created|date:'Y' == current_year %}{{ submission.date_created|date:'d b в H:i' }}{% else %}{{ submission.date_created|date:'d b y г. в H:i' }}{% endif %}</td>
+                <td class="text-nowrap"><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>
+                {% if not course %}
+                <td><a href="{{ submission.problem.contest.course.get_absolute_url }}">{{ submission.problem.contest.course }}</a></td>
+                {% endif %}
+                <td><a href="{{ submission.problem.contest.get_absolute_url }}">{{ submission.problem.contest }}</a></td>
+                <td><a href="{{ submission.problem.get_absolute_url }}" title="{{ submission.problem.title }}">{{ submission.problem.number }}</a></td>
+                <td class="text-center">
+                    <a href="{{ submission.get_absolute_url }}?from={{ request.get_full_path }}" class="status status-{{ submission.status|colorize }}" title="{{ submission.get_status_display }}">
+                        {{ submission.status }}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% render_page_nav %}
 {% endblock content %}

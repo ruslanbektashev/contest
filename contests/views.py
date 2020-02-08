@@ -797,7 +797,7 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailVi
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['from_url_name'] = request.GET.get('from', '')
+        self.storage['from_url'] = request.GET.get('from', '')
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
@@ -808,11 +808,7 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailVi
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        try:
-            context['from_url'] = reverse('contests:' + self.storage['from_url_name'])
-            context['from_url_name'] = self.storage['from_url_name']
-        except NoReverseMatch:
-            pass
+        context['from_url'] = self.storage['from_url']
         return context
 
 
@@ -937,7 +933,7 @@ class SubmissionEvaluate(LoginRedirectOwnershipOrPermissionRequiredMixin, Update
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['from_url_name'] = request.GET.get('from', '')
+        self.storage['from_url'] = request.GET.get('from', '')
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
@@ -951,8 +947,8 @@ class SubmissionEvaluate(LoginRedirectOwnershipOrPermissionRequiredMixin, Update
 
     def get_success_url(self):
         url = reverse('contests:submission-detail', kwargs={'pk': self.object.pk})
-        if self.storage['from_url_name']:
-            return url + '?from=' + self.storage['from_url_name']
+        if self.storage['from_url']:
+            return url + '?from=' + self.storage['from_url']
         else:
             return url
 
@@ -979,11 +975,17 @@ class SubmissionList(LoginRedirectPermissionRequiredMixin, ListView):
     permission_required = 'contests.view_submission_list'
 
     def get_queryset(self):
-        return super().get_queryset().select_related('owner', 'problem')
+        course_id = self.kwargs.get('course_id', None)
+        queryset = super().get_queryset().select_related('owner', 'problem', 'problem__contest')
+        if course_id:
+            queryset = queryset.filter(problem__contest__course_id=course_id).select_related('problem__contest__course')
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['from_url_name'] = 'submission-list'
+        course_id = self.kwargs.get('course_id', None)
+        if course_id:
+            context['course'] = get_object_or_404(Course, id=course_id)
         return context
 
 
@@ -1000,7 +1002,7 @@ class ExecutionList(LoginRequiredMixin, ListView):
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['submission_id'] = kwargs.pop('pk')
+        self.storage['submission_id'] = kwargs.get('pk')
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):

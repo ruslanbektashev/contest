@@ -13,6 +13,13 @@ def breadcrumb(title, *args, **kwargs):
     return context
 
 
+@register.simple_tag()
+def get_full_path_with_updated_query_string(request, **kwargs):
+    _GET = request.GET.copy()
+    _GET.update(kwargs)
+    return request.path + '?' + '&'.join(['{}={}'.format(key, value) for key, value in _GET.items()])
+
+
 @register.inclusion_tag('list.html')
 def render_list(lst):
     return {'lst': lst}

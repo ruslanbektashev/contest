@@ -96,6 +96,7 @@ urlpatterns = [
         ])),
         path('list', views.AssignmentUserTable.as_view(), name='assignment-list')
     ])),
+    path('course/<int:course_id>/submission/list', views.SubmissionList.as_view(), name='submission-list'),
     path('problem/<int:problem_id>/submission/create', views.SubmissionCreate.as_view(), name='submission-create'),
     path('submission/', include([
         path('<int:pk>/', include([
@@ -108,7 +109,7 @@ urlpatterns = [
             path('get_executions', views.ExecutionList.as_view(), name='submission-get-executions'),
         ])),
         path('get_progress/<str:task_id>', views.submission_get_progress, name='submission-get-progress'),
-        path('list', views.SubmissionList.as_view(), name='submission-list')
+        path('list', views.SubmissionList.as_view(), name='submission-list'),
     ])),
     path('event/', include([
         path('create',
