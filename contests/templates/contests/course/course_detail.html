@@ -44,6 +44,9 @@
     {% if perms.contests.view_assignment_table %}
     <a href="{% url 'contests:assignment-table' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-table fa-fw"></i> Таблица заданий</a>
     {% endif %}
+    {% if perms.contests.view_submission_list %}
+    <a href="{% url 'contests:submission-list' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
+    {% endif %}
 </div>
 <div class="list-group mb-3">
     {% if perms.contests.change_course %}

@@ -40,7 +40,7 @@
             <pre class="alert alert-secondary">{{ execution.execution_stdout }}</pre>
             {% endif %}
             {% if execution.execution_stderr %}
-                {% if perms.contests.view_submission or execution.execution_returncode > -32 and execution.execution_returncode < 0 %}
+                {% if perms.contests.view_submission or not execution.test_is_passed %}
             <span class="badge badge-secondary">Вывод программы в stderr:</span>
             <pre class="alert alert-secondary">{{ execution.execution_stderr|remove_pwd }}</pre>
                 {% endif %}
