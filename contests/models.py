@@ -535,7 +535,7 @@ class Submission(CRDEntry):
     assignment = models.ForeignKey(Assignment, on_delete=models.SET_NULL, null=True, verbose_name="Задание")
 
     status = models.CharField(max_length=2, choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
-    task_id = models.UUIDField(null=True, verbose_name="Идентификатор асинхронной задачи")
+    task_id = models.UUIDField(null=True, blank=True, verbose_name="Идентификатор асинхронной задачи")
     moss_to_submissions = models.CharField(max_length=200, null=True, validators=[validate_comma_separated_integer_list],
                                            verbose_name="С посылками MOSS")
     moss_report_url = models.URLField(null=True, verbose_name="Ссылка на отчет MOSS")
