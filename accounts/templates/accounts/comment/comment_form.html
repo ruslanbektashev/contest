@@ -1,4 +1,5 @@
 {% load forms %}
+{{ form.media }}
 <form action="{% url 'accounts:comment-create' %}" method="post">
     {% csrf_token %}
     {{ form.parent_id }}

@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from accounts.models import Account, Activity, Comment
+from accounts.widgets import MyNewWidget
 
 
 class AccountPartialForm(forms.ModelForm):
@@ -61,6 +62,7 @@ class ActivityMarkForm(forms.Form):
 
 
 class CommentForm(forms.ModelForm):
+    text = forms.CharField(widget=MyNewWidget())
     class Meta:
         model = Comment
         fields = ('parent_id', 'object_type', 'object_id', 'text')

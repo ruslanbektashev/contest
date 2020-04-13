@@ -1,27 +1,31 @@
 {% load humanize %}
-<div class="comment-list">
+{% load markdown_extras %}
+<div class="comment-list mt-5">
     {% for comment in comments %}
-    <div id="comment_{{ comment.id }}" class="comment-list-item col{{ comment.level|add:'-13' }} offset-{{ comment.level|add:'-1' }}">
+    <div id="comment_{{ comment.id }}" class=" mb-4 comment-list-item col{{ comment.level|add:'-13' }} offset-{{ comment.level|add:'-1' }}">
         <div class="comment-avatar">
 
         </div>
         <div class="comment-main">
-            <div class="comment-header">
-                <div class="comment-user">
+            <div class="comment-header clearfix mb-1">
+                <div class="comment-user float-left mr-2">
                     <a href="{{ comment.author.account.get_absolute_url }}">
                         {{ comment.author.account }}
                     </a>
                 </div>
-                <div class="comment-timesince text-muted">
-                    {{ comment.date_created|naturaltime }}
+                <div class="float-left text-muted">
+                    ∙
+                </div>
+                <div class="comment-timesince text-muted float-left ml-2">
+                    <small>{{ comment.date_created|naturaltime }}</small>
                 </div>
             </div>
-            <div class="comment-text">
-                {{ comment.text|linebreaksbr }}
+            <div class="comment-text mb-1">
+                {{ comment.text|markdown|safe }}
             </div>
             <div class="comment-footer">
                 {% if comment.is_repliable %}
-                <a href="{% url 'accounts:comment-reply' comment.id %}" class="text-muted">Ответить</a>
+                <small><a href="{% url 'accounts:comment-reply' comment.id %}" class="text-uppercase text-muted">Ответить</a></small>
                 {% endif %}
             </div>
         </div>
