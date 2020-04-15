@@ -63,6 +63,7 @@ class ActivityMarkForm(forms.Form):
 
 class CommentForm(forms.ModelForm):
     text = forms.CharField(widget=CommentWidget())
+    
     class Meta:
         model = Comment
         fields = ('parent_id', 'object_type', 'object_id', 'text')
