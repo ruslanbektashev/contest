@@ -1,8 +1,7 @@
-{% load humanize %}
-{% load markdown_extras %}
+{% load humanize markdown %}
 <div class="comment-list mt-5">
     {% for comment in comments %}
-    <div id="comment_{{ comment.id }}" class=" mb-4 comment-list-item col{{ comment.level|add:'-13' }} offset-{{ comment.level|add:'-1' }}">
+    <div id="comment_{{ comment.id }}" class="comment-list-item col{{ comment.level|add:'-13' }} offset-{{ comment.level|add:'-1' }} mb-4">
         <div class="comment-avatar">
 
         </div>
