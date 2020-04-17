@@ -18,43 +18,43 @@
         };
 
     var defaultsStrings = {
-        bold: "Strong <strong> Ctrl+B",
-        boldexample: "strong text",
+        bold: "Жирный - Ctrl+B",
+        boldexample: "жирный текст",
 
-        italic: "Emphasis <em> Ctrl+I",
-        italicexample: "emphasized text",
+        italic: "Курсив - Ctrl+I",
+        italicexample: "курсивный текст",
 
-        link: "Hyperlink <a> Ctrl+L",
-        linkdescription: "enter link description here",
-        linkdialog: "<p><b>Insert Hyperlink</b></p><p>http://example.com/ \"optional title\"</p>",
+        link: "Гиперссылка - Ctrl+L",
+        linkdescription: "введите описание ссылки здесь",
+        linkdialog: "<p><b>Вставьте гиперссылку</b></p><p>http://example.com/ \"optional title\"</p>",
 
-        quote: "Blockquote <blockquote> Ctrl+Q",
-        quoteexample: "Blockquote",
+        quote: "Цитата - Ctrl+Q",
+        quoteexample: "Цитата",
 
-        code: "Code Sample <pre><code> Ctrl+K",
-        codeexample: "enter code here",
+        code: "Код - Ctrl+K",
+        codeexample: "введите код здесь",
 
-        image: "Image <img> Ctrl+G",
-        imagedescription: "enter image description here",
-        imagedialog: "<p><b>Insert Image</b></p><p>http://example.com/images/diagram.jpg \"optional title\"</p>",
+        image: "Изображение - Ctrl+G",
+        imagedescription: "введите описание изображения здесь",
+        imagedialog: "<p><b>Вставьте изображение</b></p><p>http://example.com/images/diagram.jpg \"optional title\"</p>",
 
-        olist: "Numbered List <ol> Ctrl+O",
-        ulist: "Bulleted List <ul> Ctrl+U",
-        litem: "List item",
+        olist: "Нумерованный список - Ctrl+O",
+        ulist: "Марксированный список - Ctrl+U",
+        litem: "Пункт списка",
 
-        heading: "Heading <h1>/<h2> Ctrl+H",
-        headingexample: "Heading",
+        heading: "Заголовок - Ctrl+H",
+        headingexample: "Заголовок",
 
-        hr: "Horizontal Rule <hr> Ctrl+R",
+        hr: "Горизонтальная линия - Ctrl+R",
 
-        undo: "Undo - Ctrl+Z",
-        redo: "Redo - Ctrl+Y",
-        redomac: "Redo - Ctrl+Shift+Z",
+        undo: "Отменить - Ctrl+Z",
+        redo: "Повторить - Ctrl+Y",
+        redomac: "Повторить - Ctrl+Shift+Z",
 
-        help: "Markdown Editing Help",
+        help: "Помощь по Markdown",
 
         ok: "OK",
-        cancel: "Cancel"
+        cancel: "Отмена"
     };
 
 
