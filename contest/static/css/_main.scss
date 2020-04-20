@@ -110,3 +110,15 @@ label {
 .progress > .status-display {
     font-size: .9rem !important;
 }
+
+.comment-datetime {
+    display: none;
+}
+
+.comment-timesince:hover > .comment-datetime {
+    display: inline;
+}
+
+.comment-timesince:hover > .comment-naturaltime {
+    display: none;
+}

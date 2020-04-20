@@ -39,7 +39,7 @@
         imagedialog: "<p><b>Вставьте изображение</b></p><p>http://example.com/images/diagram.jpg \"optional title\"</p>",
 
         olist: "Нумерованный список - Ctrl+O",
-        ulist: "Марксированный список - Ctrl+U",
+        ulist: "Маркированный список - Ctrl+U",
         litem: "Пункт списка",
 
         heading: "Заголовок - Ctrl+H",

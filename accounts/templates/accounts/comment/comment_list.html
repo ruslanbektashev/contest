@@ -16,7 +16,8 @@
                     ∙
                 </div>
                 <div class="comment-timesince text-muted ml-2">
-                    <small>{{ comment.date_created|naturaltime }}</small>
+                    <small class="comment-naturaltime">{{ comment.date_created|naturaltime }}</small>
+                    <small class="comment-datetime">{{ comment.date_created|date:'d b Y г. в H:i' }}</small>
                 </div>
             </div>
             <div class="d-block comment-text mb-1">
