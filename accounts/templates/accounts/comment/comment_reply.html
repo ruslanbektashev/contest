@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views comments humanize %}
+{% load views comments humanize markdown %}
 
 {% block title %}
 Комментарий
@@ -12,14 +12,14 @@
 
 {% block content %}
 <legend>Ответ на комментарий</legend>
-<div class="comment-list">
-    <div class="comment-list-item col-md-12">
-        <div class="comment-avatar pull-left">
+<div class="comment-list mb-4">
+    <div class="d-flex comment-list-item col-md-11">
+<!--        <div class="comment-avatar pull-left">-->
 
-        </div>
+<!--        </div>-->
         <div class="comment-main col-md-11">
-            <div class="comment-header col-md-12">
-                <div class="comment-user pull-left">
+            <div class="d-flex comment-header col-md-12 mb-1">
+                <div class="comment-user mr-2">
                     <a href="{{ parent.author.account.get_absolute_url }}">
                         {{ parent.author.account }}
                     </a>
@@ -29,7 +29,7 @@
                 </div>
             </div>
             <div class="comment-text col-md-12">
-                {{ parent.text|linebreaksbr }}
+                {{ parent.text|markdown|safe }}
             </div>
         </div>
     </div>
