@@ -24,8 +24,12 @@
                         {{ parent.author.account }}
                     </a>
                 </div>
-                <div class="comment-timesince text-muted pull-left">
-                    {{ parent.date_created|naturaltime }}
+                <div class="text-muted">
+                    ∙
+                </div>
+                <div class="comment-timesince text-muted ml-2">
+                    <small class="comment-naturaltime">{{ parent.date_created|naturaltime }}</small>
+                    <small class="comment-datetime">{{ parent.date_created|date:'d b Y г. в H:i' }}</small>
                 </div>
             </div>
             <div class="comment-text col-md-12">
