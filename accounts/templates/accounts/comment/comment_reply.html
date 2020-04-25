@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views comments humanize %}
+{% load views comments markdown humanize static %}
 
 {% block title %}
 Комментарий
@@ -13,23 +13,27 @@
 {% block content %}
 <legend>Ответ на комментарий</legend>
 <div class="comment-list">
-    <div class="comment-list-item col-md-12">
-        <div class="comment-avatar pull-left">
-
+    <div id="comment_{{ parent.id }}" class="d-flex comment-list-item mb-4">
+        <div class="comment-avatar mr-3">
+            <img src="{% static 'comment-avatar.png' %}">
         </div>
-        <div class="comment-main col-md-11">
-            <div class="comment-header col-md-12">
-                <div class="comment-user pull-left">
-                    <a href="{{ parent.author.account.get_absolute_url }}">
+        <div class="comment-main">
+            <div class="comment-header mb-1 d-flex">
+                <div class="comment-user mr-2">
+                    <a href="{{ parent.author.account.get_absolute_url }}" class="{% if parent.author.is_staff %}text-success{% endif %}">
                         {{ parent.author.account }}
                     </a>
                 </div>
-                <div class="comment-timesince text-muted pull-left">
-                    {{ parent.date_created|naturaltime }}
+                <div class="text-muted">
+                    ∙
+                </div>
+                <div class="comment-timesince text-muted ml-2">
+                    <small class="comment-naturaltime">{{ parent.date_created|naturaltime }}</small>
+                    <small class="comment-datetime">{{ parent.date_created|date:'d b Y г. в H:i' }}</small>
                 </div>
             </div>
-            <div class="comment-text col-md-12">
-                {{ parent.text|linebreaksbr }}
+            <div class="d-block comment-text mb-1">
+                {{ parent.text|markdown|safe }}
             </div>
         </div>
     </div>

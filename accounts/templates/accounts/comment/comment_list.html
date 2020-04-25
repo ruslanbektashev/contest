@@ -1,14 +1,14 @@
-{% load humanize markdown %}
+{% load humanize markdown static %}
 <div class="comment-list mt-5">
     {% for comment in comments %}
     <div id="comment_{{ comment.id }}" class="d-flex comment-list-item col{{ comment.level|add:'-14' }} offset-{{ comment.level|add:'-1' }} mb-4">
         <div class="comment-avatar mr-3">
-            <img src="/static/comment-avatar.png">
+            <img src="{% static 'comment-avatar.png' %}">
         </div>
         <div class="comment-main">
             <div class="comment-header mb-1 d-flex">
                 <div class="comment-user mr-2">
-                    <a href="{{ comment.author.account.get_absolute_url }}">
+                    <a href="{{ comment.author.account.get_absolute_url }}" class="{% if comment.author.is_staff %}text-success{% endif %}">
                         {{ comment.author.account }}
                     </a>
                 </div>
