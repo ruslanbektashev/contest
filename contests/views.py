@@ -47,6 +47,7 @@ class CourseDetail(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['description'] = markdown(self.object.description)
+        context['tab'] = self.request.GET.get('tab', None)
         return context
 
 

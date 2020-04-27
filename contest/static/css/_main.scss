@@ -3,7 +3,7 @@ html {
 }
 
 body {
-	padding-top: 70px;
+	margin-top: 70px;
 }
 
 pre, code, kbd, samp {
@@ -100,15 +100,24 @@ label {
 }
 
 .pebble {
-	visibility: hidden;
+	opacity: 0;
+	transition: opacity 200ms;
 }
 
 .lake:hover > .pebble {
-	visibility: visible;
+	opacity: 1;
 }
 
 .progress > .status-display {
     font-size: .9rem !important;
+}
+
+.comment-anchor {
+    display: block;
+    position: relative;
+    width: 0;
+    height: 60px;
+    margin-top: -60px;
 }
 
 .comment-datetime {

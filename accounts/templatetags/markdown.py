@@ -9,4 +9,4 @@ register = template.Library()
 @register.filter()
 @stringfilter
 def markdown(value):
-    return md(value, extensions=['nl2br']).replace('<p>', '').replace('</p>', '')
+    return md(value, extensions=['nl2br'])

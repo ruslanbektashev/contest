@@ -115,6 +115,7 @@ class Account(models.Model):
     ADMISSION_YEAR_DEFAULT = timezone.now().year
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    old_id = models.PositiveIntegerField(null=True, default=None)
 
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, default=LEVEL_DEFAULT, verbose_name="Уровень")
     type = models.PositiveSmallIntegerField(choices=TYPE_CHOICES, default=TYPE_DEFAULT, verbose_name="Тип")
@@ -329,6 +330,7 @@ class CommentManager(models.Manager):
 class Comment(models.Model):
     MAX_LEVEL = 5
     author = models.ForeignKey(User, related_name='+', on_delete=models.CASCADE, verbose_name="Автор")
+    old_id = models.PositiveIntegerField(null=True, default=None)
 
     thread_id = models.PositiveIntegerField(default=0, db_index=True)
     parent_id = models.PositiveIntegerField(default=0)
@@ -344,6 +346,7 @@ class Comment(models.Model):
     is_deleted = models.BooleanField(default=False, verbose_name="Удален?")
 
     date_created = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    date_updated = models.DateTimeField(auto_now=True, verbose_name="Дата изменения")
 
     objects = CommentManager.from_queryset(CommentQuerySet)()
 
@@ -387,6 +390,9 @@ class Comment(models.Model):
 
     def is_repliable(self):
         return self.level < self.MAX_LEVEL
+
+    def get_absolute_url(self):
+        return self.object.get_absolute_url() + '?tab=discussion#comment_' + str(self.pk)
 
     def __str__(self):
         context = {

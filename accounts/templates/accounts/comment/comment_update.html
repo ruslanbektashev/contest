@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load views forms comments markdown humanize static %}
+
+{% block title %}
+Комментарий
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Комментарий" %}
+{% breadcrumb "Редактирование" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Редактирование комментария</legend>
+<form action="" method="post">
+    {% csrf_token %}
+    {{ form.parent_id }}
+    {{ form.object_type }}
+    {{ form.object_id }}
+    <div class="form-group">
+        {% render_field form.text class+="form-control" rows="5" placeholder="Ваш комментарий" %}
+    </div>
+    {% render_button value="Сохранить" %}
+</form>
+{% endblock content %}

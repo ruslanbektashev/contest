@@ -14,7 +14,7 @@
 <legend>{{ course }} <small class="text-muted">{{ course.get_level_display }}</small></legend>
 <ul class="nav nav-tabs mb-3" role="tablist">
     <li class="nav-item">
-        <a aria-controls="description" aria-selected="true" class="nav-link active" data-toggle="tab" href="#description" id="description-tab"
+        <a aria-controls="description" aria-selected="true" class="nav-link {% if not tab or tab == 'description' %}active{% endif %}" data-toggle="tab" href="#description" id="description-tab"
            role="tab">Описание</a>
     </li>
     <li class="nav-item">
@@ -22,18 +22,18 @@
            role="tab">Разделы</a>
     </li>
     <li class="nav-item">
-        <a aria-controls="discussion" aria-selected="false" class="nav-link" data-toggle="tab" href="#discussion" id="discussion-tab"
+        <a aria-controls="discussion" aria-selected="false" class="nav-link {% if tab == 'discussion' %}active{% endif %}" data-toggle="tab" href="#discussion" id="discussion-tab"
            role="tab">Обсуждение</a>
     </li>
 </ul>
 <div class="tab-content">
-    <div aria-labelledby="description-tab" class="tab-pane fade show active" id="description" role="tabpanel">
+    <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %}" id="description" role="tabpanel">
         <p>{{ description|safe }}</p>
     </div>
     <div aria-labelledby="contests-tab" class="tab-pane fade" id="contests" role="tabpanel">
         {% render_list course.contest_set.all %}
     </div>
-    <div aria-labelledby="discussion-tab" class="tab-pane fade" id="discussion" role="tabpanel">
+    <div aria-labelledby="discussion-tab" class="tab-pane fade {% if tab == 'discussion' %}show active{% endif %}" id="discussion" role="tabpanel">
         {% render_comments course %}
     </div>
 </div>

@@ -22,7 +22,10 @@ urlpatterns = [
     ])),
     path('comment/', include([
         path('create', views.CommentCreate.as_view(), name='comment-create'),
-        path('<int:parent_id>/reply', views.CommentCreate.as_view(), name='comment-reply')
+        path('<int:pk>/', include([
+            path('reply', views.CommentCreate.as_view(), name='comment-reply'),
+            path('update', views.CommentUpdate.as_view(), name='comment-update'),
+        ])),
     ])),
     path('message/<int:user_id>/create',
          views.MessageCreate.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),

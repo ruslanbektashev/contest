@@ -226,7 +226,7 @@ class CommentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def dispatch(self, *args, **kwargs):
         try:
-            self.storage['parent'] = Comment.objects.get(id=kwargs.pop('parent_id', 0))
+            self.storage['parent'] = Comment.objects.get(id=kwargs.pop('pk', 0))
         except Comment.DoesNotExist:
             pass
         return super().dispatch(*args, **kwargs)
@@ -241,7 +241,17 @@ class CommentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return context
 
     def get_success_url(self):
-        return self.object.object.get_absolute_url() + '#comment_' + str(self.object.id)
+        return self.object.get_absolute_url()
+
+
+class CommentUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'accounts/comment/comment_update.html'
+    permission_required = 'accounts.change_comment'
+
+    def get_success_url(self):
+        return self.object.get_absolute_url()
 
 
 """==================================================== Message ====================================================="""

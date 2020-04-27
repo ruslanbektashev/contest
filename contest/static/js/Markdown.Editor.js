@@ -25,22 +25,22 @@
         italicexample: "курсивный текст",
 
         link: "Гиперссылка - Ctrl+L",
-        linkdescription: "введите описание ссылки здесь",
-        linkdialog: "<p><b>Вставьте гиперссылку</b></p><p>http://example.com/ \"optional title\"</p>",
+        linkdescription: "описание ссылки",
+        linkdialog: "Вставить гиперссылку",
 
         quote: "Цитата - Ctrl+Q",
         quoteexample: "Цитата",
 
         code: "Код - Ctrl+K",
-        codeexample: "введите код здесь",
+        codeexample: "return 0;",
 
         image: "Изображение - Ctrl+G",
-        imagedescription: "введите описание изображения здесь",
-        imagedialog: "<p><b>Вставьте изображение</b></p><p>http://example.com/images/diagram.jpg \"optional title\"</p>",
+        imagedescription: "описание изображения",
+        imagedialog: "Вставить изображение",
 
         olist: "Нумерованный список - Ctrl+O",
         ulist: "Маркированный список - Ctrl+U",
-        litem: "Пункт списка",
+        litem: "пункт списка",
 
         heading: "Заголовок - Ctrl+H",
         headingexample: "Заголовок",
@@ -1479,10 +1479,10 @@
             buttons.bold = makeButton("wmd-bold-button", getString("bold"), "0px", bindCommand("doBold"));
             buttons.italic = makeButton("wmd-italic-button", getString("italic"), "-20px", bindCommand("doItalic"));
             // makeSpacer(1);
-            // buttons.link = makeButton("wmd-link-button", getString("link"), "-40px", bindCommand(function (chunk, postProcessing) {
-            //     return this.doLinkOrImage(chunk, postProcessing, false);
-            // }));
-            // buttons.quote = makeButton("wmd-quote-button", getString("quote"), "-60px", bindCommand("doBlockquote"));
+            buttons.link = makeButton("wmd-link-button", getString("link"), "-40px", bindCommand(function (chunk, postProcessing) {
+                return this.doLinkOrImage(chunk, postProcessing, false);
+            }));
+            buttons.quote = makeButton("wmd-quote-button", getString("quote"), "-60px", bindCommand("doBlockquote"));
             buttons.code = makeButton("wmd-code-button", getString("code"), "-80px", bindCommand("doCode"));
             // buttons.image = makeButton("wmd-image-button", getString("image"), "-100px", bindCommand(function (chunk, postProcessing) {
             //     return this.doLinkOrImage(chunk, postProcessing, true);

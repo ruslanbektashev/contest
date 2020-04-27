@@ -1,12 +1,13 @@
 {% load humanize markdown static %}
 <div class="comment-list mt-5">
     {% for comment in comments %}
-    <div id="comment_{{ comment.id }}" class="d-flex comment-list-item col{{ comment.level|add:'-14' }} offset-{{ comment.level|add:'-1' }} mb-4">
+    <div class="d-flex comment-list-item col{{ comment.level|add:'-14' }} offset-{{ comment.level|add:'-1' }} mb-3">
+        <a id="comment_{{ comment.id }}" class="comment-anchor">&nbsp</a>
         <div class="comment-avatar mr-3">
             <img src="{% static 'comment-avatar.png' %}">
         </div>
         <div class="comment-main">
-            <div class="comment-header mb-1 d-flex">
+            <div class="comment-header mb-1 d-flex lake">
                 <div class="comment-user mr-2">
                     <a href="{{ comment.author.account.get_absolute_url }}" class="{% if comment.author.is_staff %}text-success{% endif %}">
                         {{ comment.author.account }}
@@ -17,15 +18,18 @@
                 </div>
                 <div class="comment-timesince text-muted ml-2">
                     <small class="comment-naturaltime">{{ comment.date_created|naturaltime }}</small>
-                    <small class="comment-datetime">{{ comment.date_created|date:'d b Y г. в H:i' }}</small>
+                    <small class="comment-datetime"><a href="{{ comment.get_absolute_url }}" class="text-muted">{{ comment.date_created|date:'d b Y г. в H:i' }}</a></small>
                 </div>
             </div>
             <div class="d-block comment-text mb-1">
                 {{ comment.text|markdown|safe }}
             </div>
-            <div class="comment-footer">
+            <div class="comment-footer lake">
                 {% if comment.is_repliable %}
                 <small><a href="{% url 'accounts:comment-reply' comment.id %}" class="text-uppercase text-muted">Ответить</a></small>
+                {% endif %}
+                {% if perms.accounts.change_comment or comment.author.id == request.user.id %}
+                <small class="pebble">| <a href="{% url 'accounts:comment-update' comment.id %}" class="text-uppercase text-muted">Редактировать</a></small>
                 {% endif %}
             </div>
         </div>

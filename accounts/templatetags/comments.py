@@ -21,18 +21,17 @@ def render_comment_form(entry, parent=None):
     return context
 
 
-@register.inclusion_tag('accounts/comment/comment_list.html')
-def render_comment_list(entry):
+@register.inclusion_tag('accounts/comment/comment_list.html', takes_context=True)
+def render_comment_list(context, entry):
     try:
-        context = {
-            'comments': entry.comment_set.actual()
-        }
+        context['comments'] = entry.comment_set.actual()
     except AttributeError:
         raise ImproperlyConfigured("GenericRelation manager should be declared in this model in order to retrieve "
                                    "comments")
     return context
 
 
-@register.inclusion_tag('accounts/comment/comments.html')
-def render_comments(entry):
-    return {'entry': entry}
+@register.inclusion_tag('accounts/comment/comments.html', takes_context=True)
+def render_comments(context, entry):
+    context['entry'] = entry
+    return context

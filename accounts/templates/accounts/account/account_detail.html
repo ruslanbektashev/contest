@@ -18,7 +18,7 @@
         <a aria-controls="profile" aria-selected="true" class="nav-link active" data-toggle="tab" href="#profile" id="profile-tab"
            role="tab">Профиль</a>
     </li>
-    {% if perms.assignments.view_assignment_table and account.type == 1 %}
+    {% if perms.contests.view_assignment_table and account.type == 1 %}
     <li class="nav-item">
         <a aria-controls="assignments" aria-selected="false" class="nav-link" data-toggle="tab" href="#assignments" id="assignments-tab"
            role="tab">Задания</a>
@@ -37,14 +37,14 @@
             <tr><td class="text-right" style="width: 20%;">Год поступления</td><td>{{ account.admission_year }}</td></tr>
             <tr><td class="text-right" style="width: 20%;">Обучается</td><td>{{ account.enrolled|yesno:'да,нет' }}</td></tr>
             <tr><td class="text-right" style="width: 20%;">Закончил обучение</td><td>{{ account.graduated|yesno:'да,нет' }}</td></tr>
-            {% if perms.auth.change_account %}
+            {% if perms.accounts.change_account %}
             <tr><td class="text-right" style="width: 20%;">Логин</td><td>{{ account.username }}</td></tr>
             <tr><td class="text-right" style="width: 20%;">Последний вход</td><td>{{ account.last_login|date:'d.m.y, H:i' }}</td></tr>
             <tr><td class="text-right" style="width: 20%;">Дата регистрации</td><td>{{ account.date_joined|date:'d.m.y' }}</td></tr>
             {% endif %}
         </table>
     </div>
-    {% if perms.assignments.view_assignment_table and account.type == 1 %}
+    {% if perms.contests.view_assignment_table and account.type == 1 %}
     <div aria-labelledby="assignments-tab" class="tab-pane fade" id="assignments" role="tabpanel">
         {% render_assignment_user_table assignments credits %}
         {% render_assignment_progress assignments %}
@@ -55,7 +55,7 @@
 
 {% block submenu %}
 <div class="list-group mb-3">
-    {% if perms.auth.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
+    {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
     <a href="{% url 'accounts:account-update' account.user.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать профиль</a>
     {% endif %}
 </div>
