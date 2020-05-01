@@ -10,7 +10,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
-from django.urls import reverse, reverse_lazy, NoReverseMatch
+from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView
 from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 
@@ -46,8 +46,22 @@ class CourseDetail(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['description'] = markdown(self.object.description)
         context['tab'] = self.request.GET.get('tab', None)
+        return context
+
+
+class CourseDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
+    model = Course
+    template_name = 'contests/course/course_discussion.html'
+    paginate_by = 30
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        comments = self.object.comment_set.actual()
+        context['paginator'], \
+            context['page_obj'], \
+            context['comments'], \
+            context['is_paginated'] = self.paginate_queryset(comments)
         return context
 
 
@@ -208,7 +222,22 @@ class ContestDetail(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['description'] = markdown(self.object.description)
+        context['tab'] = self.request.GET.get('tab', None)
+        return context
+
+
+class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
+    model = Contest
+    template_name = 'contests/contest/contest_discussion.html'
+    paginate_by = 30
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        comments = self.object.comment_set.actual()
+        context['paginator'], \
+            context['page_obj'], \
+            context['comments'], \
+            context['is_paginated'] = self.paginate_queryset(comments)
         return context
 
 
@@ -295,8 +324,7 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['description'] = markdown(self.object.description)
-        context['contest_description'] = markdown(self.object.contest.description)
+        context['tab'] = self.request.GET.get('tab', None)
         context['latest_submission'] = self.object.get_latest_submission_by(self.request.user)
         if self.request.user.has_perm('contests.view_submission_list'):
             submissions = self.object.submission_set.all()
@@ -306,6 +334,21 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
             context['page_obj'], \
             context['submissions'], \
             context['is_paginated'] = self.paginate_queryset(submissions)
+        return context
+
+
+class ProblemDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
+    model = Problem
+    template_name = 'contests/problem/problem_discussion.html'
+    paginate_by = 30
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        comments = self.object.comment_set.actual()
+        context['paginator'], \
+            context['page_obj'], \
+            context['comments'], \
+            context['is_paginated'] = self.paginate_queryset(comments)
         return context
 
 
@@ -630,6 +673,21 @@ class AssignmentDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         return context
 
 
+class AssignmentDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
+    model = Assignment
+    template_name = 'contests/assignment/assignment_discussion.html'
+    paginate_by = 30
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        comments = self.object.comment_set.actual()
+        context['paginator'], \
+            context['page_obj'], \
+            context['comments'], \
+            context['is_paginated'] = self.paginate_queryset(comments)
+        return context
+
+
 class AssignmentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Assignment
     form_class = AssignmentForm
@@ -788,10 +846,11 @@ class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
 """=================================================== Submission ==================================================="""
 
 
-class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
+class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, PaginatorMixin, DetailView):
     model = Submission
     template_name = 'contests/submission/submission_detail.html'
     permission_required = 'contests.view_submission'
+    paginate_by = 30
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -810,6 +869,11 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailVi
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['from_url'] = self.storage['from_url']
+        comments = self.object.comment_set.actual()
+        context['paginator'], \
+            context['page_obj'], \
+            context['comments'], \
+            context['is_paginated'] = self.paginate_queryset(comments)
         return context
 
 

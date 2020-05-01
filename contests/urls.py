@@ -14,6 +14,7 @@ urlpatterns = [
         path('create', views.CourseCreate.as_view(), name='course-create'),
         path('<int:pk>/', include([
             path('', views.CourseDetail.as_view(), name='course-detail'),
+            path('discussion', views.CourseDiscussion.as_view(), name='course-discussion'),
             path('update', views.CourseUpdate.as_view(), name='course-update'),
             path('delete', views.CourseDelete.as_view(), name='course-delete')
         ])),
@@ -37,6 +38,7 @@ urlpatterns = [
     path('contest/', include([
         path('<int:pk>/', include([
             path('', views.ContestDetail.as_view(), name='contest-detail'),
+            path('discussion', views.ContestDiscussion.as_view(), name='contest-discussion'),
             path('attachment/<int:attachment_id>', views.ContestAttachment.as_view(), name='contest-attachment'),
             path('update', views.ContestUpdate.as_view(), name='contest-update'),
             path('delete', views.ContestDelete.as_view(), name='contest-delete')
@@ -46,6 +48,7 @@ urlpatterns = [
     path('problem/', include([
         path('<int:pk>/', include([
             path('', views.ProblemDetail.as_view(), name='problem-detail'),
+            path('discussion', views.ProblemDiscussion.as_view(), name='problem-discussion'),
             path('attachment/<int:attachment_id>', views.ProblemAttachment.as_view(), name='problem-attachment'),
             path('update', views.ProblemUpdate.as_view(), name='problem-update'),
             path('delete', views.ProblemDelete.as_view(), name='problem-delete')
@@ -91,6 +94,7 @@ urlpatterns = [
     path('assignment/', include([
         path('<int:pk>/', include([
             path('', views.AssignmentDetail.as_view(), name='assignment-detail'),
+            path('discussion', views.AssignmentDiscussion.as_view(), name='assignment-discussion'),
             path('update', views.AssignmentUpdate.as_view(), name='assignment-update'),
             path('delete', views.AssignmentDelete.as_view(), name='assignment-delete')
         ])),

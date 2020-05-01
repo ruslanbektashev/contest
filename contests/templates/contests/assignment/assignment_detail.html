@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views contests comments %}
+{% load views contests %}
 
 {% block title %}
 Задание
@@ -20,20 +20,15 @@
 <legend>{{ assignment }}</legend>
 <ul class="nav nav-tabs mb-3" role="tablist">
     <li class="nav-item">
-        <a aria-controls="description" aria-selected="true" class="nav-link {% if not focus_page %}active{% endif %}" data-toggle="tab" href="#description" id="description-tab"
-           role="tab">Описание</a>
+        <a aria-controls="description" aria-selected="true" class="nav-link active" data-toggle="tab" href="#description"
+           id="description-tab" role="tab">Описание</a>
     </li>
     <li class="nav-item">
-        <a aria-controls="submissions" aria-selected="false" class="nav-link {% if focus_page %}active{% endif %}" data-toggle="tab" href="#submissions" id="submissions-tab"
-           role="tab">Посылки</a>
-    </li>
-    <li class="nav-item">
-        <a aria-controls="discussion" aria-selected="false" class="nav-link" data-toggle="tab" href="#discussion" id="discussion-tab"
-           role="tab">Обсуждение</a>
+        <a class="nav-link" href="{% url 'contests:assignment-discussion' assignment.id %}" id="discussion-tab" role="tab">Обсуждение</a>
     </li>
 </ul>
 <div class="tab-content">
-    <div aria-labelledby="description-tab" class="tab-pane fade {% if not focus_page %}show active{% endif %}" id="description" role="tabpanel">
+    <div aria-labelledby="description-tab" class="tab-pane fade show active" id="description" role="tabpanel">
         <table class="table table-sm">
             <tr><td class="text-right" style="width: 20%;">Студент</td><td><a href="{{ assignment.user.account.get_absolute_url }}">{{ assignment.user.account }}</a></td></tr>
             <tr><td class="text-right" style="width: 20%;">Задача</td><td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td></tr>
@@ -50,12 +45,9 @@
             </tr>
             {% endif %}
         </table>
-    </div>
-    <div aria-labelledby="submissions-tab" class="tab-pane fade {% if focus_page %}show active{% endif %}" id="submissions" role="tabpanel">
-        {% render_submission_table %}
-    </div>
-    <div aria-labelledby="discussion-tab" class="tab-pane fade" id="discussion" role="tabpanel">
-        {% render_comments assignment %}
+        <div class="col-xs-12 col-md-6 mx-auto">
+            {% render_submission_table %}
+        </div>
     </div>
 </div>
 {% endblock content %}

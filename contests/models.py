@@ -11,6 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import validate_comma_separated_integer_list, MinValueValidator, MaxValueValidator
 from django.db import models
 from django.dispatch import receiver
+from django.urls import reverse
 
 from contest.abstract import CDEntry, CRDEntry, CRUDEntry
 from accounts.models import Account, Comment, Activity
@@ -89,6 +90,9 @@ class Course(CRUDEntry):
     def get_latest_submissions(self):
         return Submission.objects.filter(assignment__isnull=False, problem__contest__course=self)
 
+    def get_discussion_url(self):
+        return reverse('contests:course-discussion', kwargs={'pk': self.pk})
+
     def __str__(self):
         return "%s" % self.title
 
@@ -122,8 +126,6 @@ class Credit(CRUDEntry):
 
     score = models.PositiveSmallIntegerField(choices=SCORE_CHOICES, default=DEFAULT_SCORE, verbose_name="Оценка")
 
-    comment_set = GenericRelation(Comment, content_type_field='object_type')
-
     objects = CreditManager()
 
     class Meta(CRUDEntry.Meta):
@@ -144,8 +146,6 @@ class Lecture(CRUDEntry):
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     description = models.TextField(verbose_name="Содержание")
-
-    comment_set = GenericRelation(Comment, content_type_field='object_type')
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Лекция"
@@ -174,6 +174,9 @@ class Contest(CRUDEntry):
     @property
     def files(self):
         return [attachment.file.path for attachment in self.attachment_set.all()]
+
+    def get_discussion_url(self):
+        return reverse('contests:contest-discussion', kwargs={'pk': self.pk})
 
     def __str__(self):
         return "%s" % self.title
@@ -251,6 +254,9 @@ class Problem(CRUDEntry):
                 break
         Execution.objects.create_set(submission, executions)
         return state
+
+    def get_discussion_url(self):
+        return reverse('contests:problem-discussion', kwargs={'pk': self.pk})
 
     def __str__(self):
         return "#%i. %s" % (self.number, self.title)
@@ -496,6 +502,9 @@ class Assignment(CRUDEntry):
             self.save()
             Activity.objects.on_assignment_updated(self)
 
+    def get_discussion_url(self):
+        return reverse('contests:assignment-discussion', kwargs={'pk': self.pk})
+
     def __str__(self):
         return "Задание для %s: %s" % (self.user.account, self.problem)
 
@@ -594,6 +603,9 @@ class Submission(CRDEntry):
     def update_assignment(self):
         if self.assignment is not None:
             self.assignment.update(self)
+
+    def get_discussion_url(self):
+        return self.get_absolute_url()
 
     def __str__(self):
         return "Посылка от %s к задаче %s" % (self.owner.account, self.problem)

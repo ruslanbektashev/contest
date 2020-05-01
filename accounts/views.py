@@ -8,6 +8,7 @@ from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 from markdown import markdown
 
+from accounts.templatetags.comments import get_comment_query_string
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
 from accounts.forms import (AccountPartialForm, AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm,
@@ -241,7 +242,7 @@ class CommentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return context
 
     def get_success_url(self):
-        return self.object.get_absolute_url()
+        return self.object.object.get_discussion_url() + '#comment_' + str(self.object.pk)
 
 
 class CommentUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView):
@@ -251,7 +252,8 @@ class CommentUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView)
     permission_required = 'accounts.change_comment'
 
     def get_success_url(self):
-        return self.object.get_absolute_url()
+        page = self.request.GET.get('page', '1')
+        return self.object.object.get_discussion_url() + get_comment_query_string(page) + '#comment_' + str(self.object.pk)
 
 
 """==================================================== Message ====================================================="""

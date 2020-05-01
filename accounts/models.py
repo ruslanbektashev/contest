@@ -391,17 +391,8 @@ class Comment(models.Model):
     def is_repliable(self):
         return self.level < self.MAX_LEVEL
 
-    def get_absolute_url(self):
-        return self.object.get_absolute_url() + '?tab=discussion#comment_' + str(self.pk)
-
     def __str__(self):
-        context = {
-            'text': self.text[:100],
-            'dots': ''
-        }
-        if len(self.text) > 100:
-            context['dots'] = '...'
-        return "{text}{dots}".format(**context)
+        return "Комментарий {}".format(self.pk)
 
 
 """==================================================== Message ====================================================="""
