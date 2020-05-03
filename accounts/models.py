@@ -388,6 +388,17 @@ class Comment(models.Model):
             max_order = thread.aggregate(models.Max('order'))['order__max']
             self.order = max_order + 1
 
+    def soft_delete(self):
+        thread = Comment.objects.filter(thread_id=self.thread_id)
+        if self.thread_id == self.id:
+            thread.update(is_deleted=True)
+        else:
+            next_subthread_head = thread.filter(level__lte=self.level, order__gt=self.order).first()
+            if next_subthread_head:
+                thread.filter(order__gte=self.order, order__lt=next_subthread_head.order).update(is_deleted=True)
+            else:
+                thread.filter(order__gte=self.order).update(is_deleted=True)
+
     def is_repliable(self):
         return self.level < self.MAX_LEVEL
 

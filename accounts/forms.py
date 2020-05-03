@@ -71,6 +71,7 @@ class CommentForm(forms.ModelForm):
         }
 
     def clean(self):
-        if not Comment.objects.actual().filter(id=self.cleaned_data['parent_id']).exists():
-            raise ValidationError('Комментарий, на который Вы пытаетесь ответить, был удален', code='no_parent')
+        parent_id = self.cleaned_data['parent_id']
+        if parent_id and not Comment.objects.actual().filter(id=parent_id).exists():
+            raise ValidationError('Нить комментирования отсутствует', code='no_parent')
         return self.cleaned_data

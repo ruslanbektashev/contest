@@ -264,8 +264,7 @@ class CommentDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
         success_url = self.get_success_url()
-        self.object.is_deleted = True
-        self.object.save()
+        self.object.soft_delete()
         return HttpResponseRedirect(success_url)
 
     def get_success_url(self):

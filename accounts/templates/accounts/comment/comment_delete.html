@@ -13,5 +13,14 @@
 
 {% block content %}
 <legend>Удаление комментария</legend>
-{% render_delete_form comment %}
+<form action="" method="post">
+    {% csrf_token %}
+    <div class="alert alert-warning" role="alert">
+        Вы точно хотите удалить {{ comment }}?<br>
+        Удаление комментария приведет к удалению всех ответов на него.
+    </div>
+    <div class="form-group">
+        <input class="btn btn-danger btn-block" type="submit" value="Удалить" />
+    </div>
+</form>
 {% endblock content %}

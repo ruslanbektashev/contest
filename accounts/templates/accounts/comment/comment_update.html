@@ -18,6 +18,7 @@
     {{ form.parent_id }}
     {{ form.object_type }}
     {{ form.object_id }}
+    {% render_errors form %}
     <div class="form-group">
         {% render_field form.text class+="form-control" rows="5" placeholder="Ваш комментарий" %}
     </div>

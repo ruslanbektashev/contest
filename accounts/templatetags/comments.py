@@ -19,11 +19,11 @@ def get_comment_query_string(page):
 def render_comment_form(obj, parent=None, form=None):
     if form is None:
         form = CommentForm()
-        if obj:
-            form.initial['object_type'] = ContentType.objects.get_for_model(obj)
-            form.initial['object_id'] = obj.id
-        if parent:
-            form.initial['parent_id'] = parent.id
+    if obj:
+        form.initial['object_type'] = ContentType.objects.get_for_model(obj)
+        form.initial['object_id'] = obj.id
+    if parent:
+        form.initial['parent_id'] = parent.id
     context = {
         'form': form
     }

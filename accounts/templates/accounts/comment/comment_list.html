@@ -5,7 +5,7 @@
 {% endif %}
 <div class="comment-list">
     {% for comment in comments %}
-    <div class="d-flex comment-list-item col{{ comment.level|add:'-14' }} offset-{{ comment.level|add:'-1' }} mb-3">
+    <div class="d-flex comment-list-item col{{ comment.level|add:'-13' }} offset-{{ comment.level|add:'-1' }} mb-3">
         <a id="comment_{{ comment.id }}" class="comment-anchor">&nbsp</a>
         <div class="comment-avatar mr-3">
             <img src="{% static 'comment-avatar.png' %}">
