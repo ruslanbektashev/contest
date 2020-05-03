@@ -49,10 +49,7 @@ class AccountSetForm(forms.ModelForm):
         for name in names:
             name = name.split()
             if len(name) < 2:
-                raise ValidationError(
-                    'Неверный формат списка имен',
-                    code='wrong_format'
-                )
+                raise ValidationError('Неверный формат списка имен', code='wrong_format')
             cleaned_names.append(name)
         return cleaned_names
 
@@ -72,3 +69,8 @@ class CommentForm(forms.ModelForm):
             'object_type': forms.HiddenInput,
             'object_id': forms.HiddenInput
         }
+
+    def clean(self):
+        if not Comment.objects.actual().filter(id=self.cleaned_data['parent_id']).exists():
+            raise ValidationError('Комментарий, на который Вы пытаетесь ответить, был удален', code='no_parent')
+        return self.cleaned_data

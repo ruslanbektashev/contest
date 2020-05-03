@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load views forms %}
+
+{% block title %}
+Комментарий
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb comment %}
+{% breadcrumb "Удаление" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Удаление комментария</legend>
+{% render_delete_form comment %}
+{% endblock content %}

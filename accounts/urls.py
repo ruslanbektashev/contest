@@ -25,6 +25,7 @@ urlpatterns = [
         path('<int:pk>/', include([
             path('reply', views.CommentCreate.as_view(), name='comment-reply'),
             path('update', views.CommentUpdate.as_view(), name='comment-update'),
+            path('delete', views.CommentDelete.as_view(), name='comment-delete'),
         ])),
     ])),
     path('message/<int:user_id>/create',

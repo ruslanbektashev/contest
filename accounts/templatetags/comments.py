@@ -16,13 +16,14 @@ def get_comment_query_string(page):
 
 
 @register.inclusion_tag('accounts/comment/comment_form.html')
-def render_comment_form(obj, parent=None):
-    form = CommentForm(initial={
-        'object_type': ContentType.objects.get_for_model(obj),
-        'object_id': obj.id
-    })
-    if parent:
-        form.initial['parent_id'] = parent.id
+def render_comment_form(obj, parent=None, form=None):
+    if form is None:
+        form = CommentForm()
+        if obj:
+            form.initial['object_type'] = ContentType.objects.get_for_model(obj)
+            form.initial['object_id'] = obj.id
+        if parent:
+            form.initial['parent_id'] = parent.id
     context = {
         'form': form
     }

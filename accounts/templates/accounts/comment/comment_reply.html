@@ -12,6 +12,7 @@
 
 {% block content %}
 <legend>Ответ на комментарий</legend>
+{% if parent %}
 <div class="comment-list">
     <div id="comment_{{ parent.id }}" class="d-flex comment-list-item mb-4">
         <div class="comment-avatar mr-3">
@@ -38,5 +39,6 @@
         </div>
     </div>
 </div>
-{% render_comment_form parent.object parent %}
+{% endif %}
+{% render_comment_form parent.object parent form %}
 {% endblock content %}

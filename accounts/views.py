@@ -256,6 +256,23 @@ class CommentUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView)
         return self.object.object.get_discussion_url() + get_comment_query_string(page) + '#comment_' + str(self.object.pk)
 
 
+class CommentDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+    model = Comment
+    template_name = 'accounts/comment/comment_delete.html'
+    permission_required = 'accounts.delete_comment'
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.is_deleted = True
+        self.object.save()
+        return HttpResponseRedirect(success_url)
+
+    def get_success_url(self):
+        page = self.request.GET.get('page', '1')
+        return self.object.object.get_discussion_url() + get_comment_query_string(page)
+
+
 """==================================================== Message ====================================================="""
 
 
