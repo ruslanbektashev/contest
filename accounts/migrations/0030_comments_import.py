@@ -2,6 +2,11 @@
 
 from django.db import migrations
 import json
+import os
+from contest.settings import BASE_DIR
+
+
+COMMENTS_PATH = 'additional_tools/comments.json'
 
 
 def import_comments(apps, schema_editor):
@@ -9,8 +14,8 @@ def import_comments(apps, schema_editor):
     Comment = apps.get_model('accounts', 'Comment')
     ContentType = apps.get_model('contenttypes', 'ContentType')
 
-    s = str()
-    with open('additional_tools/comments.json') as file:
+    file_path = os.path.join(BASE_DIR, COMMENTS_PATH)
+    with open(file_path) as file:
         s = file.read()
     comments = json.loads(s)
     new_comments = list()
@@ -39,32 +44,26 @@ def import_comments(apps, schema_editor):
 
     comments = Comment.objects.all()
     for comment in comments:
-        try:
-            comment.thread_id = Comment.objects.get(old_id=comment.thread_id).id
-            comment.parent_id = Comment.objects.get(old_id=comment.parent_id).id
-        except Comment.DoesNotExist:
-            print('id', comment.id, 'thread', comment.thread_id, 'parent', comment.parent_id)
+        comment.thread_id = Comment.objects.get(old_id=comment.thread_id).id
+        comment.parent_id = Comment.objects.get(old_id=comment.parent_id).id
     Comment.objects.bulk_update(comments, ['thread_id', 'parent_id'])
 
 
 def delete_comments(apps, schema_editor):
     Comment = apps.get_model('accounts', 'Comment')
 
-    s = str()
-    with open('additional_tools/comments.json') as file:
+    file_path = os.path.join(BASE_DIR, COMMENTS_PATH)
+    with open(file_path) as file:
         s = file.read()
     comments = json.loads(s)
-    for comment in comments:
-        try:
-            Comment.objects.get(old_id=comment['old_id']).delete()
-        except:
-            pass
+    old_ids = list(map(lambda x: x['old_id'], comments))
+    Comment.objects.filter(old_id__in=old_ids).delete()
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0028_accounts_import'),
+        ('accounts', '0029_accounts_import'),
     ]
 
     operations = [

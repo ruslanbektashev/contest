@@ -3,12 +3,35 @@
 from django.db import migrations
 from django.contrib.auth.models import User
 import json
+import os
+from contest.settings import BASE_DIR
+
+
+ACCOUNTS_PATH = 'additional_tools/accounts.json'
 
 
 def import_accounts(apps, schema_editor):
     Account = apps.get_model('accounts', 'Account')
-    s = str()
-    with open('additional_tools/accounts.json') as file:
+
+    ids = {
+        # actual id : old id
+        109: 131,  # Станислав Чиревко
+        312: 142,  # Наталья Дейнека
+        206: 83,  # Дмитрий Алексеев
+        209: 90,  # Кирилл Голиков
+        52: 2,  # Павел Алисейчик
+        314: 85,  # Александр Петюшко
+        203: 118,  # Сергей Родин
+        53: 82,  # Юрий Шуткин
+    }
+    for actual_id, old_id in ids.items():
+        user = User.objects.get(id=actual_id)
+        account = Account.objects.get(user=user.id)
+        account.old_id = old_id
+        account.save()
+
+    file_path = os.path.join(BASE_DIR, ACCOUNTS_PATH)
+    with open(file_path) as file:
         s = file.read()
     accounts = json.loads(s)
     new_accounts = list()
@@ -33,21 +56,19 @@ def import_accounts(apps, schema_editor):
 
 def delete_users(apps, schema_editor):
     Account = apps.get_model('accounts', 'Account')
-    s = str()
-    with open('additional_tools/accounts.json') as file:
+    file_path = os.path.join(BASE_DIR, ACCOUNTS_PATH)
+    with open(file_path) as file:
         s = file.read()
     accounts = json.loads(s)
-    for account in accounts:
-        try:
-            User.objects.get(id=Account.objects.get(old_id=account['old_id']).user.id).delete()
-        except:
-            pass
+    old_ids = list(map(lambda x: x['old_id'], accounts))
+    users_ids = Account.objects.filter(old_id__in=old_ids).values_list('user_id')
+    User.objects.filter(id__in=users_ids).delete()
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0027_auto_20200504_1235'),
+        ('accounts', '0028_auto_20200504_2313'),
     ]
 
     operations = [

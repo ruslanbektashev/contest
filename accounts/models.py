@@ -115,7 +115,7 @@ class Account(models.Model):
     ADMISSION_YEAR_DEFAULT = timezone.now().year
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    old_id = models.PositiveIntegerField(null=True, default=None)
+    old_id = models.PositiveIntegerField(null=True, default=None, unique=True)
 
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, default=LEVEL_DEFAULT, verbose_name="Уровень")
     type = models.PositiveSmallIntegerField(choices=TYPE_CHOICES, default=TYPE_DEFAULT, verbose_name="Тип")
@@ -330,7 +330,7 @@ class CommentManager(models.Manager):
 class Comment(models.Model):
     MAX_LEVEL = 5
     author = models.ForeignKey(User, related_name='+', on_delete=models.CASCADE, verbose_name="Автор")
-    old_id = models.PositiveIntegerField(null=True, default=None)
+    old_id = models.PositiveIntegerField(null=True, default=None, unique=True)
 
     thread_id = models.PositiveIntegerField(default=0, db_index=True)
     parent_id = models.PositiveIntegerField(default=0)
