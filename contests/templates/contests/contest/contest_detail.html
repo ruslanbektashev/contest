@@ -25,7 +25,11 @@
            id="problems-tab" role="tab">Задачи</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'contests:contest-discussion' contest.id %}" id="discussion-tab" role="tab">Обсуждение</a>
+        {% with contest.comment_set.count as comments_count %}
+        <a class="nav-link" href="{% url 'contests:contest-discussion' contest.id %}" id="discussion-tab" role="tab">
+            Обсуждение{% if comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ comments_count }}</span>{% endif %}
+        </a>
+        {% endwith %}
     </li>
 </ul>
 <div class="tab-content">

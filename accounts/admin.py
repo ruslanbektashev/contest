@@ -12,7 +12,7 @@ class PermissionAdmin(admin.ModelAdmin):
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'user', 'level', 'admission_year')
-    list_filter = ('level', 'admission_year')
+    list_filter = ('level', 'type', 'admission_year', 'enrolled', 'graduated')
     search_fields = ('user__last_name', 'user__first_name')
     fieldsets = (
         ('Пользователь', {
@@ -58,18 +58,19 @@ class ActivityAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'is_deleted', 'date_created')
+    list_display = ('id', 'author_name', 'object_type', 'object', 'short_text', 'is_deleted', 'date_created')
     list_editable = ('is_deleted',)
+    list_select_related = ('author', 'object_type', 'object')
     search_fields = ('author__last_name', 'author__first_name')
     fieldsets = (
         ('Порядок', {
-            'fields': ('thread_id', 'parent_id', 'level', 'order')
+            'fields': (('thread_id', 'parent_id', 'level', 'order'),)
         }),
         ('Объект', {
-            'fields': ('object_type', 'object_id')
+            'fields': (('object_type', 'object_id', 'object'),)
         }),
         ('Ссылки', {
-            'fields': ('author',)
+            'fields': ('author_name',)
         }),
         ('Детали', {
             'fields': ('text', 'is_deleted')
@@ -78,7 +79,15 @@ class CommentAdmin(admin.ModelAdmin):
             'fields': ('date_created',)
         })
     )
-    readonly_fields = ('date_created',)
+    readonly_fields = ('date_created', 'object', 'author_name')
+
+    def author_name(self, obj):
+        return obj.author.get_full_name()
+    author_name.short_description = 'Автор'
+
+    def short_text(self, obj):
+        return obj.text[:60] + (obj.text[60:] and '...')
+    short_text.short_description = 'Текст комментария'
 
 
 @admin.register(Message)

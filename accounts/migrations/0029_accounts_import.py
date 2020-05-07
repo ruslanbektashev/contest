@@ -23,6 +23,7 @@ def import_accounts(apps, schema_editor):
         314: 85,  # Александр Петюшко
         203: 118,  # Сергей Родин
         53: 82,  # Юрий Шуткин
+        1: 144,  # Бекташев Руслан
     }
     for actual_id, old_id in ids.items():
         user = User.objects.get(id=actual_id)

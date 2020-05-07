@@ -42,7 +42,7 @@ def import_comments(apps, schema_editor):
     new_comments = list(reversed(new_comments))
     Comment.objects.bulk_create(new_comments)
 
-    comments = Comment.objects.all()
+    comments = Comment.objects.filter(old_id__isnull=False)
     for comment in comments:
         comment.thread_id = Comment.objects.get(old_id=comment.thread_id).id
         comment.parent_id = Comment.objects.get(old_id=comment.parent_id).id
