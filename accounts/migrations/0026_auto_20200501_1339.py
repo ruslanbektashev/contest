@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='account',
             name='old_id',
-            field=models.PositiveIntegerField(default=None, null=True),
+            field=models.PositiveIntegerField(default=None, null=True, unique=True),
         ),
         migrations.AddField(
             model_name='comment',
@@ -23,6 +23,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='comment',
             name='old_id',
-            field=models.PositiveIntegerField(default=None, null=True),
+            field=models.PositiveIntegerField(default=None, null=True, unique=True),
         ),
     ]

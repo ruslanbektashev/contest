@@ -15,15 +15,15 @@ def import_accounts(apps, schema_editor):
 
     ids = {
         # actual id : old id
-        109: 131,  # Станислав Чиревко
-        312: 142,  # Наталья Дейнека
-        206: 83,  # Дмитрий Алексеев
-        209: 90,  # Кирилл Голиков
         52: 2,  # Павел Алисейчик
-        314: 85,  # Александр Петюшко
-        203: 118,  # Сергей Родин
-        53: 82,  # Юрий Шуткин
-        1: 144,  # Бекташев Руслан
+        53: 158,  # Юрий Шуткин
+        109: 253,  # Станислав Чиревко
+        203: 222,  # Сергей Родин
+        206: 160,  # Дмитрий Алексеев
+        209: 168,  # Кирилл Голиков
+        312: 272,  # Наталья Дейнека
+        314: 162,  # Александр Петюшко
+        1: 275,  # Руслан Бекташев
     }
     for actual_id, old_id in ids.items():
         user = User.objects.get(id=actual_id)
@@ -69,9 +69,9 @@ def delete_users(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0028_auto_20200504_2313'),
+        ('accounts', '0026_auto_20200501_1339'),
     ]
 
     operations = [
-        migrations.RunPython(import_accounts, delete_users)
+        migrations.RunPython(import_accounts, delete_users),
     ]

@@ -12,7 +12,17 @@ COMMENTS_PATH = 'additional_tools/comments_new.json'
 def get_accounts_json():
     accounts = list()
     for account in Account.objects.filter(old_id__isnull=False):
-        if account.old_id not in {131, 142, 83, 90, 2, 85, 118, 82}:
+        if account.old_id not in {
+            2,  # Павел Алисейчик
+            158,  # Юрий Шуткин
+            253,  # Станислав Чиревко
+            222,  # Сергей Родин
+            160,  # Дмитрий Алексеев
+            168,  # Кирилл Голиков
+            272,  # Наталья Дейнека
+            162,  # Александр Петюшко
+            275,  # Руслан Бекташев
+        }:
             accounts.append({
                 'old_id': account.old_id,
                 'username': account.username,
@@ -42,7 +52,7 @@ def get_comments_json():
             'parent_id': Comment.objects.get(id=comment.parent_id).old_id,
             'level': comment.level,
             'order': comment.order,
-            'object_type': comment.object_type.id,
+            'object_type': comment.object_type.model,
             'object_id': comment.object_id,
             'text': comment.text,
             'is_deleted': comment.is_deleted,
