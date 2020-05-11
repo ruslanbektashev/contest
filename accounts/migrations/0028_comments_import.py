@@ -8,7 +8,6 @@ from contest.settings import BASE_DIR
 
 
 COMMENTS_PATH = 'additional_tools/comments.json'
-EXISTING_COMMENTS_PATH = 'additional_tools/existing_comments.json'
 
 
 def import_comments(apps, schema_editor):
@@ -18,15 +17,12 @@ def import_comments(apps, schema_editor):
 
     comments_existed = False
     MAX_OLD_ID = 10000
+    existing_comments = list()
 
-    def create_comments_from_json(json_path):
-        file_path = os.path.join(BASE_DIR, json_path)
-        with open(file_path) as file:
-            s = file.read()
-        comments = json.loads(s)
+    def create_comments(comments, existed=False):
         new_comments = list()
         for comment in comments:
-            if json_path == COMMENTS_PATH:
+            if not existed:
                 author = Account.objects.get(old_id=comment['author']).user
             else:
                 author = Account.objects.get(user_id=comment['author']).user
@@ -48,13 +44,14 @@ def import_comments(apps, schema_editor):
 
     if Comment.objects.exists():
         comments_existed = True
-        existing_comments = list()
         for comment in Comment.objects.all():
+            thread_id = comment.thread_id + MAX_OLD_ID if comment.thread_id > 0 else comment.id + MAX_OLD_ID
+            parent_id = comment.parent_id + MAX_OLD_ID if comment.parent_id > 0 else comment.id + MAX_OLD_ID
             existing_comments.append({
                 'old_id': comment.id + MAX_OLD_ID,
                 'author': comment.author.id,
-                'thread_id': comment.thread_id + MAX_OLD_ID,
-                'parent_id': comment.parent_id + MAX_OLD_ID,
+                'thread_id': thread_id,
+                'parent_id': parent_id,
                 'level': comment.level,
                 'order': comment.order,
                 'object_type': comment.object_type.model,
@@ -66,15 +63,15 @@ def import_comments(apps, schema_editor):
         existing_comments.sort(key=lambda x: x['date_created'][0], reverse=True)
         for i in range(len(existing_comments)):
             existing_comments[i]['date_created'] = existing_comments[i]['date_created'][1]
-        s = json.dumps(existing_comments)
-        file_path = os.path.join(BASE_DIR, EXISTING_COMMENTS_PATH)
-        with open(file_path, 'w+') as file:
-            file.write(s)
         Comment.objects.all().delete()
 
-    create_comments_from_json(COMMENTS_PATH)
+    file_path = os.path.join(BASE_DIR, COMMENTS_PATH)
+    with open(file_path) as file:
+        s = file.read()
+    comments = json.loads(s)
+    create_comments(comments)
     if comments_existed:
-        create_comments_from_json(EXISTING_COMMENTS_PATH)
+        create_comments(existing_comments, comments_existed)
 
     comments = Comment.objects.filter(old_id__isnull=False)
     for comment in comments:
