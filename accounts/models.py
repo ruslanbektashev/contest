@@ -366,7 +366,7 @@ class Comment(models.Model):
                 try:
                     with atomic():
                         self._set_thread()
-                except CommentMaxLevelError as e:
+                except (CommentMaxLevelError, Comment.DoesNotExist) as e:
                     self.delete()
                     raise e
             kwargs["force_insert"] = False
