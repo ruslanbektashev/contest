@@ -75,14 +75,8 @@ def import_comments(apps, schema_editor):
 
     comments = Comment.objects.filter(old_id__isnull=False)
     for comment in comments:
-        if comment.thread_id != MAX_OLD_ID:
-            comment.thread_id = Comment.objects.get(old_id=comment.thread_id).id
-        else:
-            comment.thread_id = comment.id
-        if comment.parent_id != MAX_OLD_ID:
-            comment.parent_id = Comment.objects.get(old_id=comment.parent_id).id
-        else:
-            comment.parent_id = comment.id
+        comment.thread_id = Comment.objects.get(old_id=comment.thread_id).id
+        comment.parent_id = Comment.objects.get(old_id=comment.parent_id).id
     Comment.objects.bulk_update(comments, ['thread_id', 'parent_id'])
 
 
