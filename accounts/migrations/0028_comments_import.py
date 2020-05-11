@@ -17,6 +17,7 @@ def import_comments(apps, schema_editor):
     ContentType = apps.get_model('contenttypes', 'ContentType')
 
     comments_existed = False
+    MAX_OLD_ID = 10000
 
     def create_comments_from_json(json_path):
         file_path = os.path.join(BASE_DIR, json_path)
@@ -47,7 +48,6 @@ def import_comments(apps, schema_editor):
 
     if Comment.objects.exists():
         comments_existed = True
-        MAX_OLD_ID = 10000
         existing_comments = list()
         for comment in Comment.objects.all():
             existing_comments.append({
@@ -78,8 +78,14 @@ def import_comments(apps, schema_editor):
 
     comments = Comment.objects.filter(old_id__isnull=False)
     for comment in comments:
-        comment.thread_id = Comment.objects.get(old_id=comment.thread_id).id
-        comment.parent_id = Comment.objects.get(old_id=comment.parent_id).id
+        if comment.thread_id != MAX_OLD_ID:
+            comment.thread_id = Comment.objects.get(old_id=comment.thread_id).id
+        else:
+            comment.thread_id = comment.id
+        if comment.parent_id != MAX_OLD_ID:
+            comment.parent_id = Comment.objects.get(old_id=comment.parent_id).id
+        else:
+            comment.parent_id = comment.id
     Comment.objects.bulk_update(comments, ['thread_id', 'parent_id'])
 
 
