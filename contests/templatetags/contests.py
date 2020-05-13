@@ -1,6 +1,9 @@
+import sys
+
 from django import template
 
-from tools.security import secure
+if 'test' not in sys.argv[1:]:
+    from tools.security import secure
 
 register = template.Library()
 
