@@ -59,7 +59,6 @@ target/
 # Project settings
 contest/settings.py*
 contest/server_settings.py*
-contest/test_settings.py*
 
 # System files
 .DS_Store
