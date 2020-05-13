@@ -129,6 +129,14 @@ class ProblemForm(AttachmentForm):
         self.fields['memory_limit'].append_text = "КБайт"
 
 
+class ProblemRollbackResultsForm(forms.Form):
+    submissions = forms.ModelMultipleChoiceField(Submission.objects.none(), label="Посылки")
+
+    def __init__(self, *args, problem_id, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['submissions'].queryset = Submission.objects.to_rollback(problem_id)
+
+
 """==================================================== Solution ===================================================="""
 
 

@@ -48,6 +48,7 @@ urlpatterns = [
     path('problem/', include([
         path('<int:pk>/', include([
             path('', views.ProblemDetail.as_view(), name='problem-detail'),
+            path('rollback', views.ProblemRollbackResults.as_view(), name='problem-rollback-results'),
             path('discussion', views.ProblemDiscussion.as_view(), name='problem-discussion'),
             path('attachment/<int:attachment_id>', views.ProblemAttachment.as_view(), name='problem-attachment'),
             path('update', views.ProblemUpdate.as_view(), name='problem-update'),

@@ -420,6 +420,12 @@ class FNTest(CRUDEntry):
 
 
 class AssignmentQuerySet(models.QuerySet):
+    def rollback_score(self):
+        return self.update(score=models.F('score') - 1)
+
+    def to_rollback(self, submissions):
+        return self.filter(id__in=submissions.values_list('assignment_id', flat=True), score__gt=3)
+
     def progress(self):
         naccomplished = self.filter(score__in=[5, 4]).count()
         ntotal = self.count() or 1
@@ -520,10 +526,29 @@ def link_existing_submissions(sender, instance, created, **kwargs):
 """=================================================== Submission ==================================================="""
 
 
+class SubmissionQuerySet(models.QuerySet):
+    def rollback_status(self):
+        return self.update(status='TR')
+
+    def to_rollback(self, problem_id):
+        # TODO: use the following if Django's version is >= 3.0
+        # return self.filter(problem_id=problem_id, status='OK').filter(models.Exists(
+        #     Credit.objects.filter(user_id=models.OuterRef('owner_id'),
+        #                           course_id=models.OuterRef('problem__contest__course_id'),
+        #                           score=Credit.DEFAULT_SCORE)
+        # ))
+        return self.filter(problem_id=problem_id, status='OK').annotate(rollback=models.Exists(
+            Credit.objects.filter(user_id=models.OuterRef('owner_id'),
+                                  course_id=models.OuterRef('problem__contest__course_id'),
+                                  score=Credit.DEFAULT_SCORE)
+        )).filter(rollback=True)
+
+
 class Submission(CRDEntry):
     STATUS_CHOICES = (
         ('OK', "Задача решена"),
         ('TF', "Тест провален"),
+        ('TR', "Требуется проверка"),
         ('WA', "Неверный ответ"),
         ('NA', "Ответ отсутствует"),
         ('TL', "Превышено ограничение по времени"),
@@ -551,6 +576,8 @@ class Submission(CRDEntry):
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
+
+    objects = SubmissionQuerySet.as_manager()
 
     class Meta(CRDEntry.Meta):
         ordering = ('-date_created',)

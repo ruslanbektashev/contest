@@ -1,0 +1,87 @@
+{% extends 'base_wide.html' %}
+{% load views forms contests %}
+
+{% block title %}
+Задача
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb problem.contest.course problem.contest.course %}
+{% breadcrumb problem.contest problem.contest %}
+{% breadcrumb problem problem %}
+{% breadcrumb "Откат результатов" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Откат результатов задачи {{ problem }}</legend>
+<p>В таблице выведены посылки со статусом <span class="numtus status-success">Задача решена</span> всех студентов, которые не имеют оценки в зачете.</p>
+<p>Выберите посылки, которым следует изменить статус на <span class="numtus status-warning">Требуется проверка</span>>.</p>
+<p>Оценки за задания, соответствующие выбранным посылкам, также будут понижены.</p>
+<form action="" method="post" class="form-horizontal">
+    {% csrf_token %}
+    {% render_errors form %}
+    {% if form.submissions.errors %}
+    <div class="alert alert-danger">
+        {% for error in form.submissions.errors %}
+        {{ error }}<br>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr>
+                <th class="text-center" style="width: 4%;"><input id="check_all" type="checkbox"></th>
+                <th class="text-center" style="width: 13%;">Дата</th>
+                <th class="text-center">Студент</th>
+                <th class="text-center" style="width: 18%;">Задание</th>
+                <th class="text-center" style="width: 18%;">Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for submission in form.submissions.field.queryset %}
+            <tr>
+                <td class="text-center"><input type="checkbox" class="check" name="submissions" value="{{ submission.id }}"></td>
+                <td class="text-center">{{ submission.date_created|date:'d b Y' }}</td>
+                <td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>
+                <td class="text-center">
+                    {% if submission.assignment %}
+                    <a href="{{ submission.assignment.get_absolute_url }}" class="numtus status-{{ submission.assignment.score|colorize }}">
+                        {{ submission.assignment.score }}
+                    </a>
+                    <i class="fa fa-arrow-right"></i>
+                    <span class="numtus status-{{ submission.assignment.score|add:'-1'|colorize }}">
+                        {{ submission.assignment.score|add:'-1' }}
+                    </span>
+                    {% else %}
+                    <i class="fa fa-minus"></i>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    <a href="{{ submission.get_absolute_url }}" class="status status-{{ submission.status|colorize }}">
+                        {{ submission.status }}
+                    </a>
+                    <i class="fa fa-arrow-right"></i>
+                    <span class="status status-{{ 'TR'|colorize }}">
+                        TR
+                    </span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td class="text-center" colspan="4">здесь ничего нет</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% render_button value="Откатить" %}
+</form>
+{% endblock content %}
+
+{% block javascript %}
+<script type="text/javascript">
+$("#check_all").click(function () {
+    $(".check").prop('checked', $(this).prop('checked'));
+});
+</script>
+{% endblock javascript %}

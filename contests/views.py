@@ -21,7 +21,7 @@ from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 from contests.forms import (CreditSetForm, ContestForm, ProblemForm, SolutionForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
-                            AssignmentSetForm, EventForm)
+                            AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
 from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, UTTest, FNTest,
                              Assignment, Submission, Execution, Event)
 
@@ -379,6 +379,36 @@ class ProblemAttachment(LoginRequiredMixin, DetailView):
         return context
 
 
+class ProblemRollbackResults(LoginRedirectPermissionRequiredMixin, FormView):
+    form_class = ProblemRollbackResultsForm
+    template_name = 'contests/problem/problem_rollback_results_form.html'
+    permission_required = 'contests.change_problem'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['problem_id'] = self.kwargs.get('pk')
+        return kwargs
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            submissions = form.cleaned_data['submissions']
+            assignments = Assignment.objects.to_rollback(submissions)
+            submissions.rollback_status()
+            assignments.rollback_score()
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['problem'] = get_object_or_404(Problem, id=self.kwargs.get('pk'))
+        return context
+
+    def get_success_url(self):
+        return get_object_or_404(Problem, id=self.kwargs.get('pk')).get_absolute_url()
+
+
 class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Problem
     form_class = ProblemForm
@@ -518,6 +548,12 @@ class IOTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         context['problem'] = self.storage['problem']
         return context
 
+    def get_success_url(self):
+        if Submission.objects.to_rollback(self.object.problem_id).exists():
+            return reverse('contests:problem-rollback-results', kwargs={'pk': self.object.problem_id})
+        else:
+            super().get_success_url()
+
 
 class IOTestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = IOTest
@@ -529,6 +565,12 @@ class IOTestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context['problem'] = self.object.problem
         return context
+
+    def get_success_url(self):
+        if Submission.objects.to_rollback(self.object.problem_id).exists():
+            return reverse('contests:problem-rollback-results', kwargs={'pk': self.object.problem_id})
+        else:
+            super().get_success_url()
 
 
 class IOTestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
@@ -573,6 +615,12 @@ class UTTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         context['problem'] = self.storage['problem']
         return context
 
+    def get_success_url(self):
+        if Submission.objects.to_rollback(self.object.problem_id).exists():
+            return reverse('contests:problem-rollback-results', kwargs={'pk': self.object.problem_id})
+        else:
+            super().get_success_url()
+
 
 class UTTestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = UTTest
@@ -584,6 +632,12 @@ class UTTestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context['problem'] = self.object.problem
         return context
+
+    def get_success_url(self):
+        if Submission.objects.to_rollback(self.object.problem_id).exists():
+            return reverse('contests:problem-rollback-results', kwargs={'pk': self.object.problem_id})
+        else:
+            super().get_success_url()
 
 
 class UTTestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):

@@ -7,6 +7,7 @@ register = template.Library()
 STATE_COLORS = {
     'OK': 'success',
     'TF': 'warning',
+    'TR': 'warning',
     'WA': 'warning',
     'NA': 'warning',
     'TL': 'danger',
@@ -20,18 +21,18 @@ STATE_COLORS = {
     'PE': 'danger',
     'EX': 'danger',
     'UN': 'default',
-    '5': 'success',
-    5: 'success',
-    '4': 'success',
-    4: 'success',
-    '3': 'warning',
-    3: 'warning',
-    '2': 'danger',
-    2: 'danger',
-    '1': 'danger',
-    1: 'danger',
-    '0': 'default',
-    0: 'default'
+    '5':  'success',
+    5:    'success',
+    '4':  'success',
+    4:    'success',
+    '3':  'warning',
+    3:    'warning',
+    '2':  'danger',
+    2:    'danger',
+    '1':  'danger',
+    1:    'danger',
+    '0':  'default',
+    0:    'default'
 }
 
 
@@ -43,34 +44,6 @@ def remove_pwd(string):
 @register.filter
 def colorize(value):
     return STATE_COLORS.get(value, 'info')
-
-
-@register.simple_tag
-def get_label(value):
-    try:
-        score = int(value)
-    except ValueError:
-        if value == 'UN':
-            return 'label-default'
-        elif value == 'EX':
-            return 'label-primary'
-        elif value in ('GO', 'OK'):
-            return 'label-success'
-        elif value in ('SA', 'WA', 'TF', 'NA'):
-            return 'label-warning'
-        else:
-            return 'label-danger'
-    else:
-        if score < 2 or score > 5:
-            return 'label-default'
-        elif score == 2:
-            return 'label-danger'
-        elif score == 3:
-            return 'label-warning'
-        elif score == 4:
-            return 'label-success'
-        elif score == 5:
-            return 'label-primary'
 
 
 @register.inclusion_tag('contests/submission/submission_table.html', takes_context=True)

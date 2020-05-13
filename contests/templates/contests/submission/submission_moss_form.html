@@ -1,5 +1,5 @@
-{% extends 'base.html' %}
-{% load contests views forms %}
+{% extends 'base_wide.html' %}
+{% load views forms contests %}
 
 {% block title %}
 Посылка
@@ -23,7 +23,9 @@
     {% render_errors form %}
     {% if form.to_submissions.errors %}
     <div class="alert alert-danger">
-        {{ form.to_submissions.errors }}
+        {% for error in form.to_submissions.errors %}
+        {{ error }}<br>
+        {% endfor %}
     </div>
     {% endif %}
     <table class="table table-sm table-hover">
