@@ -102,8 +102,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'djangobower.finders.BowerFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder'
 ]
 
 STATICFILES_DIRS = [
