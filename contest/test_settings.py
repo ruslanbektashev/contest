@@ -66,16 +66,8 @@ WSGI_APPLICATION = 'contest.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.sqlite3',
         'NAME': 'contest',
-        'USER': 'contest',
-        'PASSWORD': 'contest',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-        'TEST': {
-            'CHARSET': 'utf8',
-            'COLLATION': 'utf8_general_ci',
-        },
     }
 }
 
