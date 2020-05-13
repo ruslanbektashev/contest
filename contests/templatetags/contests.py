@@ -1,9 +1,6 @@
-import sys
+import re
 
 from django import template
-
-if 'test' not in sys.argv[1:]:
-    from tools.security import secure
 
 register = template.Library()
 
@@ -41,7 +38,7 @@ STATE_COLORS = {
 
 @register.filter
 def remove_pwd(string):
-    return secure(string)
+    return re.sub(r'/?[\w\-./]+/', '', string)
 
 
 @register.filter

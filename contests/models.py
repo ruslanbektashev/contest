@@ -2,7 +2,6 @@ import importlib
 import io
 import os
 import random
-import sys
 import zipfile
 
 from django.contrib.auth.models import User
@@ -16,9 +15,12 @@ from django.urls import reverse
 
 from contest.abstract import CDEntry, CRDEntry, CRUDEntry
 from accounts.models import Account, Comment, Activity
-if 'test' not in sys.argv[1:]:
+
+try:
     from tools.sandbox import Sandbox
     from tools.utility import Status, diff
+except ImportError:
+    from contest.utils import Sandbox, Status, diff
 
 """=================================================== Attachment ==================================================="""
 
