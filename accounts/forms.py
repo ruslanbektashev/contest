@@ -1,8 +1,12 @@
+from html.entities import name2codepoint
+from html.parser import HTMLParser
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from accounts.models import Account, Activity, Comment
+from accounts.templatetags.markdown import markdown
 from accounts.widgets import CommentWidget
 
 
@@ -58,6 +62,61 @@ class ActivityMarkForm(forms.Form):
     choices = forms.ModelMultipleChoiceField(queryset=Activity.objects.all())
 
 
+class MarkdownValidationParser(HTMLParser):
+    def error(self, message):
+        raise ValidationError("Разметка временно недоступна")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.stack = []
+        self.safe_tags = ['p', 'code', 'pre']
+
+    def handle_startendtag(self, tag, attrs):
+        self.error('startend tag')
+
+    def handle_starttag(self, tag, attrs):
+        if attrs:
+            self.error('tag attrs')
+        if tag not in self.safe_tags:
+            self.stack.append(tag)
+            if len(self.stack) > 1:
+                self.error('nested tag: %s' % tag)
+
+    def handle_endtag(self, tag):
+        if tag not in self.safe_tags:
+            if not self.stack:
+                self.error('unexpected endtag: %s' % tag)
+            if self.stack[-1] != tag:
+                self.error('unclosed tag: %s' % self.stack[-1])
+            self.stack.pop(-1)
+
+    def handle_charref(self, name):
+        if name.startswith('x'):
+            c = chr(int(name[1:], 16))
+        else:
+            c = chr(int(name))
+        self.error('char %s' % c)
+
+    def handle_entityref(self, name):
+        c = chr(name2codepoint[name])
+        self.error('entity %s' % c)
+
+    def handle_data(self, data):
+        pass
+
+    def handle_comment(self, data):
+        self.error('comment')
+
+    def handle_decl(self, data):
+        self.error('decl %s' % data)
+
+    def handle_pi(self, data):
+        self.error('pi %s' % data)
+
+    def unknown_decl(self, data):
+        self.error('unknown decl %s' % data)
+
+
 class CommentForm(forms.ModelForm):
     text = forms.CharField(widget=CommentWidget())
 
@@ -69,6 +128,11 @@ class CommentForm(forms.ModelForm):
             'object_type': forms.HiddenInput,
             'object_id': forms.HiddenInput
         }
+
+    def clean_text(self):
+        parser = MarkdownValidationParser()
+        parser.feed(markdown(self.cleaned_data['text']))
+        return self.cleaned_data['text']
 
     def clean(self):
         parent_id = self.cleaned_data['parent_id']
