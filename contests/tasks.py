@@ -1,3 +1,4 @@
+import sys
 import mosspy
 
 from billiard.exceptions import SoftTimeLimitExceeded
@@ -7,7 +8,8 @@ from django.contrib.auth.models import User
 from contest.celery import app
 from contests.observers import TaskProgressObserver
 from contests.models import Submission
-from tools.utility import Status
+if 'test' not in sys.argv[1:]:
+    from tools.utility import Status
 
 
 @app.task(bind=True, soft_time_limit=600, time_limit=660)
