@@ -16,7 +16,7 @@
 {% block content %}
 <legend>Откат результатов задачи {{ problem }}</legend>
 <p>В таблице выведены посылки со статусом <span class="numtus status-success">Задача решена</span> всех студентов, которые не имеют оценки в зачете.</p>
-<p>Выберите посылки, которым следует изменить статус на <span class="numtus status-warning">Требуется проверка</span>>.</p>
+<p>Выберите посылки, которым следует изменить статус на <span class="numtus status-warning">Требуется проверка</span>.</p>
 <p>Оценки за задания, соответствующие выбранным посылкам, также будут понижены.</p>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}

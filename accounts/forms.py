@@ -75,22 +75,21 @@ class MarkdownValidationParser(HTMLParser):
         self.error('startend tag')
 
     def handle_starttag(self, tag, attrs):
-        self.error('temp')
         if attrs:
             self.error('tag attrs')
         if tag not in self.safe_tags:
-            self.stack.append(tag)
-            if len(self.stack) > 1:
-                self.error('nested tag: %s' % tag)
+            self.error('unsafe tag')
+        self.stack.append(tag)
+        if len(self.stack) > 1:
+            self.error('nested tag: %s' % tag)
 
     def handle_endtag(self, tag):
-        self.error('temp')
         if tag not in self.safe_tags:
-            if not self.stack:
-                self.error('unexpected endtag: %s' % tag)
-            if self.stack[-1] != tag:
-                self.error('unclosed tag: %s' % self.stack[-1])
-            self.stack.pop(-1)
+            self.error('unsafe tag')
+        if not self.stack:
+            self.error('unexpected endtag: %s' % tag)
+        if self.stack.pop() != tag:
+            self.error('unclosed tag')
 
     def handle_charref(self, name):
         if name.startswith('x'):
