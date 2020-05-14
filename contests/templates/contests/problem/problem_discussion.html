@@ -36,7 +36,7 @@
     </li>
     {% endif %}
     <li class="nav-item">
-        {% with problem.comment_set.count as comments_count %}
+        {% with problem.comment_set.actual.count as comments_count %}
         <a aria-controls="discussion" aria-selected="true" class="nav-link active" data-toggle="tab" href="#discussion" id="discussion-tab" role="tab">
             Обсуждение{% if comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ comments_count }}</span>{% endif %}
         </a>
