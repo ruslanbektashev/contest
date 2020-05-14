@@ -64,7 +64,7 @@ class ActivityMarkForm(forms.Form):
 
 class MarkdownValidationParser(HTMLParser):
     def error(self, message):
-        raise ValidationError("Разметка временно недоступна")
+        raise ValidationError("Разметка временно недоступна. Используйте только текст.")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -75,6 +75,7 @@ class MarkdownValidationParser(HTMLParser):
         self.error('startend tag')
 
     def handle_starttag(self, tag, attrs):
+        self.error('temp')
         if attrs:
             self.error('tag attrs')
         if tag not in self.safe_tags:
@@ -83,6 +84,7 @@ class MarkdownValidationParser(HTMLParser):
                 self.error('nested tag: %s' % tag)
 
     def handle_endtag(self, tag):
+        self.error('temp')
         if tag not in self.safe_tags:
             if not self.stack:
                 self.error('unexpected endtag: %s' % tag)
