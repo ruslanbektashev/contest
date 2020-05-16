@@ -4,7 +4,7 @@ import os
 import sys
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.db import migrations
 
 
@@ -27,8 +27,7 @@ def import_accounts(apps, schema_editor):
         1:   275,  # Руслан Бекташев
     }
     for actual_id, old_id in ids.items():
-        user = User.objects.get(id=actual_id)
-        account = Account.objects.get(user=user.id)
+        account = Account.objects.get(user_id=actual_id)
         account.old_id = old_id
         account.save()
 
@@ -37,20 +36,28 @@ def import_accounts(apps, schema_editor):
         s = file.read()
     accounts = json.loads(s)
     new_accounts = list()
+    group_student = Group.objects.get(name='Студент')
+    groups = {}
     for account in accounts:
-        user = User.objects.create_user(
+        user = User(
             username=account['username'],
             password=account['password'],
             first_name=account['first_name'],
             last_name=account['last_name'],
-            email=account['email']
+            email=account['email'],
+            is_active=False
         )
+        user.save()
+        group_name = 'M' + str(account['admission_year'])[2:]
+        if group_name not in groups:
+            groups[group_name], _ = Group.objects.get_or_create(name=group_name)
+        user.groups.add(group_student, groups[group_name])
         new_accounts.append(Account(
-            user_id=user.id,
+            user_id=user.pk,
             old_id=account['old_id'],
-            enrolled=account['enrolled'],
-            graduated=account['graduated'],
-            level=account['level'],
+            enrolled=False,
+            graduated=True,
+            level=8,
             admission_year=account['admission_year']
         ))
     Account.objects.bulk_create(new_accounts)

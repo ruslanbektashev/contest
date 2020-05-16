@@ -9,6 +9,25 @@ ACCOUNTS_PATH = 'additional_tools/accounts_new.json'
 COMMENTS_PATH = 'additional_tools/comments_new.json'
 
 
+def compare_accounts_json():
+    file_path = os.path.join(BASE_DIR, ACCOUNTS_PATH)
+    with open(file_path) as file:
+        s = file.read()
+    accounts = json.loads(s)
+
+    file_path = os.path.join(BASE_DIR, 'additional_tools/accounts.json')
+    with open(file_path) as file:
+        s = file.read()
+    accounts_old = json.loads(s)
+    for acc, acc_old in zip(accounts, accounts_old):
+        assert acc['old_id'] == acc_old['old_id']
+        assert acc['username'] == acc_old['username']
+        assert acc['first_name'] == acc_old['first_name']
+        assert acc['last_name'] == acc_old['last_name']
+        assert acc['email'] == acc_old['email']
+        assert acc['admission_year'] == acc_old['admission_year']
+
+
 def get_accounts_json():
     accounts = list()
     for account in Account.objects.filter(old_id__isnull=False):
@@ -30,11 +49,7 @@ def get_accounts_json():
                 'first_name': account.user.first_name,
                 'last_name': account.user.last_name,
                 'email': account.user.email,
-                'level': account.level,
-                'type': account.type,
                 'admission_year': account.admission_year,
-                'enrolled': account.enrolled,
-                'graduated': account.graduated,
             })
     s = json.dumps(accounts)
     file_path = os.path.join(BASE_DIR, ACCOUNTS_PATH)
