@@ -19,7 +19,7 @@
     <tr><td class="text-right" style="width: 20%;">Автор</td><td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td></tr>
     <tr><td class="text-right" style="width: 20%;">К задаче</td><td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td></tr>
     {% if submission.assignment %}
-    <tr><td class="text-right" style="width: 20%;">По заданию</td><td><a href="{{ submission.assignment.get_absolute_url }}">да</a></td></tr>
+    <tr><td class="text-right" style="width: 20%;">По заданию</td><td><a href="{{ submission.assignment.get_absolute_url }}"><span class="numtus status-{{ submission.assignment.score|colorize }}">{{ submission.assignment.score|default:'-' }}</span></a></td></tr>
     {% endif %}
     <tr><td class="text-right" style="width: 20%;">Отправлена</td><td>{{ submission.date_created }}</td></tr>
     {# <tr><td class="text-right" style="width: 20%;">Проверена</td><td>{{ submission.date_updated|date:'d.m.y, H:i' }}</td></tr> #}

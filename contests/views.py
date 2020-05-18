@@ -17,13 +17,13 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.results import TaskProgress
-from contests.tasks import evaluate_submission, moss_submission
 from contests.forms import (CreditSetForm, ContestForm, ProblemForm, SolutionForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
                             AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
 from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, UTTest, FNTest,
                              Assignment, Submission, Execution, Event)
+from contests.results import TaskProgress
+from contests.tasks import evaluate_submission, moss_submission
 
 """=================================================== Attachment ==================================================="""
 
