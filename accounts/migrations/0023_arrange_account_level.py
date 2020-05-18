@@ -17,5 +17,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(translate_old_levels_to_new_types)
+        migrations.RunPython(translate_old_levels_to_new_types, elidable=True)
     ]

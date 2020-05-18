@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(import_comments, migrations.RunPython.noop),
+        migrations.RunPython(import_comments, migrations.RunPython.noop, elidable=True),
         migrations.AlterField(
             model_name='comment',
             name='date_created',

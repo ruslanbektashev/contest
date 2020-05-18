@@ -27,5 +27,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(import_comments_last, migrations.RunPython.noop)
+        migrations.RunPython(import_comments_last, migrations.RunPython.noop, elidable=True)
     ] if 'test' not in sys.argv[1:] else []

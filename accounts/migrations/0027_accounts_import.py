@@ -81,5 +81,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(import_accounts, delete_users),
+        migrations.RunPython(import_accounts, delete_users, elidable=True),
     ] if 'test' not in sys.argv[1:] else []
