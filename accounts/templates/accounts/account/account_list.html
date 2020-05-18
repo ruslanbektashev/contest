@@ -14,12 +14,8 @@
 <legend>Студенты {% if graduated %}выпускники{% elif enrolled == False %}отчисленные{% endif %}</legend>
 <form id="account_list_form" action="{{ request.get_full_path }}" method="post">
     {% csrf_token %}
-    {% render_errors form %}
-    {% if form.accounts.errors %}
-    <div class="alert alert-danger">
-        {{ form.accounts.errors }}
-    </div>
-    {% endif %}
+    {% render_form_errors form %}
+    {% render_field_errors form.accounts %}
     <table class="table table-bordered table-sm table-hover">
         <thead>
             <tr>

@@ -15,12 +15,12 @@
 <legend>Регистрация</legend>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_errors form %}
+    {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.level class+="form-control selectpicker" %}
     {% render_field form.admission_year class+="form-control selectpicker" %}
     {% render_field form.names class+="form-control" placeholder="в формате: Фамилия Имя Отчество" %}
     {% endwith %}
-    {% render_button value="Зарегистрировать" %}
+    {% render_submit_button value="Зарегистрировать" %}
 </form>
 {% endblock content %}

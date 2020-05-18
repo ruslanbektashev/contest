@@ -20,12 +20,12 @@
 <legend>{% if announcement %}Редактирование{% else %}Добавление{% endif %} объявления</legend>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_errors form %}
+    {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.group class+="form-control selectpicker" %}
     {% render_field form.title class+="form-control" %}
     {% render_field form.text class+="form-control" %}
     {% endwith %}
-    {% render_button value="Сохранить" %}
+    {% render_submit_button value="Сохранить" %}
 </form>
 {% endblock content %}

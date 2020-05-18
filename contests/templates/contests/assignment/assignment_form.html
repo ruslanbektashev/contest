@@ -21,7 +21,7 @@
 <legend>{% if assignment %}Редактирование{% else %}Добавление{% endif %} задания</legend>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_errors form %}
+    {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.user class+="form-control selectpicker" %}
     {% render_field form.problem class+="form-control selectpicker" %}
@@ -85,6 +85,6 @@
     {% render_field form.submission_limit class+="form-control" %}
     {% render_field form.remark class+="form-control" %}
     {% endwith %}
-    {% render_button value="Сохранить" %}
+    {% render_submit_button value="Сохранить" %}
 </form>
 {% endblock content %}

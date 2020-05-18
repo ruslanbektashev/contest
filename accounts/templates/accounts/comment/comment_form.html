@@ -4,15 +4,9 @@
     {{ form.parent_id }}
     {{ form.object_type }}
     {{ form.object_id }}
-    {% render_errors form %}
+    {% render_form_errors form %}
     <div class="form-group">
-        {% if form.text.errors %}
-        <div class="alert alert-danger">
-            {% for error in form.text.errors %}
-            {{ error }}<br>
-            {% endfor %}
-        </div>
-        {% endif %}
+        {% render_field_errors form.text %}
         {% render_field form.text class+="form-control" rows="5" placeholder="Ваш комментарий" %}
     </div>
     <div class="form-group">

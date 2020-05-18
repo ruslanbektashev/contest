@@ -190,14 +190,19 @@ class FieldAttributeNode(template.Node):
         return str(bounded_field)
 
 
-@register.inclusion_tag('button.html')
-def render_button(value):
+@register.inclusion_tag('submit_button.html')
+def render_submit_button(value):
     return {'value': value}
 
 
-@register.inclusion_tag('errors.html')
-def render_errors(form):
+@register.inclusion_tag('form_errors.html')
+def render_form_errors(form):
     return {'form': form}
+
+
+@register.inclusion_tag('field_errors.html')
+def render_field_errors(field):
+    return {'field': field}
 
 
 @register.inclusion_tag('delete_form.html')

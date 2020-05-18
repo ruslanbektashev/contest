@@ -24,7 +24,7 @@
 <legend>{% if event %}Редактирование{% else %}Добавление{% endif %} события</legend>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
-    {% render_errors form %}
+    {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.title class+="form-control" %}
     {% render_field form.place class+="form-control" %}
@@ -34,7 +34,7 @@
     {% render_field form.date_start class+="form-control" %}
     {% render_field form.date_end class+="form-control" %}
     {% endwith %}
-    {% render_button value="Сохранить" %}
+    {% render_submit_button value="Сохранить" %}
 </form>
 {% endblock content %}
 

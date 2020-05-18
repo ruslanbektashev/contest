@@ -16,11 +16,11 @@
 <legend>Добавление случайного набора задач</legend>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_errors form %}
+    {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.contest class+="form-control selectpicker" %}
     {% render_field form.limit_per_user class+="form-control selectpicker" %}
     {% endwith %}
-    {% render_button value="Распределить" %}
+    {% render_submit_button value="Распределить" %}
 </form>
 {% endblock content %}

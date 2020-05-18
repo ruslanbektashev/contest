@@ -20,14 +20,8 @@
 <p>Выберите посылки для сравнения с текущей посылкой на сервере MOSS:</p>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
-    {% render_errors form %}
-    {% if form.to_submissions.errors %}
-    <div class="alert alert-danger">
-        {% for error in form.to_submissions.errors %}
-        {{ error }}<br>
-        {% endfor %}
-    </div>
-    {% endif %}
+    {% render_form_errors form %}
+    {% render_field_errors form.to_submissions %}
     <table class="table table-sm table-hover">
         <thead>
             <tr>
@@ -56,7 +50,7 @@
             {% endfor %}
         </tbody>
     </table>
-    {% render_button value="Отправить запрос" %}
+    {% render_submit_button value="Отправить запрос" %}
 </form>
 {% endblock content %}
 

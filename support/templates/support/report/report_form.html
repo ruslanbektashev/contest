@@ -23,11 +23,11 @@
 <legend>{% if report %}Редактирование{% else %}Отправка{% endif %} сообщения об ошибке</legend>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
-    {% render_errors form %}
+    {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.title class+="form-control" %}
     {% render_field form.text class+="form-control" %}
     {% endwith %}
-    {% render_button value="Отправить" %}
+    {% render_submit_button value="Отправить" %}
 </form>
 {% endblock content %}

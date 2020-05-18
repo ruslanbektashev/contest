@@ -29,7 +29,7 @@
         {% endfor %}
     </div>
     {% endif %}
-    {% render_errors form %}
+    {% render_form_errors form %}
     <div class="form-group">
         <div class="custom-file">
             {% with is_invalid=form.files.errors|yesno:"is-invalid," %}
@@ -45,7 +45,7 @@
             {% endif %}
         </div>
     </div>
-    {% render_button value="Отправить" %}
+    {% render_submit_button value="Отправить" %}
 </form>
 {% endblock content %}
 

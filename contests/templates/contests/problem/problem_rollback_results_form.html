@@ -20,14 +20,8 @@
 <p>Оценки за задания, соответствующие выбранным посылкам, также будут понижены.</p>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
-    {% render_errors form %}
-    {% if form.submissions.errors %}
-    <div class="alert alert-danger">
-        {% for error in form.submissions.errors %}
-        {{ error }}<br>
-        {% endfor %}
-    </div>
-    {% endif %}
+    {% render_form_errors form %}
+    {% render_field_errors form.submissions %}
     <table class="table table-sm table-hover">
         <thead>
             <tr>
@@ -74,7 +68,7 @@
             {% endfor %}
         </tbody>
     </table>
-    {% render_button value="Откатить" %}
+    {% render_submit_button value="Откатить" %}
 </form>
 {% endblock content %}
 

@@ -15,11 +15,11 @@
 <legend>Начало курса</legend>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
-    {% render_errors form %}
+    {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.runner_ups class+="form-control selectpicker" data-actions-box="true" %}
     {% render_field form.non_credited class+="form-control selectpicker" data-actions-box="true" %}
     {% endwith %}
-    {% render_button value="Начать" %}
+    {% render_submit_button value="Начать" %}
 </form>
 {% endblock content %}

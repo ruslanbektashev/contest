@@ -16,7 +16,7 @@
 <legend>Редактирование профиля</legend>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_errors form %}
+    {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.email class+="form-control" %}
     {% if perms.accounts.change_account %}
@@ -45,6 +45,6 @@
         {% endif %}
     </div>
     {% endif %}
-    {% render_button value="Сохранить" %}
+    {% render_submit_button value="Сохранить" %}
 </form>
 {% endblock content %}
