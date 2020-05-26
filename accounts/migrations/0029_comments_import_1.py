@@ -38,7 +38,7 @@ def import_comments(apps, schema_editor):
             object_type=content_types[comment['object_type']],
             object_id=comment['object_id'],
             text=comment['text'],
-            is_deleted=comment['is_deleted'],
+            is_deleted=False,
             date_created=comment['date_created']
         ))
     new_comments = list(reversed(new_comments))
