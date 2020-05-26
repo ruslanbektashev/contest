@@ -45,6 +45,12 @@ def import_comments(apps, schema_editor):
     Comment.objects.bulk_create(new_comments)
 
 
+def delete_comments(apps, schema_editor):
+    Comment = apps.get_model('accounts', 'Comment')
+    MAX_OLD_ID = 10000
+    Comment.objects.filter(old_id__isnull=False, old_id__lt=MAX_OLD_ID).delete()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -57,5 +63,5 @@ class Migration(migrations.Migration):
             name='date_created',
             field=models.DateTimeField(auto_now_add=False, verbose_name='Дата создания'),
         ),
-        migrations.RunPython(import_comments, migrations.RunPython.noop, elidable=True)
+        migrations.RunPython(import_comments, delete_comments, elidable=True)
     ] if 'test' not in sys.argv[1:] else []

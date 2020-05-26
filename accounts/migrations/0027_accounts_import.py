@@ -4,14 +4,14 @@ import os
 import sys
 
 from django.conf import settings
-from django.contrib.auth.models import User, Group
-from django.db import migrations
-
+from django.db import migrations, models
 
 ACCOUNTS_PATH = 'additional_tools/accounts.json'
 
 
 def import_accounts(apps, schema_editor):
+    User = apps.get_model('auth', 'User')
+    Group = apps.get_model('auth', 'Group')
     Account = apps.get_model('accounts', 'Account')
 
     ids = {
@@ -64,14 +64,9 @@ def import_accounts(apps, schema_editor):
 
 
 def delete_users(apps, schema_editor):
-    Account = apps.get_model('accounts', 'Account')
-    file_path = os.path.join(settings.BASE_DIR, ACCOUNTS_PATH)
-    with open(file_path) as file:
-        s = file.read()
-    accounts = json.loads(s)
-    old_ids = list(map(lambda x: x['old_id'], accounts))
-    users_ids = Account.objects.filter(old_id__in=old_ids).values_list('user_id')
-    User.objects.filter(id__in=users_ids).delete()
+    User = apps.get_model('auth', 'User')
+    old_ids = [2, 158, 253, 222, 160, 168, 272, 162, 275]
+    User.objects.filter(models.Q(account__old_id__isnull=False) & ~models.Q(account__old_id__in=old_ids)).delete()
 
 
 class Migration(migrations.Migration):
