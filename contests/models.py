@@ -536,12 +536,12 @@ class SubmissionQuerySet(models.QuerySet):
 
     def to_rollback(self, problem_id):
         # TODO: use the following if Django's version is >= 3.0
-        # return self.filter(problem_id=problem_id, status='OK').filter(models.Exists(
+        # return self.filter(problem_id=problem_id, status__in=['OK', 'TR']).filter(models.Exists(
         #     Credit.objects.filter(user_id=models.OuterRef('owner_id'),
         #                           course_id=models.OuterRef('problem__contest__course_id'),
         #                           score=Credit.DEFAULT_SCORE)
         # ))
-        return self.filter(problem_id=problem_id, status='OK').annotate(rollback=models.Exists(
+        return self.filter(problem_id=problem_id, status__in=['OK', 'TR']).annotate(rollback=models.Exists(
             Credit.objects.filter(user_id=models.OuterRef('owner_id'),
                                   course_id=models.OuterRef('problem__contest__course_id'),
                                   score=Credit.DEFAULT_SCORE)
