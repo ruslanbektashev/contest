@@ -4,6 +4,7 @@ import os
 import random
 import zipfile
 
+from ckeditor.fields import RichTextField
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -208,7 +209,7 @@ class Problem(CRUDEntry):
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
-    description = models.TextField(verbose_name="Описание")
+    description = RichTextField(verbose_name="Описание")
 
     number = models.PositiveSmallIntegerField(default=1, verbose_name="Номер")
     difficulty = models.PositiveSmallIntegerField(choices=DIFFICULTY_CHOICES, default=DEFAULT_DIFFICULTY, verbose_name="Сложность")

@@ -23,6 +23,7 @@
     {% csrf_token %}
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+    {{ form.media }}
     {% render_field form.title class+="form-control" %}
     {% render_field form.description class+="form-control" %}
     {% render_field form.difficulty class+="form-control selectpicker" %}
