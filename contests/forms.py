@@ -186,12 +186,14 @@ class AssignmentForm(forms.ModelForm):
         model = Assignment
         fields = ['user', 'problem', 'score', 'score_max', 'score_is_locked', 'submission_limit', 'remark']
 
-    def __init__(self, course, *args, contest=None, user=None, **kwargs):
+    def __init__(self, course, *args, contest=None, user=None, debts=False, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['user'].queryset = (User.objects
-                                        .filter(groups__name='Студент', account__enrolled=True,
-                                                account__level=course.level)
-                                        .order_by('last_name', 'first_name'))
+        if debts:
+            self.fields['user'].queryset = User.objects.filter(id__in=Account.students.enrolled()
+                                                               .debtors(course.level).values_list('user_id'))
+        else:
+            self.fields['user'].queryset = User.objects.filter(id__in=Account.students.enrolled()
+                                                               .filter(level=course.level).values_list('user_id'))
         if user:
             self.fields['user'].initial = user
         self.fields['problem'].choices = grouped_problems(course, contest)
