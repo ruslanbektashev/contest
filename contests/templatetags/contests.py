@@ -62,7 +62,7 @@ def render_assignment_user_table(context, assignments, credits):
 
 
 @register.inclusion_tag('contests/assignment/assignment_course_table.html')
-def render_assignment_course_table(course, students, assignments):
+def render_assignment_course_table(course, students, assignments, debts=False):
     table = []
     contests = course.contest_set.all()
     nassignments, ncontests = len(assignments), len(contests)
@@ -80,7 +80,8 @@ def render_assignment_course_table(course, students, assignments):
     context = {
         'course': course,
         'contests': contests,
-        'table': table
+        'table': table,
+        'debts': debts
     }
     return context
 

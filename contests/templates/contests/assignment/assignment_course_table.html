@@ -25,10 +25,10 @@
                         {{ assignment.problem.number }}<sup>{{ assignment.remark.0 }}</sup>
                     </a>
                     {% if forloop.last %}
-                    <a href="{% url 'contests:assignment-create' course.id %}?user_id={{ assignment.user_id }}&contest_id={{ assignment.problem.contest_id }}" class="numtus status-info pebble" title="Добавить задачу"><i class="fa fa-plus"></i></a>
+                    <a href="{% url 'contests:assignment-create' course.id %}?user_id={{ assignment.user_id }}&contest_id={{ assignment.problem.contest_id }}{% if debts %}&debts=1{% endif %}" class="numtus status-info pebble" title="Добавить задачу"><i class="fa fa-plus"></i></a>
                     {% endif %}
                     {% empty %}
-                    <a href="{% url 'contests:assignment-create' course.id %}?user_id={{ row.student.user_id }}&contest_id={{ col.contest.id }}" class="numtus status-info pebble" title="Добавить задачу"><i class="fa fa-plus"></i></a>
+                    <a href="{% url 'contests:assignment-create' course.id %}?user_id={{ row.student.user_id }}&contest_id={{ col.contest.id }}{% if debts %}&debts=1{% endif %}" class="numtus status-info pebble" title="Добавить задачу"><i class="fa fa-plus"></i></a>
                     {% endfor %}
                 </td>
                 {% endfor %}

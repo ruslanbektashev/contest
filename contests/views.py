@@ -754,6 +754,7 @@ class AssignmentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        self.storage['debts'] = bool(request.GET.get('debts'))
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
@@ -778,7 +779,10 @@ class AssignmentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return context
 
     def get_success_url(self):
-        return reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
+        url = reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
+        if self.storage['debts']:
+            url = url + "?debts=1"
+        return url
 
 
 class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
@@ -792,6 +796,7 @@ class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        self.storage['debts'] = bool(request.GET.get('debts'))
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -803,7 +808,7 @@ class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
         form = self.get_form()
         if form.is_valid():
             Assignment.objects.create_random_set(request.user, form.cleaned_data['contest'],
-                                                 form.cleaned_data['limit_per_user'])
+                                                 form.cleaned_data['limit_per_user'], self.storage['debts'])
             return self.form_valid(form)
         return self.form_invalid(form)
 
@@ -813,7 +818,10 @@ class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
         return context
 
     def get_success_url(self):
-        return reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
+        url = reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
+        if self.storage['debts']:
+            url = url + "?debts=1"
+        return url
 
 
 class AssignmentUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
@@ -874,7 +882,7 @@ class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        self.storage['debts'] = request.GET.get('debts')
+        self.storage['debts'] = bool(request.GET.get('debts'))
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
