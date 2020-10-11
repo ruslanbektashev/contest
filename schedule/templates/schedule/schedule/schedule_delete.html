@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load views forms %}
+
+{% block title %}
+Расписание
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Расписание" 'schedule:schedule-list' %}
+{% breadcrumb schedule schedule %}
+{% breadcrumb "Удаление" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Удаление расписания</legend>
+{% render_delete_form schedule %}
+{% endblock content %}

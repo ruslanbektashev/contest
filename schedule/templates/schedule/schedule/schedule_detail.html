@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load views %}
+
+{% block title %}
+Расписание
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Расписание" 'schedule:schedule-list' %}
+{% breadcrumb schedule %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Расписание: {{ schedule }}</legend>
+{% render_list schedule.scheduleattachment_set.all %}
+{% endblock content %}
+
+{% block submenu %}
+<div class="list-group mb-3">
+    {% if perms.schedule.delete_schedule %}
+    <a href="{% url 'schedule:schedule-delete' schedule.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить расписание</a>
+    {% endif %}
+</div>
+{% endblock submenu %}

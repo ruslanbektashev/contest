@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load views %}
+
+{% block title %}
+Расписание
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Расписание" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Расписание</legend>
+{% render_list schedules %}
+{% endblock content %}
+
+{% block submenu %}
+<div class="list-group mb-3">
+    {% if perms.schedule.add_schedule %}
+    <a href="{% url 'schedule:schedule-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить расписание</a>
+    {% endif %}
+</div>
+{% endblock submenu %}
