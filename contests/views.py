@@ -781,7 +781,7 @@ class AssignmentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     def get_success_url(self):
         url = reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
         if self.storage['debts']:
-            url = url + "?debts=1"
+            url += "?debts=1"
         return url
 
 
@@ -820,7 +820,7 @@ class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
     def get_success_url(self):
         url = reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
         if self.storage['debts']:
-            url = url + "?debts=1"
+            url += "?debts=1"
         return url
 
 
