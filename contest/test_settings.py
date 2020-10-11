@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'pagedown',
     'accounts',
     'contests',
+    'schedule',
     'support',
     'ckeditor',
     'ckeditor_uploader',
