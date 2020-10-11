@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'contests',
     'support',
     'ckeditor',
+    'ckeditor_uploader',
 ]
 
 MIDDLEWARE = [
@@ -110,14 +111,14 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'contest/static/'),
 ]
 
+CKEDITOR_UPLOAD_PATH = 'uploads/'
+CKEDITOR_ALLOW_NONIMAGE_FILES = False
+
 CKEDITOR_CONFIGS = {
     'default': {
         'skin': 'moono-lisa',
-        'toolbar_Basic': [
-            ['Bold', 'Italic']
-        ],
-        'toolbar_YourCustomToolbarConfig': [
-            {'name': 'clipboard', 'items': [ 'Undo', 'Redo', '-', 'Cut', 'Copy', 'PasteText']},
+        'toolbar_CustomToolbarConfig': [
+            {'name': 'clipboard', 'items': ['Undo', 'Redo', '-', 'Cut', 'Copy', 'Paste']},
             {'name': 'basicstyles',
              'items': ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat']},
             {'name': 'paragraph',
@@ -125,40 +126,29 @@ CKEDITOR_CONFIGS = {
                        'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
             {'name': 'links', 'items': ['Link', 'Unlink']},
             {'name': 'insert',
-             'items': ['Table', 'HorizontalRule', 'PageBreak']},
+             'items': ['Image', 'Table', 'HorizontalRule', 'PageBreak']},
             {'name': 'styles', 'items': ['Format', 'Font', 'FontSize']},
-            {'name': 'yourcustomtools', 'items': [
+            {'items': [
                 # put the name of your editor.ui.addButton here
                 'Maximize',
-                'MathematicalFormulas'
             ]},
         ],
-        'toolbar': 'YourCustomToolbarConfig',  # put selected toolbar config here
-        # 'toolbarGroups': [{ 'name': 'document', 'groups': [ 'mode', 'document', 'doctools' ] }],
-        # 'height': 291,
+        'toolbar': 'CustomToolbarConfig',  # put selected toolbar config here
         'width': '100%',
-        # 'filebrowserWindowHeight': 725,
-        # 'filebrowserWindowWidth': 940,
-        # 'toolbarCanCollapse': True,
-        'mathJaxLib': '//cdn.mathjax.org/mathjax/2.2-latest/MathJax.js?config=TeX-AMS_HTML',
         'tabSpaces': 4,
         'extraPlugins': ','.join([
-            'uploadimage', # the upload image feature
+            'uploadimage',  # the upload image feature
             # your extra plugins here
             'autolink',
             'autoembed',
             'embedsemantic',
             'autogrow',
-            # 'devtools',
-            'widget',
             'lineutils',
             'clipboard',
-            'dialog',
-            'dialogui',
             'elementspath',
             'pastefromword',
-            'tabletools',
             'mathjax',
+            'table',
         ]),
     }
 }
