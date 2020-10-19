@@ -134,5 +134,11 @@ urlpatterns = [
         path('schedule',
              views.EventSchedule.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),
              name='event-schedule')
-    ]))
+    ])),
+    path('contest/<int:contest_id>/testsuite/create', views.TestSuiteCreate.as_view(), name='testsuite-create'),
+    path('testsuite/', include([
+        path('<int:pk>/', include([
+            path('', views.TestSuiteDetail.as_view(), name='testsuite-detail'),
+        ]))
+    ])),
 ]

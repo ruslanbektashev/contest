@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericStackedInline
 
 from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, UTTest, FNTest,
-                             Assignment, Submission, Execution, Tag, Event)
+                             Assignment, Submission, Execution, Tag, Event, Test, TestSuite)
 
 
 class AttachmentInline(GenericStackedInline):
@@ -278,6 +278,52 @@ class EventAdmin(admin.ModelAdmin):
         }),
         ('Даты', {
             'fields': ('date_start', 'date_end', 'date_updated', 'date_created')
+        })
+    )
+    readonly_fields = ('date_updated', 'date_created')
+
+
+@admin.register(Test)
+class TestAdmin(admin.ModelAdmin):
+    list_display = (
+        '__str__',
+    )
+    search_fields = ('title',)
+    fieldsets = (
+        ('Ссылки', {
+            'fields': ('owner', 'testsuite')
+        }),
+        ('Детали', {
+            'fields': (
+                'question',
+                'right_answer',
+            )
+        }),
+        ('Даты', {
+            'fields': ('date_updated', 'date_created')
+        })
+    )
+    readonly_fields = ('date_updated', 'date_created')
+
+
+@admin.register(TestSuite)
+class TestAdmin(admin.ModelAdmin):
+    list_display = (
+        '__str__',
+    )
+    search_fields = ('title',)
+    fieldsets = (
+        ('Ссылки', {
+            'fields': ('owner',)
+        }),
+        ('Детали', {
+            'fields': (
+                'title',
+                'description',
+            )
+        }),
+        ('Даты', {
+            'fields': ('date_updated', 'date_created')
         })
     )
     readonly_fields = ('date_updated', 'date_created')

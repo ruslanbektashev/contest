@@ -55,6 +55,7 @@
 <div class="list-group mb-3">
     {% if perms.contests.add_problem %}
     <a href="{% url 'contests:problem-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить задачу</a>
+    <a href="{% url 'contests:testsuite-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить набор тестов</a>
     {% endif %}
 </div>
 {% endblock submenu %}

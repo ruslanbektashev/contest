@@ -754,3 +754,34 @@ class Event(CRUDEntry):
 
     def __str__(self):
         return "%s: %s" % (self.get_type_display(), self.title)
+
+
+"""=================================================== TestSuite ===================================================="""
+
+
+class TestSuite(CRUDEntry):
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
+    title = models.CharField(max_length=100, verbose_name="Заголовок")
+    description = RichTextUploadingField(verbose_name="Описание")
+
+    class Meta(CRUDEntry.Meta):
+        verbose_name = "Набор тестов"
+        verbose_name_plural = "Наборы тестов"
+
+    def __str__(self):
+        return self.title
+
+
+class Test(CRUDEntry):
+    owner = None
+    question = RichTextUploadingField(verbose_name="Вопрос")
+    right_answer = models.TextField(verbose_name="Правильный ответ")
+
+    testsuite = models.ForeignKey(TestSuite, on_delete=models.CASCADE, verbose_name="Набор тестов")
+
+    class Meta(CRUDEntry.Meta):
+        verbose_name = "Тест"
+        verbose_name_plural = "Тесты"
+
+    def __str__(self):
+        return self.question

@@ -1,3 +1,4 @@
+from django.forms import inlineformset_factory
 from pygments import highlight
 from pygments.lexers import CppLexer
 from pygments.formatters import HtmlFormatter
@@ -19,9 +20,9 @@ from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectO
                             PaginatorMixin)
 from contests.forms import (CreditSetForm, ContestForm, ProblemForm, SolutionForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
-                            AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
+                            AssignmentSetForm, EventForm, ProblemRollbackResultsForm, TestSuiteForm, TestForm)
 from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, UTTest, FNTest,
-                             Assignment, Submission, Execution, Event)
+                             Assignment, Submission, Execution, Event, TestSuite, Test)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 
@@ -1248,3 +1249,59 @@ def index(request):
         return render(request, 'contests/index.html', {'courses': Course.objects.all()})
     else:
         return redirect(reverse('contests:assignment-list'))
+
+
+"""=================================================== TestSuite ===================================================="""
+
+
+class TestSuiteDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
+    model = TestSuite
+    template_name = 'contests/testsuite/testsuite_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tests'] = self.object.test_set.all()
+        return context
+
+
+class TestSuiteCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+    model = TestSuite
+    form_class = TestSuiteForm
+    template_name = 'contests/testsuite/testsuite_form.html'
+    permission_required = 'contests.add_problem'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
+        forms_num = 2
+        TestInlineFormSet = inlineformset_factory(TestSuite, Test,
+                                                  form=TestForm, fields=('question', 'right_answer'),
+                                                  extra=forms_num,
+                                                  min_num=forms_num, validate_min=True,
+                                                  max_num=forms_num, validate_max=True)
+        inlineformset_kwargs = {'initial': []}
+        if self.request.method in ('POST', 'PUT'):
+            inlineformset_kwargs.update({'data': self.request.POST})
+        self.storage['test_formset'] = TestInlineFormSet(**inlineformset_kwargs)
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        test_formset = self.storage['test_formset']
+        if test_formset.is_valid():
+            form.instance.owner = self.request.user
+            form.instance.contest = self.storage['contest']
+            self.object = form.save()
+            test_formset.instance = self.object
+            test_formset.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return self.form_invalid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['contest'] = self.storage['contest']
+        context['test_formset'] = self.storage['test_formset']
+        return context
