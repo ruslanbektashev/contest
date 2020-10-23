@@ -87,5 +87,5 @@ class ScheduleAttachmentDetail(LoginRedirectMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         self.object.file.open(mode='r')
-        context['sheet'] = str(self.object.file.read()).replace('</style>', '\ntd { overflow-x: hidden; }</style>')
+        context['sheet'] = str(self.object.file.read()).replace('</style>', '\ntd { overflow: hidden; }</style>')
         return context

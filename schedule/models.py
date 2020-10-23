@@ -31,6 +31,14 @@ class Schedule(CRUDEntry):
         verbose_name = "Расписание"
         verbose_name_plural = "Расписания"
 
+    def is_current(self):
+        today = timezone.now().date()
+        return self.date_from <= today and today <= self.date_to
+
+    def is_upcoming(self):
+        today = timezone.now().date()
+        return today < self.date_from
+
     def __str__(self):
         return "{} - {}".format(date(self.date_from, 'd E Y'), date(self.date_to, 'd E Y'))
 
