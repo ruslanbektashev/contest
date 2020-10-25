@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'support',
     'ckeditor',
     'ckeditor_uploader',
+    'gm2m',
 ]
 
 MIDDLEWARE = [
