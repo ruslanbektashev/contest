@@ -773,11 +773,10 @@ class TestSuite(CRUDEntry):
 
 
 class Test(CRUDEntry):
+    testsuite = models.ForeignKey(TestSuite, on_delete=models.CASCADE, verbose_name="Набор тестов")
     owner = None
     question = RichTextUploadingField(verbose_name="Вопрос")
-    right_answer = models.TextField(verbose_name="Правильный ответ")
-
-    testsuite = models.ForeignKey(TestSuite, on_delete=models.CASCADE, verbose_name="Набор тестов")
+    right_answer = models.CharField(max_length=250, verbose_name="Правильный ответ")
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Тест"
