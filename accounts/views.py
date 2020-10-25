@@ -6,6 +6,7 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView, TemplateView
 from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
+from django.contrib.contenttypes.models import ContentType
 from markdown import markdown
 
 from accounts.templatetags.comments import get_comment_query_string
@@ -14,8 +15,54 @@ from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectO
 from accounts.forms import (AccountPartialForm, AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm,
                             CommentForm)
 from accounts.models import Account, Activity, Comment, Message, Chat, Announcement
+from contests.models import Contest, Problem, Assignment, Submission
 
 """==================================================== Account ====================================================="""
+
+
+def get_nested_objects_for_course(course):
+    nested_objects = set()
+    contests = Contest.objects.filter(course=course)
+    problems = Problem.objects.filter(contest__in=contests)
+    assignments = Assignment.objects.filter(problem__in=problems)
+    submissions = Submission.objects.filter(problem__in=problems)
+    nested_objects.update(contests, problems, assignments, submissions)
+    return nested_objects
+
+
+def subscribe(request, pk, object_model, object_id):
+    account = Account.objects.get(user_id=pk)
+    obj = ContentType.objects.get(app_label='contests', model=object_model).get_object_for_this_type(id=object_id)
+
+    account.subscriptions.add(obj)
+    if object_model == 'course':
+        for nested_object in get_nested_objects_for_course(obj):
+            if nested_object not in account.subscriptions.all():
+                account.subscriptions.add(nested_object)
+
+    return HttpResponseRedirect(
+        reverse(
+            'contests:{object_type}-detail'.format(object_type=obj._meta.model_name),
+            kwargs={'pk': obj.pk}
+        )
+    )
+
+
+def unsubscribe(request, pk, object_model, object_id):
+    account = Account.objects.get(user_id=pk)
+    obj = ContentType.objects.get(app_label='contests', model=object_model).get_object_for_this_type(id=object_id)
+
+    account.subscriptions.remove(obj)
+    if object_model == 'course':
+        for nested_object in get_nested_objects_for_course(obj):
+            account.subscriptions.remove(nested_object)
+
+    return HttpResponseRedirect(
+        reverse(
+            'contests:{object_type}-detail'.format(object_type=obj._meta.model_name),
+            kwargs={'pk': obj.pk}
+        )
+    )
 
 
 class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):

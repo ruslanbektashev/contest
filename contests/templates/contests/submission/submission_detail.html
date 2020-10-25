@@ -78,6 +78,13 @@
     {% endif %}
 </div>
 <div class="list-group mb-3">
+    {% if request.user.account.type == 3 %}
+        {% if submission in request.user.account.subscriptions.all %}
+            <a href="{% url 'accounts:account-unsubscribe' request.user.id 'submission' submission.id %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к посылке"><i class="fa fa-bell-slash fa-fw"></i> Отписаться</a>
+        {% else %}
+            <a href="{% url 'accounts:account-subscribe' request.user.id 'submission' submission.id %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к посылке"><i class="fa fa-bell fa-fw"></i> Подписаться</a>
+        {% endif %}
+    {% endif %}
     {% if perms.contests.delete_submission %}
     <a href="{% url 'contests:submission-delete' submission.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить посылку</a>
     {% endif %}

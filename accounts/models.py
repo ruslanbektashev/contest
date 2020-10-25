@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User, Group
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from gm2m import GM2MField
+from gm2m.deletion import DO_NOTHING
 from django.db import models
 from django.db.transaction import atomic
 from django.urls import reverse
@@ -128,6 +130,11 @@ class Account(models.Model):
 
     objects = models.Manager()
     students = StudentManager.from_queryset(StudentQuerySet)()
+
+    subscriptions = GM2MField('contests.Course', 'contests.Contest', 'contests.Problem',
+                              'contests.Assignment', 'contests.Submission',
+                              related_name='subscribers',
+                              on_delete=DO_NOTHING)
 
     class Meta:
         ordering = ('user__last_name', 'user__first_name', 'user_id')
@@ -401,6 +408,15 @@ class Comment(models.Model):
 
     def is_repliable(self):
         return self.level < self.MAX_LEVEL
+
+    def get_absolute_url(self):
+        return reverse(
+            'contests:{object_type}-{view_name}'.format(
+                object_type=self.object_type.model,
+                view_name='detail' if self.object_type.model == 'submission' else 'discussion'
+            ),
+            kwargs={'pk': self.object_id}
+        ) + '#comment_{comment_id}'.format(comment_id=self.pk)
 
     def __str__(self):
         return "Комментарий {}".format(self.pk)
