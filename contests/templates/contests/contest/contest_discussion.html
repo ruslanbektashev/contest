@@ -46,6 +46,13 @@
 
 {% block submenu %}
 <div class="list-group mb-3">
+    {% if request.user.account.type == 3 %}
+        {% if contest in request.user.account.subscriptions.all %}
+            <a href="{% url 'accounts:account-unsubscribe' request.user.id 'contest' contest.id %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к разделу"><i class="fa fa-bell-slash fa-fw"></i> Отписаться</a>
+        {% else %}
+            <a href="{% url 'accounts:account-subscribe' request.user.id 'contest' contest.id %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к разделу"><i class="fa fa-bell fa-fw"></i> Подписаться</a>
+        {% endif %}
+    {% endif %}
     {% if perms.contests.change_contest %}
     <a href="{% url 'contests:contest-update' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать раздел</a>
     {% endif %}
