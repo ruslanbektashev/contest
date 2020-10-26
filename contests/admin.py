@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericStackedInline
 
 from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, UTTest, FNTest,
-                             Assignment, Submission, Execution, Tag, Event, Test, TestSuite)
+                             Assignment, Submission, Execution, Tag, Event, Test, TestSuite, TestSubmission,
+                             TestSuiteSubmission)
 
 
 class AttachmentInline(GenericStackedInline):
@@ -307,7 +308,7 @@ class TestAdmin(admin.ModelAdmin):
 
 
 @admin.register(TestSuite)
-class TestAdmin(admin.ModelAdmin):
+class TestSuiteAdmin(admin.ModelAdmin):
     list_display = (
         '__str__',
     )
@@ -321,6 +322,41 @@ class TestAdmin(admin.ModelAdmin):
                 'title',
                 'description',
             )
+        }),
+        ('Даты', {
+            'fields': ('date_updated', 'date_created')
+        })
+    )
+    readonly_fields = ('date_updated', 'date_created')
+
+
+@admin.register(TestSubmission)
+class TestSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'answer', 'testsuitesubmission')
+    search_fields = ('answer',)
+    fieldsets = (
+        ('Ссылки', {
+            'fields': ('testsuitesubmission', )
+        }),
+        ('Детали', {
+            'fields': (
+                'answer',
+            )
+        }),
+        ('Даты', {
+            'fields': ('date_updated', 'date_created')
+        })
+    )
+    readonly_fields = ('date_updated', 'date_created')
+
+
+@admin.register(TestSuiteSubmission)
+class TestSuiteSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'testsuite')
+    search_fields = ()
+    fieldsets = (
+        ('Ссылки', {
+            'fields': ('owner', 'testsuite',)
         }),
         ('Даты', {
             'fields': ('date_updated', 'date_created')

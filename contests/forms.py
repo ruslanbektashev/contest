@@ -10,7 +10,7 @@ from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
 from contests.models import Attachment, Contest, Problem, Solution, UTTest, FNTest, Assignment, Submission, Event, \
-    TestSuite, Test
+    TestSuite, Test, TestSuiteSubmission, TestSubmission
 
 
 class UserChoiceField(forms.ModelChoiceField):
@@ -362,3 +362,18 @@ class TestForm(forms.ModelForm):
     class Meta:
         model = Test
         fields = ['question', 'right_answer']
+
+
+"""============================================== TestSuiteSubmission ==============================================="""
+
+
+class TestSuiteSubmissionForm(forms.ModelForm):
+    class Meta:
+        model = TestSuiteSubmission
+        fields = []
+
+
+class TestSubmissionForm(forms.ModelForm):
+    class Meta:
+        model = TestSubmission
+        fields = ['answer']

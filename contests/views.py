@@ -20,9 +20,11 @@ from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectO
                             PaginatorMixin)
 from contests.forms import (CreditSetForm, ContestForm, ProblemForm, SolutionForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
-                            AssignmentSetForm, EventForm, ProblemRollbackResultsForm, TestSuiteForm, TestForm)
+                            AssignmentSetForm, EventForm, ProblemRollbackResultsForm, TestSuiteForm, TestForm,
+                            TestSubmissionForm, TestSuiteSubmissionForm)
 from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, UTTest, FNTest,
-                             Assignment, Submission, Execution, Event, TestSuite, Test)
+                             Assignment, Submission, Execution, Event, TestSuite, Test, TestSuiteSubmission,
+                             TestSubmission)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 
@@ -1276,7 +1278,7 @@ class TestSuiteCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
-        forms_num = 2
+        forms_num = 3
         TestInlineFormSet = inlineformset_factory(TestSuite, Test,
                                                   form=TestForm, fields=('question', 'right_answer'),
                                                   extra=forms_num,
@@ -1304,4 +1306,69 @@ class TestSuiteCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['contest'] = self.storage['contest']
         context['test_formset'] = self.storage['test_formset']
+        return context
+
+
+class TestSuiteUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+    model = TestSuite
+    form_class = TestSuiteForm
+    template_name = 'contests/testsuite/testsuite_form.html'
+    permission_required = 'contests.change_problem'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['contest'] = self.object.contest
+        return context
+
+
+"""============================================== TestSuiteSubmission ==============================================="""
+
+
+class TestSuiteSubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+    model = TestSuiteSubmission
+    form_class = TestSuiteSubmissionForm
+    template_name = 'contests/testsuitesubmission/testsuitesubmission_form.html'
+    permission_required = 'contests.add_submission'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['testsuite'] = get_object_or_404(TestSuite, id=kwargs.pop('testsuite_id'))
+
+        test_set = self.storage['testsuite'].test_set.all()
+        forms_num = len(test_set)
+        TestSubmissionInlineFormSet = inlineformset_factory(TestSuiteSubmission, TestSubmission,
+                                                            form=TestSubmissionForm, fields=('answer',),
+                                                            extra=forms_num,
+                                                            min_num=forms_num, validate_min=True,
+                                                            max_num=forms_num, validate_max=True)
+        inlineformset_kwargs = {'initial': []}
+        if self.request.method in ('POST', 'PUT'):
+            inlineformset_kwargs.update({'data': self.request.POST})
+
+        self.storage['testsubmission_formset'] = TestSubmissionInlineFormSet(**inlineformset_kwargs)
+
+        # !!!
+        self.storage['testsubmission_pairs'] = zip(test_set, self.storage['testsubmission_formset'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        testsubmission_formset = self.storage['testsubmission_formset']
+        if testsubmission_formset.is_valid():
+            form.instance.owner = self.request.user
+            form.instance.testsuite = self.storage['testsuite']
+            self.object = form.save()
+            testsubmission_formset.instance = self.object
+            testsubmission_formset.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return self.form_invalid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['testsuite'] = self.storage['testsuite']
+        context['testsubmission_formset'] = self.storage['testsubmission_formset']
+        context['testsubmission_pairs'] = self.storage['testsubmission_pairs']
         return context

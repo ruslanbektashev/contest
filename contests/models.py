@@ -777,6 +777,7 @@ class Test(CRUDEntry):
     owner = None
     question = RichTextUploadingField(verbose_name="Вопрос")
     right_answer = models.CharField(max_length=250, verbose_name="Правильный ответ")
+    # number = models.PositiveSmallIntegerField(verbose_name="Номер")
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Тест"
@@ -784,3 +785,31 @@ class Test(CRUDEntry):
 
     def __str__(self):
         return self.question
+
+
+"""============================================== TestSuiteSubmission ==============================================="""
+
+
+class TestSuiteSubmission(CRUDEntry):
+    testsuite = models.ForeignKey(TestSuite, on_delete=models.CASCADE, verbose_name="Набор тестов")
+
+    class Meta(CRUDEntry.Meta):
+        verbose_name = "Решение набора тестов"
+        verbose_name_plural = "Решения наборов тестов"
+
+    def __str__(self):
+        return "Решение набора тестов " + str(self.id)
+
+
+class TestSubmission(CRUDEntry):
+    testsuitesubmission = models.ForeignKey(TestSuiteSubmission, on_delete=models.CASCADE, verbose_name="Решение набора тестов")
+    answer = models.CharField(max_length=250, verbose_name="Ответ")
+    # number = models.PositiveSmallIntegerField(verbose_name="Номер")
+    owner = None
+
+    class Meta(CRUDEntry.Meta):
+        verbose_name = "Ответ на тест"
+        verbose_name_plural = "Ответы на тесты"
+
+    def __str__(self):
+        return "Ответ на тест " + str(self.id)

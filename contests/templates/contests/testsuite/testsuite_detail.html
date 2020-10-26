@@ -14,12 +14,23 @@
 
 {% block content %}
 <legend>{{ testsuite }}</legend>
+<p>{{ testsuite.description|markdown|safe }}</p>
 {% for test in tests %}
 {{ test.question|markdown|safe }}
 {% endfor %}
 {% endblock content %}
 
 {% block submenu %}
+<div class="list-group mb-3">
+    {% if perms.contests.change_problem %}
+    <a href="{% url 'contests:testsuite-update' testsuite.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать набор тестов</a>
+    {% endif %}
+</div>
+<div class="list-group mb-3">
+    {% if perms.contests.add_submission %}
+    <a href="{% url 'contests:testsuitesubmission-create' testsuite.id %}" class="btn btn-info btn-block"><i class="fa fa-file-code-o fa-fw"></i> Решить тест</a>
+    {% endif %}
+</div>
 {% endblock submenu %}
 
 {% block javascript %}
