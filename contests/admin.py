@@ -292,13 +292,10 @@ class TestAdmin(admin.ModelAdmin):
     search_fields = ('title',)
     fieldsets = (
         ('Ссылки', {
-            'fields': ('owner', 'testsuite')
+            'fields': ('testsuite',)
         }),
         ('Детали', {
-            'fields': (
-                'question',
-                'right_answer',
-            )
+            'fields': ('number', 'question', 'right_answer')
         }),
         ('Даты', {
             'fields': ('date_updated', 'date_created')
@@ -318,10 +315,7 @@ class TestSuiteAdmin(admin.ModelAdmin):
             'fields': ('owner',)
         }),
         ('Детали', {
-            'fields': (
-                'title',
-                'description',
-            )
+            'fields': ('title', 'description')
         }),
         ('Даты', {
             'fields': ('date_updated', 'date_created')
@@ -339,9 +333,7 @@ class TestSubmissionAdmin(admin.ModelAdmin):
             'fields': ('testsuitesubmission', )
         }),
         ('Детали', {
-            'fields': (
-                'answer',
-            )
+            'fields': ('number', 'answer', 'status')
         }),
         ('Даты', {
             'fields': ('date_updated', 'date_created')

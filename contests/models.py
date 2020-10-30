@@ -768,20 +768,42 @@ class TestSuite(CRUDEntry):
         verbose_name = "Набор тестов"
         verbose_name_plural = "Наборы тестов"
 
+    def test(self, submission, observer):
+        state, executions = Status.UN, []
+        for test in self.get_tests():
+            stats = {}
+            try:
+                state, stats = test.run(submission.files, observer, self)
+            except Exception as e:
+                state, stats['exception'] = Status.EX, str(e)
+            executions.append((test, stats))
+            if state != Status.OK:
+                break
+        Execution.objects.create_set(submission, executions)
+        return state
+
     def __str__(self):
         return self.title
 
 
 class Test(CRUDEntry):
-    testsuite = models.ForeignKey(TestSuite, on_delete=models.CASCADE, verbose_name="Набор тестов")
     owner = None
+
+    testsuite = models.ForeignKey(TestSuite, on_delete=models.CASCADE, verbose_name="Набор тестов")
+
+    number = models.PositiveSmallIntegerField(default=1, verbose_name="Номер")
     question = RichTextUploadingField(verbose_name="Вопрос")
     right_answer = models.CharField(max_length=250, verbose_name="Правильный ответ")
-    # number = models.PositiveSmallIntegerField(verbose_name="Номер")
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Тест"
         verbose_name_plural = "Тесты"
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:  # ???
+            max_number = Test.objects.filter(testsuite=self.testsuite).aggregate(models.Max('number')).get('number__max', 0) or 0
+            self.number = max_number + 1
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.question
@@ -802,14 +824,38 @@ class TestSuiteSubmission(CRUDEntry):
 
 
 class TestSubmission(CRUDEntry):
-    testsuitesubmission = models.ForeignKey(TestSuiteSubmission, on_delete=models.CASCADE, verbose_name="Решение набора тестов")
-    answer = models.CharField(max_length=250, verbose_name="Ответ")
-    # number = models.PositiveSmallIntegerField(verbose_name="Номер")
+    STATUS_CHOICES = (
+        ('OK', "Верный ответ"),
+        ('WA', "Неверный ответ"),
+        ('UN', "Не проверено")
+    )
+    DEFAULT_STATUS = 'UN'
+
     owner = None
+    testsuitesubmission = models.ForeignKey(TestSuiteSubmission, on_delete=models.CASCADE, verbose_name="Решение набора тестов")
+
+    number = models.PositiveSmallIntegerField(default=1, verbose_name="Номер")
+    answer = models.CharField(max_length=250, verbose_name="Ответ")
+    status = models.CharField(max_length=2, choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Ответ на тест"
         verbose_name_plural = "Ответы на тесты"
+
+    def test(self):
+        test: Test = self.testsuitesubmission.testsuite.test_set.get(number=self.number)
+        if self.answer == test.right_answer:
+            return 'OK'
+        else:
+            return 'WA'
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:  # ???
+            max_number = TestSubmission.objects.filter(testsuitesubmission=self.testsuitesubmission).aggregate(models.Max('number')).get('number__max', 0) or 0
+            self.number = max_number + 1
+
+        self.status = self.test()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return "Ответ на тест " + str(self.id)
