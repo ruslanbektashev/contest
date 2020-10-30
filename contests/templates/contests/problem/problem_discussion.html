@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views accounts contests comments markdown static %}
+{% load views contests comments markdown static %}
 
 {% block title %}
 Задача
@@ -37,15 +37,15 @@
     {% endif %}
     <li class="nav-item">
         {% with problem.comment_set.actual.count as comments_count %}
-        {% get_unread_comments_number comments_count request.user.account.user_id 'problem' problem.id as unread_comments_count %}
+{#        {% get_unread_comments_number comments_count request.user.account.user_id 'problem' problem.id as unread_comments_count %}#}
         <a aria-controls="discussion" aria-selected="true" class="nav-link active" data-toggle="tab" href="#discussion" id="discussion-tab" role="tab">
-            Обсуждение{% if unread_comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ unread_comments_count }}</span>{% endif %}
+            Обсуждение{% if comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ comments_count }}</span>{% endif %}
         </a>
         {% endwith %}
     </li>
 </ul>
 <div class="tab-content">
-    {% mark_comments_as_read request request.user.account.user_id 'problem' problem.id as comments_read %}
+{#    {% mark_comments_as_read request request.user.account.user_id 'problem' problem.id as comments_read %}#}
     <div aria-labelledby="description-tab" class="tab-pane fade" id="description" role="tabpanel">
         <p>{{ problem.description|markdown|safe }}</p>
         <table class="table table-sm">

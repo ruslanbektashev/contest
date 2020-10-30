@@ -47,13 +47,6 @@ def unsubscribe(request, pk, object_model, object_id):
     )
 
 
-def comments_read(request, pk, object_model, object_id):
-    account = Account.objects.get(user_id=pk)
-    obj = ContentType.objects.get(app_label='contests', model=object_model).get_object_for_this_type(id=object_id)
-    for comment in obj.comment_set.all():
-        account.comments_read.add(comment)
-
-
 class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
     model = Account
     template_name = 'accounts/account/account_detail.html'
