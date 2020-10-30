@@ -23,7 +23,7 @@
     </li>
     <li class="nav-item">
         {% with course.comment_set.actual.count as comments_count %}
-        {% get_unread_comments_number comments_count request.user.id 'course' course.id as unread_comments_count %}
+        {% get_unread_comments_number comments_count request.user.account.user_id 'course' course.id as unread_comments_count %}
         <a aria-controls="discussion" aria-selected="true" class="nav-link active" data-toggle="tab" href="#discussion" id="discussion-tab" role="tab">
             Обсуждение{% if unread_comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ unread_comments_count }}</span>{% endif %}
         </a>
@@ -31,7 +31,7 @@
     </li>
 </ul>
 <div class="tab-content">
-    {% mark_comments_as_read request request.user.id 'course' course.id as comments_read %}
+    {% mark_comments_as_read request request.user.account.user_id 'course' course.id as comments_read %}
     <div aria-labelledby="description-tab" class="tab-pane fade " id="description" role="tabpanel">
         <p>{{ course.description|markdown|safe }}</p>
     </div>
@@ -56,9 +56,9 @@
 <div class="list-group mb-3">
     {% if request.user.account.type == 3 %}
         {% if course in request.user.account.subscriptions.all %}
-            <a href="{% url 'accounts:account-unsubscribe' request.user.id 'course' course.id %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к курсу и всем вложенным сущностям"><i class="fa fa-bell-slash fa-fw"></i> Отписаться</a>
+            <a href="{% url 'accounts:account-unsubscribe' request.user.account.user_id 'course' course.id %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к курсу и всем вложенным сущностям"><i class="fa fa-bell-slash fa-fw"></i> Отписаться</a>
         {% else %}
-            <a href="{% url 'accounts:account-subscribe' request.user.id 'course' course.id %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к курсу и всем вложенным сущностям"><i class="fa fa-bell fa-fw"></i> Подписаться</a>
+            <a href="{% url 'accounts:account-subscribe' request.user.account.user_id 'course' course.id %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к курсу и всем вложенным сущностям"><i class="fa fa-bell fa-fw"></i> Подписаться</a>
         {% endif %}
     {% endif %}
     {% if perms.contests.change_course %}
