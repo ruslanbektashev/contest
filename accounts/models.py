@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User, Group
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from gm2m import GM2MField
 from gm2m.deletion import DO_NOTHING
@@ -131,10 +131,8 @@ class Account(models.Model):
     objects = models.Manager()
     students = StudentManager.from_queryset(StudentQuerySet)()
 
-    subscriptions = GM2MField('contests.Course', 'contests.Contest', 'contests.Problem',
-                              'contests.Assignment', 'contests.Submission',
-                              related_name='subscribers',
-                              on_delete=DO_NOTHING)
+    subscriptions = GM2MField(on_delete=DO_NOTHING)
+    comments_read = models.ManyToManyField('Comment')
 
     class Meta:
         ordering = ('user__last_name', 'user__first_name', 'user_id')

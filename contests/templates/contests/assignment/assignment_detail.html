@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views contests %}
+{% load views accounts contests %}
 
 {% block title %}
 Задание
@@ -25,8 +25,9 @@
     </li>
     <li class="nav-item">
         {% with assignment.comment_set.actual.count as comments_count %}
+        {% get_unread_comments_number comments_count request.user.id 'assignment' assignment.id as unread_comments_count %}
         <a class="nav-link" href="{% url 'contests:assignment-discussion' assignment.id %}" id="discussion-tab" role="tab">
-            Обсуждение{% if comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ comments_count }}</span>{% endif %}
+            Обсуждение{% if unread_comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ unread_comments_count }}</span>{% endif %}
         </a>
         {% endwith %}
     </li>
@@ -58,13 +59,6 @@
 
 {% block submenu %}
 <div class="list-group mb-3">
-    {% if request.user.account.type == 3 %}
-        {% if assignment in request.user.account.subscriptions.all %}
-            <a href="{% url 'accounts:account-unsubscribe' request.user.id 'assignment' assignment.id %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к заданию"><i class="fa fa-bell-slash fa-fw"></i> Отписаться</a>
-        {% else %}
-            <a href="{% url 'accounts:account-subscribe' request.user.id 'assignment' assignment.id %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к заданию"><i class="fa fa-bell fa-fw"></i> Подписаться</a>
-        {% endif %}
-    {% endif %}
     {% if perms.contests.change_assignment %}
     <a href="{% url 'contests:assignment-update' assignment.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать задание</a>
     {% endif %}
