@@ -15,8 +15,10 @@
 {% block content %}
 <legend>{{ testsuite }}</legend>
 <p>{{ testsuite.description|markdown|safe }}</p>
+<hr class="mt-4 mb-4">
 {% for test in tests %}
-{{ test.question|markdown|safe }}
+<h5>{{ test.number }}</h5>
+<p>{{ test.question|markdown|safe }}</p>
 {% endfor %}
 {% endblock content %}
 

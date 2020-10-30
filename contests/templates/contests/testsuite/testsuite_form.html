@@ -28,48 +28,51 @@
     {% render_field form.description class+="form-control" %}
     {% endwith %}
 
+    <h4 class="mb-3">Тесты</h4>
     {{ test_formset.management_form }}
     {% for form in test_formset %}
-    <div class="form-row">
-        <div class="form-group">
-        {% with form.question as field %}
-            <div class="input-group">
-                {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+    <div class="form-row card mb-4">
+        <div class="card-body">
+            <div class="form-group">
+                {% with form.question as field %}
+                <div class="input-group">
+                    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
                     {% with is_invalid=field.errors|yesno:"is-invalid," %}
-                        {% render_field field class+="form-control" placeholder=field.label class+=is_invalid %}
+                    {% render_field field class+="form-control" placeholder=field.label class+=is_invalid %}
                     {% endwith %}
-                {% endwith %}
-                {% if field.field.append_text %}
-                <div class="input-group-append">
-                    <span class="input-group-text">{{ field.field.append_text }}</span>
+                    {% endwith %}
+                    {% if field.field.append_text %}
+                    <div class="input-group-append">
+                        <span class="input-group-text">{{ field.field.append_text }}</span>
+                    </div>
+                    {% endif %}
+                    {% if field.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in field.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
+                {% if field.help_text %}
+                <small class="form-text text-muted">{{ field.help_text }}</small>
                 {% endif %}
+                {% endwith %}
+            </div>
+            <div class="form-group mb-0">
+                {% with form.right_answer as field %}
+                <div class="input-group {% if field.errors %}is-invalid{% endif %}">
+                    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+                    {% with is_invalid=field.errors|yesno:"is-invalid," %}
+                    {% render_field field class+="form-control" class+=is_invalid lang="ru" %}
+                    {% endwith %}
+                    {% endwith %}
+                </div>
                 {% if field.errors %}
                 <div class="invalid-feedback">
                     {% for error in field.errors %}{{ error }}{% endfor %}
                 </div>
                 {% endif %}
-            </div>
-            {% if field.help_text %}
-            <small class="form-text text-muted">{{ field.help_text }}</small>
-            {% endif %}
-        {% endwith %}
-        </div>
-        <div class="form-group">
-        {% with form.right_answer as field %}
-            <div class="input-group {% if field.errors %}is-invalid{% endif %}">
-                {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
-                    {% with is_invalid=field.errors|yesno:"is-invalid," %}
-                        {% render_field field class+="form-control" class+=is_invalid lang="ru" %}
-                    {% endwith %}
                 {% endwith %}
             </div>
-            {% if field.errors %}
-            <div class="invalid-feedback">
-                {% for error in field.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-        {% endwith %}
         </div>
     </div>
     {% endfor %}
