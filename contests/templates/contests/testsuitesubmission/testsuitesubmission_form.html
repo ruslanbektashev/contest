@@ -23,15 +23,15 @@
 
     {{ testsubmission_formset.management_form }}
     {% for form in testsubmission_pairs %}
-    <div class="form-row">
-        <div class="form-group">
-        {{ form.0.question|markdown|safe }}
-        {% with form.1.answer as field %}
+    <div class="form-row card mb-4">
+        <div class="form-group mb-0 card-body">
+            {{ form.0.question|markdown|safe }}
+            {% with form.1.answer as field %}
             <div class="input-group {% if field.errors %}is-invalid{% endif %}">
                 {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
-                    {% with is_invalid=field.errors|yesno:"is-invalid," %}
-                        {% render_field field class+="form-control" class+=is_invalid lang="ru" %}
-                    {% endwith %}
+                {% with is_invalid=field.errors|yesno:"is-invalid," %}
+                {% render_field field class+="form-control" class+=is_invalid lang="ru" %}
+                {% endwith %}
                 {% endwith %}
             </div>
             {% if field.errors %}
@@ -39,7 +39,7 @@
                 {% for error in field.errors %}{{ error }}{% endfor %}
             </div>
             {% endif %}
-        {% endwith %}
+            {% endwith %}
         </div>
     </div>
     {% endfor %}
