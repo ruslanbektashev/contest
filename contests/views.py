@@ -1270,7 +1270,7 @@ class TestSuiteCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = TestSuite
     form_class = TestSuiteForm
     template_name = 'contests/testsuite/testsuite_form.html'
-    permission_required = 'contests.add_problem'
+    permission_required = 'contests.add_testsuite'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1313,7 +1313,7 @@ class TestSuiteUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = TestSuite
     form_class = TestSuiteForm
     template_name = 'contests/testsuite/testsuite_form.html'
-    permission_required = 'contests.change_problem'
+    permission_required = 'contests.change_testsuite'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1328,7 +1328,7 @@ class TestSuiteSubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView
     model = TestSuiteSubmission
     form_class = TestSuiteSubmissionForm
     template_name = 'contests/testsuitesubmission/testsuitesubmission_form.html'
-    permission_required = 'contests.add_submission'
+    permission_required = 'contests.add_testsuitesubmission'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
