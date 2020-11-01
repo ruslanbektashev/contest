@@ -15,7 +15,7 @@ from django.dispatch import receiver
 from django.urls import reverse
 
 from contest.abstract import CDEntry, CRDEntry, CRUDEntry
-from accounts.models import Account, Comment, Activity
+from accounts.models import Account, Comment, Activity, Subscription
 
 try:
     from tools.sandbox import Sandbox
@@ -86,6 +86,7 @@ class Course(CRUDEntry):
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, verbose_name="Уровень")
 
     comment_set = GenericRelation(Comment, content_type_field='object_type')
+    subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
     class Meta(CRUDEntry.Meta):
         ordering = ('level',)
@@ -171,6 +172,7 @@ class Contest(CRUDEntry):
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
+    subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Раздел"
@@ -222,6 +224,7 @@ class Problem(CRUDEntry):
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
+    subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Задача"
@@ -486,6 +489,7 @@ class Assignment(CRUDEntry):
     remark = models.CharField(max_length=255, blank=True, verbose_name="Пометка", help_text="для преподавателей")
 
     comment_set = GenericRelation(Comment, content_type_field='object_type')
+    subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
     objects = AssignmentManager.from_queryset(AssignmentQuerySet)()
 
@@ -583,6 +587,7 @@ class Submission(CRDEntry):
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
+    subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
     objects = SubmissionQuerySet.as_manager()
 

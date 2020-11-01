@@ -14,7 +14,7 @@ from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectO
                             PaginatorMixin)
 from accounts.forms import (AccountPartialForm, AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm,
                             CommentForm)
-from accounts.models import Account, Activity, Comment, Message, Chat, Announcement
+from accounts.models import Account, Activity, Comment, Message, Chat, Announcement, Subscription
 
 """==================================================== Account ====================================================="""
 
@@ -23,7 +23,8 @@ def subscribe(request, pk, object_model, object_id):
     account = Account.objects.get(user_id=pk)
     obj = ContentType.objects.get(app_label='contests', model=object_model).get_object_for_this_type(id=object_id)
 
-    account.subscriptions.add(obj)
+    subscription = Subscription(object=obj, account=account)
+    subscription.save()
 
     return HttpResponseRedirect(
         reverse(
@@ -35,14 +36,16 @@ def subscribe(request, pk, object_model, object_id):
 
 def unsubscribe(request, pk, object_model, object_id):
     account = Account.objects.get(user_id=pk)
-    obj = ContentType.objects.get(app_label='contests', model=object_model).get_object_for_this_type(id=object_id)
 
-    account.subscriptions.remove(obj)
+    subscription = Subscription.objects.get(object_type=ContentType.objects.get(app_label='contests', model=object_model),
+                                object_id=object_id,
+                                account=account)
+    subscription.delete()
 
     return HttpResponseRedirect(
         reverse(
-            'contests:{object_type}-detail'.format(object_type=obj._meta.model_name),
-            kwargs={'pk': obj.pk}
+            'contests:{object_type}-detail'.format(object_type=object_model),
+            kwargs={'pk': object_id}
         )
     )
 

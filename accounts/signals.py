@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from accounts.models import Activity, Comment, Account
+from accounts.models import Activity, Comment, Account, Subscription
 from support.models import Report
 
 
@@ -24,10 +24,10 @@ def receive_comment_signal(sender, instance, created, **kwargs):
         elif model == 'assignment' or 'submission':
             return comment.object.problem.contest.course
 
-    course = get_course_for_comment(instance)
-
     if created:
-        for account in Account.objects.all():
-            if course in account.subscriptions.all() and instance.author != account.user:
-                Activity.objects.notify_user(account.username, subject=instance.author, action='оставил комментарий',
+        course = get_course_for_comment(instance)
+        for subscription in course.subscription_set.all():
+            if instance.author != subscription.account.user:
+                Activity.objects.notify_user(subscription.account.username, subject=instance.author,
+                                             action='оставил комментарий',
                                              object=instance)

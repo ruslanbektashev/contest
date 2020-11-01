@@ -131,7 +131,6 @@ class Account(models.Model):
     objects = models.Manager()
     students = StudentManager.from_queryset(StudentQuerySet)()
 
-    subscriptions = GM2MField(on_delete=DO_NOTHING)
     comments_read = models.ManyToManyField('Comment')
 
     class Meta:
@@ -182,6 +181,17 @@ class Account(models.Model):
 
     def __str__(self):
         return self.get_full_name()
+
+
+"""================================================== Subscription =================================================="""
+
+
+class Subscription(models.Model):
+    object_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    object = GenericForeignKey(ct_field='object_type')
+
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='subscriptions')
 
 
 """==================================================== Activity ===================================================="""
