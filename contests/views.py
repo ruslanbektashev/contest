@@ -1401,6 +1401,7 @@ class TestSuiteSubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin,
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['testsubmissions'] = self.object.testsubmission_set.all()
         # comments = self.object.comment_set.actual()
         # context['paginator'], \
         #     context['page_obj'], \

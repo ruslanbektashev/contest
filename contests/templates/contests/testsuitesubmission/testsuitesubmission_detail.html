@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views contests comments static %}
+{% load views contests comments markdown static %}
 
 {% block title %}
 Посылка
@@ -14,12 +14,28 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Посылка {{ testsuitesubmission.id }}</legend>
+<legend>Решение {{ testsuitesubmission.id }}</legend>
 <table class="table table-sm">
     <tr><td class="text-right" style="width: 20%;">Автор</td><td><a href="{{ testsuitesubmission.owner.account.get_absolute_url }}">{{ testsuitesubmission.owner.account }}</a></td></tr>
     <tr><td class="text-right" style="width: 20%;">К набору тестов</td><td><a href="{{ testsuitesubmission.testsuite.get_absolute_url }}">{{ testsuitesubmission.testsuite }}</a></td></tr>
-    <tr><td class="text-right" style="width: 20%;">Отправлена</td><td>{{ testsuitesubmission.date_created }}</td></tr>
+    <tr><td class="text-right" style="width: 20%;">Отправлено</td><td>{{ testsuitesubmission.date_created }}</td></tr>
 </table>
+<legend class="mb-3">Результаты</legend>
+{% for testsubmission in testsubmissions %}
+<div class="card mb-4">
+    <div class="card-header">
+        Тест #{{ testsubmission.number }}
+    </div>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">{{ testsubmission.question|markdown|safe }}</li>
+        <li class="list-group-item">
+            <span class="text-muted">Ваш ответ:</span> {{ testsubmission.answer }}
+            <span class="badge badge-{{ testsubmission.status|colorize }} ml-1"> {{ testsubmission.get_status_display }} </span>
+        </li>
+    </ul>
+</div>
+{% endfor %}
+
 
 <legend>Комментарии</legend>
 {% render_comments testsuitesubmission comments %}

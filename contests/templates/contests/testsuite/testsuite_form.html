@@ -28,7 +28,7 @@
     {% render_field form.description class+="form-control" %}
     {% endwith %}
 
-    <h4 class="mb-3">Тесты</h4>
+    <legend class="mb-3">Тесты</legend>
     {{ test_formset.management_form }}
     <div id="formset_wrapper">
         {% for form in test_formset %}
