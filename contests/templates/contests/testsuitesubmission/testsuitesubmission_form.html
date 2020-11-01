@@ -16,7 +16,9 @@
 {% block content %}
 <legend>Решить набор тестов</legend>
 <h5>{{ testsuite }}</h5>
-<p>{{ testsuite.description|markdown|safe }}</p>
+<div class="mb-4">{{ testsuite.description|markdown|safe }}</div>
+
+<legend class="mb-3">Тесты</legend>
 <form action="" id="testsuitesubmission-form" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}
     {% render_form_errors form %}
@@ -24,6 +26,9 @@
     {{ testsubmission_formset.management_form }}
     {% for form in testsubmission_pairs %}
     <div class="form-row card mb-4">
+        <div class="card-header">
+            Тест #{{ form.0.number }}
+        </div>
         <div class="form-group mb-0 card-body">
             {{ form.0.question|markdown|safe }}
             {% with form.1.answer as field %}

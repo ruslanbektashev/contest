@@ -811,7 +811,7 @@ class Test(CRUDEntry):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.question
+        return 'Тест #' + str(self.number)
 
 
 """============================================== TestSuiteSubmission ==============================================="""
@@ -862,5 +862,9 @@ class TestSubmission(CRUDEntry):
         self.status = self.test()
         super().save(*args, **kwargs)
 
+    @property
+    def question(self):
+        return self.testsuitesubmission.testsuite.test_set.get(number=self.number).question
+
     def __str__(self):
-        return "Ответ на тест " + str(self.id)
+        return "Ответ на тест #" + str(self.number)

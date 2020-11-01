@@ -139,6 +139,7 @@ urlpatterns = [
     path('testsuite/', include([
         path('<int:pk>/', include([
             path('', views.TestSuiteDetail.as_view(), name='testsuite-detail'),
+            path('delete', views.TestSuiteDelete.as_view(), name='testsuite-delete'),
             path('update', views.TestSuiteUpdate.as_view(), name='testsuite-update'),
         ]))
     ])),

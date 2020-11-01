@@ -2,7 +2,7 @@
 {% load views forms %}
 
 {% block title %}
-Набор тестов
+Новый набор тестов
 {% endblock title %}
 
 {% block breadcrumbs %}
@@ -28,55 +28,117 @@
     {% render_field form.description class+="form-control" %}
     {% endwith %}
 
-    <h4 class="mb-3">Тесты</h4>
+    <legend class="mb-3">Тесты</legend>
     {{ test_formset.management_form }}
-    {% for form in test_formset %}
-    <div class="form-row card mb-4">
-        <div class="card-body">
-            <div class="form-group">
-                {% with form.question as field %}
-                <div class="input-group">
-                    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
-                    {% with is_invalid=field.errors|yesno:"is-invalid," %}
-                    {% render_field field class+="form-control" placeholder=field.label class+=is_invalid %}
-                    {% endwith %}
-                    {% endwith %}
-                    {% if field.field.append_text %}
-                    <div class="input-group-append">
-                        <span class="input-group-text">{{ field.field.append_text }}</span>
+    <div id="formset_wrapper">
+        {% for form in test_formset %}
+        <div class="form-row card mb-4">
+            <div class="card-body">
+                <div class="form-group">
+                    {% with form.question as field %}
+                    <div class="input-group">
+                        {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+                        {% with is_invalid=field.errors|yesno:"is-invalid," %}
+                        {% render_field field class+="form-control" placeholder=field.label class+=is_invalid %}
+                        {% endwith %}
+                        {% endwith %}
+                        {% if field.field.append_text %}
+                        <div class="input-group-append">
+                            <span class="input-group-text">{{ field.field.append_text }}</span>
+                        </div>
+                        {% endif %}
+                        {% if field.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in field.errors %}{{ error }}{% endfor %}
+                        </div>
+                        {% endif %}
                     </div>
+                    {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
                     {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="form-group mb-0">
+                    {% with form.right_answer as field %}
+                    <div class="input-group {% if field.errors %}is-invalid{% endif %}">
+                        {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+                        {% with is_invalid=field.errors|yesno:"is-invalid," %}
+                        {% render_field field class+="form-control" class+=is_invalid lang="ru" %}
+                        {% endwith %}
+                        {% endwith %}
+                    </div>
                     {% if field.errors %}
                     <div class="invalid-feedback">
                         {% for error in field.errors %}{{ error }}{% endfor %}
                     </div>
                     {% endif %}
-                </div>
-                {% if field.help_text %}
-                <small class="form-text text-muted">{{ field.help_text }}</small>
-                {% endif %}
-                {% endwith %}
-            </div>
-            <div class="form-group mb-0">
-                {% with form.right_answer as field %}
-                <div class="input-group {% if field.errors %}is-invalid{% endif %}">
-                    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
-                    {% with is_invalid=field.errors|yesno:"is-invalid," %}
-                    {% render_field field class+="form-control" class+=is_invalid lang="ru" %}
-                    {% endwith %}
                     {% endwith %}
                 </div>
-                {% if field.errors %}
-                <div class="invalid-feedback">
-                    {% for error in field.errors %}{{ error }}{% endfor %}
-                </div>
-                {% endif %}
-                {% endwith %}
             </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-
+    <div id="emptyform_wrapper" style="display: none">
+        {% with test_formset.empty_form as form %}
+        <div class="form-row card mb-4">
+            <div class="card-body">
+                <div class="form-group">
+                    {% with form.question as field %}
+                    <div class="input-group">
+                        {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+                        {% with is_invalid=field.errors|yesno:"is-invalid," %}
+                        {% render_field field class+="form-control" placeholder=field.label class+=is_invalid %}
+                        {% endwith %}
+                        {% endwith %}
+                        {% if field.field.append_text %}
+                        <div class="input-group-append">
+                            <span class="input-group-text">{{ field.field.append_text }}</span>
+                        </div>
+                        {% endif %}
+                        {% if field.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in field.errors %}{{ error }}{% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="form-group mb-0">
+                    {% with form.right_answer as field %}
+                    <div class="input-group {% if field.errors %}is-invalid{% endif %}">
+                        {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+                        {% with is_invalid=field.errors|yesno:"is-invalid," %}
+                        {% render_field field class+="form-control" class+=is_invalid lang="ru" %}
+                        {% endwith %}
+                        {% endwith %}
+                    </div>
+                    {% if field.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in field.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+    </div>
+    <input type="button" class="btn btn-light border mb-4" value="Добавить ещё тест" id="add_more">
     {% render_submit_button value="Сохранить" %}
 </form>
 {% endblock content %}
+{% block javascript %}
+<script>
+  $('#add_more').click(function () {
+    let total_form = $('#id_test_set-TOTAL_FORMS');
+    let form_idx = total_form.val();
+
+    $('#formset_wrapper').append($('#emptyform_wrapper').html().replace(/__prefix__/g, form_idx));
+    total_form.val(parseInt(form_idx)+1);
+  });
+
+</script>
+{% endblock javascript %}

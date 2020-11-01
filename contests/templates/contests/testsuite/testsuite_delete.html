@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load views forms %}
+
+{% block title %}
+Задача
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb testsuite.contest.course testsuite.contest.course %}
+{% breadcrumb testsuite.contest testsuite.contest %}
+{% breadcrumb testsuite testsuite %}
+{% breadcrumb "Удаление" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Удаление набора тестов</legend>
+{% render_delete_form testsuite %}
+{% endblock content %}

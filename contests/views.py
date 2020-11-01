@@ -1280,12 +1280,9 @@ class TestSuiteCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
-        forms_num = 3
+        # forms_num = 3
         TestInlineFormSet = inlineformset_factory(TestSuite, Test,
-                                                  form=TestForm, fields=('question', 'right_answer'),
-                                                  extra=forms_num,
-                                                  min_num=forms_num, validate_min=True,
-                                                  max_num=forms_num, validate_max=True)
+                                                  form=TestForm, fields=('question', 'right_answer'), extra=1)
         inlineformset_kwargs = {'initial': []}
         if self.request.method in ('POST', 'PUT'):
             inlineformset_kwargs.update({'data': self.request.POST})
@@ -1321,6 +1318,15 @@ class TestSuiteUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context['contest'] = self.object.contest
         return context
+
+
+class TestSuiteDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+    model = TestSuite
+    template_name = 'contests/testsuite/testsuite_delete.html'
+    permission_required = 'contests.delete_testsuite'
+
+    def get_success_url(self):
+        return self.object.contest.get_absolute_url()
 
 
 """============================================== TestSuiteSubmission ==============================================="""
@@ -1397,6 +1403,7 @@ class TestSuiteSubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin,
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['testsubmissions'] = self.object.testsubmission_set.all()
         # comments = self.object.comment_set.actual()
         # context['paginator'], \
         #     context['page_obj'], \
