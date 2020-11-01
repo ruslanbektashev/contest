@@ -843,7 +843,7 @@ class TestSubmission(CRUDEntry):
         verbose_name_plural = "Ответы на тесты"
 
     def test(self):
-        test: Test = self.testsuitesubmission.testsuite.test_set.get(number=self.number)
+        test = self.testsuitesubmission.testsuite.test_set.get(number=self.number)
         if self.answer == test.right_answer:
             return 'OK'
         else:
