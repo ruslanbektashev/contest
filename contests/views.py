@@ -1278,12 +1278,9 @@ class TestSuiteCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
-        forms_num = 3
+        # forms_num = 3
         TestInlineFormSet = inlineformset_factory(TestSuite, Test,
-                                                  form=TestForm, fields=('question', 'right_answer'),
-                                                  extra=forms_num,
-                                                  min_num=forms_num, validate_min=True,
-                                                  max_num=forms_num, validate_max=True)
+                                                  form=TestForm, fields=('question', 'right_answer'), extra=1)
         inlineformset_kwargs = {'initial': []}
         if self.request.method in ('POST', 'PUT'):
             inlineformset_kwargs.update({'data': self.request.POST})
