@@ -1321,6 +1321,15 @@ class TestSuiteUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         return context
 
 
+class TestSuiteDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+    model = TestSuite
+    template_name = 'contests/testsuite/testsuite_delete.html'
+    permission_required = 'contests.delete_testsuite'
+
+    def get_success_url(self):
+        return self.object.contest.get_absolute_url()
+
+
 """============================================== TestSuiteSubmission ==============================================="""
 
 

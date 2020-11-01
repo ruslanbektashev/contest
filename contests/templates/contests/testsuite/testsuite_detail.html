@@ -24,12 +24,15 @@
 
 {% block submenu %}
 <div class="list-group mb-3">
-    {% if perms.contests.change_problem %}
+    {% if perms.contests.change_testsuite %}
     <a href="{% url 'contests:testsuite-update' testsuite.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать набор тестов</a>
+    {% endif %}
+    {% if perms.contests.change_testsuite %}
+    <a href="{% url 'contests:testsuite-delete' testsuite.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash fa-fw"></i> Удалить набор тестов</a>
     {% endif %}
 </div>
 <div class="list-group mb-3">
-    {% if perms.contests.add_submission %}
+    {% if perms.contests.add_testsuitesubmission %}
     <a href="{% url 'contests:testsuitesubmission-create' testsuite.id %}" class="btn btn-info btn-block"><i class="fa fa-file-code-o fa-fw"></i> Решить тест</a>
     {% endif %}
 </div>
