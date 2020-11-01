@@ -15,19 +15,8 @@ from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectO
 from accounts.forms import (AccountPartialForm, AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm,
                             CommentForm)
 from accounts.models import Account, Activity, Comment, Message, Chat, Announcement
-from contests.models import Contest, Problem, Assignment, Submission
 
 """==================================================== Account ====================================================="""
-
-
-def get_nested_objects_for_course(course):
-    nested_objects = set()
-    contests = Contest.objects.filter(course=course)
-    problems = Problem.objects.filter(contest__in=contests)
-    assignments = Assignment.objects.filter(problem__in=problems)
-    submissions = Submission.objects.filter(problem__in=problems)
-    nested_objects.update(contests, problems, assignments, submissions)
-    return nested_objects
 
 
 def subscribe(request, pk, object_model, object_id):
@@ -35,10 +24,6 @@ def subscribe(request, pk, object_model, object_id):
     obj = ContentType.objects.get(app_label='contests', model=object_model).get_object_for_this_type(id=object_id)
 
     account.subscriptions.add(obj)
-    if object_model == 'course':
-        for nested_object in get_nested_objects_for_course(obj):
-            if nested_object not in account.subscriptions.all():
-                account.subscriptions.add(nested_object)
 
     return HttpResponseRedirect(
         reverse(
@@ -53,9 +38,6 @@ def unsubscribe(request, pk, object_model, object_id):
     obj = ContentType.objects.get(app_label='contests', model=object_model).get_object_for_this_type(id=object_id)
 
     account.subscriptions.remove(obj)
-    if object_model == 'course':
-        for nested_object in get_nested_objects_for_course(obj):
-            account.subscriptions.remove(nested_object)
 
     return HttpResponseRedirect(
         reverse(
