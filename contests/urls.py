@@ -143,4 +143,10 @@ urlpatterns = [
         ]))
     ])),
     path('testsuite/<int:testsuite_id>/testsuitesubmission/create', views.TestSuiteSubmissionCreate.as_view(), name='testsuitesubmission-create'),
+    path('testsuitesubmission/', include([
+        path('<int:pk>/', include([
+            path('', views.TestSuiteSubmissionDetail.as_view(), name='testsuitesubmission-detail'),
+            path('delete', views.TestSuiteSubmissionDelete.as_view(), name='testsuitesubmission-delete'),
+        ]))
+    ]))
 ]

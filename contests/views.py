@@ -1372,3 +1372,41 @@ class TestSuiteSubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView
         context['testsubmission_formset'] = self.storage['testsubmission_formset']
         context['testsubmission_pairs'] = self.storage['testsubmission_pairs']
         return context
+
+
+class TestSuiteSubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, PaginatorMixin, DetailView):
+    model = TestSuiteSubmission
+    template_name = 'contests/testsuitesubmission/testsuitesubmission_detail.html'
+    permission_required = 'contests.view_testsuitesubmission'
+    paginate_by = 30
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
+            self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # comments = self.object.comment_set.actual()
+        # context['paginator'], \
+        #     context['page_obj'], \
+        #     context['comments'], \
+        #     context['is_paginated'] = self.paginate_queryset(comments)
+        return context
+
+
+class TestSuiteSubmissionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+    model = TestSuiteSubmission
+    template_name = 'contests/testsuitesubmission/testsuitesubmission_delete.html'
+    permission_required = 'contests.delete_testsuitesubmission'
+
+    def get_success_url(self):
+        return self.object.testsuite.get_absolute_url()
