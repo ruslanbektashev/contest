@@ -1,8 +1,6 @@
 from django.contrib.auth.models import User, Group
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from gm2m import GM2MField
-from gm2m.deletion import DO_NOTHING
 from django.db import models
 from django.db.transaction import atomic
 from django.urls import reverse

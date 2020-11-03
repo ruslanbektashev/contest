@@ -38,12 +38,9 @@
     </li>
     {% endif %}
     <li class="nav-item">
-        {% with problem.comment_set.actual.count as comments_count %}
-{#        {% get_unread_comments_number comments_count request.user.account.user_id 'problem' problem.id as unread_comments_count %}#}
         <a class="nav-link" href="{% url 'contests:problem-discussion' problem.id %}" id="discussion-tab" role="tab">
-            Обсуждение{% if comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ comments_count }}</span>{% endif %}
+            Обсуждение{% if unread_comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ unread_comments_count }}</span>{% endif %}
         </a>
-        {% endwith %}
     </li>
 </ul>
 <div class="tab-content">

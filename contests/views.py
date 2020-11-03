@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.models import ContentType
 from django.forms import inlineformset_factory
 from pygments import highlight
 from pygments.lexers import CppLexer
@@ -51,6 +52,11 @@ class CourseDetail(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['tab'] = self.request.GET.get('tab', None)
         context['subscribers_ids'] = self.object.subscription_set.all().values_list('account', flat=True)
+        context['unread_comments_count'] = \
+            self.object.comment_set.count() \
+            - self.request.user.account.comments_read.filter(
+                object_type=ContentType.objects.get_for_model(self.object),
+                object_id=self.object.id).count()
         return context
 
 
@@ -63,10 +69,15 @@ class CourseDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-            context['page_obj'], \
-            context['comments'], \
-            context['is_paginated'] = self.paginate_queryset(comments)
+        context['page_obj'], \
+        context['comments'], \
+        context['is_paginated'] = self.paginate_queryset(comments)
         context['subscribers_ids'] = self.object.subscription_set.all().values_list('account', flat=True)
+        context['unread_comments_count'] = \
+            self.object.comment_set.count() \
+            - self.request.user.account.comments_read.filter(
+                object_type=ContentType.objects.get_for_model(self.object),
+                object_id=self.object.id).count()
         return context
 
 
@@ -228,6 +239,11 @@ class ContestDetail(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tab'] = self.request.GET.get('tab', None)
+        context['unread_comments_count'] = \
+            self.object.comment_set.count() \
+            - self.request.user.account.comments_read.filter(
+                object_type=ContentType.objects.get_for_model(self.object),
+                object_id=self.object.id).count()
         return context
 
 
@@ -240,9 +256,14 @@ class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-            context['page_obj'], \
-            context['comments'], \
-            context['is_paginated'] = self.paginate_queryset(comments)
+        context['page_obj'], \
+        context['comments'], \
+        context['is_paginated'] = self.paginate_queryset(comments)
+        context['unread_comments_count'] = \
+            self.object.comment_set.count() \
+            - self.request.user.account.comments_read.filter(
+                object_type=ContentType.objects.get_for_model(self.object),
+                object_id=self.object.id).count()
         return context
 
 
@@ -336,9 +357,14 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         else:
             submissions = self.object.submission_set.filter(owner_id=self.request.user.id)
         context['paginator'], \
-            context['page_obj'], \
-            context['submissions'], \
-            context['is_paginated'] = self.paginate_queryset(submissions)
+        context['page_obj'], \
+        context['submissions'], \
+        context['is_paginated'] = self.paginate_queryset(submissions)
+        context['unread_comments_count'] = \
+            self.object.comment_set.count() \
+            - self.request.user.account.comments_read.filter(
+                object_type=ContentType.objects.get_for_model(self.object),
+                object_id=self.object.id).count()
         return context
 
 
@@ -351,9 +377,14 @@ class ProblemDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-            context['page_obj'], \
-            context['comments'], \
-            context['is_paginated'] = self.paginate_queryset(comments)
+        context['page_obj'], \
+        context['comments'], \
+        context['is_paginated'] = self.paginate_queryset(comments)
+        context['unread_comments_count'] = \
+            self.object.comment_set.count() \
+            - self.request.user.account.comments_read.filter(
+                object_type=ContentType.objects.get_for_model(self.object),
+                object_id=self.object.id).count()
         return context
 
 
@@ -531,7 +562,8 @@ class IOTestDetail(LoginRedirectPermissionRequiredMixin, DetailView):
 
 class IOTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = IOTest
-    fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input', 'output']
+    fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input',
+              'output']
     template_name = 'contests/iotest/iotest_form.html'
     permission_required = 'contests.add_iotest'
 
@@ -562,7 +594,8 @@ class IOTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
 class IOTestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = IOTest
-    fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input', 'output']
+    fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input',
+              'output']
     template_name = 'contests/iotest/iotest_form.html'
     permission_required = 'contests.change_iotest'
 
@@ -726,9 +759,14 @@ class AssignmentDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         submissions = self.object.get_submissions()
         context['paginator'], \
-            context['page_obj'], \
-            context['submissions'], \
-            context['is_paginated'] = self.paginate_queryset(submissions)
+        context['page_obj'], \
+        context['submissions'], \
+        context['is_paginated'] = self.paginate_queryset(submissions)
+        context['unread_comments_count'] = \
+            self.object.comment_set.count() \
+            - self.request.user.account.comments_read.filter(
+                object_type=ContentType.objects.get_for_model(self.object),
+                object_id=self.object.id).count()
         return context
 
 
@@ -741,9 +779,14 @@ class AssignmentDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-            context['page_obj'], \
-            context['comments'], \
-            context['is_paginated'] = self.paginate_queryset(comments)
+        context['page_obj'], \
+        context['comments'], \
+        context['is_paginated'] = self.paginate_queryset(comments)
+        context['unread_comments_count'] = \
+            self.object.comment_set.count() \
+            - self.request.user.account.comments_read.filter(
+                object_type=ContentType.objects.get_for_model(self.object),
+                object_id=self.object.id).count()
         return context
 
 
@@ -894,7 +937,8 @@ class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
         if self.storage['debts']:
             self.storage['students'] = Account.students.enrolled().debtors(self.storage['course'].level)
         else:
-            self.storage['students'] = Account.students.enrolled().filter(level=self.storage['course'].level).with_credits()
+            self.storage['students'] = Account.students.enrolled().filter(
+                level=self.storage['course'].level).with_credits()
         bool(self.storage['students'])  # evaluate now
         return (Assignment.objects
                 .filter(user__in=self.storage['students'].values_list('user'),
@@ -938,9 +982,9 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
         context['from_url'] = self.storage['from_url']
         comments = self.object.comment_set.actual()
         context['paginator'], \
-            context['page_obj'], \
-            context['comments'], \
-            context['is_paginated'] = self.paginate_queryset(comments)
+        context['page_obj'], \
+        context['comments'], \
+        context['is_paginated'] = self.paginate_queryset(comments)
         return context
 
 
