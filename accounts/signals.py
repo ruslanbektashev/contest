@@ -26,8 +26,9 @@ def receive_comment_signal(sender, instance, created, **kwargs):
 
     if created:
         course = get_course_for_comment(instance)
-        for subscription in course.subscription_set.all():
-            if instance.author != subscription.account.user:
-                Activity.objects.notify_user(subscription.account.username, subject=instance.author,
-                                             action='оставил комментарий',
-                                             object=instance)
+        Activity.objects.notify_users(
+            course.subscription_set.exclude(account=instance.author.account).values_list('account', flat=True),
+            subject=instance.author,
+            action='оставил комментарий',
+            object=instance
+        )

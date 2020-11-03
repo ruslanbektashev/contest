@@ -191,6 +191,9 @@ class Subscription(models.Model):
 
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='subscriptions')
 
+    def __str__(self):
+        return '%s, %s: %s' % (self.account.get_full_name(), self.object_type.model, self.object.title)
+
 
 """==================================================== Activity ===================================================="""
 
@@ -253,6 +256,10 @@ class ActivityManager(models.Manager):
         except User.DoesNotExist:
             return
         new_activities = make_activities(user, **kwargs)
+        self.bulk_create(new_activities)
+
+    def notify_users(self, users, **kwargs):
+        new_activities = make_activities(users, **kwargs)
         self.bulk_create(new_activities)
 
     def on_assignment_updated(self, assignment):
