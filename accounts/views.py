@@ -51,7 +51,11 @@ def unsubscribe(request, pk, object_model, object_id):
 
 
 def mark_comments_as_read(request, pk, object_model, object_id):
-    account = Account.objects.get(user_id=pk)
+    try:
+        account = Account.objects.get(user_id=pk)
+    except ValueError:
+        return
+
     obj = ContentType.objects.get(app_label='contests', model=object_model).get_object_for_this_type(id=object_id)
 
     account.comments_read.add(*obj.comment_set.all())
