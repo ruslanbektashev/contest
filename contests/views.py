@@ -1282,7 +1282,7 @@ class TestSuiteCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
         # forms_num = 3
         TestInlineFormSet = inlineformset_factory(TestSuite, Test,
-                                                  form=TestForm, fields=('question', 'right_answer'), extra=1)
+                                                  form=TestForm, fields=('question', 'right_answer'), extra=0)
         inlineformset_kwargs = {'initial': []}
         if self.request.method in ('POST', 'PUT'):
             inlineformset_kwargs.update({'data': self.request.POST})
@@ -1305,6 +1305,7 @@ class TestSuiteCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['contest'] = self.storage['contest']
         context['test_formset'] = self.storage['test_formset']
+        context['test_form'] = TestForm()
         return context
 
 

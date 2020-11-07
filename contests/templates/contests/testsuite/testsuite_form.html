@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views forms %}
+{% load views forms markdown %}
 
 {% block title %}
 Новый набор тестов
@@ -19,126 +19,121 @@
 
 {% block content %}
 <legend>{% if testsuite %}Редактирование{% else %}Добавление{% endif %} набора тестов</legend>
+
 <form action="" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}
+    {{ form.media }}
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
-    {{ form.media }}
-    {% render_field form.title class+="form-control" %}
-    {% render_field form.description class+="form-control" %}
+        {% render_field form.title class+="form-control" %}
+        {% render_field form.description class+="form-control" %}
     {% endwith %}
-
+    
     <legend class="mb-3">Тесты</legend>
+
+    <!-- New test form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6 class="card-title mb-3">
+                Новый тест
+            </h6>
+            {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+                {% render_field test_form.question class+="form-control" placeholder=test_form.question.label %}
+                {% render_field test_form.right_answer class+="form-control"  %}
+                {% endwith %}
+            <input type="button" onclick="handleTestAdd()" class="btn btn-light border" value="Добавить тест"/>
+        </div>
+    </div>
+
     {{ test_formset.management_form }}
-    <div id="formset_wrapper">
-        {% for form in test_formset %}
-        <div class="form-row card mb-4">
-            <div class="card-body">
-                <div class="form-group">
-                    {% with form.question as field %}
-                    <div class="input-group">
-                        {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
-                        {% with is_invalid=field.errors|yesno:"is-invalid," %}
-                        {% render_field field class+="form-control" placeholder=field.label class+=is_invalid %}
-                        {% endwith %}
-                        {% endwith %}
-                        {% if field.field.append_text %}
-                        <div class="input-group-append">
-                            <span class="input-group-text">{{ field.field.append_text }}</span>
-                        </div>
-                        {% endif %}
-                        {% if field.errors %}
-                        <div class="invalid-feedback">
-                            {% for error in field.errors %}{{ error }}{% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                    {% endif %}
-                    {% endwith %}
-                </div>
-                <div class="form-group mb-0">
-                    {% with form.right_answer as field %}
-                    <div class="input-group {% if field.errors %}is-invalid{% endif %}">
-                        {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
-                        {% with is_invalid=field.errors|yesno:"is-invalid," %}
-                        {% render_field field class+="form-control" class+=is_invalid lang="ru" %}
-                        {% endwith %}
-                        {% endwith %}
-                    </div>
-                    {% if field.errors %}
-                    <div class="invalid-feedback">
-                        {% for error in field.errors %}{{ error }}{% endfor %}
-                    </div>
-                    {% endif %}
-                    {% endwith %}
-                </div>
-            </div>
-        </div>
-        {% endfor %}
+
+    <!-- Created tests list -->
+    <div id="created_tests">
+        
     </div>
-    <div id="emptyform_wrapper" style="display: none">
-        {% with test_formset.empty_form as form %}
-        <div class="form-row card mb-4">
-            <div class="card-body">
-                <div class="form-group">
-                    {% with form.question as field %}
-                    <div class="input-group">
-                        {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
-                        {% with is_invalid=field.errors|yesno:"is-invalid," %}
-                        {% render_field field class+="form-control" placeholder=field.label class+=is_invalid %}
-                        {% endwith %}
-                        {% endwith %}
-                        {% if field.field.append_text %}
-                        <div class="input-group-append">
-                            <span class="input-group-text">{{ field.field.append_text }}</span>
-                        </div>
-                        {% endif %}
-                        {% if field.errors %}
-                        <div class="invalid-feedback">
-                            {% for error in field.errors %}{{ error }}{% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                    {% endif %}
-                    {% endwith %}
-                </div>
-                <div class="form-group mb-0">
-                    {% with form.right_answer as field %}
-                    <div class="input-group {% if field.errors %}is-invalid{% endif %}">
-                        {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
-                        {% with is_invalid=field.errors|yesno:"is-invalid," %}
-                        {% render_field field class+="form-control" class+=is_invalid lang="ru" %}
-                        {% endwith %}
-                        {% endwith %}
-                    </div>
-                    {% if field.errors %}
-                    <div class="invalid-feedback">
-                        {% for error in field.errors %}{{ error }}{% endfor %}
-                    </div>
-                    {% endif %}
-                    {% endwith %}
-                </div>
-            </div>
-        </div>
-        {% endwith %}
-    </div>
-    <input type="button" class="btn btn-light border mb-4" value="Добавить ещё тест" id="add_more">
+
     {% render_submit_button value="Сохранить" %}
 </form>
+
+<!-- Blank test card -->
+<div id="blank_test" class="d-none">
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="test-title"></span>
+            <input id="delete_test" type="button" onclick="handleTestDelete(this.name)" class="delete-test btn btn-danger btn-sm" value="Удалить"/>
+        </div>
+        <div class="card-body">
+            <span class="test-question"></span>
+            <span class="text-muted">Правильный ответ: </span>
+            <span class="test-answer"></span>
+        </div>
+        <input class="question-hidden" type="hidden"/>
+        <input class="answer-hidden" type="hidden"/>
+    </div>
+</div>
+
 {% endblock content %}
+
+
 {% block javascript %}
 <script>
-  $('#add_more').click(function () {
-    let total_form = $('#id_test_set-TOTAL_FORMS');
-    let form_idx = total_form.val();
 
-    $('#formset_wrapper').append($('#emptyform_wrapper').html().replace(/__prefix__/g, form_idx));
-    total_form.val(parseInt(form_idx)+1);
-  });
+document.getElementById("id_right_answer").required = false;
+
+function updateTestsNumeration(createdTests) {
+    for (i = 0; i < createdTests.childElementCount; i++) {
+        let card = createdTests.children[i];
+        console.log(card)
+        let testTitle = card.getElementsByClassName("test-title")[0];
+        testTitle.innerText = "Тест " + (i + 1);
+
+        card.getElementsByClassName("delete-test")[0].setAttribute("name", i);
+
+        let questionHidden = card.getElementsByClassName("question-hidden")[0];
+        questionHidden.setAttribute("id", "id_test_set-" + i + "-question");
+        questionHidden.setAttribute("name", "test_set-" + i + "-question");
+
+        let answerHidden = card.getElementsByClassName("answer-hidden")[0];
+        answerHidden.setAttribute("id", "id_test_set-" + i + "-right_answer");
+        answerHidden.setAttribute("name", "test_set-" + i + "-right_answer");
+    }
+}
+
+function handleTestDelete(testNumber) {
+    const createdTests = document.getElementById("created_tests");
+    createdTests.removeChild(createdTests.children[testNumber]);
+    updateTestsNumeration(createdTests);
+}
+
+function handleTestAdd() {
+    const questionValue = CKEDITOR.instances.id_question.getData();
+    const rightAnswer = document.getElementById("id_right_answer");
+    const rightAnswerValue = document.getElementById("id_right_answer").value;
+    const createdTests = document.getElementById("created_tests");
+    
+    createdTests.appendChild(createTestCard(questionValue, rightAnswerValue));
+    
+    let totalFormsHiddenInput = document.getElementById("id_test_set-TOTAL_FORMS")
+    totalFormsHiddenInput.setAttribute("value", parseInt(totalFormsHiddenInput.value) + 1)
+
+    updateTestsNumeration(createdTests);
+
+    CKEDITOR.instances.id_question.setData("");  // reset CKEditor field
+    rightAnswer.value = ""; // reset right_answer field
+}
+
+function createTestCard(question, rightAnswer) {
+    const blankTest = document.getElementById("blank_test");
+
+    let card = blankTest.getElementsByClassName("card")[0].cloneNode(true);
+
+    card.getElementsByClassName("test-question")[0].innerHTML = question;
+    card.getElementsByClassName("test-answer")[0].innerText = rightAnswer;
+    card.getElementsByClassName("question-hidden")[0].setAttribute("value", question);
+    card.getElementsByClassName("answer-hidden")[0].setAttribute("value", rightAnswer);
+
+    return card;
+}
 
 </script>
 {% endblock javascript %}

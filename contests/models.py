@@ -773,20 +773,6 @@ class TestSuite(CRUDEntry):
         verbose_name = "Набор тестов"
         verbose_name_plural = "Наборы тестов"
 
-    def test(self, submission, observer):
-        state, executions = Status.UN, []
-        for test in self.get_tests():
-            stats = {}
-            try:
-                state, stats = test.run(submission.files, observer, self)
-            except Exception as e:
-                state, stats['exception'] = Status.EX, str(e)
-            executions.append((test, stats))
-            if state != Status.OK:
-                break
-        Execution.objects.create_set(submission, executions)
-        return state
-
     def __str__(self):
         return self.title
 
@@ -797,7 +783,7 @@ class Test(CRUDEntry):
     testsuite = models.ForeignKey(TestSuite, on_delete=models.CASCADE, verbose_name="Набор тестов")
 
     number = models.PositiveSmallIntegerField(default=1, verbose_name="Номер")
-    question = RichTextUploadingField(verbose_name="Вопрос")
+    question = models.TextField(verbose_name="Вопрос")
     right_answer = models.CharField(max_length=250, verbose_name="Правильный ответ")
 
     class Meta(CRUDEntry.Meta):
