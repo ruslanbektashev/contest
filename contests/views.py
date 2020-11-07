@@ -72,9 +72,9 @@ class CourseDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-        context['page_obj'], \
-        context['comments'], \
-        context['is_paginated'] = self.paginate_queryset(comments)
+            context['page_obj'], \
+            context['comments'], \
+            context['is_paginated'] = self.paginate_queryset(comments)
         context['subscribers_ids'] = self.object.subscription_set.all().values_list('account', flat=True)
         try:
             context['unread_comments_count'] = \
@@ -265,9 +265,9 @@ class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-        context['page_obj'], \
-        context['comments'], \
-        context['is_paginated'] = self.paginate_queryset(comments)
+            context['page_obj'], \
+            context['comments'], \
+            context['is_paginated'] = self.paginate_queryset(comments)
         try:
             context['unread_comments_count'] = \
                 self.object.comment_set.count() \
@@ -369,9 +369,9 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         else:
             submissions = self.object.submission_set.filter(owner_id=self.request.user.id)
         context['paginator'], \
-        context['page_obj'], \
-        context['submissions'], \
-        context['is_paginated'] = self.paginate_queryset(submissions)
+            context['page_obj'], \
+            context['submissions'], \
+            context['is_paginated'] = self.paginate_queryset(submissions)
         try:
             context['unread_comments_count'] = \
                 self.object.comment_set.count() \
@@ -392,9 +392,9 @@ class ProblemDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-        context['page_obj'], \
-        context['comments'], \
-        context['is_paginated'] = self.paginate_queryset(comments)
+            context['page_obj'], \
+            context['comments'], \
+            context['is_paginated'] = self.paginate_queryset(comments)
         try:
             context['unread_comments_count'] = \
                 self.object.comment_set.count() \
@@ -777,9 +777,9 @@ class AssignmentDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         submissions = self.object.get_submissions()
         context['paginator'], \
-        context['page_obj'], \
-        context['submissions'], \
-        context['is_paginated'] = self.paginate_queryset(submissions)
+            context['page_obj'], \
+            context['submissions'], \
+            context['is_paginated'] = self.paginate_queryset(submissions)
         try:
             context['unread_comments_count'] = \
                 self.object.comment_set.count() \
@@ -800,9 +800,9 @@ class AssignmentDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-        context['page_obj'], \
-        context['comments'], \
-        context['is_paginated'] = self.paginate_queryset(comments)
+            context['page_obj'], \
+            context['comments'], \
+            context['is_paginated'] = self.paginate_queryset(comments)
         try:
             context['unread_comments_count'] = \
                 self.object.comment_set.count() \
@@ -1006,9 +1006,9 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
         context['from_url'] = self.storage['from_url']
         comments = self.object.comment_set.actual()
         context['paginator'], \
-        context['page_obj'], \
-        context['comments'], \
-        context['is_paginated'] = self.paginate_queryset(comments)
+            context['page_obj'], \
+            context['comments'], \
+            context['is_paginated'] = self.paginate_queryset(comments)
         return context
 
 
