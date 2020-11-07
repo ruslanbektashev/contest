@@ -51,6 +51,11 @@ def render_submission_table(context):
     return context
 
 
+@register.inclusion_tag('contests/testsuitesubmission/testsuitesubmission_table.html', takes_context=True)
+def render_testsuitesubmission_table(context):
+    return context
+
+
 @register.inclusion_tag('contests/assignment/assignment_user_table.html', takes_context=True)
 def render_assignment_user_table(context, assignments, credits):
     for credit in credits:

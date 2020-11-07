@@ -805,7 +805,7 @@ class Test(CRUDEntry):
         verbose_name_plural = "Тесты"
 
     def save(self, *args, **kwargs):
-        if self.pk is None:  # ???
+        if self.pk is None:
             max_number = Test.objects.filter(testsuite=self.testsuite).aggregate(models.Max('number')).get('number__max', 0) or 0
             self.number = max_number + 1
         super().save(*args, **kwargs)
@@ -819,13 +819,18 @@ class Test(CRUDEntry):
 
 class TestSuiteSubmission(CRUDEntry):
     testsuite = models.ForeignKey(TestSuite, on_delete=models.CASCADE, verbose_name="Набор тестов")
+    status = models.PositiveSmallIntegerField(default=0, verbose_name="Процент правильных ответов")
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Решение набора тестов"
         verbose_name_plural = "Решения наборов тестов"
 
+    def save(self, *args, **kwargs):
+        self.status = self.testsubmission_set.filter(status="OK").count() * 100 // self.testsuite.test_set.count()
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return "Решение набора тестов " + str(self.id)
+        return "Решение набора тестов #" + str(self.id)
 
 
 class TestSubmission(CRUDEntry):
@@ -855,7 +860,7 @@ class TestSubmission(CRUDEntry):
             return 'WA'
 
     def save(self, *args, **kwargs):
-        if self.pk is None:  # ???
+        if self.pk is None:
             max_number = TestSubmission.objects.filter(testsuitesubmission=self.testsuitesubmission).aggregate(models.Max('number')).get('number__max', 0) or 0
             self.number = max_number + 1
 
