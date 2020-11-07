@@ -5,4 +5,3 @@ celery==4.3.0
 mosspy==1.0.8
 django-pagedown==2.0.3
 django-ckeditor==6.0.0
-django-gm2m==1.1.1

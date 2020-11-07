@@ -1,8 +1,6 @@
 from django.contrib.auth.models import User, Group
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from gm2m import GM2MField
-from gm2m.deletion import DO_NOTHING
 from django.db import models
 from django.db.transaction import atomic
 from django.urls import reverse
@@ -117,7 +115,6 @@ class Account(models.Model):
     ADMISSION_YEAR_DEFAULT = timezone.now().year
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    old_id = models.PositiveIntegerField(null=True, default=None, unique=True)
 
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, default=LEVEL_DEFAULT, verbose_name="Уровень")
     type = models.PositiveSmallIntegerField(choices=TYPE_CHOICES, default=TYPE_DEFAULT, verbose_name="Тип")
@@ -193,6 +190,9 @@ class Subscription(models.Model):
 
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='subscriptions')
 
+    def __str__(self):
+        return '%s, %s: %s' % (self.account.get_full_name(), self.object_type.model, self.object.title)
+
 
 """==================================================== Activity ===================================================="""
 
@@ -255,6 +255,10 @@ class ActivityManager(models.Manager):
         except User.DoesNotExist:
             return
         new_activities = make_activities(user, **kwargs)
+        self.bulk_create(new_activities)
+
+    def notify_users(self, users, **kwargs):
+        new_activities = make_activities(users, **kwargs)
         self.bulk_create(new_activities)
 
     def on_assignment_updated(self, assignment):
@@ -345,7 +349,6 @@ class CommentManager(models.Manager):
 class Comment(models.Model):
     MAX_LEVEL = 5
     author = models.ForeignKey(User, related_name='+', on_delete=models.CASCADE, verbose_name="Автор")
-    old_id = models.PositiveIntegerField(null=True, default=None, unique=True)
 
     thread_id = models.PositiveIntegerField(default=0, db_index=True)
     parent_id = models.PositiveIntegerField(default=0)
