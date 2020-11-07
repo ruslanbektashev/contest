@@ -14,18 +14,50 @@
 
 {% block content %}
 <legend>{{ testsuite }}</legend>
-<p>{{ testsuite.description|markdown|safe }}</p>
-<hr class="mt-4 mb-4">
-{% for test in tests %}
-<div class="card mb-4">
-    <div class="card-header">
-        Тест #{{ test.number }}
+<ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item">
+        <a aria-controls="description" aria-selected="{% if not tab or tab == 'description' %}true{% else %}false{% endif %}"
+           class="nav-link {% if not tab or tab == 'description' %}active{% endif %}" data-toggle="tab"
+           href="#description" id="description-tab" role="tab">Описание</a>
+    </li>
+    <li class="nav-item">
+        <a aria-controls="submissions" aria-selected="{% if tab == 'submissions' %}true{% else %}false{% endif %}"
+           class="nav-link {% if tab == 'submissions' %}active{% endif %}" data-toggle="tab" href="#submissions"
+           id="submissions-tab" role="tab">Посылки</a>
+    </li>
+    {% if perms.contests.view_solution %}
+    {% endif %}
+
+</ul>
+<div class="tab-content">
+    <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %}" id="description" role="tabpanel">
+        <p>{{ testsuite.description|markdown|safe }}</p>
+        <legend>Тесты</legend>
+        {% for test in tests %}
+        <div class="card mb-4">
+            <div class="card-header">
+                Тест #{{ test.number }}
+            </div>
+            <div class="card-body">
+                {{ test.question|markdown|safe }}
+            </div>
+        </div>
+        {% endfor %}
     </div>
-    <div class="card-body">
-        {{ test.question|markdown|safe }}
+    <div aria-labelledby="submissions-tab" class="tab-pane fade {% if tab == 'submissions' %}show active{% endif %}" id="submissions" role="tabpanel">
+        {% with testsuite.testsuitesubmission_set.all as testsuitesubmissions %}
+        {% render_testsuitesubmission_table %}
+        {% endwith %}
     </div>
+    {% if perms.contests.view_solution %}
+    <div aria-labelledby="solutions-tab" class="tab-pane fade" id="solutions" role="tabpanel">
+        <div class="alert alert-warning">Доступно только преподавателям</div>
+        {% render_list problem.solution_set.all %}
+    </div>
+    {% endif %}
 </div>
-{% endfor %}
+
+
 {% endblock content %}
 
 {% block submenu %}

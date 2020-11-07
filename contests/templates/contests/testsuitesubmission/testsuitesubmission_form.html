@@ -34,9 +34,9 @@
             {% with form.1.answer as field %}
             <div class="input-group {% if field.errors %}is-invalid{% endif %}">
                 {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
-                {% with is_invalid=field.errors|yesno:"is-invalid," %}
-                {% render_field field class+="form-control" class+=is_invalid lang="ru" %}
-                {% endwith %}
+                    {% with is_invalid=field.errors|yesno:"is-invalid," %}
+                        {% render_field field class+="form-control" class+=is_invalid lang="ru" %}
+                    {% endwith %}
                 {% endwith %}
             </div>
             {% if field.errors %}
