@@ -1284,7 +1284,7 @@ class TestSuiteCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
-        # forms_num = 3
+
         TestInlineFormSet = inlineformset_factory(TestSuite, Test, form=TestForm, fields=('question', 'right_answer'), extra=0, min_num=1, validate_min=True)
         inlineformset_kwargs = {'initial': []}
         if self.request.method in ('POST', 'PUT'):
@@ -1361,8 +1361,6 @@ class TestSuiteSubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView
             inlineformset_kwargs.update({'data': self.request.POST})
 
         self.storage['testsubmission_formset'] = TestSubmissionInlineFormSet(**inlineformset_kwargs)
-
-        # !!!
         self.storage['testsubmission_pairs'] = zip(test_set, self.storage['testsubmission_formset'])
         return super().dispatch(request, *args, **kwargs)
 
