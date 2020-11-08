@@ -4,6 +4,7 @@ import os
 import random
 import zipfile
 
+from ckeditor.fields import RichTextField
 from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -783,7 +784,7 @@ class Test(CRUDEntry):
     testsuite = models.ForeignKey(TestSuite, on_delete=models.CASCADE, verbose_name="Набор тестов")
 
     number = models.PositiveSmallIntegerField(default=1, verbose_name="Номер")
-    question = models.TextField(verbose_name="Вопрос")
+    question = RichTextField(verbose_name="Вопрос")
     right_answer = models.CharField(max_length=250, verbose_name="Правильный ответ")
 
     class Meta(CRUDEntry.Meta):
@@ -805,14 +806,14 @@ class Test(CRUDEntry):
 
 class TestSuiteSubmission(CRUDEntry):
     testsuite = models.ForeignKey(TestSuite, on_delete=models.CASCADE, verbose_name="Набор тестов")
-    status = models.PositiveSmallIntegerField(default=0, verbose_name="Процент правильных ответов")
+    score = models.PositiveSmallIntegerField(default=0, verbose_name="Процент правильных ответов")
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Решение набора тестов"
         verbose_name_plural = "Решения наборов тестов"
 
     def save(self, *args, **kwargs):
-        self.status = self.testsubmission_set.filter(status="OK").count() * 100 // self.testsuite.test_set.count()
+        self.score = self.testsubmission_set.filter(status="OK").count() * 100 // self.testsuite.test_set.count()
         super().save(*args, **kwargs)
 
     def __str__(self):
