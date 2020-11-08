@@ -52,14 +52,6 @@ class CourseDetail(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['tab'] = self.request.GET.get('tab', None)
         context['subscribers_ids'] = self.object.subscription_set.all().values_list('account', flat=True)
-        try:
-            context['unread_comments_count'] = \
-                self.object.comment_set.count() \
-                - self.request.user.account.comments_read.filter(
-                    object_type=ContentType.objects.get_for_model(self.object),
-                    object_id=self.object.id).count()
-        except User.account.RelatedObjectDoesNotExist:
-            context['unread_comments_count'] = self.object.comment_set.count()
         return context
 
 
@@ -76,14 +68,6 @@ class CourseDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
             context['comments'], \
             context['is_paginated'] = self.paginate_queryset(comments)
         context['subscribers_ids'] = self.object.subscription_set.all().values_list('account', flat=True)
-        try:
-            context['unread_comments_count'] = \
-                self.object.comment_set.count() \
-                - self.request.user.account.comments_read.filter(
-                    object_type=ContentType.objects.get_for_model(self.object),
-                    object_id=self.object.id).count()
-        except User.account.RelatedObjectDoesNotExist:
-            context['unread_comments_count'] = self.object.comment_set.count()
         return context
 
 
@@ -245,14 +229,6 @@ class ContestDetail(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tab'] = self.request.GET.get('tab', None)
-        try:
-            context['unread_comments_count'] = \
-                self.object.comment_set.count() \
-                - self.request.user.account.comments_read.filter(
-                    object_type=ContentType.objects.get_for_model(self.object),
-                    object_id=self.object.id).count()
-        except User.account.RelatedObjectDoesNotExist:
-            context['unread_comments_count'] = self.object.comment_set.count()
         return context
 
 
@@ -268,14 +244,6 @@ class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
             context['page_obj'], \
             context['comments'], \
             context['is_paginated'] = self.paginate_queryset(comments)
-        try:
-            context['unread_comments_count'] = \
-                self.object.comment_set.count() \
-                - self.request.user.account.comments_read.filter(
-                    object_type=ContentType.objects.get_for_model(self.object),
-                    object_id=self.object.id).count()
-        except User.account.RelatedObjectDoesNotExist:
-            context['unread_comments_count'] = self.object.comment_set.count()
         return context
 
 
@@ -372,14 +340,6 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
             context['page_obj'], \
             context['submissions'], \
             context['is_paginated'] = self.paginate_queryset(submissions)
-        try:
-            context['unread_comments_count'] = \
-                self.object.comment_set.count() \
-                - self.request.user.account.comments_read.filter(
-                    object_type=ContentType.objects.get_for_model(self.object),
-                    object_id=self.object.id).count()
-        except User.account.RelatedObjectDoesNotExist:
-            context['unread_comments_count'] = self.object.comment_set.count()
         return context
 
 
@@ -395,14 +355,6 @@ class ProblemDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
             context['page_obj'], \
             context['comments'], \
             context['is_paginated'] = self.paginate_queryset(comments)
-        try:
-            context['unread_comments_count'] = \
-                self.object.comment_set.count() \
-                - self.request.user.account.comments_read.filter(
-                    object_type=ContentType.objects.get_for_model(self.object),
-                    object_id=self.object.id).count()
-        except User.account.RelatedObjectDoesNotExist:
-            context['unread_comments_count'] = self.object.comment_set.count()
         return context
 
 
@@ -780,14 +732,6 @@ class AssignmentDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
             context['page_obj'], \
             context['submissions'], \
             context['is_paginated'] = self.paginate_queryset(submissions)
-        try:
-            context['unread_comments_count'] = \
-                self.object.comment_set.count() \
-                - self.request.user.account.comments_read.filter(
-                    object_type=ContentType.objects.get_for_model(self.object),
-                    object_id=self.object.id).count()
-        except User.account.RelatedObjectDoesNotExist:
-            context['unread_comments_count'] = self.object.comment_set.count()
         return context
 
 
@@ -803,14 +747,6 @@ class AssignmentDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
             context['page_obj'], \
             context['comments'], \
             context['is_paginated'] = self.paginate_queryset(comments)
-        try:
-            context['unread_comments_count'] = \
-                self.object.comment_set.count() \
-                - self.request.user.account.comments_read.filter(
-                    object_type=ContentType.objects.get_for_model(self.object),
-                    object_id=self.object.id).count()
-        except User.account.RelatedObjectDoesNotExist:
-            context['unread_comments_count'] = self.object.comment_set.count()
         return context
 
 

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views contests %}
+{% load views accounts contests %}
 
 {% block title %}
 Задание
@@ -24,9 +24,7 @@
            id="description-tab" role="tab">Описание</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'contests:assignment-discussion' assignment.id %}" id="discussion-tab" role="tab">
-            Обсуждение{% if unread_comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ unread_comments_count }}</span>{% endif %}
-        </a>
+        {% render_discussion_tab assignment %}
     </li>
 </ul>
 <div class="tab-content">
