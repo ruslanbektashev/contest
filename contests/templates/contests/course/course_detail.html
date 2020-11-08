@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views markdown static %}
+{% load views accounts markdown static %}
 
 {% block title %}
 Курс
@@ -24,6 +24,7 @@
            id="contests-tab" role="tab">Разделы</a>
     </li>
     <li class="nav-item">
+        {% unread_comments_count request.user.id course as unread_comments_count %}
         <a class="nav-link" href="{% url 'contests:course-discussion' course.id %}" id="discussion-tab" role="tab">
             Обсуждение{% if unread_comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ unread_comments_count }}</span>{% endif %}
         </a>

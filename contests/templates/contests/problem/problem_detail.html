@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views contests markdown static %}
+{% load views accounts contests markdown static %}
 
 {% block title %}
 Задача
@@ -38,6 +38,7 @@
     </li>
     {% endif %}
     <li class="nav-item">
+        {% unread_comments_count request.user.id problem as unread_comments_count %}
         <a class="nav-link" href="{% url 'contests:problem-discussion' problem.id %}" id="discussion-tab" role="tab">
             Обсуждение{% if unread_comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ unread_comments_count }}</span>{% endif %}
         </a>
