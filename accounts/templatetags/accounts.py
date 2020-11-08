@@ -1,10 +1,10 @@
 from django import template
 
-from accounts.views import mark_comments_as_read
+from accounts.views import mark_comments_as_read as mark_comments_as_read_view
 
 register = template.Library()
 
 
 @register.simple_tag()
-def comments_read(request, account_id, object_model, object_id):
-    return mark_comments_as_read(request, account_id, object_model, object_id)
+def mark_comments_as_read(request, account_id, object):
+    return mark_comments_as_read_view(request, account_id, object)
