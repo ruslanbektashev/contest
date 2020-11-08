@@ -33,6 +33,16 @@
     <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %}" id="description" role="tabpanel">
         <p>{{ testsuite.description|markdown|safe }}</p>
         <legend>Тесты</legend>
+
+        {% if perms.contests.add_testsuite %}
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" onclick="handleShowAnswers()" value="" id="show_answers">
+            <label class="form-check-label" for="show_answers">
+                Показать ответы
+            </label>
+        </div>
+        {% endif %}
+        
         {% for test in tests %}
         <div class="card mb-4">
             <div class="card-header">
@@ -40,6 +50,9 @@
             </div>
             <div class="card-body">
                 {{ test.question|markdown|safe }}
+                {% if perms.contests.add_testsuite %}
+                <span class="test-answer" style="display:none">Правильный ответ: {{ test.right_answer }}</span>
+                {% endif %}
             </div>
         </div>
         {% endfor %}
@@ -80,6 +93,26 @@
 {% endblock submenu %}
 
 {% block javascript %}
+<script>
+
+function handleShowAnswers() {
+    const showAnswersCheckbox = document.getElementById("show_answers");
+    const testAnswerElements = document.getElementsByClassName("test-answer");
+
+    if (showAnswersCheckbox.checked) {
+        for (let testAnswer of testAnswerElements) {
+            testAnswer.style.display = "block";
+        }
+    } else {
+        for (let testAnswer of testAnswerElements) {
+            testAnswer.style.display = "none";
+        }
+    }
+
+}
+
+</script>
+
 <script src="{% static 'MathJax/es5/tex-chtml.js' %}" type="text/javascript"></script>
 <!--<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML"></script>-->
 {% endblock javascript %}
