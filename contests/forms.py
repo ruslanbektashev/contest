@@ -1,6 +1,7 @@
 import os
 import re
 
+from ckeditor.widgets import CKEditorWidget
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
@@ -359,6 +360,8 @@ class TestSuiteForm(forms.ModelForm):
 
 
 class TestForm(forms.ModelForm):
+    question = forms.CharField(widget=CKEditorWidget(), label="Вопрос")
+    
     class Meta:
         model = Test
         fields = ['question', 'right_answer']

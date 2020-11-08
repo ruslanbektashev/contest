@@ -1,0 +1,37 @@
+
+{% load views contests %}
+<div class="table-responsive">
+    <table id="p" class="table table-bordered table-sm">
+        <thead>
+            <tr>
+                <th class="text-center" style="width: 18%;">Дата</th>
+                {% if perms.contests.view_testsuitesubmission_list %}
+                <th>Студент</th>
+                {% endif %}
+                {% if not testsuite %}
+                <th>Задача</th>
+                {% endif %}
+                <th class="text-center" style="width: 8%;">Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% now 'Y' as current_year %}
+            {% for submission in testsuitesubmissions %}
+            <tr>
+                <td class="text-center">{% if submission.date_created|date:'Y' == current_year %}{{ submission.date_created|date:'d b в H:i' }}{% else %}{{ submission.date_created|date:'d b y г. в H:i' }}{% endif %}</td>
+                {% if perms.contests.view_testsuitesubmission_list %}
+                <td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>
+                {% endif %}
+                {% if not testsuite %}
+                <td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td>
+                {% endif %}
+                <td class="text-center">
+                    <a href="{{ submission.get_absolute_url }}" class="badge badge-info">
+                        {{ submission.status }}%
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

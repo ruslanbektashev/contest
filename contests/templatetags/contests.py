@@ -51,6 +51,11 @@ def render_submission_table(context):
     return context
 
 
+@register.inclusion_tag('contests/testsuitesubmission/testsuitesubmission_table.html', takes_context=True)
+def render_testsuitesubmission_table(context):
+    return context
+
+
 @register.inclusion_tag('contests/assignment/assignment_user_table.html', takes_context=True)
 def render_assignment_user_table(context, assignments, credits):
     for credit in credits:
@@ -102,4 +107,13 @@ def render_attachment_list(context, obj):
     context['attachments'] = obj.attachment_set.all()
     context['obj'] = obj
     context['path_name'] = 'contests:{}-attachment'.format(obj.__class__.__name__.lower())
+    return context
+
+
+@register.inclusion_tag('contests/discussion_tab.html', takes_context=True)
+def render_discussion_tab(context, obj):
+    context['obj'] = obj
+    context['discussion_url'] = 'contests:' + obj._meta.model_name + '-discussion'
+    if 'discussion' in context['view'].template_name:
+        context['tab'] = 'discussion'
     return context
