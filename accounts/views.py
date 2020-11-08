@@ -50,15 +50,6 @@ def unsubscribe(request, pk, object_model, object_id):
     )
 
 
-def mark_comments_as_read(request, pk, obj):
-    try:
-        account = Account.objects.get(user_id=pk)
-    except ValueError:
-        return
-
-    account.comments_read.add(*obj.comment_set.all())
-
-
 class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
     model = Account
     template_name = 'accounts/account/account_detail.html'

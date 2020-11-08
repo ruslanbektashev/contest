@@ -38,7 +38,7 @@
     <li class="nav-item">
         <a aria-controls="discussion" aria-selected="true" class="nav-link active" data-toggle="tab" href="#discussion" id="discussion-tab" role="tab">
             Обсуждение{% if unread_comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ unread_comments_count }}</span>
-            {% mark_comments_as_read request request.user.id problem as comments_read %}
+            {% mark_comments_as_read request.user.id problem as comments_read %}
         {% endif %}
         </a>
     </li>
