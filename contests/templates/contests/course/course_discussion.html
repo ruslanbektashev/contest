@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views accounts comments markdown static %}
+{% load views accounts comments contests markdown static %}
 
 {% block title %}
 Курс
@@ -22,12 +22,7 @@
            role="tab">Разделы</a>
     </li>
     <li class="nav-item">
-        {% unread_comments_count request.user.id course as unread_comments_count %}
-        <a aria-controls="discussion" aria-selected="true" class="nav-link active" data-toggle="tab" href="#discussion" id="discussion-tab" role="tab">
-            Обсуждение{% if unread_comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ unread_comments_count }}</span>
-            {% mark_comments_as_read request.user.id course as comments_read %}
-        {% endif %}
-        </a>
+        {% render_discussion_tab course %}
     </li>
 </ul>
 <div class="tab-content">

@@ -25,10 +25,7 @@
            id="problems-tab" role="tab">Задачи</a>
     </li>
     <li class="nav-item">
-        {% unread_comments_count request.user.id contest as unread_comments_count %}
-        <a class="nav-link" href="{% url 'contests:contest-discussion' contest.id %}" id="discussion-tab" role="tab">
-            Обсуждение{% if unread_comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ unread_comments_count }}</span>{% endif %}
-        </a>
+        {% render_discussion_tab contest %}
     </li>
     <li class="nav-item">
         <a aria-controls="testsuites" aria-selected="{% if tab == 'testsuites' %}true{% else %}false{% endif %}"
