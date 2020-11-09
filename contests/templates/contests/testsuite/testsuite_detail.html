@@ -25,20 +25,16 @@
            class="nav-link {% if tab == 'submissions' %}active{% endif %}" data-toggle="tab" href="#submissions"
            id="submissions-tab" role="tab">Посылки</a>
     </li>
-    {% if perms.contests.view_solution %}
-    {% endif %}
-
 </ul>
 <div class="tab-content">
     <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %}" id="description" role="tabpanel">
         <p>{{ testsuite.description|markdown|safe }}</p>
         <legend>Тесты</legend>
 
-        {% if perms.contests.add_testsuite %}
-        <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" onclick="handleShowAnswers()" value="" id="show_answers">
-            <label class="form-check-label" for="show_answers">
-                Показать ответы
+        {% if perms.contests.view_solution %}
+        <div class="btn-group btn-group-toggle mb-4" data-toggle="buttons">
+            <label class="btn btn-secondary btn-sm active" for="show_answers">
+                <input type="checkbox" autocomplete="off" onclick="handleShowAnswers()" id="show_answers">Показывать ответы
             </label>
         </div>
         {% endif %}
@@ -46,11 +42,11 @@
         {% for test in tests %}
         <div class="card mb-4">
             <div class="card-header">
-                Тест #{{ test.number }}
+                Тест {{ test.number }}
             </div>
             <div class="card-body">
                 {{ test.question|markdown|safe }}
-                {% if perms.contests.add_testsuite %}
+                {% if perms.contests.view_solution %}
                 <span class="test-answer" style="display:none">Правильный ответ: {{ test.right_answer }}</span>
                 {% endif %}
             </div>
@@ -62,12 +58,6 @@
         {% render_testsuitesubmission_table %}
         {% endwith %}
     </div>
-    {% if perms.contests.view_solution %}
-    <div aria-labelledby="solutions-tab" class="tab-pane fade" id="solutions" role="tabpanel">
-        <div class="alert alert-warning">Доступно только преподавателям</div>
-        {% render_list problem.solution_set.all %}
-    </div>
-    {% endif %}
 </div>
 
 

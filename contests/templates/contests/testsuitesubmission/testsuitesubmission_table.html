@@ -11,7 +11,7 @@
                 {% if not testsuite %}
                 <th>Задача</th>
                 {% endif %}
-                <th class="text-center" style="width: 8%;">Статус</th>
+                <th class="text-center" style="width: 8%;">Результат</th>
             </tr>
         </thead>
         <tbody>
@@ -27,7 +27,7 @@
                 {% endif %}
                 <td class="text-center">
                     <a href="{{ submission.get_absolute_url }}" class="badge badge-info">
-                        {{ submission.status }}%
+                        {{ submission.score }}%
                     </a>
                 </td>
             </tr>

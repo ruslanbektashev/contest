@@ -784,7 +784,7 @@ class Test(CRUDEntry):
     testsuite = models.ForeignKey(TestSuite, on_delete=models.CASCADE, verbose_name="Набор тестов")
 
     number = models.PositiveSmallIntegerField(default=1, verbose_name="Номер")
-    question = RichTextField(verbose_name="Вопрос")
+    question = models.TextField(verbose_name="Вопрос")
     right_answer = models.CharField(max_length=250, verbose_name="Правильный ответ")
 
     class Meta(CRUDEntry.Meta):

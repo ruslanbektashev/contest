@@ -360,6 +360,9 @@ class TestSuiteForm(forms.ModelForm):
 
 
 class TestForm(forms.ModelForm):
+    question = forms.CharField(widget=CKEditorWidget(), label="Вопрос")
+    
+
     class Meta:
         model = Test
         fields = ['question', 'right_answer']

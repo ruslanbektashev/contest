@@ -20,7 +20,7 @@
 {% block content %}
 <legend>{% if testsuite %}Редактирование{% else %}Добавление{% endif %} набора тестов</legend>
 
-<form action="" method="post" enctype="multipart/form-data" class="form-horizontal">
+<form id="testsuite_create" action="" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}
     {{ form.media }}
     {% render_form_errors form %}
@@ -31,25 +31,85 @@
     
     <legend class="mb-3">Тесты</legend>
 
-    <!-- New test form -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <h6 class="card-title mb-3">
-                Новый тест
-            </h6>
-            {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
-                {% render_field test_form.question class+="form-control" placeholder=test_form.question.label %}
-                {% render_field test_form.right_answer class+="form-control"  %}
-                {% endwith %}
-            <input type="button" onclick="handleTestAdd()" class="btn btn-light border" value="Добавить тест"/>
-        </div>
+    {% if form.errors.test_formset %}
+    <div class="alert alert-danger">
+        {{ form.errors.test_formset }}
     </div>
+    {% endif %}
 
     {{ test_formset.management_form }}
 
     <!-- Created tests list -->
     <div id="created_tests">
-        
+        {% for form in test_formset %}
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="test-title"></span>
+                    <input id="delete_test" type="button" onclick="handleTestDelete(this.name)" class="delete-test btn btn-danger btn-sm" value="Удалить"/>
+                </div>
+                <div class="card-body">
+                    {% with form.question as field %}
+                        <span class="question-hidden">
+                            {{ field.as_hidden }}
+                        </span>
+                        <div class="text-muted">Вопрос: </div>
+                        <span class="test-question">
+                        </span>
+                        <div class="text-danger">
+                            {% for error in form.errors.question %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% if form.question.append_text %}
+                            <div>{{ form.question.append_text }}</div>
+                        {% endif %}
+                        {% if form.question.help_text %}
+                            <small class="text-muted">{{ form.question.help_text }}</small>
+                        {% endif %}
+                    {% endwith %}
+
+                    {% with form.right_answer as field %}
+                        <span class="text-muted">Правильный ответ: </span>
+                        <span class="answer-hidden">
+                            {{ field.as_hidden }}
+                        </span>
+                        <span class="test-answer">
+
+                        </span>
+                        <div class="text-danger">
+                            {% for error in form.errors.right_answer %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% if form.right_answer.append_text %}
+                            <div class="input-group-append">
+                                <span class="input-group-text">{{ form.right_answer.append_text }}</span>
+                            </div>
+                        {% endif %}
+                        {% if form.right_answer.help_text %}
+                            <small class="form-text text-muted">{{ form.right_answer.help_text }}</small>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>            
+        {% endfor %}
+    </div>
+
+    <!-- New test form -->
+    <div id="new_test" class="card mb-4">
+        <div class="card-body">
+            <h6 class="card-title mb-3">
+                Новый тест
+            </h6>
+            {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+                {% render_field test_form.question class+="form-control" %}
+                {% render_field test_form.right_answer class+="form-control" %}
+            {% endwith %}
+            <div class="text-danger mb-3">
+
+            </div>
+            <input type="button" onclick="handleTestAdd()" class="btn btn-light border" value="Добавить тест"/>
+        </div>
     </div>
 
     {% render_submit_button value="Сохранить" %}
@@ -63,12 +123,18 @@
             <input id="delete_test" type="button" onclick="handleTestDelete(this.name)" class="delete-test btn btn-danger btn-sm" value="Удалить"/>
         </div>
         <div class="card-body">
-            <span class="test-question"></span>
+            <span class="question-hidden">
+                <input type="hidden"/>
+            </span>
+            <span class="test-question">
+            </span>
             <span class="text-muted">Правильный ответ: </span>
-            <span class="test-answer"></span>
+            <span class="answer-hidden">
+                <input type="hidden"/>
+            </span>
+            <span class="test-answer">
+            </span>
         </div>
-        <input class="question-hidden" type="hidden"/>
-        <input class="answer-hidden" type="hidden"/>
     </div>
 </div>
 
@@ -80,22 +146,35 @@
 
 document.getElementById("id_right_answer").required = false;
 
+const createdTests = document.getElementById("created_tests");
+updateTestsNumeration(createdTests);
+updateCardsValues(createdTests);
+
+function updateCardsValues(createdTests) {
+    for (i = 0; i < createdTests.childElementCount; i++) {
+        let card = createdTests.children[i];
+
+        const questionHiddenInputValue = card.getElementsByClassName("question-hidden")[0].firstElementChild.value;
+        const answerHiddenInputValue = card.getElementsByClassName("answer-hidden")[0].firstElementChild.value;
+        card.getElementsByClassName("test-question")[0].innerHTML = questionHiddenInputValue;
+        card.getElementsByClassName("test-answer")[0].innerText = answerHiddenInputValue;
+    }
+}
+
 function updateTestsNumeration(createdTests) {
     for (i = 0; i < createdTests.childElementCount; i++) {
         let card = createdTests.children[i];
-        console.log(card)
-        let testTitle = card.getElementsByClassName("test-title")[0];
-        testTitle.innerText = "Тест " + (i + 1);
 
+        card.getElementsByClassName("test-title")[0].innerText = "Тест " + (i + 1);
         card.getElementsByClassName("delete-test")[0].setAttribute("name", i);
 
-        let questionHidden = card.getElementsByClassName("question-hidden")[0];
-        questionHidden.setAttribute("id", "id_test_set-" + i + "-question");
-        questionHidden.setAttribute("name", "test_set-" + i + "-question");
+        let questionHiddenInput = card.getElementsByClassName("question-hidden")[0].firstElementChild;
+        questionHiddenInput.setAttribute("id", "id_test_set-" + i + "-question");
+        questionHiddenInput.setAttribute("name", "test_set-" + i + "-question");
 
-        let answerHidden = card.getElementsByClassName("answer-hidden")[0];
-        answerHidden.setAttribute("id", "id_test_set-" + i + "-right_answer");
-        answerHidden.setAttribute("name", "test_set-" + i + "-right_answer");
+        let answerHiddenInput = card.getElementsByClassName("answer-hidden")[0].firstElementChild;
+        answerHiddenInput.setAttribute("id", "id_test_set-" + i + "-right_answer");
+        answerHiddenInput.setAttribute("name", "test_set-" + i + "-right_answer");
     }
 }
 
@@ -103,16 +182,29 @@ function handleTestDelete(testNumber) {
     const createdTests = document.getElementById("created_tests");
     createdTests.removeChild(createdTests.children[testNumber]);
     updateTestsNumeration(createdTests);
+
+    let totalFormsHiddenInput = document.getElementById("id_test_set-TOTAL_FORMS")
+    totalFormsHiddenInput.setAttribute("value", parseInt(totalFormsHiddenInput.value) - 1)
 }
 
 function handleTestAdd() {
     const questionValue = CKEDITOR.instances.id_question.getData();
     const rightAnswer = document.getElementById("id_right_answer");
-    const rightAnswerValue = document.getElementById("id_right_answer").value;
+    const rightAnswerValue = rightAnswer.value;
+
+    const newTestCard = document.getElementById("new_test");
+
+    if (questionValue.length == 0 || rightAnswerValue.length == 0) {
+        newTestCard.getElementsByClassName("text-danger")[0].innerText = "Оба поля обязательны для заполнения.";
+        newTestCard.classList.add("border-danger");
+        return;
+    }
+
+    newTestCard.getElementsByClassName("text-danger")[0].innerText = "";
+    newTestCard.classList.remove("border-danger");
+
     const createdTests = document.getElementById("created_tests");
-    
     createdTests.appendChild(createTestCard(questionValue, rightAnswerValue));
-    
     let totalFormsHiddenInput = document.getElementById("id_test_set-TOTAL_FORMS")
     totalFormsHiddenInput.setAttribute("value", parseInt(totalFormsHiddenInput.value) + 1)
 
@@ -129,8 +221,8 @@ function createTestCard(question, rightAnswer) {
 
     card.getElementsByClassName("test-question")[0].innerHTML = question;
     card.getElementsByClassName("test-answer")[0].innerText = rightAnswer;
-    card.getElementsByClassName("question-hidden")[0].setAttribute("value", question);
-    card.getElementsByClassName("answer-hidden")[0].setAttribute("value", rightAnswer);
+    card.getElementsByClassName("question-hidden")[0].firstElementChild.setAttribute("value", question);
+    card.getElementsByClassName("answer-hidden")[0].firstElementChild.setAttribute("value", rightAnswer);
 
     return card;
 }

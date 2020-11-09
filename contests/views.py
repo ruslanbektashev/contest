@@ -1285,7 +1285,7 @@ class TestSuiteCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     def dispatch(self, request, *args, **kwargs):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
 
-        TestInlineFormSet = inlineformset_factory(TestSuite, Test, form=TestForm, fields=('question', 'right_answer'), extra=0, min_num=1, validate_min=True)
+        TestInlineFormSet = inlineformset_factory(TestSuite, Test, form=TestForm, fields=('question', 'right_answer'), extra=0)
         inlineformset_kwargs = {'initial': []}
         if self.request.method in ('POST', 'PUT'):
             inlineformset_kwargs.update({'data': self.request.POST})
@@ -1294,6 +1294,10 @@ class TestSuiteCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def form_valid(self, form):
         test_formset = self.storage['test_formset']
+        if test_formset.total_form_count() == 0:
+            form.errors.update({'test_formset': "Необходимо добавить хотя бы один тест."})
+            self.storage['test_formset'] = test_formset
+            return self.form_invalid(form)
         if test_formset.is_valid():
             form.instance.owner = self.request.user
             form.instance.contest = self.storage['contest']
@@ -1302,6 +1306,7 @@ class TestSuiteCreate(LoginRedirectPermissionRequiredMixin, CreateView):
             test_formset.save()
             return HttpResponseRedirect(self.get_success_url())
         else:
+            self.storage['test_formset'] = test_formset
             return self.form_invalid(form)
 
     def get_context_data(self, **kwargs):
