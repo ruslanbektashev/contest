@@ -178,6 +178,7 @@ class Account(models.Model):
 
     def mark_comments_as_read(self, obj):
         self.comments_read.add(*obj.comment_set.all())
+        return ''
 
     def unread_comments_count(self, obj):
         return obj.comment_set.count() \

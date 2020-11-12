@@ -10,7 +10,7 @@ def mark_comments_as_read(account_id, obj):
     try:
         account = Account.objects.get(user_id=account_id)
     except Account.DoesNotExist:
-        return
+        return ''
 
     return account.mark_comments_as_read(obj)
 
