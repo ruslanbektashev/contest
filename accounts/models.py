@@ -176,9 +176,8 @@ class Account(models.Model):
     def get_absolute_url(self):
         return reverse('accounts:account-detail', kwargs={'pk': self.pk})
 
-    def mark_comments_as_read(self, obj):
-        self.comments_read.add(*obj.comment_set.all())
-        return ''
+    def mark_comments_as_read(self, comments):
+        self.comments_read.add(*comments)
 
     def unread_comments_count(self, obj):
         return obj.comment_set.count() \

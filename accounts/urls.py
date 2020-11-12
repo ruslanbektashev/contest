@@ -45,4 +45,5 @@ urlpatterns = [
         ])),
         path('list', views.AnnouncementList.as_view(), name='announcement-list'),
     ])),
+    path('mark_comments_as_read', views.mark_comments_as_read, name='mark-comments-as-read'),
 ]

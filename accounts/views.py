@@ -6,6 +6,7 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView, TemplateView
 from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.contenttypes.models import ContentType
 from markdown import markdown
 
@@ -46,6 +47,21 @@ def unsubscribe(request, pk, object_model, object_id):
         reverse(
             'contests:{object_type}-detail'.format(object_type=object_model),
             kwargs={'pk': object_id}
+        )
+    )
+
+
+@csrf_exempt
+def mark_comments_as_read(request):
+    account = request.user.account
+    comments = Comment.objects.filter(id__in=request.POST.getlist('read_comments_ids_list[]'))
+    comments = comments.exclude(id__in=account.comments_read.values_list('id', flat=True))
+    account.mark_comments_as_read(comments)
+
+    return HttpResponseRedirect(
+        reverse(
+            'contests:{object_type}-detail'.format(object_type=request.POST.get('object_model')),
+            kwargs={'pk': int(request.POST.get('object_id'))}
         )
     )
 
