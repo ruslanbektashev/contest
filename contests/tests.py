@@ -1054,6 +1054,7 @@ class SubmissionViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         admin = User.objects.create_superuser(cls.admin, 'admin@localhost', cls.admin)
+        Account.objects.create(user=admin)
         student = User.objects.create_user(cls.student, 'student@localhost', cls.student)
         Account.students.create(user=student)
         User.objects.create_user(cls.other_student, 'other_student@localhost', cls.other_student)
