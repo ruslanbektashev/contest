@@ -812,8 +812,12 @@ class TestSuiteSubmission(CRUDEntry):
         verbose_name = "Решение набора тестов"
         verbose_name_plural = "Решения наборов тестов"
 
-    def save(self, *args, **kwargs):
+    def update_score(self):
         self.score = self.testsubmission_set.filter(status="OK").count() * 100 // self.testsuite.test_set.count()
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            self.update_score()
         super().save(*args, **kwargs)
 
     def __str__(self):
