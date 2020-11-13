@@ -20,22 +20,27 @@ from accounts.models import Account, Activity, Comment, Message, Chat, Announcem
 """==================================================== Account ====================================================="""
 
 
-def subscribe(request, pk, object_model, object_id):
+def subscribe(request, pk, object_model, object_id, open_discussion):
     account = Account.objects.get(user_id=pk)
-    obj = ContentType.objects.get(app_label='contests', model=object_model).get_object_for_this_type(id=object_id)
 
-    subscription = Subscription(object=obj, account=account)
+    subscription = Subscription(
+        object=ContentType.objects.get(app_label='contests', model=object_model).get_object_for_this_type(id=object_id),
+        account=account
+    )
     subscription.save()
 
     return HttpResponseRedirect(
         reverse(
-            'contests:{object_type}-detail'.format(object_type=obj._meta.model_name),
-            kwargs={'pk': obj.pk}
+            'contests:{object_type}-{view_name}'.format(
+                object_type=object_model,
+                view_name='discussion' if open_discussion else 'detail'
+            ),
+            kwargs={'pk': object_id}
         )
     )
 
 
-def unsubscribe(request, pk, object_model, object_id):
+def unsubscribe(request, pk, object_model, object_id, open_discussion):
     account = Account.objects.get(user_id=pk)
 
     subscription = Subscription.objects.get(object_type=ContentType.objects.get(app_label='contests', model=object_model),
@@ -45,7 +50,10 @@ def unsubscribe(request, pk, object_model, object_id):
 
     return HttpResponseRedirect(
         reverse(
-            'contests:{object_type}-detail'.format(object_type=object_model),
+            'contests:{object_type}-{view_name}'.format(
+                object_type=object_model,
+                view_name='discussion' if open_discussion else 'detail'
+            ),
             kwargs={'pk': object_id}
         )
     )
@@ -60,7 +68,7 @@ def mark_comments_as_read(request):
 
     return HttpResponseRedirect(
         reverse(
-            'contests:{object_type}-detail'.format(object_type=request.POST.get('object_model')),
+            'contests:{object_type}-discussion'.format(object_type=request.POST.get('object_model')),
             kwargs={'pk': int(request.POST.get('object_id'))}
         )
     )

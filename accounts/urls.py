@@ -12,8 +12,8 @@ urlpatterns = [
         path('<int:pk>/', include([
             path('', views.AccountDetail.as_view(), name='account-detail'),
             path('update', views.AccountUpdate.as_view(), name='account-update'),
-            path('subscribe/<str:object_model>/<int:object_id>', views.subscribe, name='account-subscribe'),
-            path('unsubscribe/<str:object_model>/<int:object_id>', views.unsubscribe, name='account-unsubscribe'),
+            path('subscribe/<str:object_model>/<int:object_id>/<int:open_discussion>', views.subscribe, name='account-subscribe'),
+            path('unsubscribe/<str:object_model>/<int:object_id>/<int:open_discussion>', views.unsubscribe, name='account-unsubscribe'),
         ])),
         path('list', views.AccountFormList.as_view(), name='account-list'),
         path('credentials', views.AccountCredentials.as_view(), name='account-credentials'),
