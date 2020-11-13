@@ -24,7 +24,7 @@
 {% for testsubmission in testsubmissions %}
 <div class="card mb-4">
     <div class="card-header">
-        Тест #{{ testsubmission.number }}
+        Тест {{ testsubmission.number }}
     </div>
     <ul class="list-group list-group-flush">
         <li class="list-group-item">{{ testsubmission.question|markdown|safe }}</li>
