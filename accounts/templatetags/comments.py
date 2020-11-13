@@ -35,3 +35,8 @@ def render_comments(context, obj, comments):
     context['obj'] = obj
     context['comments'] = comments
     return context
+
+
+@register.filter
+def model_name(instance):
+    return instance._meta.model_name

@@ -6,6 +6,7 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView, TemplateView
 from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.contenttypes.models import ContentType
 from markdown import markdown
 
@@ -19,22 +20,27 @@ from accounts.models import Account, Activity, Comment, Message, Chat, Announcem
 """==================================================== Account ====================================================="""
 
 
-def subscribe(request, pk, object_model, object_id):
+def subscribe(request, pk, object_model, object_id, open_discussion):
     account = Account.objects.get(user_id=pk)
-    obj = ContentType.objects.get(app_label='contests', model=object_model).get_object_for_this_type(id=object_id)
 
-    subscription = Subscription(object=obj, account=account)
+    subscription = Subscription(
+        object=ContentType.objects.get(app_label='contests', model=object_model).get_object_for_this_type(id=object_id),
+        account=account
+    )
     subscription.save()
 
     return HttpResponseRedirect(
         reverse(
-            'contests:{object_type}-detail'.format(object_type=obj._meta.model_name),
-            kwargs={'pk': obj.pk}
+            'contests:{object_type}-{view_name}'.format(
+                object_type=object_model,
+                view_name='discussion' if open_discussion else 'detail'
+            ),
+            kwargs={'pk': object_id}
         )
     )
 
 
-def unsubscribe(request, pk, object_model, object_id):
+def unsubscribe(request, pk, object_model, object_id, open_discussion):
     account = Account.objects.get(user_id=pk)
 
     subscription = Subscription.objects.get(object_type=ContentType.objects.get(app_label='contests', model=object_model),
@@ -44,8 +50,26 @@ def unsubscribe(request, pk, object_model, object_id):
 
     return HttpResponseRedirect(
         reverse(
-            'contests:{object_type}-detail'.format(object_type=object_model),
+            'contests:{object_type}-{view_name}'.format(
+                object_type=object_model,
+                view_name='discussion' if open_discussion else 'detail'
+            ),
             kwargs={'pk': object_id}
+        )
+    )
+
+
+@csrf_exempt
+def mark_comments_as_read(request):
+    account = request.user.account
+    comments = Comment.objects.filter(id__in=request.POST.getlist('read_comments_ids_list[]'))
+    comments = comments.exclude(id__in=account.comments_read.values_list('id', flat=True))
+    account.mark_comments_as_read(comments)
+
+    return HttpResponseRedirect(
+        reverse(
+            'contests:{object_type}-discussion'.format(object_type=request.POST.get('object_model')),
+            kwargs={'pk': int(request.POST.get('object_id'))}
         )
     )
 

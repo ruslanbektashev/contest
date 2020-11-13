@@ -351,7 +351,7 @@ class TestSuiteSubmissionAdmin(admin.ModelAdmin):
             'fields': ('owner', 'testsuite',)
         }),
         ('Детали', {
-            'fields': ('status',)
+            'fields': ('score',)
         }),
         ('Даты', {
             'fields': ('date_updated', 'date_created')

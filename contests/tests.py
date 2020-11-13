@@ -18,7 +18,9 @@ class CourseViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         admin = User.objects.create_superuser(cls.admin, 'admin@localhost', cls.admin)
-        User.objects.create_user(cls.student, 'student@localhost', cls.student)
+        Account.objects.create(user=admin)
+        student = User.objects.create_user(cls.student, 'student@localhost', cls.student)
+        Account.objects.create(user=student)
         for i in range(1, cls.courses_num + 1):
             course = Course.objects.create(owner=admin, title="Test Course %s" % i,
                                            description="Test Description %s" % i, level=i)
@@ -198,7 +200,9 @@ class ContestViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         admin = User.objects.create_superuser(cls.admin, 'admin@localhost', cls.admin)
-        User.objects.create_user(cls.student, 'student@localhost', cls.student)
+        Account.objects.create(user=admin)
+        student = User.objects.create_user(cls.student, 'student@localhost', cls.student)
+        Account.objects.create(user=student)
         for i in range(1, cls.courses_num + 1):
             course = Course.objects.create(owner=admin, title="Test Course %s" % i,
                                            description="Test Description %s" % i, level=i)
@@ -304,7 +308,9 @@ class ProblemViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         admin = User.objects.create_superuser(cls.admin, 'admin@localhost', cls.admin)
-        User.objects.create_user(cls.student, 'student@localhost', cls.student)
+        Account.objects.create(user=admin)
+        student = User.objects.create_user(cls.student, 'student@localhost', cls.student)
+        Account.objects.create(user=student)
         for i in range(1, cls.courses_num + 1):
             course = Course.objects.create(owner=admin, title="Test Course %s" % i,
                                            description="Test Description %s" % i, level=i)
@@ -873,6 +879,7 @@ class AssignmentViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         admin = User.objects.create_superuser(cls.admin, 'admin@localhost', cls.admin)
+        Account.objects.create(user=admin)
         student = User.objects.create_user(cls.student, 'student@localhost', cls.student)
         Account.students.create(user=student)
         for i in range(1, cls.courses_num + 1):
@@ -1047,6 +1054,7 @@ class SubmissionViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         admin = User.objects.create_superuser(cls.admin, 'admin@localhost', cls.admin)
+        Account.objects.create(user=admin)
         student = User.objects.create_user(cls.student, 'student@localhost', cls.student)
         Account.students.create(user=student)
         User.objects.create_user(cls.other_student, 'other_student@localhost', cls.other_student)
