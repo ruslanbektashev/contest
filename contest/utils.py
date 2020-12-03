@@ -1,8 +1,7 @@
 import enum
 
+from django.conf import settings
 from django.views.generic import TemplateView
-
-from contest import settings
 
 
 class Status(enum.Enum):
