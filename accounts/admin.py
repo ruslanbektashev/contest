@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 
-from accounts.models import Account, Activity, Comment, Message, Chat, Announcement
+from accounts.models import Account, Activity, Comment, Message, Chat, Announcement, Subscription
 
 
 @admin.register(Permission)
@@ -138,3 +138,8 @@ class AnnouncementAdmin(admin.ModelAdmin):
         })
     )
     readonly_fields = ('date_updated', 'date_created')
+
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    pass
