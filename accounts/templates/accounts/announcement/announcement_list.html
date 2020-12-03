@@ -16,9 +16,7 @@
 <div>
     <h4><a href="{{ announcement.get_absolute_url }}">{{ announcement.title }}</a></h4>
     <p>{{ announcement.text|safe }}</p>
-    <div class="text-right">
-        <p><span class="badge badge-secondary align-middle">{{ announcement.group }}</span> | {{ announcement.date_created|date:'' }}</p>
-    </div>
+    <p>{{ announcement.date_created|date:'' }} | <span class="badge badge-secondary align-middle">{{ announcement.group }}</span></p>
 </div>
 {% endfor %}
 {% endblock content %}
