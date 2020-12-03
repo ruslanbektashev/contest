@@ -1,5 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from django.forms import inlineformset_factory
+from django.views.generic.list import BaseListView
 from pygments import highlight
 from pygments.lexers import CppLexer
 from pygments.formatters import HtmlFormatter
@@ -64,9 +65,9 @@ class CourseDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-            context['page_obj'], \
-            context['comments'], \
-            context['is_paginated'] = self.paginate_queryset(comments)
+        context['page_obj'], \
+        context['comments'], \
+        context['is_paginated'] = self.paginate_queryset(comments)
         context['subscribers_ids'] = self.object.subscription_set.all().values_list('account', flat=True)
         return context
 
@@ -241,9 +242,9 @@ class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-            context['page_obj'], \
-            context['comments'], \
-            context['is_paginated'] = self.paginate_queryset(comments)
+        context['page_obj'], \
+        context['comments'], \
+        context['is_paginated'] = self.paginate_queryset(comments)
         return context
 
 
@@ -337,9 +338,9 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         else:
             submissions = self.object.submission_set.filter(owner_id=self.request.user.id)
         context['paginator'], \
-            context['page_obj'], \
-            context['submissions'], \
-            context['is_paginated'] = self.paginate_queryset(submissions)
+        context['page_obj'], \
+        context['submissions'], \
+        context['is_paginated'] = self.paginate_queryset(submissions)
         return context
 
 
@@ -352,9 +353,9 @@ class ProblemDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-            context['page_obj'], \
-            context['comments'], \
-            context['is_paginated'] = self.paginate_queryset(comments)
+        context['page_obj'], \
+        context['comments'], \
+        context['is_paginated'] = self.paginate_queryset(comments)
         return context
 
 
@@ -729,9 +730,9 @@ class AssignmentDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         submissions = self.object.get_submissions()
         context['paginator'], \
-            context['page_obj'], \
-            context['submissions'], \
-            context['is_paginated'] = self.paginate_queryset(submissions)
+        context['page_obj'], \
+        context['submissions'], \
+        context['is_paginated'] = self.paginate_queryset(submissions)
         return context
 
 
@@ -744,9 +745,9 @@ class AssignmentDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-            context['page_obj'], \
-            context['comments'], \
-            context['is_paginated'] = self.paginate_queryset(comments)
+        context['page_obj'], \
+        context['comments'], \
+        context['is_paginated'] = self.paginate_queryset(comments)
         return context
 
 
@@ -942,9 +943,9 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
         context['from_url'] = self.storage['from_url']
         comments = self.object.comment_set.actual()
         context['paginator'], \
-            context['page_obj'], \
-            context['comments'], \
-            context['is_paginated'] = self.paginate_queryset(comments)
+        context['page_obj'], \
+        context['comments'], \
+        context['is_paginated'] = self.paginate_queryset(comments)
         return context
 
 
@@ -1125,6 +1126,29 @@ class SubmissionList(LoginRedirectPermissionRequiredMixin, ListView):
         return context
 
 
+class SubmissionBackup(LoginRedirectPermissionRequiredMixin, BaseListView):
+    model = Submission
+    permission_required = 'contests.download_submission'
+
+    def dispatch(self, request, *args, **kwargs):
+        course_id = self.kwargs.get('course_id', None)
+        if not Course.objects.filter(id=course_id).exists():
+            raise Http404("Course does not exist")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        self.object_list = self.get_queryset()
+        course_id = self.kwargs.get('course_id', None)
+        response = HttpResponse(Submission.objects.backup(self.object_list), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename={}.zip'.format(course_id)
+        return response
+
+    def get_queryset(self):
+        course_id = self.kwargs.get('course_id', None)
+        queryset = super().get_queryset().filter(problem__contest__course_id=course_id).select_related('problem')
+        return queryset
+
+
 """=================================================== Execution ===================================================="""
 
 
@@ -1284,8 +1308,8 @@ class TestSuiteCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
-
-        TestInlineFormSet = inlineformset_factory(TestSuite, Test, form=TestForm, fields=('question', 'right_answer'), extra=0)
+        TestInlineFormSet = inlineformset_factory(TestSuite, Test, form=TestForm, fields=('question', 'right_answer'),
+                                                  extra=0)
         inlineformset_kwargs = {'initial': []}
         if self.request.method in ('POST', 'PUT'):
             inlineformset_kwargs.update({'data': self.request.POST})

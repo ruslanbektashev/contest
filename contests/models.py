@@ -556,6 +556,24 @@ class SubmissionQuerySet(models.QuerySet):
         )).filter(rollback=True)
 
 
+class SubmissionManager(models.Manager):
+    def backup(self, submission_list):
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, 'w') as zip_file:
+            for submission in submission_list:
+                for f in submission.files:
+                    _, filename = os.path.split(f)
+                    zip_path = "{contest_id}/{problem_num}/{user_id}/{submission_id}/{filename}".format(
+                        contest_id=submission.problem.contest_id,
+                        problem_num=submission.problem.number,
+                        user_id=submission.owner_id,
+                        submission_id=submission.id,
+                        filename=filename
+                    )
+                    zip_file.write(f, zip_path)
+        return stream.getvalue()
+
+
 class Submission(CRDEntry):
     STATUS_CHOICES = (
         ('OK', "Задача решена"),
@@ -590,7 +608,7 @@ class Submission(CRDEntry):
     comment_set = GenericRelation(Comment, content_type_field='object_type')
     subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
-    objects = SubmissionQuerySet.as_manager()
+    objects = SubmissionManager.from_queryset(SubmissionQuerySet)()
 
     class Meta(CRDEntry.Meta):
         ordering = ('-date_created',)
