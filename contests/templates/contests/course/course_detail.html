@@ -28,8 +28,12 @@
     </li>
 </ul>
 <div class="tab-content">
-    <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %}" id="description" role="tabpanel">
+    <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %} text-justify" id="description" role="tabpanel">
+        <div class="col-4 pb-2 float-right">
+            {% include 'accounts/account/account_card.html' with account=course.subscription_set.all.first.account %}
+        </div>
         <p>{{ course.description|markdown|safe }}</p>
+
     </div>
     <div aria-labelledby="contests-tab" class="tab-pane fade {% if tab == 'contests' %}show active{% endif %}" id="contests" role="tabpanel">
         {% render_list course.contest_set.all %}

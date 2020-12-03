@@ -1,0 +1,10 @@
+{% load static %}
+{% if account %}
+<div class="card shadow-sm">
+    <img src="{% static 'profile-placeholder-1.svg' %}" class="card-img-top mt-3" alt="Изображение профиля">
+    <div class="card-body">
+        <h5 class="card-title"><a href="{{ account.get_absolute_url }}"><strong>{{ account.get_full_name }}</strong></a></h5>
+        <p class="card-text">{{ account.degree }}{% if account.degree and account.position %},{% endif %} {{ account.position }}{% if account.department %}<br>{% endif %}{{ account.department }}</p>
+    </div>
+</div>
+{% endif %}
