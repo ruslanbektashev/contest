@@ -34,13 +34,19 @@ class AccountListForm(forms.Form):
     accounts = forms.ModelMultipleChoiceField(queryset=Account.students.all(),
                                               widget=forms.CheckboxSelectMultiple)
 
+    def __init__(self, *args, **kwargs):
+        account_type = kwargs.pop('type', None)
+        super().__init__(*args, **kwargs)
+        if account_type is not None and account_type > 1:
+            self.fields['accounts'].queryset = Account.staff.filter(type=account_type)
+
 
 class AccountSetForm(forms.ModelForm):
     names = forms.CharField(widget=forms.Textarea, label="Список")
 
     class Meta:
         model = Account
-        fields = ['level', 'admission_year']
+        fields = ['level', 'type', 'admission_year']
 
     def __init__(self, level, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -54,6 +60,10 @@ class AccountSetForm(forms.ModelForm):
             name = name.split()
             if len(name) < 2:
                 raise ValidationError('Неверный формат списка имен', code='wrong_format')
+            for i in range(2):
+                if not name[i].isalpha():
+                    raise ValidationError('Фамилия и Имя должны состоять только из букв', code='not_a_letter')
+                name[i].lower().capitalize()
             cleaned_names.append(name)
         return cleaned_names
 

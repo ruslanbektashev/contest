@@ -11,7 +11,18 @@ from contest.abstract import CRUDEntry
 """==================================================== Account ====================================================="""
 
 
-class StudentQuerySet(models.QuerySet):
+class AccountQuerySet(models.QuerySet):
+    def reset_password(self):
+        credentials = []
+        for student in self:
+            new_password = User.objects.make_random_password()
+            student.user.set_password(new_password)
+            student.user.save()
+            credentials.append([student.last_name, student.first_name, student.username, new_password])
+        return credentials
+
+
+class StudentQuerySet(AccountQuerySet):
     def enrolled(self):
         return self.filter(enrolled=True)
 
@@ -57,14 +68,35 @@ class StudentQuerySet(models.QuerySet):
     def graduate(self):
         return self.update(enrolled=False, graduated=True)
 
-    def reset_password(self):
-        credentials = []
-        for student in self:
-            new_password = User.objects.make_random_password()
-            student.user.set_password(new_password)
-            student.user.save()
-            credentials.append([student.last_name, student.first_name, student.username, new_password])
-        return credentials
+
+class StaffManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(type__gt=1).select_related('user')
+
+    def create_set(self, level, type, admission_year, names):
+        alphabet_ru_a = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
+        alphabet_ru_s = 'жйхцчшщыюя'
+        translit_en_a = 'abvgdee_zi_klmnoprstuf________e__'
+        translit_en_s = ['zh', 'y', 'kh', 'ts', 'ch', 'sh', 'sh', 'y', 'yu', 'ya']
+        transtable = {ord(c): p for c, p in zip(alphabet_ru_a, translit_en_a)}
+        transtable.update({ord(c): p for c, p in zip(alphabet_ru_s, translit_en_s)})
+        new_accounts, credentials = [], []
+        for name in names:
+            first_name = name[1].lower()
+            last_name = name[0].lower()
+            username = last_name.translate(transtable)
+            if User.objects.filter(username=username).exists():
+                username = first_name[0].translate(transtable) + username
+            password = User.objects.make_random_password()
+            user = User.objects.create_user(username, password=password, first_name=first_name.capitalize(),
+                                            last_name=last_name.capitalize())
+            group_name = "Преподаватель" if type > 2 else "Модератор"
+            group, _ = Group.objects.get_or_create(name=group_name)
+            user.groups.add(group)
+            new_account = Account(user_id=user.id, level=level, type=type, admission_year=admission_year, enrolled=False)
+            new_accounts.append(new_account)
+            credentials.append([name[0], name[1], username, password])
+        return self.bulk_create(new_accounts), credentials
 
 
 class StudentManager(models.Manager):
@@ -82,7 +114,9 @@ class StudentManager(models.Manager):
                 suffix = str(i).zfill(2)
             username = prefix + suffix
             password = User.objects.make_random_password()
-            user = User.objects.create_user(username, password=password, first_name=name[1], last_name=name[0])
+            first_name = name[1].lower().capitalize()
+            last_name = name[0].lower().capitalize()
+            user = User.objects.create_user(username, password=password, first_name=first_name, last_name=last_name)
             for group_name in ('Студент', 'M' + str(admission_year)[2:]):
                 group, _ = Group.objects.get_or_create(name=group_name)
                 user.groups.add(group)
@@ -126,6 +160,7 @@ class Account(models.Model):
     date_updated = models.DateTimeField(auto_now=True)
 
     objects = models.Manager()
+    staff = StaffManager.from_queryset(AccountQuerySet)()
     students = StudentManager.from_queryset(StudentQuerySet)()
 
     comments_read = models.ManyToManyField('Comment')

@@ -115,11 +115,15 @@ class AccountCreateSet(LoginRedirectPermissionRequiredMixin, FormView):
     def post(self, request, *args, **kwargs):
         form = self.get_form()
         if form.is_valid():
-            _, self.request.session['credentials'] = Account.students.create_set(
-                form.cleaned_data['level'],
-                form.cleaned_data['admission_year'],
-                form.cleaned_data['names']
-            )
+            if form.cleaned_data['type'] == 1:
+                _, self.request.session['credentials'] = Account.students.create_set(form.cleaned_data['level'],
+                                                                                     form.cleaned_data['admission_year'],
+                                                                                     form.cleaned_data['names'])
+            else:
+                _, self.request.session['credentials'] = Account.staff.create_set(form.cleaned_data['level'],
+                                                                                  form.cleaned_data['type'],
+                                                                                  form.cleaned_data['admission_year'],
+                                                                                  form.cleaned_data['names'])
             return self.form_valid(form)
         return self.form_invalid(form)
 
@@ -167,6 +171,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
 
     def dispatch(self, *args, **kwargs):
         self.storage['level'] = int(self.request.GET.get('level') or 1)
+        self.storage['type'] = int(self.request.GET.get('type') or 1)
         enrolled, graduated = self.request.GET.get('enrolled'), self.request.GET.get('graduated')
         if enrolled is not None and enrolled == '0':
             self.storage['enrolled'] = False
@@ -181,19 +186,23 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
         if form.is_valid():
             action = request.POST.get('action')
             accounts = form.cleaned_data['accounts']
-            if action == 'level_up':
-                accounts.level_up()
-            elif action == 'level_down':
-                accounts.level_down()
-            elif action == 'reset_password':
+            if action == 'reset_password':
                 self.request.session['credentials'] = accounts.reset_password()
                 return HttpResponseRedirect(reverse('accounts:account-credentials'))
-            elif action == 'enroll':
-                accounts.enroll()
-            elif action == 'expel':
-                accounts.expel()
-            elif action == 'graduate':
-                accounts.graduate()
+            elif self.storage['type'] == 1:
+                if action == 'level_up':
+                    accounts.level_up()
+                elif action == 'level_down':
+                    accounts.level_up()
+                elif action == 'enroll':
+                    accounts.enroll()
+                elif action == 'expel':
+                    accounts.expel()
+                elif action == 'graduate':
+                    accounts.graduate()
+            else:
+                form.add_error(None, "Недопустимое действие для данного типа пользователей")
+                return self.form_invalid(form)
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
@@ -202,7 +211,14 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
         self.object_list = self.get_queryset()
         return self.render_to_response(self.get_context_data(form=form))
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['type'] = self.storage['type']
+        return kwargs
+
     def get_queryset(self):
+        if self.storage['type'] > 1:
+            return Account.staff.filter(type=self.storage['type'])
         if 'enrolled' in self.storage and 'graduated' in self.storage:
             return Account.students.filter(enrolled=self.storage['enrolled'], graduated=self.storage['graduated'])
         return Account.students.enrolled().filter(level=self.storage['level'])
