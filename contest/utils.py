@@ -1,5 +1,9 @@
 import enum
 
+from django.views.generic import TemplateView
+
+from contest import settings
+
 
 class Status(enum.Enum):
     OK = 14  # Test Passed
@@ -54,3 +58,10 @@ def diff(output, correct, precision=None, check_format=False):
 
 class Sandbox:
     pass
+
+
+def under_development(view):
+    if settings.DEBUG:
+        return view
+    else:
+        return TemplateView.as_view(template_name='under_development.html')

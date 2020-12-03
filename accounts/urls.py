@@ -1,8 +1,7 @@
-from django.conf import settings
 from django.urls import path, include
-from django.views.generic import TemplateView
 
 from accounts import views
+from contest.utils import under_development
 
 app_name = 'accounts'
 
@@ -30,12 +29,8 @@ urlpatterns = [
             path('delete', views.CommentDelete.as_view(), name='comment-delete'),
         ])),
     ])),
-    path('message/<int:user_id>/create',
-         views.MessageCreate.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),
-         name='message-create'),
-    path('chat/list',
-         views.ChatList.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),
-         name='chat-list'),
+    path('message/<int:user_id>/create', under_development(views.MessageCreate.as_view()), name='message-create'),
+    path('chat/list', under_development(views.ChatList.as_view()), name='chat-list'),
     path('announcement/', include([
         path('create', views.AnnouncementCreate.as_view(), name='announcement-create'),
         path('<int:pk>/', include([
