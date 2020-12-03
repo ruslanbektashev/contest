@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views forms %}
+{% load views forms static %}
 
 {% block title %}
 Раздел
@@ -21,25 +21,22 @@
 <form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.title class+="form-control" %}
     {% render_field form.description class+="form-control" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" %}
+    {% render_field form.files class+="custom-file-input" %}
     {% endwith %}
-    <div class="form-group">
-        <div class="custom-file">
-            {% with is_invalid=form.files.errors|yesno:"is-invalid," %}
-            {% render_field form.files class+="custom-file-input" class+=is_invalid %}
-            {% endwith %}
-            <label class="custom-file-label" for="{{ form.files.id_for_label }}">{{ form.files.label }}</label>
-            {% if form.files.errors %}
-            <div class="invalid-feedback">
-                {% for error in form.files.errors %}
-                {{ error }}
-                {% endfor %}
-            </div>
-            {% endif %}
-        </div>
-    </div>
+    {% endwith %}
     {% render_submit_button value="Сохранить" %}
 </form>
 {% endblock content %}
+
+{% block javascript %}
+<script src="{% static 'js/bs-custom-file-input.min.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+$(function () {
+    bsCustomFileInput.init()
+});
+</script>
+{% endblock javascript %}

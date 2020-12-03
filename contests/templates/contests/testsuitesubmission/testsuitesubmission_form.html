@@ -35,7 +35,7 @@
             <div class="input-group {% if field.errors %}is-invalid{% endif %}">
                 {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
                     {% with is_invalid=field.errors|yesno:"is-invalid," %}
-                        {% render_field field class+="form-control" class+=is_invalid lang="ru" %}
+                        {% render_field field class+="form-control" class+=is_invalid %}
                     {% endwith %}
                 {% endwith %}
             </div>
@@ -52,7 +52,3 @@
     {% render_submit_button value="Отправить" %}
 </form>
 {% endblock content %}
-
-{% block javascript %}
-<script type="text/javascript" src="{% static 'js/bs-custom-file-input.min.js' %}"></script>
-{% endblock javascript %}

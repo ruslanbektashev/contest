@@ -22,66 +22,14 @@
 <form action="" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.user class+="form-control selectpicker" %}
     {% render_field form.problem class+="form-control selectpicker" %}
+    {% render_field form.score class+="form-control" %}
+    {% render_field form.score_max class+="form-control" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" %}
+    {% render_field form.score_is_locked class+="custom-control-input" %}
     {% endwith %}
-    <div class="form-group">
-        <label for="{{ form.score.id_for_label }}">{{ form.score.label }}{{ form.score.label_suffix }}</label>
-        <div class="input-group">
-            {% with is_invalid=form.score.errors|yesno:"is-invalid," %}
-            {% render_field form.score class+="form-control" class+=is_invalid %}
-            {% endwith %}
-            {% if form.score.field.append_text %}
-            <div class="input-group-append">
-                <span class="input-group-text">{{ form.score.field.append_text }}</span>
-            </div>
-            {% endif %}
-            {% if form.score.errors %}
-            <div class="invalid-feedback">
-                {% for error in form.score.errors %}
-                {{ error }}<br>
-                {% endfor %}
-            </div>
-            {% endif %}
-        </div>
-        {% if form.score.help_text %}
-        <small class="form-text text-muted">{{ form.score.help_text }}</small>
-        {% endif %}
-    </div>
-    <div class="form-group">
-        <label for="{{ form.score_max.id_for_label }}">{{ form.score_max.label }}{{ form.score_max.label_suffix }}</label>
-        <div class="input-group">
-            {% with is_invalid=form.score_max.errors|yesno:"is-invalid," %}
-            {% render_field form.score_max class+="form-control" class+=is_invalid %}
-            {% endwith %}
-            {% if form.score_max.field.append_text %}
-            <div class="input-group-append">
-                <span class="input-group-text">{{ form.score_max.field.append_text }}</span>
-            </div>
-            {% endif %}
-            {% if form.score_max.errors %}
-            <div class="invalid-feedback">
-                {% for error in form.score_max.errors %}
-                {{ error }}<br>
-                {% endfor %}
-            </div>
-            {% endif %}
-        </div>
-        {% if form.score_max.help_text %}
-        <small class="form-text text-muted">{{ form.score_max.help_text }}</small>
-        {% endif %}
-    </div>
-    <div class="form-group">
-        <div class="custom-control custom-switch">
-            {% render_field form.score_is_locked class+="custom-control-input" %}
-            <label class="custom-control-label" for="{{ form.score_is_locked.id_for_label }}">{{ form.score_is_locked.label }}{{ form.score_is_locked.label_suffix }}</label>
-        </div>
-        {% if form.score_is_locked.help_text %}
-        <small class="form-text text-muted">{{ form.score_is_locked.help_text }}</small>
-        {% endif %}
-    </div>
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
     {% render_field form.submission_limit class+="form-control" %}
     {% render_field form.remark class+="form-control" %}
     {% endwith %}

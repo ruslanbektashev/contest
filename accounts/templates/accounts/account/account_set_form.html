@@ -16,7 +16,7 @@
 <form action="" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.level class+="form-control selectpicker" %}
     {% render_field form.admission_year class+="form-control selectpicker" %}
     {% render_field form.names class+="form-control" placeholder="в формате: Фамилия Имя Отчество" %}

@@ -1,0 +1,23 @@
+<div class="form-group row">
+    <div class="input-group">
+        <label class="col-2 col-form-label" for="{{ field.id_for_label }}">
+            {{ field.label }}{{ field.label_suffix }}
+        </label>
+        <div class="custom-file col-10 px-0" style="margin: 0 15px 0 15px;">
+            {{ field }}
+            <label class="custom-file-label rounded-left" for="{{ field.id_for_label }}">
+                {{ field.label }}{{ field.label_suffix }}
+            </label>
+            {% if field.field.append_text %}
+            <div class="input-group-append">
+                <span class="input-group-text">{{ field.field.append_text }}</span>
+            </div>
+            {% endif %}
+            {% if field.errors %}
+            <div class="invalid-tooltip">
+                {% for error in field.errors %}{{ error }}{% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

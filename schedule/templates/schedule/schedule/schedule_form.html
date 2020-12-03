@@ -80,7 +80,7 @@
             <div class="input-group {% if field.errors %}is-invalid{% endif %}">
                 <div class="custom-file">
                     {% with is_invalid=field.errors|yesno:"is-invalid," %}
-                    {% render_field field class+="custom-file-input" class+=is_invalid lang="ru" %}
+                    {% render_field field class+="custom-file-input" class+=is_invalid %}
                     {% endwith %}
                     <label class="custom-file-label" for="{{ field.id_for_label }}">Выберите файл с расширением .htm</label>
                 </div>
