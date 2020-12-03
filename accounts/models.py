@@ -127,6 +127,13 @@ class StudentManager(models.Manager):
         return self.bulk_create(new_accounts), credentials
 
 
+def account_image_path(instance, filename):
+    return "attachments/{app_label}/{model}/{id}/{filename}".format(app_label=instance._meta.app_label.lower(),
+                                                                    model=instance._meta.model_name,
+                                                                    id=instance.id,
+                                                                    filename=filename)
+
+
 class Account(models.Model):
     LEVEL_CHOICES = (
         (1, "1 курс, 1 семестр"),
@@ -150,6 +157,11 @@ class Account(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
+    patronymic = models.CharField(max_length=30, blank=True, verbose_name="Отчество")
+    department = models.CharField(max_length=150, blank=True, verbose_name="Кафедра")
+    position = models.CharField(max_length=100, blank=True, verbose_name="Должность")
+    degree = models.CharField(max_length=50, blank=True, verbose_name="Ученая степень")
+    image = models.ImageField(upload_to=account_image_path, blank=True, verbose_name="Аватар")
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, default=LEVEL_DEFAULT, verbose_name="Уровень")
     type = models.PositiveSmallIntegerField(choices=TYPE_CHOICES, default=TYPE_DEFAULT, verbose_name="Тип")
     admission_year = models.PositiveSmallIntegerField(choices=ADMISSION_YEAR_CHOICES, default=ADMISSION_YEAR_DEFAULT,
@@ -187,12 +199,14 @@ class Account(models.Model):
         return self.user.last_name
 
     def get_full_name(self):
-        full_name = '%s %s' % (self.user.last_name, self.user.first_name)
+        full_name = "{last_name} {first_name} {patronymic}".format(first_name=self.first_name, last_name=self.last_name,
+                                                                   patronymic=self.patronymic)
         return full_name.strip() or self.user.username
 
     def get_short_name(self):
-        if self.user.first_name:
-            return "%s %s." % (self.user.last_name, self.user.first_name[0])
+        if self.first_name:
+            return "{last_name} {first_name_0}.".format(first_name_0=self.first_name[0],
+                                                        last_name=self.last_name).strip()
         else:
             return self.user.username
 
@@ -231,6 +245,11 @@ class Subscription(models.Model):
     object = GenericForeignKey(ct_field='object_type')
 
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='subscriptions')
+
+    class Meta:
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
+        unique_together = ('account', 'object_id', 'object_type')
 
     def __str__(self):
         return '%s, %s: %s' % (self.account.get_full_name(), self.object_type.model, self.object.title)

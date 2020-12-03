@@ -11,7 +11,7 @@ from accounts.widgets import CommentWidget
 
 
 class AccountPartialForm(forms.ModelForm):
-    email = forms.EmailField(label="E-mail", required=False)
+    email = forms.EmailField(label="e-mail", required=False)
 
     class Meta:
         model = Account
@@ -25,9 +25,21 @@ class AccountPartialForm(forms.ModelForm):
 
 
 class AccountForm(AccountPartialForm):
+    first_name = forms.CharField(max_length=30, label="Имя")
+    last_name = forms.CharField(max_length=150, label="Фамилия")
+
     class Meta:
         model = Account
-        fields = ['level', 'type', 'admission_year', 'enrolled', 'graduated']
+        fields = ['patronymic', 'department', 'position', 'degree', 'image', 'level', 'type', 'admission_year',
+                  'enrolled', 'graduated']
+
+    def save(self, commit=True):
+        super(AccountPartialForm, self).save(commit)
+        for field_name in ['email', 'first_name', 'last_name']:
+            if field_name in self.changed_data:
+                setattr(self.instance.user, field_name, self.cleaned_data[field_name])
+        self.instance.user.save()
+        return self.instance
 
 
 class AccountListForm(forms.Form):

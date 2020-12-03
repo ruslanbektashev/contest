@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views forms %}
+{% load views forms static %}
 
 {% block title %}
 Профиль
@@ -20,6 +20,15 @@
     {% with WIDGET_RENDER_TO_TEMPLATE="field_left_labeled.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.email class+="form-control" %}
     {% if perms.accounts.change_account %}
+    {% render_field form.first_name class+="form-control" %}
+    {% render_field form.patronymic class+="form-control" %}
+    {% render_field form.last_name class+="form-control" %}
+    {% render_field form.department class+="form-control" %}
+    {% render_field form.position class+="form-control" %}
+    {% render_field form.degree class+="form-control" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field_left_labeled_file.html" %}
+    {% render_field form.image class+="custom-file-input" %}
+    {% endwith %}
     {% render_field form.level class+="form-control selectpicker" %}
     {% render_field form.type class+="form-control selectpicker" %}
     {% render_field form.admission_year class+="form-control selectpicker" %}
@@ -32,3 +41,12 @@
     {% render_submit_button value="Сохранить" %}
 </form>
 {% endblock content %}
+
+{% block javascript %}
+<script src="{% static 'js/bs-custom-file-input.min.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+$(function () {
+    bsCustomFileInput.init()
+});
+</script>
+{% endblock javascript %}

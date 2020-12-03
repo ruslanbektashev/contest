@@ -154,6 +154,9 @@ class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView)
             return AccountPartialForm
 
     def get_initial(self):
+        if self.request.user.has_perm('accounts.change_account'):
+            self.initial['first_name'] = self.object.first_name
+            self.initial['last_name'] = self.object.last_name
         self.initial['email'] = self.object.email
         return super().get_initial()
 
