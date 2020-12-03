@@ -16,7 +16,9 @@
 {% block navigation %}
 <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
     <div class="container">
-        <a class="navbar-brand" href="{% url 'contests:index' %}">МГУ <i class="fa fa-graduation-cap fa-lg"></i> Контест<sup> beta</sup></a>
+        <a class="navbar-brand" href="{% url 'contests:index' %}">
+            <img src="{% static 'msu-logo.png' %}" class="mr-2" style="width:30px; height: 30px;" alt="Московский Государственный Университет имени М.В. Ломоносова"><span>Контест</span><sup> β</sup>
+        </a>
         <button aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#navbarToggler" data-toggle="collapse" type="button">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -46,7 +48,7 @@
                 {% if request.user.is_authenticated %}
                 <li class="nav-item dropdown">
                     <a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="navbarDropdown" role="button">
-                        {{ request.user.get_full_name }}
+                        {{ request.user.account.get_short_name }}
                     </a>
                     <div aria-labelledby="navbarDropdown" class="dropdown-menu">
                         <a class="dropdown-item" href="{{ request.user.account.get_absolute_url }}"><i class="fa fa-user-o fa-fw"></i> Профиль</a>
