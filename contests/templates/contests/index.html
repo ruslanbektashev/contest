@@ -9,7 +9,7 @@
 <div class="row">
     {% for course in courses %}
     <div class="col-12 col-md-6 mb-3">
-        <div class="card">
+        <div class="card shadow-sm">
             <div class="card-header">
                 <a href="{% url 'contests:course-detail' course.id %}">{{ course.title }}</a>
             </div>
