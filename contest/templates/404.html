@@ -1,0 +1,18 @@
+{% extends 'base_wide.html' %}
+{% load views %}
+
+{% block title %}
+Страница не найдена
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Страница не найдена" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4"><i class="fa fa-search-minus"></i> Страница не найдена</h1>
+    <p class="lead">Такой страницы не существует.</p>
+</div>
+{% endblock content %}

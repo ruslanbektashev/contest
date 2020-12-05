@@ -10,7 +10,7 @@ class Status(enum.Enum):
     WA = 12  # Wrong Answer
     NA = 11  # No Answer
 
-    TL = 10   # Time Limit Exceeded
+    TL = 10  # Time Limit Exceeded
     ML = 9   # Memory Limit Exceeded
     CL = 8   # Compilation Time Limit Exceeded
     SF = 7   # Segmentation Fault
