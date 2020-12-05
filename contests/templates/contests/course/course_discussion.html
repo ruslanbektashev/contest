@@ -70,6 +70,12 @@
     <a href="{% url 'contests:contest-create' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить раздел</a>
     {% endif %}
 </div>
+{% if course.leaders.exists %}
+<legend>Преподаватели курса:</legend>
+{% for leader in course.leaders.all %}
+{% include 'accounts/account/account_card.html' with account=leader.account %}
+{% endfor %}
+{% endif %}
 {% endblock submenu %}
 
 {% block javascript %}

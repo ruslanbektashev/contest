@@ -81,6 +81,8 @@ class Course(CRUDEntry):
         (8, "4 курс, 2 семестр"),
     )
 
+    leaders = models.ManyToManyField(User, related_name="courses_leading", verbose_name="Ведущие преподаватели")
+
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     description = models.TextField(verbose_name="Описание")
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, verbose_name="Уровень")

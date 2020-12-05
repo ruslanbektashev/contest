@@ -10,11 +10,16 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
-from contests.models import Attachment, Contest, Problem, Solution, UTTest, FNTest, Assignment, Submission, Event, \
-    TestSuite, Test, TestSuiteSubmission, TestSubmission
+from contests.models import (Attachment, Course, Contest, Problem, Solution, UTTest, FNTest, Assignment, Submission,
+                             Event, TestSuite, Test, TestSuiteSubmission, TestSubmission)
 
 
 class UserChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return "{} {}".format(obj.last_name, obj.first_name)
+
+
+class UserMultipleChoiceField(forms.ModelMultipleChoiceField):
     def label_from_instance(self, obj):
         return "{} {}".format(obj.last_name, obj.first_name)
 
@@ -84,6 +89,21 @@ class AttachmentForm(forms.ModelForm):
                 new_attachments.append(new_attachment)
             Attachment.objects.bulk_create(new_attachments)
         return obj
+
+
+"""===================================================== Course ====================================================="""
+
+
+class CourseForm(forms.ModelForm):
+    leaders = UserMultipleChoiceField(queryset=User.objects.none(), label="Ведущие преподаватели")
+
+    class Meta:
+        model = Course
+        fields = ['leaders', 'title', 'description', 'level']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['leaders'].queryset = User.objects.filter(account__type=3)
 
 
 """===================================================== Credit ====================================================="""

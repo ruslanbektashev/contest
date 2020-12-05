@@ -20,7 +20,7 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (CreditSetForm, ContestForm, ProblemForm, SolutionForm, UTTestForm, FNTestForm,
+from contests.forms import (CourseForm, CreditSetForm, ContestForm, ProblemForm, SolutionForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
                             AssignmentSetForm, EventForm, ProblemRollbackResultsForm, TestSuiteForm, TestForm,
                             TestSubmissionForm, TestSuiteSubmissionForm)
@@ -74,7 +74,7 @@ class CourseDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
 
 class CourseCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Course
-    fields = ['title', 'description', 'level']
+    form_class = CourseForm
     template_name = 'contests/course/course_form.html'
     permission_required = 'contests.add_course'
 
@@ -85,7 +85,7 @@ class CourseCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
 class CourseUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Course
-    fields = ['title', 'description', 'level']
+    form_class = CourseForm
     template_name = 'contests/course/course_form.html'
     permission_required = 'contests.change_course'
 
