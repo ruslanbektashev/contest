@@ -244,7 +244,7 @@ class Subscription(models.Model):
     object_id = models.PositiveIntegerField()
     object = GenericForeignKey(ct_field='object_type')
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='subscriptions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
 
     class Meta:
         verbose_name = "Подписка"
