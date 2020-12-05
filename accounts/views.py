@@ -21,11 +21,11 @@ from accounts.models import Account, Activity, Comment, Message, Chat, Announcem
 
 
 def subscribe(request, pk, object_model, object_id, open_discussion):
-    account = Account.objects.get(user_id=pk)
+    user = User.objects.get(id=pk)
 
     subscription = Subscription(
         object=ContentType.objects.get(app_label='contests', model=object_model).get_object_for_this_type(id=object_id),
-        account=account
+        user=user
     )
     subscription.save()
 
@@ -41,11 +41,11 @@ def subscribe(request, pk, object_model, object_id, open_discussion):
 
 
 def unsubscribe(request, pk, object_model, object_id, open_discussion):
-    account = Account.objects.get(user_id=pk)
+    user = User.objects.get(id=pk)
 
     subscription = Subscription.objects.get(object_type=ContentType.objects.get(app_label='contests', model=object_model),
                                 object_id=object_id,
-                                account=account)
+                                user=user)
     subscription.delete()
 
     return HttpResponseRedirect(

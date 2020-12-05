@@ -244,15 +244,15 @@ class Subscription(models.Model):
     object_id = models.PositiveIntegerField()
     object = GenericForeignKey(ct_field='object_type')
 
-    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='subscriptions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='subscriptions')
 
     class Meta:
         verbose_name = "Подписка"
         verbose_name_plural = "Подписки"
-        unique_together = ('account', 'object_id', 'object_type')
+        unique_together = ('user', 'object_id', 'object_type')
 
     def __str__(self):
-        return '%s, %s: %s' % (self.account.get_full_name(), self.object_type.model, self.object.title)
+        return '%s, %s: %s' % (self.user.account.get_full_name(), self.object_type.model, self.object.title)
 
 
 """==================================================== Activity ===================================================="""
