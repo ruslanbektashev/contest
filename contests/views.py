@@ -53,6 +53,8 @@ class CourseDetail(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['tab'] = self.request.GET.get('tab', None)
         context['subscribers_ids'] = self.object.subscription_set.all().values_list('user', flat=True)
+        if self.request.user.id in context['subscribers_ids']:
+            context['subscription_id'] = self.object.subscription_set.get(user=self.request.user).id
         return context
 
 
@@ -69,6 +71,8 @@ class CourseDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context['comments'], \
         context['is_paginated'] = self.paginate_queryset(comments)
         context['subscribers_ids'] = self.object.subscription_set.all().values_list('user', flat=True)
+        if self.request.user.id in context['subscribers_ids']:
+            context['subscription_id'] = self.object.subscription_set.get(user=self.request.user).id
         return context
 
 

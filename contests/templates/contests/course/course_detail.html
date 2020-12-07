@@ -47,11 +47,11 @@
     {% endif %}
 </div>
 <div class="list-group mb-3">
-    {% if request.user.account.type == 3 %}
+    {% if perms.account.add_subscription %}
         {% if request.user.id in subscribers_ids %}
-            <a href="{% url 'accounts:account-unsubscribe' request.user.id 'course' course.id 0 %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к курсу и всем вложенным сущностям"><i class="fa fa-bell-slash fa-fw"></i> Отписаться</a>
+            <a href="{% url 'accounts:subscription-delete' subscription_id 0 %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к курсу и всем вложенным сущностям"><i class="fa fa-bell-slash fa-fw"></i> Отписаться</a>
         {% else %}
-            <a href="{% url 'accounts:account-subscribe' request.user.id 'course' course.id 0 %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к курсу и всем вложенным сущностям"><i class="fa fa-bell fa-fw"></i> Подписаться</a>
+            <a href="{% url 'accounts:subscription-create' 'course' course.id 0 %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к курсу и всем вложенным сущностям"><i class="fa fa-bell fa-fw"></i> Подписаться</a>
         {% endif %}
     {% endif %}
     {% if perms.contests.change_course %}

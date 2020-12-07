@@ -20,45 +20,6 @@ from accounts.models import Account, Activity, Comment, Message, Chat, Announcem
 """==================================================== Account ====================================================="""
 
 
-def subscribe(request, pk, object_model, object_id, open_discussion):
-    user = User.objects.get(id=pk)
-
-    subscription = Subscription(
-        object=ContentType.objects.get(app_label='contests', model=object_model).get_object_for_this_type(id=object_id),
-        user=user
-    )
-    subscription.save()
-
-    return HttpResponseRedirect(
-        reverse(
-            'contests:{object_type}-{view_name}'.format(
-                object_type=object_model,
-                view_name='discussion' if open_discussion else 'detail'
-            ),
-            kwargs={'pk': object_id}
-        )
-    )
-
-
-def unsubscribe(request, pk, object_model, object_id, open_discussion):
-    user = User.objects.get(id=pk)
-
-    subscription = Subscription.objects.get(object_type=ContentType.objects.get(app_label='contests', model=object_model),
-                                object_id=object_id,
-                                user=user)
-    subscription.delete()
-
-    return HttpResponseRedirect(
-        reverse(
-            'contests:{object_type}-{view_name}'.format(
-                object_type=object_model,
-                view_name='discussion' if open_discussion else 'detail'
-            ),
-            kwargs={'pk': object_id}
-        )
-    )
-
-
 @csrf_exempt
 def mark_comments_as_read(request):
     account = request.user.account
@@ -252,6 +213,57 @@ class AccountCredentials(LoginRedirectPermissionRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['credentials'] = self.storage.pop('credentials')
         return context
+
+
+"""================================================== Subscription =================================================="""
+
+
+class SubscriptionCreate(CreateView):
+    model = Subscription
+    permission_required = 'account.add_subscription'
+
+    def get(self, request, *args, **kwargs):
+        self.object = Subscription(
+            object=ContentType.objects.get(
+                app_label='contests',
+                model=kwargs.pop('object_model')
+            ).get_object_for_this_type(id=kwargs.pop('object_id')),
+            user=self.request.user
+        )
+        self.object.save()
+        self.open_discussion = kwargs.pop('open_discussion')
+        success_url = self.get_success_url()
+        return HttpResponseRedirect(success_url)
+
+    def get_success_url(self):
+        return reverse(
+            'contests:{object_type}-{view_name}'.format(
+                object_type=self.object.object._meta.model_name,
+                view_name='discussion' if self.open_discussion else 'detail'
+            ),
+            kwargs={'pk': self.object.object_id}
+        )
+
+
+class SubscriptionDelete(DeleteView):
+    model = Subscription
+    permission_required = 'account.delete_subscription'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.open_discussion = kwargs.pop('open_discussion')
+        success_url = self.get_success_url()
+        self.object.delete()
+        return HttpResponseRedirect(success_url)
+
+    def get_success_url(self):
+        return reverse(
+            'contests:{object_type}-{view_name}'.format(
+                object_type=self.object.object._meta.model_name,
+                view_name='discussion' if self.open_discussion else 'detail'
+            ),
+            kwargs={'pk': self.object.object_id}
+        )
 
 
 """==================================================== Activity ===================================================="""
