@@ -5,10 +5,10 @@
 {% endif %}
 <div id="comments" class="comment-list">
     {% for comment in comments %}
-    <div class="d-flex comment-list-item col{{ comment.level|add:'-13' }} offset-{{ comment.level|add:'-1' }} mb-3 p-3 rounded {% if comment not in request.user.account.comments_read.all %}bg-light{% endif %}">
+    <div class="d-flex comment-list-item col{{ comment.level|add:'-13' }} offset-{{ comment.level|add:'-1' }} mb-3 p-3 rounded {% if comment not in request.user.account.comments_read.all and comment.author_id != request.user.id %}bg-light" data-unread=true{% else %}"{% endif %} data-id={{ comment.id }} >
         <a id="comment_{{ comment.id }}" class="comment-anchor">&nbsp</a>
         <div class="comment-avatar mr-3">
-            <img src="{% static 'comment-avatar.png' %}">
+            <img src="{% static 'comment-avatar.png' %}" alt="Изображение профиля">
         </div>
         <div class="comment-main">
             <div class="comment-header mb-1 d-flex lake">
@@ -48,47 +48,14 @@
 {% endif %}
 
 {% block javascript %}
-    <script>
-        let comments = document.getElementById('comments');
-        let readCommentsIdsList = [];
-        let helpWindow = document.getElementById('read_comments');
-
+<script type="text/javascript" src="{% static 'js/comments.js' %}"></script>
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function(event) {
+    let watcher = new ReadWatcher("{% url 'accounts:mark-comments-as-read' %}");
     if(parseInt('{% unread_comments_count request.user.account obj %}') > 0) {
-        updateReadCommentsIdsList();
-        window.addEventListener('scroll', updateReadCommentsIdsList, false);
-        window.addEventListener('beforeunload', markCommentsAsRead, false);
+        window.addEventListener('scroll', watcher, false);
     }
-
-    function isInViewPoint(element) {
-        let bounding = element.getBoundingClientRect();
-        return (
-            bounding.top >= 0 &&
-            bounding.left >= 0 &&
-            bounding.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-            bounding.right <= (window.innerWidth || document.documentElement.clientWidth)
-        );
-    }
-
-    function updateReadCommentsIdsList() {
-        for(let i = 0; i < comments.childElementCount; i++) {
-            let commentId = parseInt(comments.children[i].getElementsByClassName('comment-anchor')[0].getAttribute('id').slice(8));
-            let commentFooter = comments.children[i].getElementsByClassName('comment-main')[0].getElementsByClassName('comment-footer lake')[0];
-            if(isInViewPoint(commentFooter) && !readCommentsIdsList.includes(commentId)) {
-                readCommentsIdsList.push(commentId);
-            }
-        }
-    }
-
-    function markCommentsAsRead() {
-        $.ajax({
-            url: '{% url 'accounts:mark-comments-as-read' %}',
-            type: 'POST',
-            data: {
-                'read_comments_ids_list[]': readCommentsIdsList,
-                'object_model': '{{ obj|model_name }}',
-                'object_id': '{{ obj.id }}',
-            },
-        });
-    }
-    </script>
+    setTimeout(watcher.markCommentsAsRead.bind(watcher), 1000);
+});
+</script>
 {% endblock %}

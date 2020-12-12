@@ -50,7 +50,7 @@
                     <a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="navbarDropdown" role="button">
                         {{ request.user.account.get_short_name }}
                     </a>
-                    <div aria-labelledby="navbarDropdown" class="dropdown-menu">
+                    <div aria-labelledby="navbarDropdown" class="dropdown-menu shadow-sm">
                         <a class="dropdown-item" href="{{ request.user.account.get_absolute_url }}"><i class="fa fa-user-o fa-fw"></i> Профиль</a>
                         {% with request.user.notifications.unread.count as notification_count %}
                         <a class="dropdown-item" href="{% url 'accounts:activity-list' %}"><i class="fa fa-bell-o fa-fw"></i> Оповещения{% if notification_count %} <span class="badge badge-pill badge-secondary align-middle">{{ notification_count }}</span>{% endif %}</a>

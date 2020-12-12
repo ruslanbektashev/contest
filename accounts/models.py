@@ -229,8 +229,10 @@ class Account(models.Model):
         self.comments_read.add(*comments)
 
     def unread_comments_count(self, obj):
-        return obj.comment_set.count() \
-               - self.comments_read.filter(object_type=ContentType.objects.get_for_model(obj), object_id=obj.id).count()
+        comments_on_object = obj.comment_set.exclude(author=self.user)
+        comments_on_object_read_by_user = self.comments_read.filter(object_type=ContentType.objects.get_for_model(obj),
+                                                                    object_id=obj.id).exclude(author=self.user)
+        return comments_on_object.count() - comments_on_object_read_by_user.count()
 
     def __str__(self):
         return self.get_full_name()

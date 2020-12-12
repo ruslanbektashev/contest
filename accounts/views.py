@@ -1,6 +1,8 @@
+import json
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView, TemplateView
@@ -23,16 +25,13 @@ from accounts.models import Account, Activity, Comment, Message, Chat, Announcem
 @csrf_exempt
 def mark_comments_as_read(request):
     account = request.user.account
-    comments = Comment.objects.filter(id__in=request.POST.getlist('read_comments_ids_list[]'))
-    comments = comments.exclude(id__in=account.comments_read.values_list('id', flat=True))
-    account.mark_comments_as_read(comments)
-
-    return HttpResponseRedirect(
-        reverse(
-            'contests:{object_type}-discussion'.format(object_type=request.POST.get('object_model')),
-            kwargs={'pk': int(request.POST.get('object_id'))}
-        )
-    )
+    data = json.loads(request.body)
+    unread_comments_ids = data.get('unread_comments_ids', None)
+    if unread_comments_ids:
+        unread_comments = Comment.objects.filter(id__in=unread_comments_ids).exclude(author=request.user)
+        unread_comments = unread_comments.exclude(id__in=account.comments_read.values_list('id', flat=True))
+        account.mark_comments_as_read(unread_comments)
+    return JsonResponse({})
 
 
 class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
