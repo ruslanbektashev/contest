@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericStackedInline
 
+from contests.forms import CourseForm
 from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, UTTest, FNTest,
                              Assignment, Submission, Execution, Tag, Event, Test, TestSuite, TestSubmission,
                              TestSuiteSubmission)
@@ -15,9 +16,10 @@ class AttachmentInline(GenericStackedInline):
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'date_updated', 'date_created')
+    form = CourseForm
     fieldsets = (
         ('Ссылки', {
-            'fields': ('owner',)
+            'fields': ('owner', 'leaders')
         }),
         ('Детали', {
             'fields': ('title', 'description', 'level')

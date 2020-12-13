@@ -12,17 +12,22 @@ class PermissionAdmin(admin.ModelAdmin):
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'user', 'level', 'admission_year')
-    list_filter = ('level', 'type', 'admission_year', 'enrolled', 'graduated')
+    list_filter = ('department', 'level', 'type', 'admission_year', 'enrolled', 'graduated')
+    filter_horizontal = ('comments_read',)
     search_fields = ('user__last_name', 'user__first_name')
     fieldsets = (
         ('Пользователь', {
             'fields': ('user',)
         }),
         ('Детали', {
-            'fields': ('level', 'type', 'admission_year', 'enrolled', 'graduated')
+            'fields': ('patronymic', 'department', 'position', 'degree', 'image', 'level', 'type', 'admission_year',
+                       'enrolled', 'graduated')
         }),
         ('Даты', {
             'fields': ('date_updated',)
+        }),
+        ('Другое', {
+            'fields': ('comments_read',)
         })
     )
     readonly_fields = ('date_updated',)

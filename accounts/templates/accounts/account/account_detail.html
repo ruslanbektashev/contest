@@ -35,11 +35,13 @@
                 <table class="table table-borderless">
                     <tr><td class="text-right" style="width: 30%;">e-mail</td><td>{% if account.email %}<a href="mailto:{{ account.email }}">{{ account.email }}</a>{% elif perms.auth.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}<a href="{% url 'accounts:account-update' account.user_id %}" class="text-danger" >укажите e-mail</a>{% else %}-{% endif %}</td></tr>
                     <tr><td class="text-right" style="width: 30%;">Группа</td><td>{% for group in account.user.groups.all %} <span class="badge badge-secondary">{{ group }}</span>{% endfor %}</td></tr>
-                    <tr><td class="text-right" style="width: 30%;">Уровень</td><td>{{ account.get_level_display }}</td></tr>
                     <tr><td class="text-right" style="width: 30%;">Тип учетной записи</td><td>{{ account.get_type_display }}</td></tr>
+                    {% if account.type == 1 %}
+                    <tr><td class="text-right" style="width: 30%;">Уровень</td><td>{{ account.get_level_display }}</td></tr>
                     <tr><td class="text-right" style="width: 30%;">Год поступления</td><td>{{ account.admission_year }}</td></tr>
                     <tr><td class="text-right" style="width: 30%;">Обучается</td><td>{{ account.enrolled|yesno:'да,нет' }}</td></tr>
                     <tr><td class="text-right" style="width: 30%;">Закончил обучение</td><td>{{ account.graduated|yesno:'да,нет' }}</td></tr>
+                    {% endif %}
                     {% if perms.accounts.change_account %}
                     <tr><td class="text-right" style="width: 30%;">Логин</td><td>{{ account.username }}</td></tr>
                     <tr><td class="text-right" style="width: 30%;">Последний вход</td><td>{{ account.last_login|date:'d E Y, H:i' }}</td></tr>
