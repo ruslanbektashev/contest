@@ -25,13 +25,13 @@ from accounts.models import Account, Activity, Comment, Message, Chat, Announcem
 @csrf_exempt
 def mark_comments_as_read(request):
     account = request.user.account
-    data = json.loads(request.body)
+    data = json.loads(request.body.decode('utf-8'))
     unread_comments_ids = data.get('unread_comments_ids', None)
     if unread_comments_ids:
         unread_comments = Comment.objects.filter(id__in=unread_comments_ids).exclude(author=request.user)
         unread_comments = unread_comments.exclude(id__in=account.comments_read.values_list('id', flat=True))
         account.mark_comments_as_read(unread_comments)
-    return JsonResponse({})
+    return JsonResponse({'status': 'oK'})
 
 
 class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
