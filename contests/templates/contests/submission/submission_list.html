@@ -43,6 +43,8 @@
                     </a>
                 </td>
             </tr>
+            {% empty %}
+            <tr><td colspan="{% if not course %}6{% else %}5{% endif %}" class="text-center">нет посылок</td></tr>
             {% endfor %}
         </tbody>
     </table>

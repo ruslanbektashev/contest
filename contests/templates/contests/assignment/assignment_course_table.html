@@ -40,6 +40,8 @@
                     {% endif %}
                 </td>
             </tr>
+            {% empty %}
+            <tr><td colspan="{{ contests|length|add:"3" }}" class="text-center">нет заданий</td></tr>
             {% endfor %}
         </tbody>
     </table>
