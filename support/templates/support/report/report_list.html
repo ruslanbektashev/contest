@@ -13,5 +13,5 @@
 
 {% block content %}
 <legend>Багрепорты</legend>
-{% render_list reports %}
+{% include 'list.html' with lst=reports %}
 {% endblock content %}

@@ -1,5 +1,10 @@
+{% if lst.exists %}
+{% if title %}
+<h6>{{ title }}</h6>
+{% endif %}
 <div class="list-group mb-3">
     {% for obj in lst %}
     <a href="{{ obj.get_absolute_url }}" class="list-group-item list-group-item-action">{{ obj }}</a>
     {% endfor %}
 </div>
+{% endif %}

@@ -19,20 +19,13 @@
            href="#description" id="description-tab" role="tab">Описание</a>
     </li>
     <li class="nav-item">
-        <a aria-controls="contests" aria-selected="{% if tab == 'contests' %}true{% else %}false{% endif %}"
-           class="nav-link {% if tab == 'contests' %}active{% endif %}" data-toggle="tab" href="#contests"
-           id="contests-tab" role="tab">Разделы</a>
-    </li>
-    <li class="nav-item">
         {% render_discussion_tab course %}
     </li>
 </ul>
 <div class="tab-content">
     <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %} text-justify" id="description" role="tabpanel">
         <p>{{ course.description|markdown|safe }}</p>
-    </div>
-    <div aria-labelledby="contests-tab" class="tab-pane fade {% if tab == 'contests' %}show active{% endif %}" id="contests" role="tabpanel">
-        {% render_list course.contest_set.all %}
+        {% include 'list.html' with lst=course.contest_set.all title="Разделы:" %}
     </div>
 </div>
 {% endblock content %}

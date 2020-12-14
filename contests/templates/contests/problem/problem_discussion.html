@@ -75,15 +75,15 @@
     {% if perms.contests.view_solution %}
     <div aria-labelledby="solutions-tab" class="tab-pane fade" id="solutions" role="tabpanel">
         <div class="alert alert-warning">Доступно только преподавателям</div>
-        {% render_list problem.solution_set.all %}
+        {% include 'list.html' with lst=problem.solution_set.all %}
     </div>
     {% endif %}
     {% if perms.contests.view_iotest or perms.contests.view_uttest or perms.contests.view_fntest %}
     <div aria-labelledby="tests-tab" class="tab-pane fade" id="tests" role="tabpanel">
         <div class="alert alert-warning">Доступно только преподавателям</div>
-        {% render_list problem.iotest_set.all %}
-        {% render_list problem.uttest_set.all %}
-        {% render_list problem.fntest_set.all %}
+        {% include 'list.html' with lst=problem.iotest_set.all title="IO-тесты:" %}
+        {% include 'list.html' with lst=problem.uttest_set.all title="UT-тесты:" %}
+        {% include 'list.html' with lst=problem.fntest_set.all title="FN-тесты:" %}
     </div>
     {% endif %}
     <div aria-labelledby="discussion-tab" class="tab-pane fade show active" id="discussion" role="tabpanel">

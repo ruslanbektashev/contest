@@ -39,10 +39,10 @@
         {% render_attachment_list contest %}
     </div>
     <div aria-labelledby="problems-tab" class="tab-pane fade {% if tab == 'problems' %}show active{% endif %}" id="problems" role="tabpanel">
-        {% render_list contest.problem_set.all %}
+        {% include 'list.html' with lst=contest.problem_set.all %}
     </div>
     <div aria-labelledby="testsuites-tab" class="tab-pane fade {% if tab == 'testsuites' %}show active{% endif %}" id="testsuites" role="tabpanel">
-        {% render_list contest.testsuite_set.all %}
+        {% include 'list.html' with lst=contest.testsuite_set.all %}
     </div>
 </div>
 {% endblock content %}

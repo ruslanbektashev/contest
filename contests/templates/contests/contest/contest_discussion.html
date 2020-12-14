@@ -32,7 +32,7 @@
         {% render_attachment_list contest %}
     </div>
     <div aria-labelledby="problems-tab" class="tab-pane fade" id="problems" role="tabpanel">
-        {% render_list contest.problem_set.all %}
+        {% include 'list.html' with lst=contest.problem_set.all %}
     </div>
     <div aria-labelledby="discussion-tab" class="tab-pane fade show active" id="discussion" role="tabpanel">
         {% render_comments contest comments %}

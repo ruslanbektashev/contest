@@ -13,7 +13,7 @@
 
 {% block content %}
 <legend>Расписание: {{ schedule }}</legend>
-{% render_list schedule.scheduleattachment_set.all %}
+{% include 'list.html' with lst=schedule.scheduleattachment_set.all %}
 {% endblock content %}
 
 {% block submenu %}
