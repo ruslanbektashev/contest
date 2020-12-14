@@ -166,19 +166,31 @@ class Lecture(CRUDEntry):
 """==================================================== Contest ====================================================="""
 
 
+class ContestManager(models.Manager):
+    def get_new_number(self, course):
+        return self.filter(course=course).aggregate(models.Max('number')).get('number__max', 0) + 1
+
+
 class Contest(CRUDEntry):
+    DEFAULT_NUMBER = 1
+
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Курс")
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     description = models.TextField(verbose_name="Описание")
 
+    number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер")
+
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
     subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
+    objects = ContestManager()
+
     class Meta(CRUDEntry.Meta):
         verbose_name = "Раздел"
         verbose_name_plural = "Разделы"
+        ordering = ('number', 'id')
 
     @property
     def files(self):
@@ -188,10 +200,15 @@ class Contest(CRUDEntry):
         return reverse('contests:contest-discussion', kwargs={'pk': self.pk})
 
     def __str__(self):
-        return "%s" % self.title
+        return "#%i. %s" % (self.number, self.title)
 
 
 """==================================================== Problem ====================================================="""
+
+
+class ProblemManager(models.Manager):
+    def get_new_number(self, contest):
+        return self.filter(contest=contest).aggregate(models.Max('number')).get('number__max', 0) + 1
 
 
 class Problem(CRUDEntry):
@@ -209,13 +226,14 @@ class Problem(CRUDEntry):
     DEFAULT_LANGUAGE = 'C++'
     DEFAULT_TIME_LIMIT = 1
     DEFAULT_MEMORY_LIMIT = 64 * 1024
+    DEFAULT_NUMBER = 1
 
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     description = RichTextUploadingField(verbose_name="Описание")
 
-    number = models.PositiveSmallIntegerField(default=1, verbose_name="Номер")
+    number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер")
     difficulty = models.PositiveSmallIntegerField(choices=DIFFICULTY_CHOICES, default=DEFAULT_DIFFICULTY, verbose_name="Сложность")
     language = models.CharField(max_length=8, choices=LANGUAGE_CHOICES, default=DEFAULT_LANGUAGE, verbose_name="Язык")
     compile_args = models.CharField(max_length=255, blank=True, verbose_name="Параметры компиляции")
@@ -228,19 +246,16 @@ class Problem(CRUDEntry):
     comment_set = GenericRelation(Comment, content_type_field='object_type')
     subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
+    objects = ProblemManager()
+
     class Meta(CRUDEntry.Meta):
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
+        ordering = ('number', 'id')
 
     @property
     def files(self):
         return [attachment.file.path for attachment in self.attachment_set.all()]
-
-    def save(self, *args, **kwargs):
-        if self.pk is None:
-            max_number = Problem.objects.filter(contest=self.contest).aggregate(models.Max('number')).get('number__max', 0) or 0
-            self.number = max_number + 1
-        super().save(*args, **kwargs)
 
     def get_latest_submission_by(self, user):
         try:

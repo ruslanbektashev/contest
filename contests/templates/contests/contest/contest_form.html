@@ -24,6 +24,7 @@
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.title class+="form-control" %}
     {% render_field form.description class+="form-control" %}
+    {% render_field form.number class+="form-control" %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" %}
     {% render_field form.files class+="custom-file-input" %}
     {% endwith %}

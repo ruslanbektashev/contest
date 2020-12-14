@@ -7,7 +7,7 @@
                 <th>Студент</th>
                 {% for contest in contests %}
                 <th>
-                    <a href="{{ contest.get_absolute_url }}" title="{{ contest }}">{{ forloop.counter }}</a>
+                    <a href="{{ contest.get_absolute_url }}" title="{{ contest }}">{{ contest.number }}</a>
                 </th>
                 {% endfor %}
                 <th class="text-center" style="width: 8%;">Зачет</th>
