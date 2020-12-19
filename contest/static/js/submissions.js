@@ -6,7 +6,7 @@ class TaskProgress {
         this.execution_list_element.innerHTML = '';
         this.progress_url = progress_url;
         this.execution_list_url = execution_list_url;
-        this.poll_interval = 500;
+        this.poll_interval = 1000;
         this.retry = 0;
         this.max_retries = 5;
     }
