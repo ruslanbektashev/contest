@@ -1,5 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from django.forms import inlineformset_factory
+from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 from pygments import highlight
 from pygments.lexers import CppLexer
