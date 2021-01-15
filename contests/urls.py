@@ -108,6 +108,7 @@ urlpatterns = [
             path('', views.SubmissionDetail.as_view(), name='submission-detail'),
             path('delete', views.SubmissionDelete.as_view(), name='submission-delete'),
             path('evaluate', views.SubmissionEvaluate.as_view(), name='submission-evaluate'),
+            path('clear_task', views.SubmissionClearTask.as_view(), name='submission-clear-task'),
             path('moss', views.SubmissionMoss.as_view(), name='submission-moss'),
             path('download', views.SubmissionDownload.as_view(), name='submission-download'),
             path('attachment/<int:attachment_id>', views.SubmissionAttachment.as_view(), name='submission-attachment'),

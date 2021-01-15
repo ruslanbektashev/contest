@@ -1109,6 +1109,34 @@ def submission_get_progress(request, task_id):
     return JsonResponse(progress.get_info())
 
 
+class SubmissionClearTask(LoginRedirectOwnershipOrPermissionRequiredMixin, BaseUpdateView):
+    model = Submission
+    http_method_names = ['get']
+    permission_required = 'contests.evaluate_submission'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['from_url'] = request.GET.get('from', '')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
+            self.object = self.get_object()
+        self.object.task_id = None
+        self.object.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        url = reverse('contests:submission-detail', kwargs={'pk': self.object.pk})
+        if self.storage['from_url']:
+            return url + '?from=' + self.storage['from_url']
+        else:
+            return url
+
+
 class SubmissionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Submission
     template_name = 'contests/submission/submission_delete.html'
