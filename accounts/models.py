@@ -380,7 +380,7 @@ class Activity(models.Model):
         if self.object:
             context['object'] = self.object
         if self.reference:
-            context['slash'] = '/'
+            context['slash'] = ' / '
             context['reference'] = self.reference
         if isinstance(self.subject, User):
             context['subject'] = self.subject.last_name

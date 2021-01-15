@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -25,11 +24,12 @@ def receive_comment_signal(sender, instance, created, **kwargs):
         elif model == 'assignment' or 'submission':
             return comment.object.problem.contest.course
 
-    if created:
-        course = get_course_for_comment(instance)
-        users = course.subscription_set.exclude(user=instance.author).values_list('id', flat=True)
-        if instance.author_id != instance.object.owner_id:
-            user_set = set(users)
-            user_set.add(instance.object.owner_id)
-            users = list(user_set)
-        Activity.objects.notify_users(users, subject=instance.author, action='оставил комментарий', object=instance)
+    course = get_course_for_comment(instance)
+    users = course.subscription_set.exclude(user=instance.author).values_list('id', flat=True)
+    if instance.author_id != instance.object.owner_id:
+        user_set = set(users)
+        user_set.add(instance.object.owner_id)
+        users = list(user_set)
+    action = "оставил комментарий" if created else "изменил комментарий"
+    Activity.objects.notify_users(users, subject=instance.author, action=action, object=instance,
+                                  reference=instance.object)
