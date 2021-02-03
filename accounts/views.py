@@ -159,7 +159,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
                 if action == 'level_up':
                     accounts.level_up()
                 elif action == 'level_down':
-                    accounts.level_up()
+                    accounts.level_down()
                 elif action == 'enroll':
                     accounts.enroll()
                 elif action == 'expel':
