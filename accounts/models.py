@@ -175,7 +175,7 @@ class Account(models.Model):
     staff = StaffManager.from_queryset(AccountQuerySet)()
     students = StudentManager.from_queryset(StudentQuerySet)()
 
-    comments_read = models.ManyToManyField('Comment')
+    comments_read = models.ManyToManyField('Comment', blank=True)
 
     class Meta:
         ordering = ('user__last_name', 'user__first_name', 'user_id')
