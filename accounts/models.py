@@ -54,10 +54,10 @@ class StudentQuerySet(AccountQuerySet):
         ).filter(credit_score__lte=2)
 
     def level_up(self):
-        return self.update(level=models.F('level') + 1)
+        return self.filter(level__lt=Account.LEVEL_MAX).update(level=models.F('level') + 1)
 
     def level_down(self):
-        return self.update(level=models.F('level') - 1)
+        return self.filter(level__gt=Account.LEVEL_MIN).update(level=models.F('level') - 1)
 
     def enroll(self):
         return self.update(enrolled=True, graduated=False)
@@ -146,6 +146,8 @@ class Account(models.Model):
         (8, "4 курс, 2 семестр"),
     )
     LEVEL_DEFAULT = 1
+    LEVEL_MIN = 1
+    LEVEL_MAX = 8
     TYPE_CHOICES = (
         (1, 'студент'),
         (2, 'модератор'),
