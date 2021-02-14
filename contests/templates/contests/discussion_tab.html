@@ -1,6 +1,5 @@
 {% load accounts static %}
 
-{% unread_comments_count request.user.account obj as unread_comments_count %}
 {% if tab == 'discussion' %}
     <a aria-controls="discussion" aria-selected="true" class="nav-link active" data-toggle="tab" href="#discussion" id="discussion-tab" role="tab">
 {% else %}

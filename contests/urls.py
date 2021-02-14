@@ -126,19 +126,19 @@ urlpatterns = [
         ])),
         path('schedule', under_development(views.EventSchedule.as_view()), name='event-schedule')
     ])),
-    path('contest/<int:contest_id>/testsuite/create', under_development(views.TestSuiteCreate.as_view()), name='testsuite-create'),
-    path('testsuite/', include([
-        path('<int:pk>/', include([
-            path('', under_development(views.TestSuiteDetail.as_view()), name='testsuite-detail'),
-            path('delete', under_development(views.TestSuiteDelete.as_view()), name='testsuite-delete'),
-            path('update', under_development(views.TestSuiteUpdate.as_view()), name='testsuite-update'),
-        ]))
-    ])),
-    path('testsuite/<int:testsuite_id>/testsuitesubmission/create', under_development(views.TestSuiteSubmissionCreate.as_view()), name='testsuitesubmission-create'),
-    path('testsuitesubmission/', include([
-        path('<int:pk>/', include([
-            path('', under_development(views.TestSuiteSubmissionDetail.as_view()), name='testsuitesubmission-detail'),
-            path('delete', under_development(views.TestSuiteSubmissionDelete.as_view()), name='testsuitesubmission-delete'),
-        ]))
-    ]))
+    path('contest/<int:contest_id>/taskcollection/create', under_development(views.TaskCollectionCreate.as_view()), name='taskcollection-create'),
+    # path('taskcollection/', include([
+    #     path('<int:pk>/', include([
+    #         path('', under_development(views.TaskCollectionDetail.as_view()), name='taskcollection-detail'),
+    #         path('delete', under_development(views.TaskCollectionDelete.as_view()), name='taskcollection-delete'),
+    #         path('update', under_development(views.TaskCollectionUpdate.as_view()), name='taskcollection-update'),
+    #     ]))
+    # ])),
+    # path('taskcollection/<int:taskcollection_id>/taskcollectionsolution/create', under_development(views.TaskCollectionSolutionCreate.as_view()), name='taskcollectionsolution-create'),
+    # path('taskcollectionsolution/', include([
+    #     path('<int:pk>/', include([
+    #         path('', under_development(views.TaskCollectionSolutionDetail.as_view()), name='taskcollectionsolution-detail'),
+    #         path('delete', under_development(views.TaskCollectionSolutionDelete.as_view()), name='taskcollectionsolution-delete'),
+    #     ]))
+    # ]))
 ]

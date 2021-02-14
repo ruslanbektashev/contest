@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load views forms markdown %}
+
+{% block title %}
+Новый набор заданий
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+
+{% endblock breadcrumbs %}
+
+
+{% block content %}
+<legend>{% if taskcollection %}Редактирование{% else %}Добавление{% endif %} набора заданий</legend>
+
+<form id="testsuite_create" method="post" enctype="multipart/form-data" class="form-horizontal">
+    {% csrf_token %}
+
+    {% render_form_errors form %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+        {% render_field form.title class+="form-control" %}
+        {% render_field form.description class+="form-control" %}
+    {% endwith %}
+
+    <legend class="mb-3">Задания</legend>
+
+    {{ test_formset.management_form }}
+
+    <!-- Created tasks list -->
+    <div id="created_tests">
+        {% for form in test_formset %}
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="test-title"></span>
+                    <input id="delete_test" type="button" onclick="handleTestDelete(this.name)" class="delete-test btn btn-danger btn-sm" value="Удалить"/>
+                </div>
+                <div class="card-body">
+                    {% with form.question as field %}
+                        <span class="question-hidden">
+                            {{ field.as_hidden }}
+                        </span>
+                        <div class="text-muted">Вопрос: </div>
+                        <span class="test-question">
+                        </span>
+                        <div class="text-danger">
+                            {% for error in form.errors.question %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% if form.question.append_text %}
+                            <div>{{ form.question.append_text }}</div>
+                        {% endif %}
+                        {% if form.question.help_text %}
+                            <small class="text-muted">{{ form.question.help_text }}</small>
+                        {% endif %}
+                    {% endwith %}
+
+                    {% with form.right_answer as field %}
+                        <span class="text-muted">Правильный ответ: </span>
+                        <span class="answer-hidden">
+                            {{ field.as_hidden }}
+                        </span>
+                        <span class="test-answer">
+
+                        </span>
+                        <div class="text-danger">
+                            {% for error in form.errors.right_answer %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% if form.right_answer.append_text %}
+                            <div class="input-group-append">
+                                <span class="input-group-text">{{ form.right_answer.append_text }}</span>
+                            </div>
+                        {% endif %}
+                        {% if form.right_answer.help_text %}
+                            <small class="form-text text-muted">{{ form.right_answer.help_text }}</small>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- New test form -->
+    <div id="new_test" class="card mb-4">
+        <div class="card-body">
+            <h6 class="card-title mb-3">
+                Новое задание
+            </h6>
+            {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+                {% render_field test_form.question class+="form-control" %}
+                {% render_field test_form.right_answer class+="form-control" %}
+            {% endwith %}
+            <div class="text-danger mb-3">
+
+            </div>
+            <input type="button" onclick="handleTaskAdd()" class="btn btn-light border" value="Добавить задание"/>
+        </div>
+    </div>
+
+    {% render_submit_button value="Сохранить" %}
+</form>
+
+<!-- Blank task card -->
+<div id="blank_test" class="d-none">
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="test-title"></span>
+            <input id="delete_test" type="button" onclick="handleTestDelete(this.name)" class="delete-test btn btn-danger btn-sm" value="Удалить"/>
+        </div>
+        <div class="card-body">
+            <span class="question-hidden">
+                <input type="hidden"/>
+            </span>
+            <span class="test-question">
+            </span>
+            <span class="text-muted">Правильный ответ: </span>
+            <span class="answer-hidden">
+                <input type="hidden"/>
+            </span>
+            <span class="test-answer">
+            </span>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+
+{% block javascript %}
+<script>
+
+</script>
+{% endblock javascript %}

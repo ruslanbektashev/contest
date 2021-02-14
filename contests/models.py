@@ -799,105 +799,90 @@ class Event(CRUDEntry):
         return "%s: %s" % (self.get_type_display(), self.title)
 
 
-"""=================================================== TestSuite ===================================================="""
-
-
-class TestSuite(CRUDEntry):
+class TaskCollection(CRUDEntry):
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
     title = models.CharField(max_length=100, verbose_name="Заголовок")
-    description = RichTextUploadingField(verbose_name="Описание")
+    description = models.TextField(verbose_name="Описание")
 
     class Meta(CRUDEntry.Meta):
-        verbose_name = "Набор тестов"
-        verbose_name_plural = "Наборы тестов"
+        verbose_name = "Набор заданий"
+        verbose_name_plural = "Наборы заданий"
 
     def __str__(self):
         return self.title
 
 
-class Test(CRUDEntry):
+class Task(CRUDEntry):
+    ANSWER_TYPES = (
+        (1, "Текст"),
+        (2, "Тест"),
+        (3, "Файл"),
+    )
+
     owner = None
 
-    testsuite = models.ForeignKey(TestSuite, on_delete=models.CASCADE, verbose_name="Набор тестов")
+    tasksuite = models.ForeignKey(TaskCollection, on_delete=models.CASCADE, verbose_name="Набор заданий")
 
-    number = models.PositiveSmallIntegerField(default=1, verbose_name="Номер")
+    answer_type = models.PositiveSmallIntegerField(verbose_name="Способ ответа", choices=ANSWER_TYPES, default=1)
+    number = models.PositiveSmallIntegerField(verbose_name="Номер", default=1)
     question = models.TextField(verbose_name="Вопрос")
-    right_answer = models.CharField(max_length=250, verbose_name="Правильный ответ")
 
     class Meta(CRUDEntry.Meta):
-        verbose_name = "Тест"
-        verbose_name_plural = "Тесты"
+        verbose_name = "Задание"
+        verbose_name_plural = "Задания"
 
     def save(self, *args, **kwargs):
         if self.pk is None:
-            max_number = Test.objects.filter(testsuite=self.testsuite).aggregate(models.Max('number')).get('number__max', 0) or 0
+            max_number = self.tasksuite.task_set.aggregate(models.Max("number")).get("number__max", 0)
             self.number = max_number + 1
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return 'Тест ' + str(self.number)
+        return f"Задание {self.number}"
 
 
-"""============================================== TestSuiteSubmission ==============================================="""
+class Option(CRUDEntry):
+    owner = None
+
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, verbose_name="Задание")
+
+    text = models.CharField(verbose_name="Текст", max_length=250)
+    is_right = models.BooleanField(default=False)
+
+    class Meta(CRUDEntry.Meta):
+        verbose_name = "Вариант ответа"
+        verbose_name_plural = "Варианты ответов"
+
+    def __str__(self):
+        return f"Вариант ответа на {self.task}"
 
 
-class TestSuiteSubmission(CRUDEntry):
-    testsuite = models.ForeignKey(TestSuite, on_delete=models.CASCADE, verbose_name="Набор тестов")
+class TaskCollectionSolution(CRUDEntry):
+    taskcollection = models.ForeignKey(TaskCollection, on_delete=models.CASCADE, verbose_name="Набор заданий")
+
     score = models.PositiveSmallIntegerField(default=0, verbose_name="Процент правильных ответов")
 
     class Meta(CRUDEntry.Meta):
-        verbose_name = "Решение набора тестов"
-        verbose_name_plural = "Решения наборов тестов"
-
-    def update_score(self):
-        self.score = self.testsubmission_set.filter(status="OK").count() * 100 // self.testsuite.test_set.count()
-
-    def save(self, *args, **kwargs):
-        if self.pk is None:
-            self.update_score()
-        super().save(*args, **kwargs)
+        verbose_name = "Решение набора заданий"
+        verbose_name_plural = "Решения наборов заданий"
 
     def __str__(self):
-        return "Решение набора тестов " + str(self.id)
+        return f"Решение набора заданий {self.taskcollection}"
 
 
-class TestSubmission(CRUDEntry):
-    STATUS_CHOICES = (
-        ('OK', "Верный ответ"),
-        ('WA', "Неверный ответ"),
-        ('UN', "Не проверено")
-    )
-    DEFAULT_STATUS = 'UN'
-
+class Answer(CRUDEntry):
     owner = None
-    testsuitesubmission = models.ForeignKey(TestSuiteSubmission, on_delete=models.CASCADE, verbose_name="Решение набора тестов")
 
-    number = models.PositiveSmallIntegerField(default=1, verbose_name="Номер")
-    answer = models.CharField(max_length=250, verbose_name="Ответ")
-    status = models.CharField(max_length=2, choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, verbose_name="Задание")
+    taskansweroption = models.ForeignKey(Option, on_delete=models.CASCADE, verbose_name="Выбранный вариант", blank=True, null=True)
+    taskcollectionsolution = models.ForeignKey(TaskCollectionSolution, on_delete=models.CASCADE, verbose_name="Решение набора заданий")
+
+    text = models.TextField(verbose_name="Развёрнутый ответ", blank=True, null=True)
+    file = models.FileField(verbose_name="Файл", blank=True, null=True)
 
     class Meta(CRUDEntry.Meta):
-        verbose_name = "Ответ на тест"
-        verbose_name_plural = "Ответы на тесты"
-
-    def test(self):
-        test = self.testsuitesubmission.testsuite.test_set.get(number=self.number)
-        if self.answer == test.right_answer:
-            return 'OK'
-        else:
-            return 'WA'
-
-    def save(self, *args, **kwargs):
-        if self.pk is None:
-            max_number = TestSubmission.objects.filter(testsuitesubmission=self.testsuitesubmission).aggregate(models.Max('number')).get('number__max', 0) or 0
-            self.number = max_number + 1
-
-        self.status = self.test()
-        super().save(*args, **kwargs)
-
-    @property
-    def question(self):
-        return self.testsuitesubmission.testsuite.test_set.get(number=self.number).question
+        verbose_name = "Ответ на задание"
+        verbose_name_plural = "Ответы на задания"
 
     def __str__(self):
-        return "Ответ на тест " + str(self.number)
+        return f"Ответ на {self.task}"

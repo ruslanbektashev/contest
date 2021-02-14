@@ -21,13 +21,11 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (CourseForm, CreditSetForm, ContestForm, ProblemForm, SolutionForm, UTTestForm, FNTestForm,
+from contests.forms import (CourseForm, CreditSetForm, ContestForm, ProblemForm, SolutionForm, TaskCollectionForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
-                            AssignmentSetForm, EventForm, ProblemRollbackResultsForm, TestSuiteForm, TestForm,
-                            TestSubmissionForm, TestSuiteSubmissionForm)
-from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, UTTest, FNTest,
-                             Assignment, Submission, Execution, Event, TestSuite, Test, TestSuiteSubmission,
-                             TestSubmission)
+                            AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
+from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, TaskCollection, UTTest, FNTest,
+                             Assignment, Submission, Execution, Event)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 
@@ -1326,170 +1324,8 @@ def index(request):
         return redirect(reverse('contests:assignment-list'))
 
 
-"""=================================================== TestSuite ===================================================="""
-
-
-class TestSuiteDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
-    model = TestSuite
-    template_name = 'contests/testsuite/testsuite_detail.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['tests'] = self.object.test_set.all()
-        return context
-
-
-class TestSuiteCreate(LoginRedirectPermissionRequiredMixin, CreateView):
-    model = TestSuite
-    form_class = TestSuiteForm
-    template_name = 'contests/testsuite/testsuite_form.html'
-    permission_required = 'contests.add_testsuite'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
-        TestInlineFormSet = inlineformset_factory(TestSuite, Test, form=TestForm, fields=('question', 'right_answer'),
-                                                  extra=0)
-        inlineformset_kwargs = {'initial': []}
-        if self.request.method in ('POST', 'PUT'):
-            inlineformset_kwargs.update({'data': self.request.POST})
-        self.storage['test_formset'] = TestInlineFormSet(**inlineformset_kwargs)
-        return super().dispatch(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        test_formset = self.storage['test_formset']
-        if test_formset.total_form_count() == 0:
-            form.errors.update({'test_formset': "Необходимо добавить хотя бы один тест."})
-            self.storage['test_formset'] = test_formset
-            return self.form_invalid(form)
-        if test_formset.is_valid():
-            form.instance.owner = self.request.user
-            form.instance.contest = self.storage['contest']
-            self.object = form.save()
-            test_formset.instance = self.object
-            test_formset.save()
-            return HttpResponseRedirect(self.get_success_url())
-        else:
-            self.storage['test_formset'] = test_formset
-            return self.form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['contest'] = self.storage['contest']
-        context['test_formset'] = self.storage['test_formset']
-        context['test_form'] = TestForm()
-        return context
-
-
-class TestSuiteUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
-    model = TestSuite
-    form_class = TestSuiteForm
-    template_name = 'contests/testsuite/testsuite_form.html'
-    permission_required = 'contests.change_testsuite'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['contest'] = self.object.contest
-        return context
-
-
-class TestSuiteDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
-    model = TestSuite
-    template_name = 'contests/testsuite/testsuite_delete.html'
-    permission_required = 'contests.delete_testsuite'
-
-    def get_success_url(self):
-        return self.object.contest.get_absolute_url()
-
-
-"""============================================== TestSuiteSubmission ==============================================="""
-
-
-class TestSuiteSubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
-    model = TestSuiteSubmission
-    form_class = TestSuiteSubmissionForm
-    template_name = 'contests/testsuitesubmission/testsuitesubmission_form.html'
-    permission_required = 'contests.add_testsuitesubmission'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        self.storage['testsuite'] = get_object_or_404(TestSuite, id=kwargs.pop('testsuite_id'))
-
-        test_set = self.storage['testsuite'].test_set.all()
-        forms_num = len(test_set)
-        TestSubmissionInlineFormSet = inlineformset_factory(TestSuiteSubmission, TestSubmission,
-                                                            form=TestSubmissionForm, fields=('answer',),
-                                                            extra=forms_num,
-                                                            min_num=forms_num, validate_min=True,
-                                                            max_num=forms_num, validate_max=True)
-        inlineformset_kwargs = {'initial': []}
-        if self.request.method in ('POST', 'PUT'):
-            inlineformset_kwargs.update({'data': self.request.POST})
-
-        self.storage['testsubmission_formset'] = TestSubmissionInlineFormSet(**inlineformset_kwargs)
-        self.storage['testsubmission_pairs'] = zip(test_set, self.storage['testsubmission_formset'])
-        return super().dispatch(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        testsubmission_formset = self.storage['testsubmission_formset']
-        if testsubmission_formset.is_valid():
-            form.instance.owner = self.request.user
-            form.instance.testsuite = self.storage['testsuite']
-            self.object = form.save()
-            testsubmission_formset.instance = self.object
-            testsubmission_formset.save()
-            return HttpResponseRedirect(self.get_success_url())
-        else:
-            return self.form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['testsuite'] = self.storage['testsuite']
-        context['testsubmission_formset'] = self.storage['testsubmission_formset']
-        context['testsubmission_pairs'] = self.storage['testsubmission_pairs']
-        return context
-
-
-class TestSuiteSubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, PaginatorMixin, DetailView):
-    model = TestSuiteSubmission
-    template_name = 'contests/testsuitesubmission/testsuitesubmission_detail.html'
-    permission_required = 'contests.view_testsuitesubmission'
-    paginate_by = 30
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
-    def get(self, request, *args, **kwargs):
-        if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
-            self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-        return self.render_to_response(context)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['testsubmissions'] = self.object.testsubmission_set.all()
-        # comments = self.object.comment_set.actual()
-        # context['paginator'], \
-        #     context['page_obj'], \
-        #     context['comments'], \
-        #     context['is_paginated'] = self.paginate_queryset(comments)
-        return context
-
-
-class TestSuiteSubmissionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
-    model = TestSuiteSubmission
-    template_name = 'contests/testsuitesubmission/testsuitesubmission_delete.html'
-    permission_required = 'contests.delete_testsuitesubmission'
-
-    def get_success_url(self):
-        return self.object.testsuite.get_absolute_url()
+class TaskCollectionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+    model = TaskCollection
+    form_class = TaskCollectionForm
+    template_name = 'contests/taskcollection/taskcollection_form.html'
+    permission_required = 'contests.add_taskcollection'

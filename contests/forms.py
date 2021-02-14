@@ -1,7 +1,6 @@
 import os
 import re
 
-from ckeditor.widgets import CKEditorWidget
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
@@ -10,8 +9,7 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
-from contests.models import (Attachment, Course, Contest, Problem, Solution, UTTest, FNTest, Assignment, Submission,
-                             Event, TestSuite, Test, TestSuiteSubmission, TestSubmission)
+from contests.models import (Attachment, Course, Contest, Problem, Solution, TaskCollection, UTTest, FNTest, Assignment, Submission, Event)
 
 
 class UserChoiceField(forms.ModelChoiceField):
@@ -375,33 +373,7 @@ class EventForm(forms.ModelForm):
         fields = ['tutor', 'title', 'type', 'place', 'date_start', 'date_end', 'tags']
 
 
-"""=================================================== TestSuite ===================================================="""
-
-
-class TestSuiteForm(forms.ModelForm):
+class TaskCollectionForm(forms.ModelForm):
     class Meta:
-        model = TestSuite
+        model = TaskCollection
         fields = ['title', 'description']
-
-
-class TestForm(forms.ModelForm):
-    question = forms.CharField(widget=CKEditorWidget(), label="Вопрос")
-
-    class Meta:
-        model = Test
-        fields = ['question', 'right_answer']
-
-
-"""============================================== TestSuiteSubmission ==============================================="""
-
-
-class TestSuiteSubmissionForm(forms.ModelForm):
-    class Meta:
-        model = TestSuiteSubmission
-        fields = []
-
-
-class TestSubmissionForm(forms.ModelForm):
-    class Meta:
-        model = TestSubmission
-        fields = ['answer']
