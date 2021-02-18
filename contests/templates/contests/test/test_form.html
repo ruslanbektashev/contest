@@ -14,7 +14,7 @@
 {% block content %}
 <legend>{% if taskcollection %}Редактирование{% else %}Добавление{% endif %} набора заданий</legend>
 
-<form id="testsuite_create" method="post" enctype="multipart/form-data" class="form-horizontal">
+<form id="root" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}
 
     {% render_form_errors form %}
@@ -24,8 +24,6 @@
     {% endwith %}
 
     <legend class="mb-3">Задания</legend>
-
-    {{ test_formset.management_form }}
 
     <!-- Created tasks list -->
     <div id="created_tests">

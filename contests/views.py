@@ -1,5 +1,7 @@
+from typing import Any
 from django.contrib.contenttypes.models import ContentType
 from django.forms import inlineformset_factory
+from django.http.request import HttpRequest
 from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 from pygments import highlight
@@ -21,10 +23,10 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (CourseForm, CreditSetForm, ContestForm, ProblemForm, SolutionForm, TaskCollectionForm, UTTestForm, FNTestForm,
+from contests.forms import (CourseForm, CreditSetForm, ContestForm, ProblemForm, SolutionForm, TestForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
                             AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
-from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, TaskCollection, UTTest, FNTest,
+from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, Test, UTTest, FNTest,
                              Assignment, Submission, Execution, Event)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
@@ -1324,8 +1326,17 @@ def index(request):
         return redirect(reverse('contests:assignment-list'))
 
 
-class TaskCollectionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
-    model = TaskCollection
-    form_class = TaskCollectionForm
-    template_name = 'contests/taskcollection/taskcollection_form.html'
-    permission_required = 'contests.add_taskcollection'
+class TestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+    model = Test
+    form_class = TestForm
+    template_name = 'contests/test/test_form.html'
+    permission_required = 'contests.add_test'
+
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
+        return super().post(request, *args, **kwargs)
+
+    def get(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
+        return super().get(request, *args, **kwargs)

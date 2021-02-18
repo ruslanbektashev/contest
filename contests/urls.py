@@ -126,7 +126,7 @@ urlpatterns = [
         ])),
         path('schedule', under_development(views.EventSchedule.as_view()), name='event-schedule')
     ])),
-    path('contest/<int:contest_id>/taskcollection/create', under_development(views.TaskCollectionCreate.as_view()), name='taskcollection-create'),
+    path('contest/<int:contest_id>/test/create', under_development(views.TestCreate.as_view()), name='test-create'),
     # path('taskcollection/', include([
     #     path('<int:pk>/', include([
     #         path('', under_development(views.TaskCollectionDetail.as_view()), name='taskcollection-detail'),

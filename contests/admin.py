@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericStackedInline
 
 from contests.forms import CourseForm
-from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, Solution, IOTest, Task, TaskCollection, TaskCollectionSolution, UTTest, FNTest,
+from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, Solution, IOTest, Question, Test, TestSubmission, UTTest, FNTest,
                              Assignment, Submission, Execution, Tag, Event)
 
 
@@ -285,8 +285,8 @@ class EventAdmin(admin.ModelAdmin):
     readonly_fields = ('date_updated', 'date_created')
 
 
-admin.site.register(TaskCollection)
-admin.site.register(Task)
+admin.site.register(Test)
+admin.site.register(Question)
 admin.site.register(Answer)
 admin.site.register(Option)
-admin.site.register(TaskCollectionSolution)
+admin.site.register(TestSubmission)

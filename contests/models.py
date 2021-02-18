@@ -799,7 +799,7 @@ class Event(CRUDEntry):
         return "%s: %s" % (self.get_type_display(), self.title)
 
 
-class TaskCollection(CRUDEntry):
+class Test(CRUDEntry):
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     description = models.TextField(verbose_name="Описание")
@@ -812,7 +812,7 @@ class TaskCollection(CRUDEntry):
         return self.title
 
 
-class Task(CRUDEntry):
+class Question(CRUDEntry):
     ANSWER_TYPES = (
         (1, "Текст"),
         (2, "Тест"),
@@ -821,11 +821,11 @@ class Task(CRUDEntry):
 
     owner = None
 
-    tasksuite = models.ForeignKey(TaskCollection, on_delete=models.CASCADE, verbose_name="Набор заданий")
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Набор заданий")
 
     answer_type = models.PositiveSmallIntegerField(verbose_name="Способ ответа", choices=ANSWER_TYPES, default=1)
     number = models.PositiveSmallIntegerField(verbose_name="Номер", default=1)
-    question = models.TextField(verbose_name="Вопрос")
+    text = models.TextField(verbose_name="Вопрос")
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Задание"
@@ -833,7 +833,7 @@ class Task(CRUDEntry):
 
     def save(self, *args, **kwargs):
         if self.pk is None:
-            max_number = self.tasksuite.task_set.aggregate(models.Max("number")).get("number__max", 0)
+            max_number = self.test.task_set.aggregate(models.Max("number")).get("number__max", 0)
             self.number = max_number + 1
         super().save(*args, **kwargs)
 
@@ -844,7 +844,7 @@ class Task(CRUDEntry):
 class Option(CRUDEntry):
     owner = None
 
-    task = models.ForeignKey(Task, on_delete=models.CASCADE, verbose_name="Задание")
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задание")
 
     text = models.CharField(verbose_name="Текст", max_length=250)
     is_right = models.BooleanField(default=False)
@@ -854,11 +854,11 @@ class Option(CRUDEntry):
         verbose_name_plural = "Варианты ответов"
 
     def __str__(self):
-        return f"Вариант ответа на {self.task}"
+        return f"Вариант ответа на {self.question}"
 
 
-class TaskCollectionSolution(CRUDEntry):
-    taskcollection = models.ForeignKey(TaskCollection, on_delete=models.CASCADE, verbose_name="Набор заданий")
+class TestSubmission(CRUDEntry):
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Набор заданий")
 
     score = models.PositiveSmallIntegerField(default=0, verbose_name="Процент правильных ответов")
 
@@ -867,15 +867,15 @@ class TaskCollectionSolution(CRUDEntry):
         verbose_name_plural = "Решения наборов заданий"
 
     def __str__(self):
-        return f"Решение набора заданий {self.taskcollection}"
+        return f"Решение набора заданий {self.test}"
 
 
 class Answer(CRUDEntry):
     owner = None
 
-    task = models.ForeignKey(Task, on_delete=models.CASCADE, verbose_name="Задание")
-    taskansweroption = models.ForeignKey(Option, on_delete=models.CASCADE, verbose_name="Выбранный вариант", blank=True, null=True)
-    taskcollectionsolution = models.ForeignKey(TaskCollectionSolution, on_delete=models.CASCADE, verbose_name="Решение набора заданий")
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задание")
+    option = models.ForeignKey(Option, on_delete=models.CASCADE, verbose_name="Выбранный вариант", blank=True, null=True)
+    test_submission = models.ForeignKey(TestSubmission, on_delete=models.CASCADE, verbose_name="Решение набора заданий")
 
     text = models.TextField(verbose_name="Развёрнутый ответ", blank=True, null=True)
     file = models.FileField(verbose_name="Файл", blank=True, null=True)
@@ -885,4 +885,4 @@ class Answer(CRUDEntry):
         verbose_name_plural = "Ответы на задания"
 
     def __str__(self):
-        return f"Ответ на {self.task}"
+        return f"Ответ на {self.question}"
