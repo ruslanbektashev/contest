@@ -805,8 +805,8 @@ class Test(CRUDEntry):
     description = models.TextField(verbose_name="Описание")
 
     class Meta(CRUDEntry.Meta):
-        verbose_name = "Набор заданий"
-        verbose_name_plural = "Наборы заданий"
+        verbose_name = "Набор задач"
+        verbose_name_plural = "Наборы задач"
 
     def __str__(self):
         return self.title
@@ -821,15 +821,15 @@ class Question(CRUDEntry):
 
     owner = None
 
-    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Набор заданий")
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Набор задач")
 
     answer_type = models.PositiveSmallIntegerField(verbose_name="Способ ответа", choices=ANSWER_TYPES, default=1)
     number = models.PositiveSmallIntegerField(verbose_name="Номер", default=1)
     text = models.TextField(verbose_name="Вопрос")
 
     class Meta(CRUDEntry.Meta):
-        verbose_name = "Задание"
-        verbose_name_plural = "Задания"
+        verbose_name = "Задача"
+        verbose_name_plural = "Задачи"
 
     def save(self, *args, **kwargs):
         if self.pk is None:
@@ -838,13 +838,13 @@ class Question(CRUDEntry):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Задание {self.number}"
+        return f"Задача {self.number}"
 
 
 class Option(CRUDEntry):
     owner = None
 
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задание")
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
 
     text = models.CharField(verbose_name="Текст", max_length=250)
     is_right = models.BooleanField(default=False)
@@ -858,31 +858,31 @@ class Option(CRUDEntry):
 
 
 class TestSubmission(CRUDEntry):
-    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Набор заданий")
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Набор задач")
 
     score = models.PositiveSmallIntegerField(default=0, verbose_name="Процент правильных ответов")
 
     class Meta(CRUDEntry.Meta):
-        verbose_name = "Решение набора заданий"
-        verbose_name_plural = "Решения наборов заданий"
+        verbose_name = "Решение набора задач"
+        verbose_name_plural = "Решения наборов задач"
 
     def __str__(self):
-        return f"Решение набора заданий {self.test}"
+        return f"Решение набора задач {self.test}"
 
 
 class Answer(CRUDEntry):
     owner = None
 
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задание")
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
     option = models.ForeignKey(Option, on_delete=models.CASCADE, verbose_name="Выбранный вариант", blank=True, null=True)
-    test_submission = models.ForeignKey(TestSubmission, on_delete=models.CASCADE, verbose_name="Решение набора заданий")
+    test_submission = models.ForeignKey(TestSubmission, on_delete=models.CASCADE, verbose_name="Решение набора задач")
 
     text = models.TextField(verbose_name="Развёрнутый ответ", blank=True, null=True)
     file = models.FileField(verbose_name="Файл", blank=True, null=True)
 
     class Meta(CRUDEntry.Meta):
-        verbose_name = "Ответ на задание"
-        verbose_name_plural = "Ответы на задания"
+        verbose_name = "Ответ на задачу"
+        verbose_name_plural = "Ответы на задачи"
 
     def __str__(self):
         return f"Ответ на {self.question}"
