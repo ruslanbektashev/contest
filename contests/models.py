@@ -833,9 +833,14 @@ class Question(CRUDEntry):
 
     def save(self, *args, **kwargs):
         if self.pk is None:
-            max_number = self.test.task_set.aggregate(models.Max("number")).get("number__max", 0)
+            max_number = self.test.question_set.aggregate(models.Max("number")).get("number__max", 0) or 0
             self.number = max_number + 1
         super().save(*args, **kwargs)
+
+    def get_answer_type_display(self):
+        for pair in self.ANSWER_TYPES:
+            if pair[0] == self.answer_type:
+                return pair[1]
 
     def __str__(self):
         return f"Задача {self.number}"

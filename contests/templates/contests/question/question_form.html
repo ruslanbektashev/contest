@@ -2,7 +2,7 @@
 {% load views forms markdown %}
 
 {% block title %}
-Новый набор задач
+Новая задача
 {% endblock title %}
 
 {% block breadcrumbs %}
@@ -11,15 +11,16 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if test %}Редактирование{% else %}Добавление{% endif %} набора задач</legend>
+<legend>{% if question %}Редактирование{% else %}Добавление{% endif %} задачи</legend>
 
 <form id="root" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}
 
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-        {% render_field form.title class+="form-control" %}
-        {% render_field form.description class+="form-control" %}
+        {% render_field form.text class+="form-control" %}
+        {% render_field form.answer_type class+="form-control" %}
+        {% render_field form.number class+="form-control" %}
     {% endwith %}
 
     {% render_submit_button value="Сохранить" %}

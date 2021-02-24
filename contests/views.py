@@ -23,10 +23,10 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (CourseForm, CreditSetForm, ContestForm, ProblemForm, SolutionForm, TestForm, UTTestForm, FNTestForm,
+from contests.forms import (CourseForm, CreditSetForm, ContestForm, ProblemForm, QuestionForm, SolutionForm, TestForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
                             AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
-from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, Test, UTTest, FNTest,
+from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Question, Solution, IOTest, Test, UTTest, FNTest,
                              Assignment, Submission, Execution, Event)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
@@ -1326,17 +1326,98 @@ def index(request):
         return redirect(reverse('contests:assignment-list'))
 
 
+"""====================================================== Test ======================================================"""
+
+
 class TestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Test
     form_class = TestForm
     template_name = 'contests/test/test_form.html'
     permission_required = 'contests.add_test'
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
     def dispatch(self, request, *args, **kwargs):
+        self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
         return super().dispatch(request, *args, **kwargs)
 
-    def post(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
-        return super().post(request, *args, **kwargs)
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        form.instance.contest = self.storage['contest']
+        return super().form_valid(form)
 
-    def get(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
-        return super().get(request, *args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['contest'] = self.storage['contest']
+        return context
+
+
+class TestDetail(LoginRedirectPermissionRequiredMixin, DetailView):
+    model = Test
+    template_name = 'contests/test/test_detail.html'
+    permission_required = 'contests.view_test'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+
+class TestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+    model = Test
+    # success_url = reverse_lazy('contests:event-list')
+    template_name = 'contests/test/test_delete.html'
+    permission_required = 'contests.delete_test'
+
+
+class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+    model = Question
+    form_class = QuestionForm
+    template_name = 'contests/question/question_form.html'
+    permission_required = 'contests.add_question'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['test'] = get_object_or_404(Test, id=kwargs.pop('test_id'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.test = self.storage['test']
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('contests:test-detail', kwargs={'pk': self.storage['test'].id})
+
+
+# class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+#     model = Problem
+#     form_class = ProblemForm
+#     template_name = 'contests/problem/problem_form.html'
+#     permission_required = 'contests.add_problem'
+
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+#         self.storage = dict()
+
+#     def dispatch(self, request, *args, **kwargs):
+#         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
+#         return super().dispatch(request, *args, **kwargs)
+
+#     def get_form_kwargs(self):
+#         kwargs = super().get_form_kwargs()
+#         kwargs['initial_number'] = Problem.objects.get_new_number(self.storage['contest'])
+#         return kwargs
+
+#     def form_valid(self, form):
+#         form.instance.owner = self.request.user
+#         form.instance.contest = self.storage['contest']
+#         return super().form_valid(form)
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['contest'] = self.storage['contest']
+#         return context

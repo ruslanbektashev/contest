@@ -7,13 +7,13 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
-{% breadcrumb testsuite.contest.course testsuite.contest.course %}
-{% breadcrumb testsuite.contest testsuite.contest %}
-{% breadcrumb testsuite testsuite %}
+{% breadcrumb test.contest.course test.contest.course %}
+{% breadcrumb test.contest test.contest %}
+{% breadcrumb test test %}
 {% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Удаление набора тестов</legend>
-{% render_delete_form testsuite %}
+<legend>Удаление набора задач</legend>
+{% render_delete_form test %}
 {% endblock content %}

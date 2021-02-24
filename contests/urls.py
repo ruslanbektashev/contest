@@ -127,18 +127,17 @@ urlpatterns = [
         path('schedule', under_development(views.EventSchedule.as_view()), name='event-schedule')
     ])),
     path('contest/<int:contest_id>/test/create', under_development(views.TestCreate.as_view()), name='test-create'),
-    # path('taskcollection/', include([
-    #     path('<int:pk>/', include([
-    #         path('', under_development(views.TaskCollectionDetail.as_view()), name='taskcollection-detail'),
-    #         path('delete', under_development(views.TaskCollectionDelete.as_view()), name='taskcollection-delete'),
-    #         path('update', under_development(views.TaskCollectionUpdate.as_view()), name='taskcollection-update'),
-    #     ]))
-    # ])),
-    # path('taskcollection/<int:taskcollection_id>/taskcollectionsolution/create', under_development(views.TaskCollectionSolutionCreate.as_view()), name='taskcollectionsolution-create'),
-    # path('taskcollectionsolution/', include([
-    #     path('<int:pk>/', include([
-    #         path('', under_development(views.TaskCollectionSolutionDetail.as_view()), name='taskcollectionsolution-detail'),
-    #         path('delete', under_development(views.TaskCollectionSolutionDelete.as_view()), name='taskcollectionsolution-delete'),
-    #     ]))
+    path('test/<int:test_id>/question/create', under_development(views.QuestionCreate.as_view()), name='question-create'),
+    path('test/', include([
+        path('<int:pk>/', include([
+            path('', under_development(views.TestDetail.as_view()), name='test-detail'),
+            path('delete', under_development(views.TestDelete.as_view()), name='test-delete'),
+            # path('update', under_development(views.TestUpdate.as_view()), name='test-update'),
+        ]))
+    ])),
+    # path('question/', include([
+    #     path('<int:pk/', include(
+    #         path('', under_development(views.QuestionDetail))
+    #     ))
     # ]))
 ]
