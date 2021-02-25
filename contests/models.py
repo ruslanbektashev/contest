@@ -809,7 +809,7 @@ class Test(CRUDEntry):
         verbose_name_plural = "Наборы задач"
 
     def get_new_question_number(self):
-        return (self.question_set.aggregate(models.Max("number")).get("number__max", 0) or 1) + 1
+        return (self.question_set.aggregate(models.Max("number")).get("number__max", 0) or 0) + 1
 
     def __str__(self):
         return self.title
@@ -833,6 +833,7 @@ class Question(CRUDEntry):
     class Meta(CRUDEntry.Meta):
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
+        unique_together = ['test', 'number']
 
     def save(self, *args, **kwargs):
         if self.pk is None:
