@@ -1,7 +1,4 @@
-from typing import Any
-from django.contrib.contenttypes.models import ContentType
-from django.forms import inlineformset_factory
-from django.http.request import HttpRequest
+from django.forms.models import modelform_factory
 from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 from pygments import highlight
@@ -23,10 +20,10 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (CourseForm, CreditSetForm, ContestForm, OptionForm, ProblemForm, QuestionForm, SolutionForm, TestForm, UTTestForm, FNTestForm,
+from contests.forms import (AnswerForm, CourseForm, CreditSetForm, ContestForm, OptionForm, ProblemForm, QuestionForm, SolutionForm, TestForm, TestSubmissionForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
                             AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
-from contests.models import (Attachment, Course, Credit, Lecture, Contest, Option, Problem, Question, Solution, IOTest, Test, UTTest, FNTest,
+from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, Question, Solution, IOTest, Test, TestSubmission, UTTest, FNTest,
                              Assignment, Submission, Execution, Event)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
@@ -1379,6 +1376,9 @@ class TestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     permission_required = 'contests.delete_test'
 
 
+"""=================================================== Question ===================================================="""
+
+
 class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Question
     form_class = QuestionForm
@@ -1399,7 +1399,7 @@ class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
-        initial['number'] = self.storage['test'].get_new_question_number()
+        initial['number'] = Question.objects.get_new_number(self.storage['test'])
         return initial
 
     def get_context_data(self, **kwargs):
@@ -1433,13 +1433,15 @@ class QuestionDetail(LoginRedirectPermissionRequiredMixin, DetailView):
 
 class QuestionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Question
-    # success_url = reverse_lazy('contests:event-list')
     template_name = 'contests/question/question_delete.html'
     permission_required = 'contests.delete_question'
 
     def get_success_url(self):
         question = self.get_object()
         return reverse('contests:test-detail', kwargs={'pk': question.test_id})
+
+
+"""==================================================== Option ====================================================="""
 
 
 class OptionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
@@ -1486,13 +1488,50 @@ class OptionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
 
 class OptionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Option
-    # success_url = reverse_lazy('contests:event-list')
     template_name = 'contests/option/option_delete.html'
     permission_required = 'contests.delete_option'
 
     def get_success_url(self):
         option = self.get_object()
         return reverse('contests:question-detail', kwargs={'pk': option.question_id})
+
+
+"""================================================ TestSubmission ================================================="""
+
+
+class TestSubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+    model = TestSubmission
+    form_class = TestSubmissionForm
+    template_name = 'contests/testsubmission/testsubmission_form.html'
+    permission_required = 'contests.add_testsubmission'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        test = get_object_or_404(Test, id=kwargs.pop('test_id'))
+        self.storage['test'] = test
+
+        AnswerModelForm = modelform_factory(model=Answer, form=AnswerForm, fields=('text', 'option', 'file'))
+        form_kwargs = {'initial': []}
+
+        if self.request.method in ('POST', 'PUT'):
+            form_kwargs.update({'data': self.request.POST})
+
+        question_list = []
+
+        for question in test.question_set.all():
+            question_list.append((question, AnswerModelForm(question=question, **form_kwargs)))
+
+        self.storage['question_list'] = question_list
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['test'] = self.storage['test']
+        context['question_list'] = self.storage['question_list']
+        return context
 
 
 # class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):

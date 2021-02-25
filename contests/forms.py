@@ -6,10 +6,11 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.forms.models import BaseModelFormSet
 from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
-from contests.models import (Attachment, Course, Contest, Option, Problem, Solution, UTTest, FNTest, Assignment, Submission, Event, Test, Question)
+from contests.models import (Answer, Attachment, Course, Contest, Option, Problem, Solution, TestSubmission, UTTest, FNTest, Assignment, Submission, Event, Test, Question)
 
 
 class UserChoiceField(forms.ModelChoiceField):
@@ -392,3 +393,34 @@ class OptionForm(forms.ModelForm):
     class Meta:
         model = Option
         fields = ['text', 'is_right']
+
+
+class TestSubmissionForm(forms.ModelForm):
+    class Meta:
+        model = TestSubmission
+        fields = []
+
+
+class AnswerForm(forms.ModelForm):
+    class Meta:
+        model = Answer
+        fields = []
+
+    def __init__(self, *args, question, **kwargs):
+        super().__init__(self, *args, **kwargs)
+        self.storage = {'question': question}
+
+    def add_fields(self, form, index):
+        super().add_fields(form, index)
+
+        question = self.storage['question']
+
+        if question.answer_type == 1:
+            form.fields['text'] = forms.Textarea(required=True)
+        elif question.answer_type == 2:
+            if question.option_set.count() > 1:
+                form.fields['option'] = forms.CheckboxSelectMultiple(required=True, choices=question.option_set.all())
+            else:
+                form.fields['option'] = forms.RadioSelect(required=True, choices=question.option_set.all())
+        elif question.answer_type == 3:
+            form.fields['file'] = forms.FileField(required=True)

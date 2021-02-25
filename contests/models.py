@@ -8,7 +8,7 @@ from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_comma_separated_integer_list, MinValueValidator, MaxValueValidator
 from django.db import models
 from django.dispatch import receiver
@@ -799,6 +799,9 @@ class Event(CRUDEntry):
         return "%s: %s" % (self.get_type_display(), self.title)
 
 
+"""====================================================== Test ======================================================"""
+
+
 class Test(CRUDEntry):
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
     title = models.CharField(max_length=100, verbose_name="Заголовок")
@@ -808,11 +811,13 @@ class Test(CRUDEntry):
         verbose_name = "Набор задач"
         verbose_name_plural = "Наборы задач"
 
-    def get_new_question_number(self):
-        return (self.question_set.aggregate(models.Max("number")).get("number__max", 0) or 0) + 1
-
     def __str__(self):
         return self.title
+
+
+class QuestionManager(models.Manager):
+    def get_new_number(self, test):
+        return self.filter(test=test).aggregate(models.Max('number')).get('number__max', 0) + 1
 
 
 class Question(CRUDEntry):
@@ -894,4 +899,4 @@ class Answer(CRUDEntry):
         verbose_name_plural = "Ответы на задачи"
 
     def __str__(self):
-        return f"Ответ на {self.question}"
+        return f"Решение на задачи {self.question.id}"

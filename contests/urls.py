@@ -128,6 +128,7 @@ urlpatterns = [
     ])),
     path('contest/<int:contest_id>/test/create', under_development(views.TestCreate.as_view()), name='test-create'),
     path('test/<int:test_id>/question/create', under_development(views.QuestionCreate.as_view()), name='question-create'),
+    path('test/<int:test_id>/testsubmission/create', under_development(views.TestSubmissionCreate.as_view()), name='testsubmission-create'),
     path('test/', include([
         path('<int:pk>/', include([
             path('', under_development(views.TestDetail.as_view()), name='test-detail'),

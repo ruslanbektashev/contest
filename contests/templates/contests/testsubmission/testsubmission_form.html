@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load views forms markdown %}
+
+{% block title %}
+Решение набора задач
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb test.contest.course test.contest.course %}
+{% breadcrumb test.contest test.contest %}
+{% breadcrumb test test %}
+{% if testsubmission %}
+{% breadcrumb testsubmission testsubmission %}
+{% breadcrumb "Редактирование" %}
+{% else %}
+{% breadcrumb "Новое решение" %}
+{% endif %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{% if testsubmission %}Редактирование{% else %}Добавление{% endif %} решения набора задач</legend>
+<form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% for pair in question_list %}
+    <div>
+        {% with question=pair.0 answer_form=pair.1 %}
+            <div>
+                {{ question.text }}
+            </div>
+            {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+                {% if question.answer_type == 1 %}
+                    {% render_field answer_form.text class+="form-control" %}
+                {% elif question.answer_type == 2 %}
+                    {% render_field answer_form.option class+="form-control" %}
+                {% elif question.answer_type == 3 %}
+                    {% render_field answer_form.file class+="form-control" %}
+                {% endif %}
+            {% endwith %}
+        {% endwith %}
+    </div>
+    {% endfor %}
+    {% render_submit_button value="Сохранить" %}
+</form>
+
+
+{% endblock content %}
