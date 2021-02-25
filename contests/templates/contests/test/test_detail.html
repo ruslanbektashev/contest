@@ -22,7 +22,7 @@
 {% for question in test.question_set.all %}
 <div class="card mb-4">
     <div class="card-header">
-        Задача {{ question.number }}, <small class="text-muted">способ ответа: {{question.get_answer_type_display|lower }}</small>
+        #{{ question.number }} <span class="badge badge-pill badge-light">Способ ответа: {{ question.get_answer_type_display|lower }}</span>
     </div>
     <div class="card-body">
         <p class="card-text">{{ question.text }}</p>
@@ -70,7 +70,7 @@
 {% endif %}
 {% if perms.contests.add_testsubmission %}
 <div class="list-group mb-3">
-    <a href="" class="list-group-item list-group-item-action">
+    <a href="{% url 'contests:testsubmission-create' test.id %}" class="list-group-item list-group-item-action">
         <i class="fa fa-trash fa-fw"></i> Решить набор задач
     </a>
 </div>
