@@ -1354,6 +1354,18 @@ class TestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return context
 
 
+class TestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+    model = Test
+    form_class = TestForm
+    template_name = 'contests/test/test_form.html'
+    permission_required = 'contests.update_test'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['contest'] = self.object.contest
+        return context
+
+
 class TestDetail(LoginRedirectPermissionRequiredMixin, DetailView):
     model = Test
     template_name = 'contests/test/test_detail.html'
@@ -1397,8 +1409,20 @@ class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def get_success_url(self):
         if self.object.answer_type == 2:
-            return reverse('contests:question-detail', kwargs={'pk': self.object_id})
+            return reverse('contests:question-detail', kwargs={'pk': self.object.id})
         return reverse('contests:test-detail', kwargs={'pk': self.storage['test'].id})
+
+
+class QuestionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+    model = Question
+    form_class = QuestionForm
+    template_name = 'contests/question/question_form.html'
+    permission_required = 'contests.update_question'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['test'] = self.object.test
+        return context
 
 
 class QuestionDetail(LoginRedirectPermissionRequiredMixin, DetailView):

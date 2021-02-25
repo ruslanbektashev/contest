@@ -131,6 +131,7 @@ urlpatterns = [
     path('test/', include([
         path('<int:pk>/', include([
             path('', under_development(views.TestDetail.as_view()), name='test-detail'),
+            path('update', under_development(views.TestUpdate.as_view()), name='test-update'),
             path('delete', under_development(views.TestDelete.as_view()), name='test-delete'),
         ]))
     ])),
@@ -138,6 +139,7 @@ urlpatterns = [
     path('question/', include([
         path('<int:pk>/', include([
             path('', under_development(views.QuestionDetail.as_view()), name='question-detail'),
+            path('update', under_development(views.QuestionUpdate.as_view()), name='question-update'),
             path('delete', under_development(views.QuestionDelete.as_view()), name='question-delete'),
         ]))
     ])),

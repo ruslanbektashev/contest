@@ -41,6 +41,8 @@
         {% endif %}
     </div>
 </div>
+{% empty %}
+<div>Нет задач.</div>
 {% endfor %}
 
 {% endblock content %}
@@ -49,20 +51,27 @@
 
 <div class="list-group mb-3">
     {% if perms.contests.delete_test %}
-    <a href="{% url 'contests:test-delete' test.id %}" class="list-group-item list-group-item-action">
-        <iclass="fa fa-trash fa-fw"></i> Удалить набор задач
+    <a href="{% url 'contests:test-update' test.id %}" class="list-group-item list-group-item-action">
+        <i class="fa fa-trash fa-fw"></i> Редактировать набор задач
     </a>
     {% endif %}
-    {% if perms.contests.add_question %}
-    <a href="{% url 'contests:question-create' test.id %}" class="list-group-item list-group-item-action">
-        <iclass="fa fa-trash fa-fw"></i> Добавить задачу
+    {% if perms.contests.delete_test %}
+    <a href="{% url 'contests:test-delete' test.id %}" class="list-group-item list-group-item-action">
+        <i class="fa fa-trash fa-fw"></i> Удалить набор задач
     </a>
     {% endif %}
 </div>
+{% if perms.contests.add_question %}
+    <div class="list-group mb-3">
+    <a href="{% url 'contests:question-create' test.id %}" class="list-group-item list-group-item-action">
+        <i class="fa fa-trash fa-fw"></i> Добавить задачу
+    </a>
+</div>
+{% endif %}
 {% if perms.contests.add_testsubmission %}
 <div class="list-group mb-3">
     <a href="" class="list-group-item list-group-item-action">
-        <iclass="fa fa-trash fa-fw"></i> Решить набор задач
+        <i class="fa fa-trash fa-fw"></i> Решить набор задач
     </a>
 </div>
 {% endif %}
