@@ -2,24 +2,24 @@
 {% load views forms markdown %}
 
 {% block title %}
-Новая задача
+Вариант ответа
 {% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
-{% breadcrumb test.contest.course test.contest.course %}
-{% breadcrumb test.contest test.contest %}
-{% breadcrumb test test %}
-{% if question %}
+{% breadcrumb question.test.contest.course question.test.contest.course %}
+{% breadcrumb question.test.contest question.test.contest %}
+{% breadcrumb question.test question.test %}
 {% breadcrumb question question %}
+{% if option %}
+{% breadcrumb option %}
 {% breadcrumb "Редактирование" %}
 {% else %}
-{% breadcrumb "Новая задача" %}
+{% breadcrumb "Новый вариант ответа" %}
 {% endif %}
 {% endblock breadcrumbs %}
-
 {% block content %}
-<legend>{% if question %}Редактирование{% else %}Добавление{% endif %} задачи</legend>
+<legend>{% if option %}Редактирование{% else %}Добавление{% endif %} варианта ответа</legend>
 
 <form id="root" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}
@@ -27,11 +27,8 @@
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
         {% render_field form.text class+="form-control" %}
-        {% render_field form.answer_type class+="form-control" %}
-        {% render_field form.number class+="form-control" %}
+        {% render_field form.is_right class+="form-control" %}
     {% endwith %}
-
-    {{new_number}}
 
     {% render_submit_button value="Сохранить" %}
 </form>

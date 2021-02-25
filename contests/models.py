@@ -808,6 +808,9 @@ class Test(CRUDEntry):
         verbose_name = "Набор задач"
         verbose_name_plural = "Наборы задач"
 
+    def get_new_question_number(self):
+        return (self.question_set.aggregate(models.Max("number")).get("number__max", 0) or 1) + 1
+
     def __str__(self):
         return self.title
 
@@ -852,14 +855,14 @@ class Option(CRUDEntry):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
 
     text = models.CharField(verbose_name="Текст", max_length=250)
-    is_right = models.BooleanField(default=False)
+    is_right = models.BooleanField(verbose_name="Правильный?", default=False)
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Вариант ответа"
         verbose_name_plural = "Варианты ответов"
 
     def __str__(self):
-        return f"Вариант ответа на {self.question}"
+        return self.text
 
 
 class TestSubmission(CRUDEntry):

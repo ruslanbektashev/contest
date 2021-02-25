@@ -2,7 +2,7 @@
 {% load views contests markdown static %}
 
 {% block title %}
-Набор тестов
+Набор задач
 {% endblock title %}
 
 {% block breadcrumbs %}
@@ -15,25 +15,32 @@
 {% block content %}
 
 <legend>{{ test }}</legend>
-
-<div>
-    <p>{{ test.description|safe }}</p>
-</div>
-
-<hr>
+<p>{{ test.description|safe }}</p>
 
 <legend>Задачи</legend>
 
 {% for question in test.question_set.all %}
-
-<p>{{ question.number }}. <a href="{% url 'contests:question-detail' question.id %}">{{ question.text }}</a>, <small class="text-muted">{{ question.get_answer_type_display|lower }}</small></p>
-
-<ul>
-    {% for option in question.option_set.all %}
-    <li>{{ option.text }}</li>
-    {% endfor %}
-</ul>
-
+<div class="card mb-4">
+    <div class="card-header">
+        Задача {{ question.number }}, <small class="text-muted">способ ответа: {{question.get_answer_type_display|lower }}</small>
+    </div>
+    <div class="card-body">
+        <p class="card-text">{{ question.text }}</p>
+    </div>
+    {% if question.option_set.all %}
+    <ul class="list-group list-group-flush">
+        {% for option in question.option_set.all %}
+        <li class="list-group-item">{{ option.text }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <div class="card-body">
+        <a href="{% url 'contests:question-detail' question.id %}" class="card-link">Просмотреть</a>
+        {% if perms.contests.delete_test %}
+        <a href="{% url 'contests:question-delete' question.id %}" class="card-link text-danger">Удалить</a>
+        {% endif %}
+    </div>
+</div>
 {% endfor %}
 
 {% endblock content %}
@@ -42,14 +49,22 @@
 
 <div class="list-group mb-3">
     {% if perms.contests.delete_test %}
-    <a href="{% url 'contests:test-delete' test.id %}" class="list-group-item list-group-item-action"><iclass="fa fa-trash fa-fw"></i> Удалить набор тестов</a>
+    <a href="{% url 'contests:test-delete' test.id %}" class="list-group-item list-group-item-action">
+        <iclass="fa fa-trash fa-fw"></i> Удалить набор задач
+    </a>
     {% endif %}
     {% if perms.contests.add_question %}
-    <a href="{% url 'contests:question-create' test.id %}" class="list-group-item list-group-item-action"><iclass="fa fa-trash fa-fw"></i> Добавить задачу</a>
+    <a href="{% url 'contests:question-create' test.id %}" class="list-group-item list-group-item-action">
+        <iclass="fa fa-trash fa-fw"></i> Добавить задачу
+    </a>
     {% endif %}
 </div>
+{% if perms.contests.add_testsubmission %}
 <div class="list-group mb-3">
-    <a href="" class="list-group-item list-group-item-action"><iclass="fa fa-trash fa-fw"></i> Решить набор задач</a>
+    <a href="" class="list-group-item list-group-item-action">
+        <iclass="fa fa-trash fa-fw"></i> Решить набор задач
+    </a>
 </div>
+{% endif %}
 
 {% endblock submenu %}

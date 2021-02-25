@@ -23,10 +23,10 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (CourseForm, CreditSetForm, ContestForm, ProblemForm, QuestionForm, SolutionForm, TestForm, UTTestForm, FNTestForm,
+from contests.forms import (CourseForm, CreditSetForm, ContestForm, OptionForm, ProblemForm, QuestionForm, SolutionForm, TestForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
                             AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
-from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Question, Solution, IOTest, Test, UTTest, FNTest,
+from contests.models import (Attachment, Course, Credit, Lecture, Contest, Option, Problem, Question, Solution, IOTest, Test, UTTest, FNTest,
                              Assignment, Submission, Execution, Event)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
@@ -1359,10 +1359,6 @@ class TestDetail(LoginRedirectPermissionRequiredMixin, DetailView):
     template_name = 'contests/test/test_detail.html'
     permission_required = 'contests.view_test'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        return context
-
 
 class TestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Test
@@ -1389,8 +1385,90 @@ class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         form.instance.test = self.storage['test']
         return super().form_valid(form)
 
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['number'] = self.storage['test'].get_new_question_number()
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['test'] = self.storage['test']
+        return context
+
     def get_success_url(self):
+        if self.object.answer_type == 2:
+            return reverse('contests:question-detail', kwargs={'pk': self.object_id})
         return reverse('contests:test-detail', kwargs={'pk': self.storage['test'].id})
+
+
+class QuestionDetail(LoginRedirectPermissionRequiredMixin, DetailView):
+    model = Question
+    template_name = 'contests/question/question_detail.html'
+    permission_required = 'contests.view_question'
+
+
+class QuestionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+    model = Question
+    # success_url = reverse_lazy('contests:event-list')
+    template_name = 'contests/question/question_delete.html'
+    permission_required = 'contests.delete_question'
+
+    def get_success_url(self):
+        question = self.get_object()
+        return reverse('contests:test-detail', kwargs={'pk': question.test_id})
+
+
+class OptionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+    model = Option
+    form_class = OptionForm
+    template_name = 'contests/option/option_form.html'
+    permission_required = 'contests.add_option'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['question'] = get_object_or_404(Question, id=kwargs.pop('question_id'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.question = self.storage['question']
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['question'] = self.storage['question']
+        return context
+
+    def get_success_url(self):
+        return reverse('contests:question-detail', kwargs={'pk': self.storage['question'].id})
+
+
+class OptionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+    model = Option
+    form_class = OptionForm
+    template_name = 'contests/option/option_form.html'
+    permission_required = 'contests.update_option'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['question'] = self.object.question
+        return context
+
+    def get_success_url(self):
+        return reverse('contests:question-detail', kwargs={'pk': self.object.question_id})
+
+
+class OptionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+    model = Option
+    # success_url = reverse_lazy('contests:event-list')
+    template_name = 'contests/option/option_delete.html'
+    permission_required = 'contests.delete_option'
+
+    def get_success_url(self):
+        option = self.get_object()
+        return reverse('contests:question-detail', kwargs={'pk': option.question_id})
 
 
 # class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):

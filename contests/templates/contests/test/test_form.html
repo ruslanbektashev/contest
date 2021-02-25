@@ -7,7 +7,14 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
-
+{% breadcrumb contest.course contest.course %}
+{% breadcrumb contest contest %}
+{% if test %}
+{% breadcrumb test test %}
+{% breadcrumb "Редактирование" %}
+{% else %}
+{% breadcrumb "Новый набор задач" %}
+{% endif %}
 {% endblock breadcrumbs %}
 
 {% block content %}

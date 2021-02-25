@@ -53,6 +53,11 @@
     <a href="{% url 'contests:problem-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить задачу</a>
     {% endif %}
 </div>
+<div class="list-group mb-3">
+    {% if perms.contests.add_test %}
+    <a href="{% url 'contests:test-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить набор задач</a>
+    {% endif %}
+</div>
 {% endblock submenu %}
 
 {% block javascript %}

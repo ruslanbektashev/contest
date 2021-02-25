@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
-from contests.models import (Attachment, Course, Contest, Problem, Solution, UTTest, FNTest, Assignment, Submission, Event, Test, Question)
+from contests.models import (Attachment, Course, Contest, Option, Problem, Solution, UTTest, FNTest, Assignment, Submission, Event, Test, Question)
 
 
 class UserChoiceField(forms.ModelChoiceField):
@@ -386,3 +386,9 @@ class QuestionForm(forms.ModelForm):
     class Meta:
         model = Question
         fields = ['text', 'answer_type', 'number']
+
+
+class OptionForm(forms.ModelForm):
+    class Meta:
+        model = Option
+        fields = ['text', 'is_right']

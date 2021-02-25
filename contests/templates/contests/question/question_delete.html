@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load views forms %}
+
+{% block title %}
+Задача
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb question.test.contest.course question.test.contest.course %}
+{% breadcrumb question.test.contest question.test.contest %}
+{% breadcrumb question.test question.test %}
+{% breadcrumb question question %}
+{% breadcrumb "Удаление" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Удаление задачи</legend>
+{% render_delete_form question %}
+{% endblock content %}

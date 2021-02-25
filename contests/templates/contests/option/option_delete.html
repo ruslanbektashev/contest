@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load views forms %}
+
+{% block title %}
+Вариант ответа
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb option.question.test.contest.course option.question.test.contest.course %}
+{% breadcrumb option.question.test.contest option.question.test.contest %}
+{% breadcrumb option.question.test option.question.test %}
+{% breadcrumb option.question option.question %}
+{% breadcrumb option %}
+{% breadcrumb "Удаление" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Удаление варианта ответа</legend>
+{% render_delete_form option %}
+{% endblock content %}

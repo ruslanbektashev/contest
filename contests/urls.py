@@ -132,12 +132,19 @@ urlpatterns = [
         path('<int:pk>/', include([
             path('', under_development(views.TestDetail.as_view()), name='test-detail'),
             path('delete', under_development(views.TestDelete.as_view()), name='test-delete'),
-            # path('update', under_development(views.TestUpdate.as_view()), name='test-update'),
         ]))
     ])),
-    # path('question/', include([
-    #     path('<int:pk/', include(
-    #         path('', under_development(views.QuestionDetail))
-    #     ))
-    # ]))
+    path('question/<int:question_id>/option/create', under_development(views.OptionCreate.as_view()), name='option-create'),
+    path('question/', include([
+        path('<int:pk>/', include([
+            path('', under_development(views.QuestionDetail.as_view()), name='question-detail'),
+            path('delete', under_development(views.QuestionDelete.as_view()), name='question-delete'),
+        ]))
+    ])),
+    path('option/', include([
+        path('<int:pk>/', include([
+            path('update', under_development(views.OptionUpdate.as_view()), name='option-update'),
+            path('delete', under_development(views.OptionDelete.as_view()), name='option-delete'),
+        ]))
+    ])),
 ]
