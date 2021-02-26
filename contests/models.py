@@ -8,7 +8,7 @@ from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import validate_comma_separated_integer_list, MinValueValidator, MaxValueValidator
 from django.db import models
 from django.dispatch import receiver
@@ -835,6 +835,8 @@ class Question(CRUDEntry):
     number = models.PositiveSmallIntegerField(verbose_name="Номер", default=1)
     text = models.TextField(verbose_name="Вопрос")
 
+    objects = QuestionManager()
+
     class Meta(CRUDEntry.Meta):
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
@@ -888,7 +890,7 @@ class Answer(CRUDEntry):
     owner = None
 
     question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
-    option = models.ForeignKey(Option, on_delete=models.CASCADE, verbose_name="Выбранный вариант", blank=True, null=True)
+    options = models.ManyToManyField(Option, verbose_name="Выбранные варианты", blank=True)
     test_submission = models.ForeignKey(TestSubmission, on_delete=models.CASCADE, verbose_name="Решение набора задач")
 
     text = models.TextField(verbose_name="Развёрнутый ответ", blank=True, null=True)
