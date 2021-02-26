@@ -22,26 +22,30 @@
 <legend>{% if testsubmission %}Редактирование{% else %}Добавление{% endif %} решения набора задач</legend>
 <form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {% for pair in question_list %}
-    <div>
-        {% with question=pair.0 answer_form=pair.1 %}
-            <div>
-                {{ question.text }}
-            </div>
-            {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
-                {% if question.answer_type == 1 %}
-                    {% render_field answer_form.text class+="form-control" %}
-                {% elif question.answer_type == 2 %}
-                    {% render_field answer_form.option class+="form-control" %}
-                {% elif question.answer_type == 3 %}
-                    {% render_field answer_form.file class+="form-control" %}
-                {% endif %}
-            {% endwith %}
+    {% render_form_errors form %}
+    {{ answer_formset.management_form }}
+    {% for form in answer_formset %}
+    <div class="card mb-4">
+        <div class="card-header">
+            #{{ form.question.number }} <span class="badge badge-info">Способ ответа: {{ form.question.get_answer_type_display|lower }}</span>
+        </div>
+        <div class="card-body">
+            <p class="card-text">{{ form.question.text }}</p>
+        </div>
+        <div class="card-body">
+        {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+            {% if form.question.answer_type == 1 %}
+                {% render_field form.text class+="form-control" %}
+            {% elif form.question.answer_type == 2 %}
+                {{ form.options }}
+            {% elif form.question.answer_type == 3 %}
+                {{ form.file }}
+            {% endif %}
         {% endwith %}
+        </div>
     </div>
     {% endfor %}
     {% render_submit_button value="Сохранить" %}
 </form>
-
 
 {% endblock content %}

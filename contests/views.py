@@ -1,4 +1,4 @@
-from django.forms.models import modelform_factory
+from django.forms.models import inlineformset_factory, modelform_factory
 from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 from pygments import highlight
@@ -20,7 +20,7 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (AnswerForm, CourseForm, CreditSetForm, ContestForm, OptionForm, ProblemForm, QuestionForm, SolutionForm, TestForm, TestSubmissionForm, UTTestForm, FNTestForm,
+from contests.forms import (AnswerForm, BaseAnswerFormSet, CourseForm, CreditSetForm, ContestForm, OptionForm, ProblemForm, QuestionForm, SolutionForm, TestForm, TestSubmissionForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
                             AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
 from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, Question, Solution, IOTest, Test, TestSubmission, UTTest, FNTest,
@@ -1510,27 +1510,44 @@ class TestSubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        test = get_object_or_404(Test, id=kwargs.pop('test_id'))
-        self.storage['test'] = test
+        self.storage['test'] = get_object_or_404(Test, id=kwargs.pop('test_id'))
 
-        AnswerModelForm = modelform_factory(model=Answer, form=AnswerForm, fields=('text', 'option', 'file'))
-        form_kwargs = {'initial': []}
+        question_set = self.storage['test'].question_set.all()
+        forms_num = len(question_set)
+        AnswerInlineFormSet = inlineformset_factory(parent_model=TestSubmission,
+                                                    model=Answer,
+                                                    form=AnswerForm,
+                                                    formset=BaseAnswerFormSet,
+                                                    fields=('text', 'options', 'file'),
+                                                    extra=forms_num,
+                                                    min_num=forms_num,
+                                                    max_num=forms_num,
+                                                    validate_min=True,
+                                                    validate_max=True)
 
+        inlineformset_kwargs = {'initial': []}
         if self.request.method in ('POST', 'PUT'):
-            form_kwargs.update({'data': self.request.POST})
+            inlineformset_kwargs.update({'data': request.POST})
 
-        question_list = []
-
-        for question in test.question_set.all():
-            question_list.append((question, AnswerModelForm(question=question, **form_kwargs)))
-
-        self.storage['question_list'] = question_list
+        self.storage['answer_formset'] = AnswerInlineFormSet(questions=list(question_set), **inlineformset_kwargs)
         return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        answer_formset = self.storage['answer_formset']
+        if answer_formset.is_valid():
+            form.instance.owner = self.request.user
+            form.instance.test = self.storage['test']
+            self.object = form.save()
+            answer_formset.instance = self.object
+            answer_formset.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return self.form_invalid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['test'] = self.storage['test']
-        context['question_list'] = self.storage['question_list']
+        context['answer_formset'] = self.storage['answer_formset']
         return context
 
 

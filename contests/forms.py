@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.forms.models import BaseModelFormSet
+from django.forms.models import BaseInlineFormSet, BaseModelFormSet
 from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
@@ -401,26 +401,39 @@ class TestSubmissionForm(forms.ModelForm):
         fields = []
 
 
+class BaseAnswerFormSet(BaseInlineFormSet):
+    def __init__(self, questions, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.questions = questions
+
+    def get_form_kwargs(self, form_index):
+        form_kwargs = super().get_form_kwargs(form_index)
+
+        if form_index < len(self.questions):
+            form_kwargs['question'] = self.questions[form_index]
+
+        return form_kwargs
+
+
 class AnswerForm(forms.ModelForm):
     class Meta:
         model = Answer
         fields = []
 
     def __init__(self, *args, question, **kwargs):
-        super().__init__(self, *args, **kwargs)
-        self.storage = {'question': question}
+        super().__init__(*args, **kwargs)
 
-    def add_fields(self, form, index):
-        super().add_fields(form, index)
-
-        question = self.storage['question']
+        self.question = question
 
         if question.answer_type == 1:
-            form.fields['text'] = forms.Textarea(required=True)
+            self.fields['text'] = forms.CharField(required=True, widget=forms.Textarea)
         elif question.answer_type == 2:
-            if question.option_set.count() > 1:
-                form.fields['option'] = forms.CheckboxSelectMultiple(required=True, choices=question.option_set.all())
+            if question.option_set.filter(is_right=True).count() > 1:
+                self.fields['options'] = forms.ModelMultipleChoiceField(required=True,
+                                                                        queryset=question.option_set.all())
             else:
-                form.fields['option'] = forms.RadioSelect(required=True, choices=question.option_set.all())
+                self.fields['options'] = forms.ModelMultipleChoiceField(required=True,
+                                                                        queryset=question.option_set.all(),
+                                                                        widget=forms.RadioSelect)
         elif question.answer_type == 3:
-            form.fields['file'] = forms.FileField(required=True)
+            self.fields['file'] = forms.FileField(required=True)
