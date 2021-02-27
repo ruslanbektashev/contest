@@ -25,6 +25,10 @@
     <li class="nav-item">
         {% render_discussion_tab contest %}
     </li>
+    <li class="nav-item">
+        <a aria-controls="tests" aria-selected="false" class="nav-link" data-toggle="tab" href="#tests" id="tests-tab"
+           role="tab">Наборы задач</a>
+    </li>
 </ul>
 <div class="tab-content">
     <div aria-labelledby="description-tab" class="tab-pane fade" id="description" role="tabpanel">
@@ -36,6 +40,9 @@
     </div>
     <div aria-labelledby="discussion-tab" class="tab-pane fade show active" id="discussion" role="tabpanel">
         {% render_comments contest comments %}
+    </div>
+    <div aria-labelledby="tests-tab" class="tab-pane fade" id="tests" role="tabpanel">
+        {% include 'list.html' with lst=contest.test_set.all %}
     </div>
 </div>
 {% endblock content %}
@@ -52,6 +59,11 @@
 <div class="list-group mb-3">
     {% if perms.contests.add_problem %}
     <a href="{% url 'contests:problem-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить задачу</a>
+    {% endif %}
+</div>
+<div class="list-group mb-3">
+    {% if perms.contests.add_test %}
+    <a href="{% url 'contests:test-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить набор задач</a>
     {% endif %}
 </div>
 {% endblock submenu %}

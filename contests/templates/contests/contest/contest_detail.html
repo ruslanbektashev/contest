@@ -27,6 +27,11 @@
     <li class="nav-item">
         {% render_discussion_tab contest %}
     </li>
+    <li class="nav-item">
+        <a aria-controls="tests" aria-selected="{% if tab == 'tests' %}true{% else %}false{% endif %}"
+        class="nav-link {% if tab == 'tests' %}active{% endif %}" data-toggle="tab"
+        href="#tests" id="tests-tab" role="tab">Наборы задач</a>
+    </li>
 </ul>
 <div class="tab-content">
     <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %}" id="description" role="tabpanel">
@@ -35,6 +40,9 @@
     </div>
     <div aria-labelledby="problems-tab" class="tab-pane fade {% if tab == 'problems' %}show active{% endif %}" id="problems" role="tabpanel">
         {% include 'list.html' with lst=contest.problem_set.all %}
+    </div>
+    <div aria-labelledby="tests-tab" class="tab-pane fade {% if tab == 'tests' %}show active{% endif %}" id="tests" role="tabpanel">
+        {% include 'list.html' with lst=contest.test_set.all %}
     </div>
 </div>
 {% endblock content %}
