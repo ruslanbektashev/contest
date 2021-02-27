@@ -1370,9 +1370,12 @@ class TestDetail(LoginRequiredMixin, DetailView):
 
 class TestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Test
-    # success_url = reverse_lazy('contests:event-list')
     template_name = 'contests/test/test_delete.html'
     permission_required = 'contests.delete_test'
+
+    def get_success_url(self):
+        test = self.get_object()
+        return reverse('contests:contest-detail', kwargs={'pk': test.contest.id})
 
 
 """=================================================== Question ===================================================="""
