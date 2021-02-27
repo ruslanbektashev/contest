@@ -426,15 +426,19 @@ class AnswerForm(forms.ModelForm):
         self.question = question
 
         if question.answer_type == 1:
-            self.fields['text'] = forms.CharField(required=True, widget=forms.Textarea)
+            self.fields['text'] = forms.CharField(required=True, label="Ответ", widget=forms.Textarea)
         elif question.answer_type == 2:
             if question.option_set.filter(is_right=True).count() > 1:
                 self.fields['options'] = forms.ModelMultipleChoiceField(required=True,
+                                                                        label="Варианты",
                                                                         queryset=question.option_set.all(),
                                                                         widget=forms.CheckboxSelectMultiple)
             else:
                 self.fields['options'] = forms.ModelMultipleChoiceField(required=True,
+                                                                        label="Варианты",
                                                                         queryset=question.option_set.all(),
                                                                         widget=forms.RadioSelect)
         elif question.answer_type == 3:
-            self.fields['file'] = forms.FileField(required=True)
+            self.fields['file'] = forms.FileField(required=True, help_text="Прикрепите файл.")
+
+        # self.fields['question'] = forms.ModelChoiceField(widget=forms.HiddenInput, initial=question, queryset=Question.objects.all())

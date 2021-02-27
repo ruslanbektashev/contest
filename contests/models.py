@@ -817,7 +817,7 @@ class Test(CRUDEntry):
 
 class QuestionManager(models.Manager):
     def get_new_number(self, test):
-        return self.filter(test=test).aggregate(models.Max('number')).get('number__max', 0) + 1
+        return (self.filter(test=test).aggregate(models.Max('number')).get('number__max', 0) or 0) + 1
 
 
 class Question(CRUDEntry):

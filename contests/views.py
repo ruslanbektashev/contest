@@ -1363,10 +1363,9 @@ class TestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         return context
 
 
-class TestDetail(LoginRedirectPermissionRequiredMixin, DetailView):
+class TestDetail(LoginRequiredMixin, DetailView):
     model = Test
     template_name = 'contests/test/test_detail.html'
-    permission_required = 'contests.view_test'
 
 
 class TestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
@@ -1522,8 +1521,7 @@ class TestSubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
                                                     extra=forms_num,
                                                     min_num=forms_num,
                                                     max_num=forms_num,
-                                                    validate_min=True,
-                                                    validate_max=True)
+                                                    can_delete=False)
 
         inlineformset_kwargs = {'initial': []}
         if self.request.method in ('POST', 'PUT'):

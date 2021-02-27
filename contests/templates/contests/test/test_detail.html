@@ -17,12 +17,12 @@
 <legend>{{ test }}</legend>
 <p>{{ test.description|safe }}</p>
 
-<legend>Задачи</legend>
+<h5 class="mb-3">Задачи</h5>
 
 {% for question in test.question_set.all %}
 <div class="card mb-4">
-    <div class="card-header">
-        #{{ question.number }} <span class="badge badge-info">Способ ответа: {{ question.get_answer_type_display|lower }}</span>
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        #{{ question.number }} <span class="badge badge-pill badge-secondary">Способ ответа: {{ question.get_answer_type_display|lower }}</span>
     </div>
     <div class="card-body">
         <p class="card-text">{{ question.text }}</p>
@@ -34,12 +34,16 @@
         {% endfor %}
     </ul>
     {% endif %}
-    <div class="card-body">
+    {% if perms.contests.view_problem or perms.contests.delete_problem %}
+    <div class="card-footer">
+        {% if perms.contests.view_problem %}
         <a href="{% url 'contests:question-detail' question.id %}" class="card-link">Просмотреть</a>
-        {% if perms.contests.delete_test %}
+        {% endif %}
+        {% if perms.contests.delete_problem %}
         <a href="{% url 'contests:question-delete' question.id %}" class="card-link text-danger">Удалить</a>
         {% endif %}
     </div>
+    {% endif %}
 </div>
 {% empty %}
 <div>Нет задач.</div>
