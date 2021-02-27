@@ -430,7 +430,8 @@ class AnswerForm(forms.ModelForm):
         elif question.answer_type == 2:
             if question.option_set.filter(is_right=True).count() > 1:
                 self.fields['options'] = forms.ModelMultipleChoiceField(required=True,
-                                                                        queryset=question.option_set.all())
+                                                                        queryset=question.option_set.all(),
+                                                                        widget=forms.CheckboxSelectMultiple)
             else:
                 self.fields['options'] = forms.ModelMultipleChoiceField(required=True,
                                                                         queryset=question.option_set.all(),

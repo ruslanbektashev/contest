@@ -52,7 +52,7 @@
 <div class="list-group mb-3">
     {% if perms.contests.delete_test %}
     <a href="{% url 'contests:test-update' test.id %}" class="list-group-item list-group-item-action">
-        <i class="fa fa-trash fa-fw"></i> Редактировать набор задач
+        <i class="fa fa-edit fa-fw"></i> Редактировать набор задач
     </a>
     {% endif %}
     {% if perms.contests.delete_test %}
@@ -64,14 +64,14 @@
 {% if perms.contests.add_question %}
     <div class="list-group mb-3">
     <a href="{% url 'contests:question-create' test.id %}" class="list-group-item list-group-item-action">
-        <i class="fa fa-trash fa-fw"></i> Добавить задачу
+        <i class="fa fa-plus fa-fw"></i> Добавить задачу
     </a>
 </div>
 {% endif %}
 {% if perms.contests.add_testsubmission %}
 <div class="list-group mb-3">
     <a href="{% url 'contests:testsubmission-create' test.id %}" class="list-group-item list-group-item-action">
-        <i class="fa fa-trash fa-fw"></i> Решить набор задач
+        <i class="fa fa-check-square-o fa-fw"></i> Решить набор задач
     </a>
 </div>
 {% endif %}

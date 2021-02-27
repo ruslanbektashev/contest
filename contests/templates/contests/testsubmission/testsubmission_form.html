@@ -27,7 +27,7 @@
     {% for form in answer_formset %}
     <div class="card mb-4">
         <div class="card-header">
-            #{{ form.question.number }} <span class="badge badge-info">Способ ответа: {{ form.question.get_answer_type_display|lower }}</span>
+            #{{ form.question.number }}
         </div>
         <div class="card-body">
             <p class="card-text">{{ form.question.text }}</p>
