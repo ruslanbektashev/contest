@@ -395,26 +395,6 @@ class OptionForm(forms.ModelForm):
         fields = ['text', 'is_right']
 
 
-class TestSubmissionForm(forms.ModelForm):
-    class Meta:
-        model = TestSubmission
-        fields = []
-
-
-class BaseAnswerFormSet(BaseInlineFormSet):
-    def __init__(self, questions, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.questions = questions
-
-    def get_form_kwargs(self, form_index):
-        form_kwargs = super().get_form_kwargs(form_index)
-
-        if form_index < len(self.questions):
-            form_kwargs['question'] = self.questions[form_index]
-
-        return form_kwargs
-
-
 class AnswerForm(forms.ModelForm):
     class Meta:
         model = Answer
@@ -422,8 +402,6 @@ class AnswerForm(forms.ModelForm):
 
     def __init__(self, *args, question, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.question = question
 
         if question.answer_type == 1:
             self.fields['text'] = forms.CharField(required=True, label="Ответ", widget=forms.Textarea)
@@ -440,5 +418,3 @@ class AnswerForm(forms.ModelForm):
                                                                         widget=forms.RadioSelect)
         elif question.answer_type == 3:
             self.fields['file'] = forms.FileField(required=True, help_text="Прикрепите файл.")
-
-        # self.fields['question'] = forms.ModelChoiceField(widget=forms.HiddenInput, initial=question, queryset=Question.objects.all())

@@ -1,6 +1,7 @@
-from django.forms.models import inlineformset_factory, modelform_factory
+from django.db.models.query_utils import Q
 from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
+from django.views.generic.base import RedirectView
 from pygments import highlight
 from pygments.lexers import CppLexer
 from pygments.formatters import HtmlFormatter
@@ -20,7 +21,7 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (AnswerForm, BaseAnswerFormSet, CourseForm, CreditSetForm, ContestForm, OptionForm, ProblemForm, QuestionForm, SolutionForm, TestForm, TestSubmissionForm, UTTestForm, FNTestForm,
+from contests.forms import (AnswerForm, CourseForm, CreditSetForm, ContestForm, OptionForm, ProblemForm, QuestionForm, SolutionForm, TestForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
                             AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
 from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, Question, Solution, IOTest, Test, TestSubmission, UTTest, FNTest,
@@ -1498,55 +1499,82 @@ class OptionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 """================================================ TestSubmission ================================================="""
 
 
-class TestSubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
-    model = TestSubmission
-    form_class = TestSubmissionForm
-    template_name = 'contests/testsubmission/testsubmission_form.html'
-    permission_required = 'contests.add_testsubmission'
+class TestSubmissionRedirect(LoginRedirectPermissionRequiredMixin, RedirectView):
+    permission_required = 'contests/add_testsubmission'
+    pattern_name = 'contests:answer-create'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['test'] = get_object_or_404(Test, id=kwargs.pop('test_id'))
-
-        question_set = self.storage['test'].question_set.all()
-        forms_num = len(question_set)
-        AnswerInlineFormSet = inlineformset_factory(parent_model=TestSubmission,
-                                                    model=Answer,
-                                                    form=AnswerForm,
-                                                    formset=BaseAnswerFormSet,
-                                                    fields=('text', 'options', 'file'),
-                                                    extra=forms_num,
-                                                    min_num=forms_num,
-                                                    max_num=forms_num,
-                                                    can_delete=False)
-
-        inlineformset_kwargs = {'initial': []}
-        if self.request.method in ('POST', 'PUT'):
-            inlineformset_kwargs.update({'data': request.POST})
-
-        self.storage['answer_formset'] = AnswerInlineFormSet(questions=list(question_set), **inlineformset_kwargs)
+        test = get_object_or_404(Test, id=kwargs.pop('test_id'))
+        self.storage['testsubmission'] = TestSubmission.objects.create(test=test, owner=request.user)
         return super().dispatch(request, *args, **kwargs)
 
+    def get_redirect_url(self, *args, **kwargs):
+        testsubmission = self.storage['testsubmission']
+        # question = testsubmission.test.question_set.first()
+
+        kwargs.update({
+            'testsubmission_id': testsubmission.id,
+            # 'question_number': question.number
+        })
+
+        return super().get_redirect_url(*args, **kwargs)
+
+
+class TestSubmissionDetail(LoginRedirectPermissionRequiredMixin, DetailView):
+    model = TestSubmission
+    template_name = 'contests/testsubmission/testsubmission_detail.html'
+    permission_required = 'contests.view_testsubmission'
+
+
+"""==================================================== Answer ====================================================="""
+
+
+class AnswerCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+    model = Answer
+    form_class = AnswerForm
+    template_name = 'contests/answer/answer_form.html'
+    permission_required = 'contests.add_answer'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        testsubmission = get_object_or_404(TestSubmission, id=kwargs.pop('testsubmission_id'))
+        questions = testsubmission.test.question_set.filter(~Q(answer__in=testsubmission.answer_set.all())).order_by('number')
+
+        self.storage.update({
+            'testsubmission': testsubmission,
+            'question': questions.first(),
+            'has_next': questions.count() > 1
+        })
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['question'] = self.storage['question']
+        return kwargs
+
     def form_valid(self, form):
-        answer_formset = self.storage['answer_formset']
-        if answer_formset.is_valid():
-            form.instance.owner = self.request.user
-            form.instance.test = self.storage['test']
-            self.object = form.save()
-            answer_formset.instance = self.object
-            answer_formset.save()
-            return HttpResponseRedirect(self.get_success_url())
-        else:
-            return self.form_invalid(form)
+        form.instance.test_submission = self.storage['testsubmission']
+        form.instance.question = self.storage['question']
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['test'] = self.storage['test']
-        context['answer_formset'] = self.storage['answer_formset']
+        context.update(self.storage)
         return context
+
+    def get_success_url(self):
+        if self.storage['has_next']:
+            return reverse('contests:answer-create', kwargs={'testsubmission_id': self.storage['testsubmission'].id})
+        else:
+            return reverse('contests:testsubmission-detail', kwargs={'pk': self.storage['testsubmission'].id})
 
 
 # class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):

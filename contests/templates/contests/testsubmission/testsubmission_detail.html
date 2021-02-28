@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load views contests markdown static %}
+
+{% block title %}
+Решение набора задач
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb testsubmission.test.contest.course testsubmission.test.contest.course %}
+{% breadcrumb testsubmission.test.contest testsubmission.test.contest %}
+{% breadcrumb testsubmission.test testsubmission.test %}
+{% breadcrumb testsubmission %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+
+
+{% endblock content %}
+
+{% block submenu %}
+
+{% endblock submenu %}

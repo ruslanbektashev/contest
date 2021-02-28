@@ -128,7 +128,7 @@ urlpatterns = [
     ])),
     path('contest/<int:contest_id>/test/create', under_development(views.TestCreate.as_view()), name='test-create'),
     path('test/<int:test_id>/question/create', under_development(views.QuestionCreate.as_view()), name='question-create'),
-    path('test/<int:test_id>/testsubmission/create', under_development(views.TestSubmissionCreate.as_view()), name='testsubmission-create'),
+    path('test/<int:test_id>/testsubmission/create', under_development(views.TestSubmissionRedirect.as_view()), name='testsubmission-create'),
     path('test/', include([
         path('<int:pk>/', include([
             path('', under_development(views.TestDetail.as_view()), name='test-detail'),
@@ -148,6 +148,13 @@ urlpatterns = [
         path('<int:pk>/', include([
             path('update', under_development(views.OptionUpdate.as_view()), name='option-update'),
             path('delete', under_development(views.OptionDelete.as_view()), name='option-delete'),
+        ]))
+    ])),
+    path('test/<int:test_id>/testsubmission/create', under_development(views.TestSubmissionRedirect.as_view()), name='testsubmission-create'),
+    path('testsubmission/<int:testsubmission_id>/answer/create', under_development(views.AnswerCreate.as_view()), name='answer-create'),
+    path('testsubmission/', include([
+        path('<int:pk>/', include([
+            path('', under_development(views.TestSubmissionDetail.as_view()), name='testsubmission-detail'),
         ]))
     ])),
 ]
