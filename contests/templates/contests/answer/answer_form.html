@@ -5,6 +5,14 @@
 Решение задачи
 {% endblock title %}
 
+{% block stylesheets %}
+<style>
+    #id_options {
+        list-style-type: none;
+    }
+</style>
+{% endblock stylesheets %}
+
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb testsubmission.test.contest.course testsubmission.test.contest.course %}
@@ -15,7 +23,7 @@
 {% breadcrumb answer answer %}
 {% breadcrumb "Редактирование" %}
 {% else %}
-{% breadcrumb "Новое решение" %}
+{% breadcrumb "Новое решение задачи" %}
 {% endif %}
 {% endblock breadcrumbs %}
 

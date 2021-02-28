@@ -842,12 +842,6 @@ class Question(CRUDEntry):
         verbose_name_plural = "Задачи"
         unique_together = ['test', 'number']
 
-    def save(self, *args, **kwargs):
-        if self.pk is None:
-            max_number = self.test.question_set.aggregate(models.Max("number")).get("number__max", 0) or 0
-            self.number = max_number + 1
-        super().save(*args, **kwargs)
-
     def get_answer_type_display(self):
         for pair in self.ANSWER_TYPES:
             if pair[0] == self.answer_type:
@@ -883,7 +877,7 @@ class TestSubmission(CRUDEntry):
         verbose_name_plural = "Решения наборов задач"
 
     def __str__(self):
-        return f"Решение набора задач {self.test.id}"
+        return f"Решение {self.id}"
 
 
 class Answer(CRUDEntry):
@@ -899,6 +893,7 @@ class Answer(CRUDEntry):
     class Meta(CRUDEntry.Meta):
         verbose_name = "Решение задачи"
         verbose_name_plural = "Решения задач"
+        unique_together = ['test_submission', 'question']
 
     def __str__(self):
         return f"Решение задачи {self.question.id}"

@@ -1371,9 +1371,20 @@ class TestDetail(LoginRequiredMixin, DetailView):
 
 class TestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Test
-    # success_url = reverse_lazy('contests:event-list')
     template_name = 'contests/test/test_delete.html'
     permission_required = 'contests.delete_test'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        test = self.get_object()
+        self.storage['contest'] = test.contest
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('contests:contest-detail', kwargs={'pk': self.storage['contest'].id}) + '?tab=tests'
 
 
 """=================================================== Question ===================================================="""
@@ -1529,6 +1540,17 @@ class TestSubmissionDetail(LoginRedirectPermissionRequiredMixin, DetailView):
     template_name = 'contests/testsubmission/testsubmission_detail.html'
     permission_required = 'contests.view_testsubmission'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        testsubmission = self.get_object()
+
+        questions = []
+        for question in testsubmission.test.question_set.all():
+            questions.append((question, testsubmission.answer_set.filter(question=question).first()))
+
+        context['questions'] = questions
+        return context
+
 
 """==================================================== Answer ====================================================="""
 
@@ -1575,33 +1597,3 @@ class AnswerCreate(LoginRedirectPermissionRequiredMixin, CreateView):
             return reverse('contests:answer-create', kwargs={'testsubmission_id': self.storage['testsubmission'].id})
         else:
             return reverse('contests:testsubmission-detail', kwargs={'pk': self.storage['testsubmission'].id})
-
-
-# class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
-#     model = Problem
-#     form_class = ProblemForm
-#     template_name = 'contests/problem/problem_form.html'
-#     permission_required = 'contests.add_problem'
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         self.storage = dict()
-
-#     def dispatch(self, request, *args, **kwargs):
-#         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
-#         return super().dispatch(request, *args, **kwargs)
-
-#     def get_form_kwargs(self):
-#         kwargs = super().get_form_kwargs()
-#         kwargs['initial_number'] = Problem.objects.get_new_number(self.storage['contest'])
-#         return kwargs
-
-#     def form_valid(self, form):
-#         form.instance.owner = self.request.user
-#         form.instance.contest = self.storage['contest']
-#         return super().form_valid(form)
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['contest'] = self.storage['contest']
-#         return context

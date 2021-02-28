@@ -15,6 +15,25 @@
 
 {% block content %}
 
+{% for question, answer in questions %}
+<div class="card mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        #{{ question.number }} <span class="badge badge-pill badge-secondary">Способ ответа: {{ question.get_answer_type_display|lower }}</span>
+    </div>
+    <div class="card-body">
+        <p class="card-text">{{ question.text }}</p>
+    </div>
+    {% if question.option_set.all %}
+    <ul class="list-group list-group-flush">
+        {% for option in question.option_set.all %}
+        <li class="list-group-item{% if option.id in answer.options %}-primary{% endif %}">{{ option.text }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+{% empty %}
+<div>Нет задач.</div>
+{% endfor %}
 
 {% endblock content %}
 
