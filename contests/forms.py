@@ -388,9 +388,11 @@ class QuestionForm(forms.ModelForm):
         model = Question
         fields = ['text', 'answer_type', 'number']
 
-    def __init__(self, *args, test, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.instance.test = test
+        test = kwargs.get('test')
+        if test:
+            self.instance.test = test
 
     def clean_number(self):
         number = self.cleaned_data['number']
@@ -418,18 +420,24 @@ class AnswerForm(forms.ModelForm):
 
         if question.answer_type == 1:
             self.fields['text'].required = True
-        elif question.answer_type == 2:
-            if question.option_set.filter(is_right=True).count() > 1:
-                self.fields['options'] = forms.ModelMultipleChoiceField(required=True,
-                                                                        label="Варианты",
-                                                                        queryset=question.option_set.all(),
-                                                                        widget=forms.CheckboxSelectMultiple())
-            else:
-                widget = forms.RadioSelect()
-                widget.allow_multiple_selected = True
-                self.fields['options'] = forms.ModelMultipleChoiceField(required=True,
-                                                                        label="Варианты",
-                                                                        queryset=question.option_set.all(),
-                                                                        widget=widget)
         elif question.answer_type == 3:
             self.fields['file'].required = True
+        elif question.answer_type == 2:
+            if question.option_set.count():
+                if question.option_set.filter(is_right=True).count() > 1:
+                    self.fields['options'] = forms.ModelMultipleChoiceField(required=True,
+                                                                            label="Варианты",
+                                                                            queryset=question.option_set.all(),
+                                                                            widget=forms.CheckboxSelectMultiple())
+                else:
+                    widget = forms.RadioSelect()
+                    widget.allow_multiple_selected = True
+                    self.fields['options'] = forms.ModelMultipleChoiceField(required=True,
+                                                                            label="Варианты",
+                                                                            queryset=question.option_set.all(),
+                                                                            widget=widget)
+            else:
+                self.fields['options'] = forms.ModelMultipleChoiceField(required=False,
+                                                                        label="Варианты",
+                                                                        queryset=question.option_set.none(),
+                                                                        widget=forms.HiddenInput())
