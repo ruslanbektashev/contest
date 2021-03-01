@@ -17,33 +17,37 @@
 
 <legend>Задача {{ question.number }}, <small class="text-muted">способ ответа: {{ question.get_answer_type_display|lower }}</small></legend>
 
-<div class="card">
+{% with options=question.option_set.all%}
+<div class="card mb-3">
     <div class="card-body">
         <p class="card-text">{{ question.text }}</p>
-        {% if question.answer_type == 2 and not question.option_set.all %}
-        <p class="card-text">Добавьте варианты ответов.</p>
-        {% endif %}
     </div>
-    {% if question.option_set.all %}
+    {% if options %}
     <ul class="list-group list-group-flush">
-        {% for option in question.option_set.all %}
-        <li class="list-group-item">{{ option.text }}
-            {% if perms.contests.update_option %}
-            <a href="{% url 'contests:option-update' option.id %}" class="btn btn-outline-primary btn-sm ml-2">Изменить</a>
-            {% endif %}
-            {% if perms.contests.delete_option %}
-            <a href="{% url 'contests:option-delete' option.id %}" class="btn btn-outline-danger btn-sm ml-1">Удалить</a>
-            {% endif %}
+        {% for option in options %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">{{ option.text }}
+            <span>
+                {% if perms.contests.update_option %}
+                <a href="{% url 'contests:option-update' option.id %}" class="btn btn-light btn-sm border">Изменить</a>
+                {% endif %}
+                {% if perms.contests.delete_option %}
+                <a href="{% url 'contests:option-delete' option.id %}" class="btn btn-light btn-sm border ml-1">Удалить</a>
+                {% endif %}
+            </span>
         </li>
         {% endfor %}
     </ul>
     {% endif %}
 </div>
-
+{% if question.answer_type == 2 and not options %}
+<div class="alert alert-warning" role="alert">
+    Добавьте варианты ответов.
+</div>
+{% endif %}
+{% endwith %}
 {% endblock content %}
 
 {% block submenu %}
-
 <div class="list-group mb-3">
     {% if perms.contests.update_question %}
     <a href="{% url 'contests:question-update' question.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать задачу</a>
@@ -57,7 +61,6 @@
     <a href="{% url 'contests:option-create' question.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить вариант ответа</a>
 </div>
 {% endif %}
-
 {% endblock submenu %}
 
 {% block javascript %}

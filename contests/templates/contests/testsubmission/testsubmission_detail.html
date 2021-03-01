@@ -14,29 +14,48 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-
 {% for question, answer in questions %}
-<div class="card mb-4">
+<div class="card mb-3">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        #{{ question.number }} <span class="badge badge-pill badge-secondary">Способ ответа: {{ question.get_answer_type_display|lower }}</span>
+        #{{ question.number }}
+        <span class="badge badge-pill badge-light`">Способ ответа: {{ question.get_answer_type_display|lower }}</span>
+        <span class="text-{% if answer == None %}warning{% elif answer.status == 1 %}dark{% elif answer.status == 2 %}success{% elif answer.status == 3 %}danger{% endif %}">
+            {% if answer == None %}Не решено{% elif answer.status == 1 %}Не проверено{% elif answer.status == 2 %}Правильно{% elif answer.status == 3 %}Неправильно{% endif %}
+        </span>
     </div>
     <div class="card-body">
         <p class="card-text">{{ question.text }}</p>
     </div>
-    {% if question.option_set.all %}
+    {% if question.answer_type == 1 %}
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+            <label class="card-text text-muted">
+                Ответ:
+                <div>
+                    {{ answer.text }}
+                </div>
+            </label>
+        </li>
+    </ul>
+    {% endif %}
+    {% if question.answer_type == 2 %}
     <ul class="list-group list-group-flush">
         {% for option in question.option_set.all %}
-        <li class="list-group-item{% if option.id in answer.options %}-primary{% endif %}">{{ option.text }}</li>
+        <li class="list-group-item {% if option in answer.options.all %}text-primary{% endif %}">
+            {% if option in answer.options.all %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% endif %} {{ option.text }}
+        </li>
         {% endfor %}
     </ul>
+    {% endif %}
+    {% if question.answer_type == 3 %}
+    <div class="card-footer">
+        <a href="{{ answer.file.url }}" class="card-link" title="Скачать" target="blank"><i class="fa fa-download fa-fw"></i> Скачать файл</a>
+    </div>
     {% endif %}
 </div>
 {% empty %}
 <div>Нет задач.</div>
 {% endfor %}
-
 {% endblock content %}
-
 {% block submenu %}
-
 {% endblock submenu %}

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views forms markdown %}
+{% load views forms markdown static %}
 
 {% block title %}
 Решение задачи
@@ -9,6 +9,7 @@
 <style>
     #id_options {
         list-style-type: none;
+        padding: 0;
     }
 </style>
 {% endblock stylesheets %}
@@ -29,7 +30,6 @@
 
 {% block content %}
 <legend>Добавление решения задачи {{ question.number }}</legend>
-
 <p>{{ question.text }}</p>
 
 <form id="root" method="post" enctype="multipart/form-data" class="form-horizontal">
@@ -42,7 +42,12 @@
             {% elif question.answer_type == 2 %}
                 {{ form.options }}
             {% elif question.answer_type == 3 %}
-                {{ form.file }}
+            <div class="alert alert-info" role="alert">
+                В качестве ответа прикрепите файл.
+            </div>
+            {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
+            {% render_field form.file class+="custom-file-input"%}
+            {% endwith %}
             {% endif %}
         {% endwith %}
     {% if has_next %}
@@ -51,5 +56,13 @@
     {% render_submit_button value="Завершить" %}
     {% endif %}
 </form>
-
 {% endblock content %}
+
+{% block javascript %}
+<script src="{% static 'js/bs-custom-file-input.min.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+$(function () {
+    bsCustomFileInput.init()
+});
+</script>
+{% endblock javascript %}

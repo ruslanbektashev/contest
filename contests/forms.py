@@ -388,6 +388,15 @@ class QuestionForm(forms.ModelForm):
         model = Question
         fields = ['text', 'answer_type', 'number']
 
+    def clean_number(self):
+        number = self.cleaned_data['number']
+        test = self.instance.test
+
+        if number != self.instance.number and number in test.question_set.values_list('number', flat=True):
+            raise ValidationError("Этот номер уже занят.")
+
+        return number
+
 
 class OptionForm(forms.ModelForm):
     class Meta:
@@ -403,7 +412,9 @@ class AnswerForm(forms.ModelForm):
     def __init__(self, *args, question, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if question.answer_type == 2:
+        if question.answer_type == 1:
+            self.fields['text'].required = True
+        elif question.answer_type == 2:
             if question.option_set.filter(is_right=True).count() > 1:
                 self.fields['options'] = forms.ModelMultipleChoiceField(required=True,
                                                                         label="Варианты",
@@ -416,3 +427,5 @@ class AnswerForm(forms.ModelForm):
                                                                         label="Варианты",
                                                                         queryset=question.option_set.all(),
                                                                         widget=widget)
+        elif question.answer_type == 3:
+            self.fields['file'].required = True

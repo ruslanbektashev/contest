@@ -1378,13 +1378,9 @@ class TestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
         super().__init__(*args, **kwargs)
         self.storage = dict()
 
-    def dispatch(self, request, *args, **kwargs):
-        test = self.get_object()
-        self.storage['contest'] = test.contest
-        return super().dispatch(request, *args, **kwargs)
-
     def get_success_url(self):
-        return reverse('contests:contest-detail', kwargs={'pk': self.storage['contest'].id}) + '?tab=tests'
+        test = self.get_object()
+        return reverse('contests:contest-detail', kwargs={'pk': test.contest.id}) + '?tab=tests'
 
 
 """=================================================== Question ===================================================="""
@@ -1567,7 +1563,7 @@ class AnswerCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         testsubmission = get_object_or_404(TestSubmission, id=kwargs.pop('testsubmission_id'))
-        questions = testsubmission.test.question_set.filter(~Q(answer__in=testsubmission.answer_set.all())).order_by('number')
+        questions = testsubmission.test.question_set.exclude(answer__in=testsubmission.answer_set.all()).order_by('number')
 
         self.storage.update({
             'testsubmission': testsubmission,
@@ -1585,7 +1581,9 @@ class AnswerCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.test_submission = self.storage['testsubmission']
         form.instance.question = self.storage['question']
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        self.object.check_correctness()
+        return response
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
