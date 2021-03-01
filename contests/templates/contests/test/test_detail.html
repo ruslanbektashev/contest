@@ -76,7 +76,7 @@
     </a>
 </div>
 {% endif %}
-{% if perms.contests.add_testsubmission %}
+{% if perms.contests.add_testsubmission and test.question_set.count %}
 <div class="list-group mb-3">
     <a href="{% url 'contests:testsubmission-create' test.id %}" class="btn btn-info btn-block">
         <i class="fa fa-check-square-o fa-fw"></i> Решить набор задач
