@@ -444,6 +444,8 @@ class AnswerForm(forms.ModelForm):
 
 
 class AnswerCheckForm(forms.ModelForm):
+    status = forms.ChoiceField(choices=Answer.STATUS_CHOICES, required=True, label="Статус")
+
     class Meta:
         model = Answer
         fields = ['status']

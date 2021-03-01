@@ -61,9 +61,11 @@
     {% endif %}
     <div class="card-footer">
         {% if question.answer_type == 3 and answer.file %}
-        <a href="{{ answer.file.url }}" class="card-link" title="Скачать" target="blank"><i class="fa fa-download fa-fw"></i> Скачать файл</a>
+        <a href="{{ answer.file.url }}" class="card-link" title="Скачать файл" target="blank"><i class="fa fa-download fa-fw"></i> Скачать файл</a>
         {% endif %}
+        {% if answer %}
         <a href="{% url 'contests:answer-check' answer.id %}" class="card-link" title="Изменить статус"> Изменить статус</a>
+        {% endif %}
     </div>
 </div>
 {% empty %}
