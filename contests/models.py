@@ -842,19 +842,13 @@ class Question(CRUDEntry):
         verbose_name_plural = "Задачи"
         unique_together = ['test', 'number']
 
-    def save(self, *args, **kwargs):
-        if self.pk is None:
-            max_number = self.test.question_set.aggregate(models.Max("number")).get("number__max", 0) or 0
-            self.number = max_number + 1
-        super().save(*args, **kwargs)
-
     def get_answer_type_display(self):
         for pair in self.ANSWER_TYPES:
             if pair[0] == self.answer_type:
                 return pair[1]
 
     def __str__(self):
-        return f"Задача {self.number}"
+        return f"Задача {self.id}"
 
 
 class Option(CRUDEntry):
@@ -883,22 +877,23 @@ class TestSubmission(CRUDEntry):
         verbose_name_plural = "Решения наборов задач"
 
     def __str__(self):
-        return f"Решение набора задач {self.test}"
+        return f"Решение {self.id}"
 
 
 class Answer(CRUDEntry):
     owner = None
 
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
-    options = models.ManyToManyField(Option, verbose_name="Выбранные варианты", blank=True)
     test_submission = models.ForeignKey(TestSubmission, on_delete=models.CASCADE, verbose_name="Решение набора задач")
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
+    options = models.ManyToManyField(Option, blank=True, verbose_name="Выбранные варианты")
 
     text = models.TextField(verbose_name="Развёрнутый ответ", blank=True, null=True)
     file = models.FileField(verbose_name="Файл", blank=True, null=True)
 
     class Meta(CRUDEntry.Meta):
-        verbose_name = "Ответ на задачу"
-        verbose_name_plural = "Ответы на задачи"
+        verbose_name = "Решение задачи"
+        verbose_name_plural = "Решения задач"
+        unique_together = ['test_submission', 'question']
 
     def __str__(self):
-        return f"Решение на задачи {self.question.id}"
+        return f"Решение задачи {self.question.id}"
