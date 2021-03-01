@@ -28,11 +28,13 @@
         <p class="card-text">{{ question.text }}</p>
     </div>
     {% if question.option_set.all %}
-    <ul class="list-group list-group-flush">
-        {% for option in question.option_set.all %}
-        <li class="list-group-item">{{ option.text }}</li>
-        {% endfor %}
-    </ul>
+    <div class="card ml-2 mb-2 mr-2">
+        <ul class="list-group list-group-flush">
+            {% for option in question.option_set.all %}
+            <li class="list-group-item">{{ option.text }}</li>
+            {% endfor %}
+        </ul>
+    </div>
     {% endif %}
     {% if perms.contests.view_problem or perms.contests.delete_problem %}
     <div class="card-footer">
