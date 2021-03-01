@@ -16,33 +16,81 @@
 {% block content %}
 
 <legend>Задача {{ question.number }}, <small class="text-muted">способ ответа: {{ question.get_answer_type_display|lower }}</small></legend>
-
-{% with options=question.option_set.all%}
-<p>{{ question.text }}</p>
-
-{% if options %}
-<h6 class="mb-3">Варианты ответа</h6>
-<ul class="list-group mb-3">
-    {% for option in options %}
-    <li class="list-group-item d-flex justify-content-between align-items-center">{{ option.text }}
-        <span>
-            {% if perms.contests.update_option %}
-            <a href="{% url 'contests:option-update' option.id %}" class="btn btn-light btn-sm border">Изменить</a>
-            {% endif %}
-            {% if perms.contests.delete_option %}
-            <a href="{% url 'contests:option-delete' option.id %}" class="btn btn-light btn-sm border ml-1">Удалить</a>
-            {% endif %}
-        </span>
+<ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item">
+        <a aria-controls="description" aria-selected="{% if not tab or tab == 'description' %}true{% else %}false{% endif %}"
+           class="nav-link {% if not tab or tab == 'description' %}active{% endif %}" data-toggle="tab"
+           href="#description" id="description-tab" role="tab">Описание</a>
     </li>
-    {% endfor %}
+    <li class="nav-item">
+        <a aria-controls="solutions" aria-selected="{% if tab == 'solutions' %}true{% else %}false{% endif %}"
+           class="nav-link {% if tab == 'solutions' %}active{% endif %}" data-toggle="tab" href="#solutions"
+           id="solutions-tab" role="tab">Ответы</a>
+    </li>
 </ul>
-{% endif %}
-{% if question.answer_type == 2 and 2 > options.count %}
-<div class="alert alert-warning" role="alert">
-    Добавьте хотя бы два варианата ответа.
+<div class="tab-content">
+    <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %}" id="description" role="tabpanel">
+        {% with options=question.option_set.all%}
+        <p>{{ question.text }}</p>
+
+        {% if options %}
+        <h6 class="mb-3">Варианты ответа</h6>
+        <ul class="list-group mb-3">
+            {% for option in options %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">{{ option.text }}
+                <span>
+                    {% if perms.contests.update_option %}
+                    <a href="{% url 'contests:option-update' option.id %}" class="btn btn-light btn-sm border">Изменить</a>
+                    {% endif %}
+                    {% if perms.contests.delete_option %}
+                    <a href="{% url 'contests:option-delete' option.id %}" class="btn btn-light btn-sm border ml-1">Удалить</a>
+                    {% endif %}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% if question.answer_type == 2 and 2 > options.count %}
+        <div class="alert alert-warning">
+            Добавьте хотя бы два варианата ответа.
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+    <div aria-labelledby="solutions-tab" class="tab-pane fade {% if tab == 'solutions' %}show active{% endif %}" id="solutions" role="tabpanel">
+        {% with options=question.option_set.all%}
+        <p>{{ question.text }}</p>
+
+        {% if options %}
+        <h6 class="mb-3">Варианты ответа</h6>
+        <ul class="list-group mb-3">
+            {% for option in options %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span class="{% if option.is_right %}text-success{% endif %}">
+                    {% if option.is_right %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% endif %}
+                    {{ option.text }}
+                </span>
+                <span>
+                    {% if perms.contests.update_option %}
+                    <a href="{% url 'contests:option-update' option.id %}" class="btn btn-light btn-sm border">Изменить</a>
+                    {% endif %}
+                    {% if perms.contests.delete_option %}
+                    <a href="{% url 'contests:option-delete' option.id %}" class="btn btn-light btn-sm border ml-1">Удалить</a>
+                    {% endif %}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% if question.answer_type == 2 and 2 > options.count %}
+        <div class="alert alert-warning">
+            Добавьте хотя бы два варианата ответа.
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
 </div>
-{% endif %}
-{% endwith %}
+
 {% endblock content %}
 
 {% block submenu %}

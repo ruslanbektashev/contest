@@ -21,7 +21,7 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (AnswerForm, CourseForm, CreditSetForm, ContestForm, OptionForm, ProblemForm, QuestionForm, SolutionForm, TestForm, UTTestForm, FNTestForm,
+from contests.forms import (AnswerCheckForm, AnswerForm, CourseForm, CreditSetForm, ContestForm, OptionForm, ProblemForm, QuestionForm, SolutionForm, TestForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
                             AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
 from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, Question, Solution, IOTest, Test, TestSubmission, UTTest, FNTest,
@@ -1584,6 +1584,7 @@ class AnswerCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         form.instance.question = self.storage['question']
         response = super().form_valid(form)
         self.object.check_correctness()
+        self.storage['testsubmission'].update_score()
         return response
 
     def get_context_data(self, **kwargs):
@@ -1596,3 +1597,24 @@ class AnswerCreate(LoginRedirectPermissionRequiredMixin, CreateView):
             return reverse('contests:answer-create', kwargs={'testsubmission_id': self.storage['testsubmission'].id})
         else:
             return reverse('contests:testsubmission-detail', kwargs={'pk': self.storage['testsubmission'].id})
+
+
+class AnswerCheck(LoginRedirectPermissionRequiredMixin, UpdateView):
+    model = Answer
+    form_class = AnswerCheckForm
+    template_name = 'contests/answer/answer_check.html'
+    permission_required = 'contests.update_answer'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        answer = self.get_object()
+        answer.test_submission.update_score()
+        return response
+
+    def get_success_url(self):
+        answer = self.get_object()
+        return reverse('contests:testsubmission-detail', kwargs={'pk': answer.test_submission.id})

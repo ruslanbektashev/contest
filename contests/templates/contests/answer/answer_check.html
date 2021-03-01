@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load views forms markdown static %}
+
+{% block title %}
+Проверка решения
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb testsubmission.test.contest.course testsubmission.test.contest.course %}
+{% breadcrumb testsubmission.test.contest testsubmission.test.contest %}
+{% breadcrumb testsubmission.test testsubmission.test %}
+{% breadcrumb testsubmission testsubmission %}
+{% breadcrumb answer answer %}
+{% breadcrumb "Проверка" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Проверка решения задачи {{ question.number }}</legend>
+<p>{{ answer.question.text }}</p>
+
+<form id="root" method="post" enctype="multipart/form-data" class="form-horizontal">
+    {% csrf_token %}
+
+    {% render_form_errors form %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+        {% render_field form.score class+="form-control" %}
+    {% endwith %}
+    {% render_submit_button value="Сохранить" %}
+</form>
+{% endblock content %}

@@ -441,3 +441,9 @@ class AnswerForm(forms.ModelForm):
                                                                         label="Варианты",
                                                                         queryset=question.option_set.none(),
                                                                         widget=forms.HiddenInput())
+
+
+class AnswerCheckForm(forms.ModelForm):
+    class Meta:
+        model = Answer
+        fields = ['status']

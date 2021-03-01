@@ -157,4 +157,9 @@ urlpatterns = [
             path('', under_development(views.TestSubmissionDetail.as_view()), name='testsubmission-detail'),
         ]))
     ])),
+    path('answer/', include([
+        path('<int:pk>/', include([
+            path('check', under_development(views.AnswerCheck.as_view()), name='answer-check'),
+        ]))
+    ])),
 ]

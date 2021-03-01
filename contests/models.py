@@ -871,11 +871,17 @@ class Option(CRUDEntry):
 class TestSubmission(CRUDEntry):
     test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Набор задач")
 
-    score = models.PositiveSmallIntegerField(default=0, verbose_name="Процент правильных ответов")
+    score = models.PositiveSmallIntegerField(default=0, verbose_name="Процент правильных")
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Решение набора задач"
         verbose_name_plural = "Решения наборов задач"
+
+    def update_score(self):
+        right_answers_count = self.answer_set.filter(status=2).count()
+        questions_count = self.test.question_set.count()
+        self.score = right_answers_count * 100 // questions_count
+        self.save(update_fields=['score'])
 
     def __str__(self):
         return f"Решение {self.id}"

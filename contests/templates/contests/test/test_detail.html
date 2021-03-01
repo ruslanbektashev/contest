@@ -15,48 +15,95 @@
 {% block content %}
 
 <legend>{{ test }}</legend>
-<p>{{ test.description|safe }}</p>
+<ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item">
+        <a aria-controls="description" aria-selected="{% if not tab or tab == 'description' %}true{% else %}false{% endif %}"
+           class="nav-link {% if not tab or tab == 'description' %}active{% endif %}" data-toggle="tab"
+           href="#description" id="description-tab" role="tab">Описание</a>
+    </li>
+    <li class="nav-item">
+        <a aria-controls="testsubmissions" aria-selected="{% if tab == 'testsubmissions' %}true{% else %}false{% endif %}"
+           class="nav-link {% if tab == 'testsubmissions' %}active{% endif %}" data-toggle="tab" href="#testsubmissions"
+           id="testsubmissions-tab" role="tab">Посылки</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %}" id="description" role="tabpanel">
+        <p>{{ test.description|safe }}</p>
+        <h5 class="mb-3">Задачи</h5>
 
-<h5 class="mb-3">Задачи</h5>
-
-{% for question in test.question_set.all %}
-<div class="card mb-3">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        #{{ question.number }} <span class="badge badge-pill badge-light">Способ ответа: {{ question.get_answer_type_display|lower }}</span>
+        {% for question in test.question_set.all %}
+        <div class="card mb-3">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                #{{ question.number }} <span class="badge badge-pill badge-light">Способ ответа: {{ question.get_answer_type_display|lower }}</span>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ question.text }}</p>
+            </div>
+            {% if question.option_set.all %}
+            <div class="card ml-2 mb-2 mr-2">
+                <ul class="list-group list-group-flush">
+                    {% for option in question.option_set.all %}
+                    <li class="list-group-item">{{ option.text }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            {% if perms.contests.view_problem or perms.contests.delete_problem %}
+            <div class="card-footer">
+                {% if perms.contests.view_problem %}
+                <a href="{% url 'contests:question-detail' question.id %}" class="card-link">Просмотреть</a>
+                {% endif %}
+                {% if perms.contests.delete_problem %}
+                <a href="{% url 'contests:question-delete' question.id %}" class="card-link text-danger">Удалить</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="alert alert-warning" role="alert">
+            Добавьте задачи.
+        </div>
+        {% endfor %}
     </div>
-    <div class="card-body">
-        <p class="card-text">{{ question.text }}</p>
-    </div>
-    {% if question.option_set.all %}
-    <div class="card ml-2 mb-2 mr-2">
-        <ul class="list-group list-group-flush">
-            {% for option in question.option_set.all %}
-            <li class="list-group-item">{{ option.text }}</li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-    {% if perms.contests.view_problem or perms.contests.delete_problem %}
-    <div class="card-footer">
-        {% if perms.contests.view_problem %}
-        <a href="{% url 'contests:question-detail' question.id %}" class="card-link">Просмотреть</a>
+    <div aria-labelledby="testsubmissions-tab" class="tab-pane fade {% if tab == 'testsubmissions' %}show active{% endif %}" id="testsubmissions" role="tabpanel">
+        {% if test.testsubmission_set.all %}
+        {% load views contests %}
+        <div class="table-responsive">
+            <table id="p" class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 18%;">Дата</th>
+                        {% if perms.contests.view_testsubmission_list %}
+                        <th>Студент</th>
+                        {% endif %}
+                        <th class="text-center" style="width: 8%;">Результат</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% now 'Y' as current_year %}
+                    {% for testsubmission in test.testsubmission_set.all %}
+                    <tr>
+                        <td class="text-center">{% if testsubmission.date_created|date:'Y' == current_year %}{{ testsubmission.date_created|date:'d b в H:i' }}{% else %}{{ testsubmission.date_created|date:'d b y г. в H:i' }}{% endif %}</td>
+                        {% if perms.contests.view_submission_list %}
+                        <td><a href="{{ testsubmission.owner.account.get_absolute_url }}">{{ testsubmission.owner.account }}</a></td>
+                        {% endif %}
+                        <td class="text-center">
+                            <a href="{{ testsubmission.get_absolute_url }}">{{ testsubmission.score }}%</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">Нет посылок.</div>
         {% endif %}
-        {% if perms.contests.delete_problem %}
-        <a href="{% url 'contests:question-delete' question.id %}" class="card-link text-danger">Удалить</a>
-        {% endif %}
     </div>
-    {% endif %}
 </div>
-{% empty %}
-<div class="alert alert-warning" role="alert">
-    Добавьте задачи.
-</div>
-{% endfor %}
-
 {% endblock content %}
 
 {% block submenu %}
-
 <div class="list-group mb-3">
     {% if perms.contests.delete_test %}
     <a href="{% url 'contests:test-update' test.id %}" class="list-group-item list-group-item-action">
@@ -83,5 +130,4 @@
     </a>
 </div>
 {% endif %}
-
 {% endblock submenu %}

@@ -18,8 +18,8 @@
 
 <table class="table table-sm">
     <tr><td class="text-right" style="width: 20%;">Автор</td><td><a href="{{ submission.owner.account.get_absolute_url }}">{{ testsubmission.owner.account }}</a></td></tr>
-    <tr><td class="text-right" style="width: 20%;">К набору задач</td><td><a href="{{ submission.problem.get_absolute_url }}">{{ testsubmission.test }}</a></td></tr>
     <tr><td class="text-right" style="width: 20%;">Отправлена</td><td>{{ testsubmission.date_created }}</td></tr>
+    <tr><td class="text-right" style="width: 20%;">Правильных</td><td>{{ testsubmission.score }}%</td></tr>
 </table>
 
 <h5 class="mb-3">Ответы</h5>
@@ -36,7 +36,7 @@
     <div class="card-body">
         <p class="card-text">{{ question.text }}</p>
     </div>
-    {% if question.answer_type == 1 and answer.file %}
+    {% if question.answer_type == 1 %}
     <ul class="list-group list-group-flush">
         <li class="list-group-item">
             <label class="card-text text-muted">
@@ -59,15 +59,14 @@
         </ul>
     </div>
     {% endif %}
-    {% if question.answer_type == 3 and answer.file %}
     <div class="card-footer">
+        {% if question.answer_type == 3 and answer.file %}
         <a href="{{ answer.file.url }}" class="card-link" title="Скачать" target="blank"><i class="fa fa-download fa-fw"></i> Скачать файл</a>
+        {% endif %}
+        <a href="{% url 'contests:answer-check' answer.id %}" class="card-link" title="Изменить статус"> Изменить статус</a>
     </div>
-    {% endif %}
 </div>
 {% empty %}
 <div>Нет задач.</div>
 {% endfor %}
 {% endblock content %}
-{% block submenu %}
-{% endblock submenu %}
