@@ -1368,6 +1368,15 @@ class TestDetail(LoginRequiredMixin, DetailView):
     model = Test
     template_name = 'contests/test/test_detail.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.has_perm('contests.view_testsubmission_list'):
+            testsubmissions = self.object.testsubmission_set.all().order_by('-date_created')
+        else:
+            testsubmissions = self.object.testsubmission_set.filter(owner_id=self.request.user.id).order_by('-date_created')
+        context['testsubmissions'] = testsubmissions
+        return context
+
 
 class TestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Test
@@ -1507,8 +1516,7 @@ class OptionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 """================================================ TestSubmission ================================================="""
 
 
-class TestSubmissionRedirect(LoginRedirectPermissionRequiredMixin, RedirectView):
-    permission_required = 'contests/add_testsubmission'
+class TestSubmissionRedirect(LoginRequiredMixin, RedirectView):
     pattern_name = 'contests:answer-create'
 
     def __init__(self, **kwargs):
@@ -1532,7 +1540,7 @@ class TestSubmissionRedirect(LoginRedirectPermissionRequiredMixin, RedirectView)
         return super().get_redirect_url(*args, **kwargs)
 
 
-class TestSubmissionDetail(LoginRedirectPermissionRequiredMixin, DetailView):
+class TestSubmissionDetail(LoginRequiredMixin, DetailView):
     model = TestSubmission
     template_name = 'contests/testsubmission/testsubmission_detail.html'
     permission_required = 'contests.view_testsubmission'
@@ -1552,11 +1560,10 @@ class TestSubmissionDetail(LoginRedirectPermissionRequiredMixin, DetailView):
 """==================================================== Answer ====================================================="""
 
 
-class AnswerCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+class AnswerCreate(LoginRequiredMixin, CreateView):
     model = Answer
     form_class = AnswerForm
     template_name = 'contests/answer/answer_form.html'
-    permission_required = 'contests.add_answer'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1603,7 +1610,7 @@ class AnswerCheck(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Answer
     form_class = AnswerCheckForm
     template_name = 'contests/answer/answer_check.html'
-    permission_required = 'contests.update_answer'
+    permission_required = 'contests.check_answer'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1617,4 +1624,4 @@ class AnswerCheck(LoginRedirectPermissionRequiredMixin, UpdateView):
 
     def get_success_url(self):
         answer = self.get_object()
-        return reverse('contests:testsubmission-detail', kwargs={'pk': answer.test_submission.id})
+        return reverse('contests:testsubmission-detail', kwargs={'pk': answer.test_submission.id}) + '#question_' + str(answer.question.number)

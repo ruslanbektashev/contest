@@ -49,10 +49,9 @@
             </li>
             {% endfor %}
         </ul>
-        {% endif %}
-        {% if question.answer_type == 2 and 2 > options.count %}
+        {% elif question.answer_type == 2 %}
         <div class="alert alert-warning">
-            Добавьте хотя бы два варианата ответа.
+            Добавьте варианты ответов.
         </div>
         {% endif %}
         {% endwith %}
@@ -81,10 +80,9 @@
             </li>
             {% endfor %}
         </ul>
-        {% endif %}
-        {% if question.answer_type == 2 and 2 > options.count %}
+        {% elif question.answer_type == 2 %}
         <div class="alert alert-warning">
-            Добавьте хотя бы два варианата ответа.
+            Добавьте варианты ответов.
         </div>
         {% endif %}
         {% endwith %}

@@ -67,7 +67,7 @@
         {% endfor %}
     </div>
     <div aria-labelledby="testsubmissions-tab" class="tab-pane fade {% if tab == 'testsubmissions' %}show active{% endif %}" id="testsubmissions" role="tabpanel">
-        {% if test.testsubmission_set.all %}
+        {% if testsubmissions %}
         {% load views contests %}
         <div class="table-responsive">
             <table id="p" class="table table-bordered table-sm">
@@ -82,7 +82,7 @@
                 </thead>
                 <tbody>
                     {% now 'Y' as current_year %}
-                    {% for testsubmission in test.testsubmission_set.all %}
+                    {% for testsubmission in testsubmissions %}
                     <tr>
                         <td class="text-center">{% if testsubmission.date_created|date:'Y' == current_year %}{{ testsubmission.date_created|date:'d b в H:i' }}{% else %}{{ testsubmission.date_created|date:'d b y г. в H:i' }}{% endif %}</td>
                         {% if perms.contests.view_submission_list %}
@@ -123,7 +123,7 @@
     </a>
 </div>
 {% endif %}
-{% if perms.contests.add_testsubmission and test.question_set.count %}
+{% if test.question_set.count %}
 <div class="list-group mb-3">
     <a href="{% url 'contests:testsubmission-create' test.id %}" class="btn btn-info btn-block">
         <i class="fa fa-check-square-o fa-fw"></i> Решить набор задач
