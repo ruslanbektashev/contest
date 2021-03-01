@@ -14,6 +14,16 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
+<legend>{{ testsubmission }}</legend>
+
+<table class="table table-sm">
+    <tr><td class="text-right" style="width: 20%;">Автор</td><td><a href="{{ submission.owner.account.get_absolute_url }}">{{ testsubmission.owner.account }}</a></td></tr>
+    <tr><td class="text-right" style="width: 20%;">К набору задач</td><td><a href="{{ submission.problem.get_absolute_url }}">{{ testsubmission.test }}</a></td></tr>
+    <tr><td class="text-right" style="width: 20%;">Отправлена</td><td>{{ testsubmission.date_created }}</td></tr>
+</table>
+
+<h5 class="mb-3">Ответы</h5>
+
 {% for question, answer in questions %}
 <div class="card mb-3">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -38,7 +48,7 @@
         </li>
     </ul>
     {% endif %}
-    {% if question.answer_type == 2 %}
+    {% if question.answer_type == 2 and question.option_set.all %}
     <div class="card ml-2 mb-2 mr-2">
         <ul class="list-group list-group-flush">
             {% for option in question.option_set.all %}
