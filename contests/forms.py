@@ -388,11 +388,15 @@ class QuestionForm(forms.ModelForm):
         model = Question
         fields = ['text', 'answer_type', 'number']
 
+    def __init__(self, *args, test, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.instance.test = test
+
     def clean_number(self):
         number = self.cleaned_data['number']
-        test = self.instance.test
 
-        if number != self.instance.number and number in test.question_set.values_list('number', flat=True):
+        test = self.instance.test
+        if number in test.question_set.exclude(id=self.instance.id).values_list('number', flat=True):
             raise ValidationError("Этот номер уже занят.")
 
         return number

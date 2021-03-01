@@ -1400,9 +1400,10 @@ class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage['test'] = get_object_or_404(Test, id=kwargs.pop('test_id'))
         return super().dispatch(request, *args, **kwargs)
 
-    def form_valid(self, form):
-        form.instance.test = self.storage['test']
-        return super().form_valid(form)
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['test'] = self.storage['test']
+        return kwargs
 
     def get_initial(self):
         initial = super().get_initial()
