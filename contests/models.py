@@ -841,6 +841,7 @@ class Question(CRUDEntry):
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
         unique_together = ['test', 'number']
+        ordering = ['number']
 
     def get_answer_type_display(self):
         for pair in self.ANSWER_TYPES:
@@ -881,6 +882,13 @@ class TestSubmission(CRUDEntry):
 
 
 class Answer(CRUDEntry):
+    STATUS_CHOICES = (
+        (1, "Не проверено"),
+        (2, "Правильно"),
+        (3, "Неправильно"),
+    )
+    DEFAULT_STATUS = 1
+
     owner = None
 
     test_submission = models.ForeignKey(TestSubmission, on_delete=models.CASCADE, verbose_name="Решение набора задач")
@@ -889,11 +897,22 @@ class Answer(CRUDEntry):
 
     text = models.TextField(verbose_name="Развёрнутый ответ", blank=True, null=True)
     file = models.FileField(verbose_name="Файл", blank=True, null=True)
+    status = models.PositiveSmallIntegerField(choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Решение задачи"
         verbose_name_plural = "Решения задач"
         unique_together = ['test_submission', 'question']
+        ordering = ['question__number']
+
+    def check_correctness(self) -> None:
+        if self.question.answer_type == 2:
+            right_options = self.question.option_set.filter(is_right=True)
+            if right_options.count() == right_options.filter(id__in=self.options.all()).count():
+                self.status = 2
+            else:
+                self.status = 3
+            self.save(update_fields=['status'])
 
     def __str__(self):
         return f"Решение задачи {self.question.id}"
