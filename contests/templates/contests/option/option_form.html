@@ -27,7 +27,7 @@
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
         {% render_field form.text class+="form-control" %}
-        {% render_field form.is_right class+="form-control" %}
+        <label class="mb-3">{{ form.is_right }} {{ form.is_right.label }}</label>
     {% endwith %}
 
     {% render_submit_button value="Сохранить" %}
