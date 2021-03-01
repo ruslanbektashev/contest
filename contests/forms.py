@@ -389,8 +389,8 @@ class QuestionForm(forms.ModelForm):
         fields = ['text', 'answer_type', 'number']
 
     def __init__(self, *args, **kwargs):
+        test = kwargs.pop('test', None)
         super().__init__(*args, **kwargs)
-        test = kwargs.get('test')
         if test:
             self.instance.test = test
 
