@@ -15,7 +15,7 @@
 
 {% block content %}
 
-<legend>Задача {{ question.number }}, <small class="text-muted">способ ответа: {{ question.get_answer_type_display|lower }}</small></legend>
+<legend>Задача {{ question.number }} <small class="text-muted">способ ответа: {{ question.get_answer_type_display|lower }}</small></legend>
 <ul class="nav nav-tabs mb-3" role="tablist">
     <li class="nav-item">
         <a aria-controls="description" aria-selected="{% if not tab or tab == 'description' %}true{% else %}false{% endif %}"
