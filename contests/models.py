@@ -913,8 +913,8 @@ class Answer(CRUDEntry):
 
     def check_correctness(self) -> None:
         if self.question.answer_type == 2:
-            right_options = self.question.option_set.filter(is_right=True)
-            if right_options.count() == right_options.filter(id__in=self.options.all()).count():
+            right_options = list(self.question.option_set.filter(is_right=True).order_by('id').values_list('id', flat=True))
+            if right_options == list(self.options.order_by('id').values_list('id', flat=True)):
                 self.status = 2
             else:
                 self.status = 3
