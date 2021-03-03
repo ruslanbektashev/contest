@@ -806,6 +806,9 @@ class Test(CRUDEntry):
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     description = models.TextField(verbose_name="Описание")
+    excellent_percentage = models.PositiveSmallIntegerField(default=90, verbose_name="Процент для оценки 5")
+    good_percentage = models.PositiveSmallIntegerField(default=60, verbose_name="Процент для оценки 4")
+    satisfactorily_percentage = models.PositiveSmallIntegerField(default=30, verbose_name="Процент для оценки 3")
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Набор задач"
@@ -871,7 +874,7 @@ class Option(CRUDEntry):
 class TestSubmission(CRUDEntry):
     test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Набор задач")
 
-    score = models.PositiveSmallIntegerField(default=0, verbose_name="Процент правильных")
+    score = models.PositiveSmallIntegerField(default=2, verbose_name="Оценка")
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Решение набора задач"
@@ -880,7 +883,12 @@ class TestSubmission(CRUDEntry):
     def update_score(self):
         right_answers_count = self.answer_set.filter(status=2).count()
         questions_count = self.test.question_set.count()
-        self.score = right_answers_count * 100 // questions_count
+        percentage = right_answers_count * 100 // questions_count
+
+        for i, level in enumerate([self.test.satisfactorily_percentage, self.test.good_percentage, self.test.excellent_percentage]):
+            if percentage >= level:
+                self.score = i + 3
+
         self.save(update_fields=['score'])
 
     def __str__(self):

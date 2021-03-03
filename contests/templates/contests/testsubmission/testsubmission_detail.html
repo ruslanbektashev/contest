@@ -19,7 +19,7 @@
 <table class="table table-sm">
     <tr><td class="text-right" style="width: 20%;">Автор</td><td><a href="{{ submission.owner.account.get_absolute_url }}">{{ testsubmission.owner.account }}</a></td></tr>
     <tr><td class="text-right" style="width: 20%;">Отправлена</td><td>{{ testsubmission.date_created }}</td></tr>
-    <tr><td class="text-right" style="width: 20%;">Правильных</td><td>{{ testsubmission.score }}%</td></tr>
+    <tr><td class="text-right" style="width: 20%;">Оценка</td><td>{{ testsubmission.score }}</td></tr>
 </table>
 
 <h5 class="mb-3">Ответы</h5>

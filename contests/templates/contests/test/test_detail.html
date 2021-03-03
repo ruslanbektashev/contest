@@ -77,7 +77,7 @@
                         {% if perms.contests.view_testsubmission_list %}
                         <th>Студент</th>
                         {% endif %}
-                        <th class="text-center" style="width: 8%;">Результат</th>
+                        <th class="text-center" style="width: 8%;">Оценка</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -89,7 +89,7 @@
                         <td><a href="{{ testsubmission.owner.account.get_absolute_url }}">{{ testsubmission.owner.account }}</a></td>
                         {% endif %}
                         <td class="text-center">
-                            <a href="{{ testsubmission.get_absolute_url }}">{{ testsubmission.score }}%</a>
+                            <a href="{{ testsubmission.get_absolute_url }}" class="badge badge-secondary">{{ testsubmission.score }}</a>
                         </td>
                     </tr>
                     {% endfor %}

@@ -380,7 +380,7 @@ class EventForm(forms.ModelForm):
 class TestForm(forms.ModelForm):
     class Meta:
         model = Test
-        fields = ['title', 'description']
+        fields = ['title', 'description', 'satisfactorily_percentage', 'good_percentage', 'excellent_percentage']
 
 
 class QuestionForm(forms.ModelForm):
