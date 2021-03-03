@@ -1,3 +1,4 @@
+from os import name
 from django.urls import path, include
 
 from contest.utils import under_development
@@ -159,6 +160,7 @@ urlpatterns = [
     ])),
     path('answer/', include([
         path('<int:pk>/', include([
+            path('', under_development(views.AnswerDetail.as_view()), name='answer-detail'),
             path('check', under_development(views.AnswerCheck.as_view()), name='answer-check'),
         ]))
     ])),

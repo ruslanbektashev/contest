@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load views forms markdown static %}
+
+{% block title %}
+Проверка решения
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb answer.test_submission.test.contest.course answer.test_submission.test.contest.course %}
+{% breadcrumb answer.test_submission.test.contest answer.test_submission.test.contest %}
+{% breadcrumb answer.test_submission.test answer.test_submission.test %}
+{% breadcrumb answer.test_submission answer.test_submission %}
+{% breadcrumb answer %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+
+<legend>Решение задачи {{ question.number }}</legend>
+<p>{{ answer.question.text }}</p>
+{% if answer.question.answer_type == 1 %}
+    <label class="text-muted">Ответ:
+        <p>{{ answer.text }}</p>
+    </label>
+{% elif answer.question.answer_type == 2 %}
+    <ul class="list-group mb-3">
+        {% for option in answer.question.option_set.all %}
+        <li class="list-group-item {% if option in answer.options.all %}{% if option.is_right %}text-success{% else %}text-danger{% endif %}{% endif %}">
+            {% if option in answer.options.all %}{% if option.is_right %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% else %}<i class="fa fa-times-circle-o" aria-hidden="true"></i>{% endif %}{% endif %} {{ option.text }}
+        </li>
+        {% endfor %}
+    </ul>
+{% elif answer.question.answer_type == 3 %}
+    <samp>{{ answer.file.name }}</samp>
+    {% if text %}
+        <div class="alert alert-light border mt-2">{{ text|safe }}</div>
+    {% elif image %}
+        <div class="alert alert-light border mt-2">
+            <img src="{{ image }}" alt="Изображение" style="width: 100%">
+        </div>
+    {% endif %}
+    {% if answer.file %}
+    <p>
+        <a href="{{ answer.file.url }}" class="btn btn-light border" title="Скачать файл" target="blank"><i class="fa fa-download fa-fw"></i> Скачать файл</a>
+    </p>
+    {% endif %}
+{% endif %}
+
+{% endblock content %}

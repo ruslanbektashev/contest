@@ -3,9 +3,10 @@ from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 from django.views.generic.base import RedirectView
 from pygments import highlight
-from pygments.lexers import CppLexer
+from pygments.lexers import CppLexer, TextLexer
 from pygments.formatters import HtmlFormatter
 
+import mimetypes
 from datetime import date, datetime
 from markdown import markdown
 
@@ -1625,3 +1626,26 @@ class AnswerCheck(LoginRedirectPermissionRequiredMixin, UpdateView):
     def get_success_url(self):
         answer = self.get_object()
         return reverse('contests:testsubmission-detail', kwargs={'pk': answer.test_submission.id}) + '#question_' + str(answer.question.number)
+
+
+class AnswerDetail(LoginRequiredMixin, DetailView):
+    model = Answer
+    template_name = 'contests/answer/answer_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        answer = self.get_object()
+
+        if answer.question.answer_type in [1, 2]:
+            return context
+
+        filetype, _ = mimetypes.guess_type(url=answer.file.path)
+
+        if 'text' in filetype:
+            content = answer.file.read()
+            formatter = HtmlFormatter(linenos='inline', wrapcode=True)
+            context['text'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), TextLexer(), formatter)
+        elif 'image' in filetype:
+            context['image'] = answer.file.url
+
+        return context
