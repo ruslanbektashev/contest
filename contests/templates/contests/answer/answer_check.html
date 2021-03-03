@@ -34,10 +34,22 @@
     Тесты проверяются автоматически.
 </div>
 {% elif answer.question.answer_type == 3 %}
-{% if answer.file %}
-<p>
-    <a href="{{ answer.file.url }}" class="btn btn-light border" title="Скачать файл" target="blank"><i class="fa fa-download fa-fw"></i> Скачать файл</a>
-</p>
+{% if text or image %}
+        <p>
+            <samp>{{ answer.file.name }}</samp>
+        </p>
+        <div class="alert alert-light border mt-2">
+        {% if text %}
+            {{ text|safe }}
+        {% elif image %}
+            <img src="{{ image }}" alt="Изображение" style="width: 100%">
+        {% endif %}
+        </div>
+    {% endif %}
+    {% if answer.file %}
+    <p>
+        <a href="{{ answer.file.url }}" class="btn btn-light border" title="Скачать файл" target="blank"><i class="fa fa-download fa-fw"></i> Скачать файл</a>
+    </p>
 {% endif %}
 {% endif %}
 

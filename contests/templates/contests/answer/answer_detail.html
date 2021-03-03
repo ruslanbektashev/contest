@@ -31,12 +31,16 @@
         {% endfor %}
     </ul>
 {% elif answer.question.answer_type == 3 %}
-    <samp>{{ answer.file.name }}</samp>
-    {% if text %}
-        <div class="alert alert-light border mt-2">{{ text|safe }}</div>
-    {% elif image %}
+    {% if text or image %}
+        <p>
+            <samp>{{ answer.file.name }}</samp>
+        </p>
         <div class="alert alert-light border mt-2">
+        {% if text %}
+            {{ text|safe }}
+        {% elif image %}
             <img src="{{ image }}" alt="Изображение" style="width: 100%">
+        {% endif %}
         </div>
     {% endif %}
     {% if answer.file %}
