@@ -3,6 +3,7 @@ from django.dispatch import receiver
 
 from accounts.models import Activity, Comment
 from support.models import Report
+from contests.models import Submission
 
 
 @receiver(post_save, sender=Report)
@@ -25,7 +26,7 @@ def receive_comment_signal(sender, instance, created, **kwargs):
             return comment.object.problem.contest.course
 
     course = get_course_for_comment(instance)
-    users = course.subscription_set.exclude(user=instance.author).values_list('id', flat=True)
+    users = course.subscription_set.exclude(user=instance.author).values_list('user_id', flat=True)
     if instance.author_id != instance.object.owner_id:
         user_set = set(users)
         user_set.add(instance.object.owner_id)
@@ -33,3 +34,12 @@ def receive_comment_signal(sender, instance, created, **kwargs):
     action = "оставил комментарий" if created else "изменил комментарий"
     Activity.objects.notify_users(users, subject=instance.author, action=action, object=instance,
                                   reference=instance.object)
+
+
+@receiver(post_save, sender=Submission)
+def receive_submission_signal(sender, instance, created, **kwargs):
+    if created:
+        course = instance.problem.contest.course
+        users = course.subscription_set.values_list('user_id', flat=True)
+        action = "отправил посылку"
+        Activity.objects.notify_users(users, subject=instance.owner, action=action, object=instance)
