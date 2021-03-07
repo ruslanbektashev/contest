@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load views %}
+
+{% block title %}
+Расписание
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Расписание" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Расписание</legend>
+{% now 'Y-m-d' as current_date %}
+<div class="list-group mb-3">
+    {% for obj in schedules %}
+        <a href="{{ obj.get_absolute_url }}" class="list-group-item list-group-item-action">{{ obj }}{% if obj.is_current %} <span class="numtus badge-primary align-middle">Текущее</span>{% elif obj.is_upcoming %} <span class="numtus badge-success align-middle">Будущее</span>{% endif %}</a>
+    {% endfor %}
+</div>
+{% endblock content %}
+
+{% block submenu %}
+<div class="list-group mb-3">
+    {% if perms.schedule.add_schedule %}
+    <a href="{% url 'schedule:schedule-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить расписание</a>
+    {% endif %}
+</div>
+{% endblock submenu %}

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views contests markdown static %}
+{% load views accounts contests markdown static %}
 
 {% block title %}
 Раздел
@@ -25,11 +25,12 @@
            id="problems-tab" role="tab">Задачи</a>
     </li>
     <li class="nav-item">
-        {% with contest.comment_set.actual.count as comments_count %}
-        <a class="nav-link" href="{% url 'contests:contest-discussion' contest.id %}" id="discussion-tab" role="tab">
-            Обсуждение{% if comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ comments_count }}</span>{% endif %}
-        </a>
-        {% endwith %}
+        {% render_discussion_tab contest %}
+    </li>
+    <li class="nav-item">
+        <a aria-controls="testsuites" aria-selected="{% if tab == 'testsuites' %}true{% else %}false{% endif %}"
+           class="nav-link {% if tab == '' %}active{% endif %}" data-toggle="tab" href="#testsuites"
+           id="testsuites-tab" role="tab">Тесты</a>
     </li>
 </ul>
 <div class="tab-content">
@@ -38,7 +39,10 @@
         {% render_attachment_list contest %}
     </div>
     <div aria-labelledby="problems-tab" class="tab-pane fade {% if tab == 'problems' %}show active{% endif %}" id="problems" role="tabpanel">
-        {% render_list contest.problem_set.all %}
+        {% include 'list.html' with lst=contest.problem_set.all %}
+    </div>
+    <div aria-labelledby="testsuites-tab" class="tab-pane fade {% if tab == 'testsuites' %}show active{% endif %}" id="testsuites" role="tabpanel">
+        {% include 'list.html' with lst=contest.testsuite_set.all %}
     </div>
 </div>
 {% endblock content %}
@@ -55,6 +59,9 @@
 <div class="list-group mb-3">
     {% if perms.contests.add_problem %}
     <a href="{% url 'contests:problem-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить задачу</a>
+    {% endif %}
+    {% if perms.contests.add_testsuite %}
+    <a href="{% url 'contests:testsuite-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить набор тестов</a>
     {% endif %}
 </div>
 {% endblock submenu %}

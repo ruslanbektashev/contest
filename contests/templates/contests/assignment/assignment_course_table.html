@@ -7,7 +7,7 @@
                 <th>Студент</th>
                 {% for contest in contests %}
                 <th>
-                    <a href="{{ contest.get_absolute_url }}" title="{{ contest }}">{{ forloop.counter }}</a>
+                    <a href="{{ contest.get_absolute_url }}" title="{{ contest }}">{{ contest.number }}</a>
                 </th>
                 {% endfor %}
                 <th class="text-center" style="width: 8%;">Зачет</th>
@@ -40,6 +40,8 @@
                     {% endif %}
                 </td>
             </tr>
+            {% empty %}
+            <tr><td colspan="{{ contests|length|add:"3" }}" class="text-center">нет заданий</td></tr>
             {% endfor %}
         </tbody>
     </table>

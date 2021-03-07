@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load views contests comments markdown static %}
+
+{% block title %}
+Посылка
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb testsuitesubmission.testsuite.contest.course testsuitesubmission.testsuite.contest.course %}
+{% breadcrumb testsuitesubmission.testsuite.contest testsuitesubmission.testsuite.contest %}
+{% breadcrumb testsuitesubmission.testsuite testsuitesubmission.testsuite %}
+{% breadcrumb testsuitesubmission.id %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Решение {{ testsuitesubmission.id }}</legend>
+<table class="table table-sm">
+    <tr><td class="text-right" style="width: 20%;">Автор</td><td><a href="{{ testsuitesubmission.owner.account.get_absolute_url }}">{{ testsuitesubmission.owner.account }}</a></td></tr>
+    <tr><td class="text-right" style="width: 20%;">К набору тестов</td><td><a href="{{ testsuitesubmission.testsuite.get_absolute_url }}">{{ testsuitesubmission.testsuite }}</a></td></tr>
+    <tr><td class="text-right" style="width: 20%;">Отправлено</td><td>{{ testsuitesubmission.date_created }}</td></tr>
+</table>
+<legend class="mb-3">Результаты</legend>
+{% for testsubmission in testsubmissions %}
+<div class="card mb-4">
+    <div class="card-header">
+        Тест {{ testsubmission.number }}
+    </div>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">{{ testsubmission.question|markdown|safe }}</li>
+        <li class="list-group-item">
+            <span class="text-muted">Ваш ответ:</span> {{ testsubmission.answer }}
+            <span class="badge badge-{{ testsubmission.status|colorize }} ml-1"> {{ testsubmission.get_status_display }} </span>
+        </li>
+    </ul>
+</div>
+{% endfor %}
+
+
+<legend>Комментарии</legend>
+{% render_comments testsuitesubmission comments %}
+{% endblock content %}
+
+{% block submenu %}
+<div class="list-group mb-3">
+    {% if perms.contests.delete_testsuitesubmission %}
+    <a href="{% url 'contests:testsuitesubmission-delete' testsuitesubmission.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить посылку</a>
+    {% endif %}
+</div>
+{% endblock submenu %}
+
+{% block javascript %}
+<script src="{% static 'waypoints/lib/jquery.waypoints.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'waypoints/lib/shortcuts/infinite.min.js' %}" type="text/javascript"></script>
+<script>
+    var infinite = new Waypoint.Infinite({
+        element: $('.comment-list')[0],
+        items: '.comment-list-item',
+        more: '.comment-list-more'
+    });
+</script>
+{% endblock javascript %}

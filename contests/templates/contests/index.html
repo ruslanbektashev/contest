@@ -9,13 +9,14 @@
 <div class="row">
     {% for course in courses %}
     <div class="col-12 col-md-6 mb-3">
-        <div class="card">
+        <div class="card shadow-sm">
             <div class="card-header">
                 <a href="{% url 'contests:course-detail' course.id %}">{{ course.title }}</a>
             </div>
-            <table class="table table-sm mb-1" title="последние посылки по заданиям">
+            {% with latest_submissions=course.get_latest_submissions|slice:':3' %}
+            <table class="table table-sm {% if not latest_submissions %}table-borderless{% endif %} mb-1" title="последние посылки по заданиям" style="min-height: 98px;">
                 <tbody>
-                    {% for submission in course.get_latest_submissions|slice:':3' %}
+                    {% for submission in latest_submissions %}
                     <tr>
                         <td class="text-right" style="width: 18%;">{{ submission.date_created|date:'d.m.y' }}</td>
                         <td>
@@ -27,9 +28,14 @@
                             </a>
                         </td>
                     </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="text-center">&nbsp;</td></tr>
+                    <tr><td colspan="3" class="text-center">нет посылок</td></tr>
+                    <tr><td colspan="3" class="text-center">&nbsp;</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
+            {% endwith %}
             <div class="card-footer text-right lake p-1">
                 <a href="{% url 'contests:submission-list' course.id %}" class="btn btn-light btn-sm pebble">Посылки <i class="fa fa-tasks fa-fw"></i></a>
                 <a href="{% url 'contests:assignment-table' course.id %}" class="btn btn-light btn-sm pebble">Таблица <i class="fa fa-table fa-fw"></i></a>
@@ -43,6 +49,6 @@
 {% block submenu %}
 <div class="list-group mb-3">
     <a href="{% url 'contests:submission-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
-    <a href="{% url 'accounts:account-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-users fa-fw"></i> Студенты</a>
+    <a href="{% url 'accounts:account-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-users fa-fw"></i> Пользователи</a>
 </div>
 {% endblock submenu %}

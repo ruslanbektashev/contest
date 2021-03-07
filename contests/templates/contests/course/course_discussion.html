@@ -1,73 +1,27 @@
-{% extends 'base.html' %}
-{% load views comments markdown static %}
-
-{% block title %}
-Курс
-{% endblock title %}
-
-{% block breadcrumbs %}
-{% breadcrumb "Главная" 'contests:index' %}
-{% breadcrumb course %}
-{% endblock breadcrumbs %}
+{% extends 'contests/course/course_detail.html' %}
+{% load comments contests markdown static %}
 
 {% block content %}
 <legend>{{ course }} <small class="text-muted">{{ course.get_level_display }}</small></legend>
 <ul class="nav nav-tabs mb-3" role="tablist">
     <li class="nav-item">
-        <a aria-controls="description" aria-selected="false" class="nav-link" data-toggle="tab" href="#description" id="description-tab"
-           role="tab">Описание</a>
+        <a aria-controls="description" aria-selected="false" class="nav-link" data-toggle="tab" href="#description"
+           id="description-tab" role="tab">Описание</a>
     </li>
     <li class="nav-item">
-        <a aria-controls="contests" aria-selected="false" class="nav-link" data-toggle="tab" href="#contests" id="contests-tab"
-           role="tab">Разделы</a>
-    </li>
-    <li class="nav-item">
-        {% with course.comment_set.actual.count as comments_count %}
-        <a aria-controls="discussion" aria-selected="true" class="nav-link active" data-toggle="tab" href="#discussion" id="discussion-tab" role="tab">
-            Обсуждение{% if comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ comments_count }}</span>{% endif %}
-        </a>
-        {% endwith %}
+        {% render_discussion_tab course %}
     </li>
 </ul>
 <div class="tab-content">
     <div aria-labelledby="description-tab" class="tab-pane fade " id="description" role="tabpanel">
         <p>{{ course.description|markdown|safe }}</p>
-    </div>
-    <div aria-labelledby="contests-tab" class="tab-pane fade" id="contests" role="tabpanel">
-        {% render_list course.contest_set.all %}
+        {% include 'list.html' with lst=course.contest_set.all title="Разделы:" %}
     </div>
     <div aria-labelledby="discussion-tab" class="tab-pane fade show active" id="discussion" role="tabpanel">
         {% render_comments course comments %}
     </div>
 </div>
 {% endblock content %}
-
-{% block submenu %}
-<div class="list-group mb-3">
-    {% if perms.contests.view_assignment_table %}
-    <a href="{% url 'contests:assignment-table' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-table fa-fw"></i> Таблица заданий</a>
-    {% endif %}
-    {% if perms.contests.view_submission_list %}
-    <a href="{% url 'contests:submission-list' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
-    {% endif %}
-</div>
-<div class="list-group mb-3">
-    {% if perms.contests.change_course %}
-    <a href="{% url 'contests:course-update' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать курс</a>
-    {% endif %}
-    {% if perms.contests.delete_course %}
-    <a href="{% url 'contests:course-delete' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить курс</a>
-    {% endif %}
-</div>
-<div class="list-group mb-3">
-    {% if perms.contests.add_lecture %}
-    <a href="{% url 'contests:lecture-create' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить лекцию</a>
-    {% endif %}
-    {% if perms.contests.add_contest %}
-    <a href="{% url 'contests:contest-create' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить раздел</a>
-    {% endif %}
-</div>
-{% endblock submenu %}
 
 {% block javascript %}
 <script src="{% static 'MathJax/es5/tex-chtml.js' %}" type="text/javascript"></script>

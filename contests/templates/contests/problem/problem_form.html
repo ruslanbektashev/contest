@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views forms %}
+{% load views forms static %}
 
 {% block title %}
 Задача
@@ -22,40 +22,34 @@
 <form action="" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}
     {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+    {% render_field form.contest %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {{ form.media }}
     {% render_field form.title class+="form-control" %}
     {% render_field form.description class+="form-control" %}
+    {% render_field form.number class+="form-control" %}
     {% render_field form.difficulty class+="form-control selectpicker" %}
     {% render_field form.language class+="form-control selectpicker" %}
     {% render_field form.compile_args class+="form-control" %}
     {% render_field form.launch_args class+="form-control" %}
     {% render_field form.time_limit class+="form-control" %}
     {% render_field form.memory_limit class+="form-control" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" %}
+    {% render_field form.is_testable class+="custom-control-input" %}
     {% endwith %}
-    <div class="form-group">
-        <div class="custom-control custom-switch">
-            {% render_field form.is_testable class+="custom-control-input" %}
-            <label class="custom-control-label" for="{{ form.is_testable.id_for_label }}">{{ form.is_testable.label }}{{ form.is_testable.label_suffix }}</label>
-        </div>
-        {% if form.is_testable.help_text %}
-        <small class="form-text text-muted">{{ form.is_testable.help_text }}</small>
-        {% endif %}
-    </div>
-    <div class="form-group">
-        <div class="custom-file">
-            {% with is_invalid=form.files.errors|yesno:"is-invalid," %}
-            {% render_field form.files class+="custom-file-input" class+=is_invalid %}
-            {% endwith %}
-            <label class="custom-file-label" for="{{ form.files.id_for_label }}">{{ form.files.label }}</label>
-            {% if form.files.errors %}
-            <div class="invalid-feedback">
-                {% for error in form.files.errors %}
-                {{ error }}
-                {% endfor %}
-            </div>
-            {% endif %}
-        </div>
-    </div>
+    {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" %}
+    {% render_field form.files class+="custom-file-input" %}
+    {% endwith %}
+    {% endwith %}
     {% render_submit_button value="Сохранить" %}
 </form>
 {% endblock content %}
+
+{% block javascript %}
+<script src="{% static 'js/bs-custom-file-input.min.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+$(function () {
+    bsCustomFileInput.init()
+});
+</script>
+{% endblock javascript %}

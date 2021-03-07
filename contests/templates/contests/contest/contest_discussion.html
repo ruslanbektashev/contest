@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views contests comments markdown static %}
+{% load views accounts contests comments markdown static %}
 
 {% block title %}
 Раздел
@@ -23,11 +23,7 @@
            role="tab">Задачи</a>
     </li>
     <li class="nav-item">
-        {% with contest.comment_set.actual.count as comments_count %}
-        <a aria-controls="discussion" aria-selected="true" class="nav-link active" data-toggle="tab" href="#discussion" id="discussion-tab" role="tab">
-            Обсуждение{% if comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ comments_count }}</span>{% endif %}
-        </a>
-        {% endwith %}
+        {% render_discussion_tab contest %}
     </li>
 </ul>
 <div class="tab-content">
@@ -36,7 +32,7 @@
         {% render_attachment_list contest %}
     </div>
     <div aria-labelledby="problems-tab" class="tab-pane fade" id="problems" role="tabpanel">
-        {% render_list contest.problem_set.all %}
+        {% include 'list.html' with lst=contest.problem_set.all %}
     </div>
     <div aria-labelledby="discussion-tab" class="tab-pane fade show active" id="discussion" role="tabpanel">
         {% render_comments contest comments %}

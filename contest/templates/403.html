@@ -1,0 +1,18 @@
+{% extends 'base_wide.html' %}
+{% load views %}
+
+{% block title %}
+Доступ запрещен
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Доступ запрещен" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4"><i class="fa fa-ban"></i> Доступ запрещен </h1>
+    <p class="lead">У Вас недостаточно прав для просмотра этой страницы.</p>
+</div>
+{% endblock content %}

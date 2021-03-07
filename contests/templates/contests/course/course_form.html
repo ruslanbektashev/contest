@@ -20,10 +20,11 @@
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.title class+="form-control" %}
     {% render_field form.description class+="form-control" %}
     {% render_field form.level class+="form-control selectpicker" %}
+    {% render_field form.leaders class+="form-control selectpicker" %}
     {% endwith %}
     {% render_submit_button value="Сохранить" %}
 </form>

@@ -1,6 +1,7 @@
 import os
 import re
 
+from ckeditor.widgets import CKEditorWidget
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
@@ -9,10 +10,16 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
-from contests.models import Attachment, Contest, Problem, Solution, UTTest, FNTest, Assignment, Submission, Event
+from contests.models import (Attachment, Course, Contest, Problem, Solution, UTTest, FNTest, Assignment, Submission,
+                             Event, TestSuite, Test, TestSuiteSubmission, TestSubmission)
 
 
 class UserChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return "{} {}".format(obj.last_name, obj.first_name)
+
+
+class UserMultipleChoiceField(forms.ModelMultipleChoiceField):
     def label_from_instance(self, obj):
         return "{} {}".format(obj.last_name, obj.first_name)
 
@@ -84,6 +91,21 @@ class AttachmentForm(forms.ModelForm):
         return obj
 
 
+"""===================================================== Course ====================================================="""
+
+
+class CourseForm(forms.ModelForm):
+    leaders = UserMultipleChoiceField(queryset=User.objects.none(), label="Ведущие преподаватели")
+
+    class Meta:
+        model = Course
+        fields = ['leaders', 'title', 'description', 'level']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['leaders'].queryset = User.objects.filter(account__type=3)
+
+
 """===================================================== Credit ====================================================="""
 
 
@@ -111,7 +133,8 @@ class ContestForm(AttachmentForm):
 
     class Meta:
         model = Contest
-        fields = ['title', 'description']
+        fields = ['course', 'title', 'description', 'number']
+        widgets = {'course': forms.HiddenInput}
 
 
 """==================================================== Problem ====================================================="""
@@ -120,8 +143,9 @@ class ContestForm(AttachmentForm):
 class ProblemForm(AttachmentForm):
     class Meta:
         model = Problem
-        fields = ['title', 'description', 'difficulty', 'language', 'compile_args', 'launch_args', 'time_limit',
-                  'memory_limit', 'is_testable']
+        fields = ['contest', 'title', 'description', 'number', 'difficulty', 'language', 'compile_args', 'launch_args',
+                  'time_limit', 'memory_limit', 'is_testable']
+        widgets = {'contest': forms.HiddenInput}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -346,3 +370,35 @@ class EventForm(forms.ModelForm):
     class Meta:
         model = Event
         fields = ['tutor', 'title', 'type', 'place', 'date_start', 'date_end', 'tags']
+
+
+"""=================================================== TestSuite ===================================================="""
+
+
+class TestSuiteForm(forms.ModelForm):
+    class Meta:
+        model = TestSuite
+        fields = ['title', 'description']
+
+
+class TestForm(forms.ModelForm):
+    question = forms.CharField(widget=CKEditorWidget(), label="Вопрос")
+
+    class Meta:
+        model = Test
+        fields = ['question', 'right_answer']
+
+
+"""============================================== TestSuiteSubmission ==============================================="""
+
+
+class TestSuiteSubmissionForm(forms.ModelForm):
+    class Meta:
+        model = TestSuiteSubmission
+        fields = []
+
+
+class TestSubmissionForm(forms.ModelForm):
+    class Meta:
+        model = TestSubmission
+        fields = ['answer']

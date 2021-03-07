@@ -4,6 +4,7 @@ import os
 import random
 import zipfile
 
+from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -14,7 +15,7 @@ from django.dispatch import receiver
 from django.urls import reverse
 
 from contest.abstract import CDEntry, CRDEntry, CRUDEntry
-from accounts.models import Account, Comment, Activity
+from accounts.models import Account, Comment, Activity, Subscription
 
 try:
     from tools.sandbox import Sandbox
@@ -80,11 +81,14 @@ class Course(CRUDEntry):
         (8, "4 курс, 2 семестр"),
     )
 
+    leaders = models.ManyToManyField(User, related_name="courses_leading", verbose_name="Ведущие преподаватели")
+
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     description = models.TextField(verbose_name="Описание")
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, verbose_name="Уровень")
 
     comment_set = GenericRelation(Comment, content_type_field='object_type')
+    subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
     class Meta(CRUDEntry.Meta):
         ordering = ('level',)
@@ -162,18 +166,32 @@ class Lecture(CRUDEntry):
 """==================================================== Contest ====================================================="""
 
 
+class ContestManager(models.Manager):
+    def get_new_number(self, course):
+        return self.filter(course=course).aggregate(models.Max('number')).get('number__max', 0) + 1
+
+
 class Contest(CRUDEntry):
+    DEFAULT_NUMBER = 1
+
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Курс")
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     description = models.TextField(verbose_name="Описание")
 
+    number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер")
+
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
+    subscription_set = GenericRelation(Subscription, content_type_field='object_type')
+
+    objects = ContestManager()
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Раздел"
         verbose_name_plural = "Разделы"
+        unique_together = ('course', 'number')
+        ordering = ('number', 'id')
 
     @property
     def files(self):
@@ -183,10 +201,15 @@ class Contest(CRUDEntry):
         return reverse('contests:contest-discussion', kwargs={'pk': self.pk})
 
     def __str__(self):
-        return "%s" % self.title
+        return "#%i. %s" % (self.number, self.title)
 
 
 """==================================================== Problem ====================================================="""
+
+
+class ProblemManager(models.Manager):
+    def get_new_number(self, contest):
+        return self.filter(contest=contest).aggregate(models.Max('number')).get('number__max', 0) + 1
 
 
 class Problem(CRUDEntry):
@@ -204,13 +227,14 @@ class Problem(CRUDEntry):
     DEFAULT_LANGUAGE = 'C++'
     DEFAULT_TIME_LIMIT = 1
     DEFAULT_MEMORY_LIMIT = 64 * 1024
+    DEFAULT_NUMBER = 1
 
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
-    description = models.TextField(verbose_name="Описание")
+    description = RichTextUploadingField(verbose_name="Описание")
 
-    number = models.PositiveSmallIntegerField(default=1, verbose_name="Номер")
+    number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер")
     difficulty = models.PositiveSmallIntegerField(choices=DIFFICULTY_CHOICES, default=DEFAULT_DIFFICULTY, verbose_name="Сложность")
     language = models.CharField(max_length=8, choices=LANGUAGE_CHOICES, default=DEFAULT_LANGUAGE, verbose_name="Язык")
     compile_args = models.CharField(max_length=255, blank=True, verbose_name="Параметры компиляции")
@@ -221,20 +245,19 @@ class Problem(CRUDEntry):
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
+    subscription_set = GenericRelation(Subscription, content_type_field='object_type')
+
+    objects = ProblemManager()
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
+        unique_together = ('contest', 'number')
+        ordering = ('number', 'id')
 
     @property
     def files(self):
         return [attachment.file.path for attachment in self.attachment_set.all()]
-
-    def save(self, *args, **kwargs):
-        if self.pk is None:
-            max_number = Problem.objects.filter(contest=self.contest).aggregate(models.Max('number')).get('number__max', 0) or 0
-            self.number = max_number + 1
-        super().save(*args, **kwargs)
 
     def get_latest_submission_by(self, user):
         try:
@@ -392,11 +415,14 @@ class FNTest(CRUDEntry):
         ('mem.init', "менеджер памяти: тривиальный"),
         ('mem.comm', "менеджер памяти: общий"),
         ('mem.spec', "менеджер памяти: специальный"),
-        ('lss.init', "линейные системы: тривиальный"),
+        ('lss.initial', "линейные системы: тривиальный"),
         ('lss.main', "линейные системы: основной"),
-        ('lss.degn', "линейные системы: вырожденная матрица"),
-        ('lss.insl', "линейные системы: несовместная матрица"),
-        ('lss.degm', "линейные системы: вырожденный минор"),
+        ('lss.worst_lu', "линейные системы: worst lu"),
+        ('lss.worst_lu_t', "линейные системы: worst lu t"),
+        ('lss.large', "линейные системы: большие размерности"),
+        ('lss.degenerate', "линейные системы: вырожденная матрица"),
+        ('lss.insoluble', "линейные системы: несовместная матрица"),
+        ('lss.degenerate_major_minor', "линейные системы: вырожденный минор"),
         ('evc.init', "собственные значения: тривиальный"),
         ('evc.main', "собственные значения: основной"),
         ('evc.extd', "собственные значения: расширенный"),
@@ -485,6 +511,7 @@ class Assignment(CRUDEntry):
     remark = models.CharField(max_length=255, blank=True, verbose_name="Пометка", help_text="для преподавателей")
 
     comment_set = GenericRelation(Comment, content_type_field='object_type')
+    subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
     objects = AssignmentManager.from_queryset(AssignmentQuerySet)()
 
@@ -550,6 +577,24 @@ class SubmissionQuerySet(models.QuerySet):
         )).filter(rollback=True)
 
 
+class SubmissionManager(models.Manager):
+    def backup(self, submission_list):
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, 'w') as zip_file:
+            for submission in submission_list:
+                for f in submission.files:
+                    _, filename = os.path.split(f)
+                    zip_path = "{contest_id}/{problem_num}/{user_id}/{submission_id}/{filename}".format(
+                        contest_id=submission.problem.contest_id,
+                        problem_num=submission.problem.number,
+                        user_id=submission.owner_id,
+                        submission_id=submission.id,
+                        filename=filename
+                    )
+                    zip_file.write(f, zip_path)
+        return stream.getvalue()
+
+
 class Submission(CRDEntry):
     STATUS_CHOICES = (
         ('OK', "Задача решена"),
@@ -582,8 +627,9 @@ class Submission(CRDEntry):
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
+    subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
-    objects = SubmissionQuerySet.as_manager()
+    objects = SubmissionManager.from_queryset(SubmissionQuerySet)()
 
     class Meta(CRDEntry.Meta):
         ordering = ('-date_created',)
@@ -753,3 +799,107 @@ class Event(CRUDEntry):
 
     def __str__(self):
         return "%s: %s" % (self.get_type_display(), self.title)
+
+
+"""=================================================== TestSuite ===================================================="""
+
+
+class TestSuite(CRUDEntry):
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
+    title = models.CharField(max_length=100, verbose_name="Заголовок")
+    description = RichTextUploadingField(verbose_name="Описание")
+
+    class Meta(CRUDEntry.Meta):
+        verbose_name = "Набор тестов"
+        verbose_name_plural = "Наборы тестов"
+
+    def __str__(self):
+        return self.title
+
+
+class Test(CRUDEntry):
+    owner = None
+
+    testsuite = models.ForeignKey(TestSuite, on_delete=models.CASCADE, verbose_name="Набор тестов")
+
+    number = models.PositiveSmallIntegerField(default=1, verbose_name="Номер")
+    question = models.TextField(verbose_name="Вопрос")
+    right_answer = models.CharField(max_length=250, verbose_name="Правильный ответ")
+
+    class Meta(CRUDEntry.Meta):
+        verbose_name = "Тест"
+        verbose_name_plural = "Тесты"
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            max_number = Test.objects.filter(testsuite=self.testsuite).aggregate(models.Max('number')).get('number__max', 0) or 0
+            self.number = max_number + 1
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return 'Тест ' + str(self.number)
+
+
+"""============================================== TestSuiteSubmission ==============================================="""
+
+
+class TestSuiteSubmission(CRUDEntry):
+    testsuite = models.ForeignKey(TestSuite, on_delete=models.CASCADE, verbose_name="Набор тестов")
+    score = models.PositiveSmallIntegerField(default=0, verbose_name="Процент правильных ответов")
+
+    class Meta(CRUDEntry.Meta):
+        verbose_name = "Решение набора тестов"
+        verbose_name_plural = "Решения наборов тестов"
+
+    def update_score(self):
+        self.score = self.testsubmission_set.filter(status="OK").count() * 100 // self.testsuite.test_set.count()
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            self.update_score()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return "Решение набора тестов " + str(self.id)
+
+
+class TestSubmission(CRUDEntry):
+    STATUS_CHOICES = (
+        ('OK', "Верный ответ"),
+        ('WA', "Неверный ответ"),
+        ('UN', "Не проверено")
+    )
+    DEFAULT_STATUS = 'UN'
+
+    owner = None
+    testsuitesubmission = models.ForeignKey(TestSuiteSubmission, on_delete=models.CASCADE, verbose_name="Решение набора тестов")
+
+    number = models.PositiveSmallIntegerField(default=1, verbose_name="Номер")
+    answer = models.CharField(max_length=250, verbose_name="Ответ")
+    status = models.CharField(max_length=2, choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
+
+    class Meta(CRUDEntry.Meta):
+        verbose_name = "Ответ на тест"
+        verbose_name_plural = "Ответы на тесты"
+
+    def test(self):
+        test = self.testsuitesubmission.testsuite.test_set.get(number=self.number)
+        if self.answer == test.right_answer:
+            return 'OK'
+        else:
+            return 'WA'
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            max_number = TestSubmission.objects.filter(testsuitesubmission=self.testsuitesubmission).aggregate(models.Max('number')).get('number__max', 0) or 0
+            self.number = max_number + 1
+
+        self.status = self.test()
+        super().save(*args, **kwargs)
+
+    @property
+    def question(self):
+        return self.testsuitesubmission.testsuite.test_set.get(number=self.number).question
+
+    def __str__(self):
+        return "Ответ на тест " + str(self.number)

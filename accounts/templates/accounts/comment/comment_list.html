@@ -1,14 +1,14 @@
-{% load comments markdown humanize static %}
+{% load views accounts comments markdown humanize static %}
 {% render_comment_form obj %}
 {% if page_obj.has_previous %}
 <a class="btn btn-block btn-link mb-4" href="?page=1"><i class="fa fa-ellipsis-h fa-lg"></i></a>
 {% endif %}
-<div class="comment-list">
+<div id="comments" class="comment-list">
     {% for comment in comments %}
-    <div class="d-flex comment-list-item col{{ comment.level|add:'-13' }} offset-{{ comment.level|add:'-1' }} mb-3">
+    <div class="d-flex comment-list-item col{{ comment.level|add:'-13' }} offset-{{ comment.level|add:'-1' }} mb-3 p-3 rounded {% if comment not in request.user.account.comments_read.all and comment.author_id != request.user.id %}bg-light" data-unread=true{% else %}"{% endif %} data-id={{ comment.id }} >
         <a id="comment_{{ comment.id }}" class="comment-anchor">&nbsp</a>
         <div class="comment-avatar mr-3">
-            <img src="{% static 'comment-avatar.png' %}">
+            <img src="{% static 'comment-avatar.png' %}" alt="Изображение профиля">
         </div>
         <div class="comment-main">
             <div class="comment-header mb-1 d-flex lake">
@@ -46,3 +46,16 @@
 {% if page_obj.has_next %}
 <a class="comment-list-more btn btn-block btn-link" href="?page={{ page_obj.next_page_number }}">еще</a>
 {% endif %}
+
+{% block javascript %}
+<script type="text/javascript" src="{% static 'js/comments.js' %}"></script>
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function(event) {
+    let watcher = new ReadWatcher("{% url 'accounts:mark-comments-as-read' %}");
+    if(parseInt('{% unread_comments_count request.user.account obj %}') > 0) {
+        window.addEventListener('scroll', watcher, false);
+    }
+    setTimeout(watcher.markCommentsAsRead.bind(watcher), 1000);
+});
+</script>
+{% endblock %}

@@ -1,5 +1,9 @@
 // Required
 $font-size-base: .875rem;
+$custom-file-text: (
+  en: "Browse",
+  ru: "Выбрать"
+);
 
 @import "../../bower_components/bootstrap/scss/functions";
 @import "../../bower_components/bootstrap/scss/variables";

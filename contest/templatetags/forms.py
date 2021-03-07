@@ -180,9 +180,9 @@ class FieldAttributeNode(template.Node):
         if field and field.required and 'WIDGET_REQUIRED_CLASS' in context:
             bounded_field = append_attr(bounded_field, 'class:%s' % context['WIDGET_REQUIRED_CLASS'])
         for k, v in self.set_attrs:
-            bounded_field = set_attr(bounded_field, '%s:%s' % (k,v.resolve(context)))
+            bounded_field = set_attr(bounded_field, '%s:%s' % (k, v.resolve(context)))
         for k, v in self.append_attrs:
-            bounded_field = append_attr(bounded_field, '%s:%s' % (k,v.resolve(context)))
+            bounded_field = append_attr(bounded_field, '%s:%s' % (k, v.resolve(context)))
         if 'WIDGET_RENDER_TO_TEMPLATE' in context:
             context_dict = context.flatten()
             context_dict['field'] = bounded_field

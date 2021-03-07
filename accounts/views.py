@@ -1,11 +1,15 @@
+import json
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView, TemplateView
 from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.contenttypes.models import ContentType
 from markdown import markdown
 
 from accounts.templatetags.comments import get_comment_query_string
@@ -13,9 +17,24 @@ from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectO
                             PaginatorMixin)
 from accounts.forms import (AccountPartialForm, AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm,
                             CommentForm)
-from accounts.models import Account, Activity, Comment, Message, Chat, Announcement
+from accounts.models import Account, Activity, Comment, Message, Chat, Announcement, Subscription
 
 """==================================================== Account ====================================================="""
+
+
+@csrf_exempt
+def mark_comments_as_read(request):
+    account = request.user.account
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except:
+        return JsonResponse({'status': 'bad_request'})
+    unread_comments_ids = data.get('unread_comments_ids', None)
+    if unread_comments_ids:
+        unread_comments = Comment.objects.filter(id__in=unread_comments_ids).exclude(author=request.user)
+        unread_comments = unread_comments.exclude(id__in=account.comments_read.values_list('id', flat=True))
+        account.mark_comments_as_read(unread_comments)
+    return JsonResponse({'status': 'ok'})
 
 
 class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
@@ -59,11 +78,15 @@ class AccountCreateSet(LoginRedirectPermissionRequiredMixin, FormView):
     def post(self, request, *args, **kwargs):
         form = self.get_form()
         if form.is_valid():
-            _, self.request.session['credentials'] = Account.students.create_set(
-                form.cleaned_data['level'],
-                form.cleaned_data['admission_year'],
-                form.cleaned_data['names']
-            )
+            if form.cleaned_data['type'] == 1:
+                _, self.request.session['credentials'] = Account.students.create_set(form.cleaned_data['level'],
+                                                                                     form.cleaned_data['admission_year'],
+                                                                                     form.cleaned_data['names'])
+            else:
+                _, self.request.session['credentials'] = Account.staff.create_set(form.cleaned_data['level'],
+                                                                                  form.cleaned_data['type'],
+                                                                                  form.cleaned_data['admission_year'],
+                                                                                  form.cleaned_data['names'])
             return self.form_valid(form)
         return self.form_invalid(form)
 
@@ -94,6 +117,9 @@ class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView)
             return AccountPartialForm
 
     def get_initial(self):
+        if self.request.user.has_perm('accounts.change_account'):
+            self.initial['first_name'] = self.object.first_name
+            self.initial['last_name'] = self.object.last_name
         self.initial['email'] = self.object.email
         return super().get_initial()
 
@@ -111,6 +137,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
 
     def dispatch(self, *args, **kwargs):
         self.storage['level'] = int(self.request.GET.get('level') or 1)
+        self.storage['type'] = int(self.request.GET.get('type') or 1)
         enrolled, graduated = self.request.GET.get('enrolled'), self.request.GET.get('graduated')
         if enrolled is not None and enrolled == '0':
             self.storage['enrolled'] = False
@@ -125,19 +152,23 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
         if form.is_valid():
             action = request.POST.get('action')
             accounts = form.cleaned_data['accounts']
-            if action == 'level_up':
-                accounts.level_up()
-            elif action == 'level_down':
-                accounts.level_down()
-            elif action == 'reset_password':
+            if action == 'reset_password':
                 self.request.session['credentials'] = accounts.reset_password()
                 return HttpResponseRedirect(reverse('accounts:account-credentials'))
-            elif action == 'enroll':
-                accounts.enroll()
-            elif action == 'expel':
-                accounts.expel()
-            elif action == 'graduate':
-                accounts.graduate()
+            elif self.storage['type'] == 1:
+                if action == 'level_up':
+                    accounts.level_up()
+                elif action == 'level_down':
+                    accounts.level_down()
+                elif action == 'enroll':
+                    accounts.enroll()
+                elif action == 'expel':
+                    accounts.expel()
+                elif action == 'graduate':
+                    accounts.graduate()
+            else:
+                form.add_error(None, "Недопустимое действие для данного типа пользователей")
+                return self.form_invalid(form)
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
@@ -146,7 +177,14 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
         self.object_list = self.get_queryset()
         return self.render_to_response(self.get_context_data(form=form))
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['type'] = self.storage['type']
+        return kwargs
+
     def get_queryset(self):
+        if self.storage['type'] > 1:
+            return Account.staff.filter(type=self.storage['type'])
         if 'enrolled' in self.storage and 'graduated' in self.storage:
             return Account.students.filter(enrolled=self.storage['enrolled'], graduated=self.storage['graduated'])
         return Account.students.enrolled().filter(level=self.storage['level'])
@@ -177,6 +215,57 @@ class AccountCredentials(LoginRedirectPermissionRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['credentials'] = self.storage.pop('credentials')
         return context
+
+
+"""================================================== Subscription =================================================="""
+
+
+class SubscriptionCreate(CreateView):
+    model = Subscription
+    permission_required = 'account.add_subscription'
+
+    def get(self, request, *args, **kwargs):
+        self.object = Subscription(
+            object=ContentType.objects.get(
+                app_label='contests',
+                model=kwargs.pop('object_model')
+            ).get_object_for_this_type(id=kwargs.pop('object_id')),
+            user=self.request.user
+        )
+        self.object.save()
+        self.open_discussion = kwargs.pop('open_discussion')
+        success_url = self.get_success_url()
+        return HttpResponseRedirect(success_url)
+
+    def get_success_url(self):
+        return reverse(
+            'contests:{object_type}-{view_name}'.format(
+                object_type=self.object.object._meta.model_name,
+                view_name='discussion' if self.open_discussion else 'detail'
+            ),
+            kwargs={'pk': self.object.object_id}
+        )
+
+
+class SubscriptionDelete(DeleteView):
+    model = Subscription
+    permission_required = 'account.delete_subscription'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.open_discussion = kwargs.pop('open_discussion')
+        success_url = self.get_success_url()
+        self.object.delete()
+        return HttpResponseRedirect(success_url)
+
+    def get_success_url(self):
+        return reverse(
+            'contests:{object_type}-{view_name}'.format(
+                object_type=self.object.object._meta.model_name,
+                view_name='discussion' if self.open_discussion else 'detail'
+            ),
+            kwargs={'pk': self.object.object_id}
+        )
 
 
 """==================================================== Activity ===================================================="""

@@ -20,16 +20,6 @@ def get_full_path_with_updated_query_string(request, **kwargs):
     return request.path + '?' + '&'.join(['{}={}'.format(key, value) for key, value in _GET.items()])
 
 
-@register.inclusion_tag('list.html')
-def render_list(lst):
-    return {'lst': lst}
-
-
-@register.inclusion_tag('media_list.html')
-def render_media_list(lst):
-    return {'lst': lst}
-
-
 @register.inclusion_tag('page_nav.html', takes_context=True)
 def render_page_nav(context):
     if context['page_obj'].number < 3:

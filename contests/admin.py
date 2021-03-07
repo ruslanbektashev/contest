@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericStackedInline
 
+from contests.forms import CourseForm
 from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, UTTest, FNTest,
-                             Assignment, Submission, Execution, Tag, Event)
+                             Assignment, Submission, Execution, Tag, Event, Test, TestSuite, TestSubmission,
+                             TestSuiteSubmission)
 
 
 class AttachmentInline(GenericStackedInline):
@@ -14,9 +16,10 @@ class AttachmentInline(GenericStackedInline):
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'date_updated', 'date_created')
+    form = CourseForm
     fieldsets = (
         ('Ссылки', {
-            'fields': ('owner',)
+            'fields': ('owner', 'leaders')
         }),
         ('Детали', {
             'fields': ('title', 'description', 'level')
@@ -278,6 +281,82 @@ class EventAdmin(admin.ModelAdmin):
         }),
         ('Даты', {
             'fields': ('date_start', 'date_end', 'date_updated', 'date_created')
+        })
+    )
+    readonly_fields = ('date_updated', 'date_created')
+
+
+@admin.register(Test)
+class TestAdmin(admin.ModelAdmin):
+    list_display = (
+        '__str__',
+    )
+    search_fields = ('title',)
+    fieldsets = (
+        ('Ссылки', {
+            'fields': ('testsuite',)
+        }),
+        ('Детали', {
+            'fields': ('number', 'question', 'right_answer')
+        }),
+        ('Даты', {
+            'fields': ('date_updated', 'date_created')
+        })
+    )
+    readonly_fields = ('date_updated', 'date_created')
+
+
+@admin.register(TestSuite)
+class TestSuiteAdmin(admin.ModelAdmin):
+    list_display = (
+        '__str__',
+    )
+    search_fields = ('title',)
+    fieldsets = (
+        ('Ссылки', {
+            'fields': ('owner',)
+        }),
+        ('Детали', {
+            'fields': ('title', 'description')
+        }),
+        ('Даты', {
+            'fields': ('date_updated', 'date_created')
+        })
+    )
+    readonly_fields = ('date_updated', 'date_created')
+
+
+@admin.register(TestSubmission)
+class TestSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'answer', 'testsuitesubmission')
+    search_fields = ('answer',)
+    fieldsets = (
+        ('Ссылки', {
+            'fields': ('testsuitesubmission', )
+        }),
+        ('Детали', {
+            'fields': ('number', 'answer', 'status')
+        }),
+        ('Даты', {
+            'fields': ('date_updated', 'date_created')
+        })
+    )
+    readonly_fields = ('date_updated', 'date_created')
+
+
+@admin.register(TestSuiteSubmission)
+class TestSuiteSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'testsuite')
+    search_fields = ()
+    fieldsets = (
+        ('Ссылки', {
+            'fields': ('owner', 'testsuite',)
+        }),
+        ('Детали', {
+            'fields': ('score',)
+        }),
+        ('Даты', {
+            'fields': ('date_updated', 'date_created')
         })
     )
     readonly_fields = ('date_updated', 'date_created')

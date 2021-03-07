@@ -12,7 +12,7 @@
 
 {% block content %}
 <legend>Курсы</legend>
-{% render_list courses %}
+{% include 'list.html' with lst=courses %}
 {% endblock content %}
 
 {% block submenu %}

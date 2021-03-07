@@ -1,8 +1,18 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
+{% load views %}
 
-{% block container %}
+{% block title %}
+В разработке
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "В разработке" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
 <div class="jumbotron">
-    <h1 class="display-4">В разработке <i class="fa fa-cog fa-spin"></i></h1>
+    <h1 class="display-4"><i class="fa fa-cog fa-spin"></i> В разработке</h1>
     <p class="lead">Страница находится в разработке и временно недоступна.</p>
 </div>
-{% endblock container %}
+{% endblock content %}

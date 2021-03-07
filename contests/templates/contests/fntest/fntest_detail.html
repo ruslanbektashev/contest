@@ -13,8 +13,7 @@
 {% block content %}
 <legend>{{ fntest }}</legend>
 <p>Обработчик: <code>{{ fntest.handler }}</code></p>
-<p>Задачи:</p>
-{% render_list fntest.problems.all %}
+{% include 'list.html' with lst=fntest.problems.all title="Задачи:" %}
 {% endblock content %}
 
 {% block submenu %}

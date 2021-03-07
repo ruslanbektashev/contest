@@ -1,5 +1,8 @@
 import enum
 
+from django.conf import settings
+from django.views.generic import TemplateView
+
 
 class Status(enum.Enum):
     OK = 14  # Test Passed
@@ -7,7 +10,7 @@ class Status(enum.Enum):
     WA = 12  # Wrong Answer
     NA = 11  # No Answer
 
-    TL = 10   # Time Limit Exceeded
+    TL = 10  # Time Limit Exceeded
     ML = 9   # Memory Limit Exceeded
     CL = 8   # Compilation Time Limit Exceeded
     SF = 7   # Segmentation Fault
@@ -54,3 +57,10 @@ def diff(output, correct, precision=None, check_format=False):
 
 class Sandbox:
     pass
+
+
+def under_development(view):
+    if settings.DEBUG:
+        return view
+    else:
+        return TemplateView.as_view(template_name='under_development.html')

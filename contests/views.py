@@ -1,3 +1,7 @@
+from django.contrib.contenttypes.models import ContentType
+from django.forms import inlineformset_factory
+from django.views.generic.edit import BaseUpdateView
+from django.views.generic.list import BaseListView
 from pygments import highlight
 from pygments.lexers import CppLexer
 from pygments.formatters import HtmlFormatter
@@ -17,11 +21,13 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (CreditSetForm, ContestForm, ProblemForm, SolutionForm, UTTestForm, FNTestForm,
+from contests.forms import (CourseForm, CreditSetForm, ContestForm, ProblemForm, SolutionForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
-                            AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
+                            AssignmentSetForm, EventForm, ProblemRollbackResultsForm, TestSuiteForm, TestForm,
+                            TestSubmissionForm, TestSuiteSubmissionForm)
 from contests.models import (Attachment, Course, Credit, Lecture, Contest, Problem, Solution, IOTest, UTTest, FNTest,
-                             Assignment, Submission, Execution, Event)
+                             Assignment, Submission, Execution, Event, TestSuite, Test, TestSuiteSubmission,
+                             TestSubmission)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 
@@ -47,6 +53,9 @@ class CourseDetail(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tab'] = self.request.GET.get('tab', None)
+        context['subscribers_ids'] = self.object.subscription_set.all().values_list('user', flat=True)
+        if self.request.user.id in context['subscribers_ids']:
+            context['subscription_id'] = self.object.subscription_set.get(user=self.request.user).id
         return context
 
 
@@ -59,15 +68,18 @@ class CourseDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-            context['page_obj'], \
-            context['comments'], \
-            context['is_paginated'] = self.paginate_queryset(comments)
+        context['page_obj'], \
+        context['comments'], \
+        context['is_paginated'] = self.paginate_queryset(comments)
+        context['subscribers_ids'] = self.object.subscription_set.all().values_list('user', flat=True)
+        if self.request.user.id in context['subscribers_ids']:
+            context['subscription_id'] = self.object.subscription_set.get(user=self.request.user).id
         return context
 
 
 class CourseCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Course
-    fields = ['title', 'description', 'level']
+    form_class = CourseForm
     template_name = 'contests/course/course_form.html'
     permission_required = 'contests.add_course'
 
@@ -78,7 +90,7 @@ class CourseCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
 class CourseUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Course
-    fields = ['title', 'description', 'level']
+    form_class = CourseForm
     template_name = 'contests/course/course_form.html'
     permission_required = 'contests.change_course'
 
@@ -235,9 +247,9 @@ class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-            context['page_obj'], \
-            context['comments'], \
-            context['is_paginated'] = self.paginate_queryset(comments)
+        context['page_obj'], \
+        context['comments'], \
+        context['is_paginated'] = self.paginate_queryset(comments)
         return context
 
 
@@ -282,9 +294,13 @@ class ContestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
         return super().dispatch(request, *args, **kwargs)
 
+    def get_initial(self):
+        self.initial['course'] = self.storage['course']
+        self.initial['number'] = Contest.objects.get_new_number(self.storage['course'])
+        return super().get_initial()
+
     def form_valid(self, form):
         form.instance.owner = self.request.user
-        form.instance.course = self.storage['course']
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -331,9 +347,9 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         else:
             submissions = self.object.submission_set.filter(owner_id=self.request.user.id)
         context['paginator'], \
-            context['page_obj'], \
-            context['submissions'], \
-            context['is_paginated'] = self.paginate_queryset(submissions)
+        context['page_obj'], \
+        context['submissions'], \
+        context['is_paginated'] = self.paginate_queryset(submissions)
         return context
 
 
@@ -346,9 +362,9 @@ class ProblemDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-            context['page_obj'], \
-            context['comments'], \
-            context['is_paginated'] = self.paginate_queryset(comments)
+        context['page_obj'], \
+        context['comments'], \
+        context['is_paginated'] = self.paginate_queryset(comments)
         return context
 
 
@@ -423,9 +439,13 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
         return super().dispatch(request, *args, **kwargs)
 
+    def get_initial(self):
+        self.initial['contest'] = self.storage['contest']
+        self.initial['number'] = Problem.objects.get_new_number(self.storage['contest'])
+        return super().get_initial()
+
     def form_valid(self, form):
         form.instance.owner = self.request.user
-        form.instance.contest = self.storage['contest']
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -526,7 +546,8 @@ class IOTestDetail(LoginRedirectPermissionRequiredMixin, DetailView):
 
 class IOTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = IOTest
-    fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input', 'output']
+    fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input',
+              'output']
     template_name = 'contests/iotest/iotest_form.html'
     permission_required = 'contests.add_iotest'
 
@@ -557,7 +578,8 @@ class IOTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
 class IOTestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = IOTest
-    fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input', 'output']
+    fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input',
+              'output']
     template_name = 'contests/iotest/iotest_form.html'
     permission_required = 'contests.change_iotest'
 
@@ -721,9 +743,9 @@ class AssignmentDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         submissions = self.object.get_submissions()
         context['paginator'], \
-            context['page_obj'], \
-            context['submissions'], \
-            context['is_paginated'] = self.paginate_queryset(submissions)
+        context['page_obj'], \
+        context['submissions'], \
+        context['is_paginated'] = self.paginate_queryset(submissions)
         return context
 
 
@@ -736,9 +758,9 @@ class AssignmentDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
         context['paginator'], \
-            context['page_obj'], \
-            context['comments'], \
-            context['is_paginated'] = self.paginate_queryset(comments)
+        context['page_obj'], \
+        context['comments'], \
+        context['is_paginated'] = self.paginate_queryset(comments)
         return context
 
 
@@ -781,7 +803,7 @@ class AssignmentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     def get_success_url(self):
         url = reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
         if self.storage['debts']:
-            url = url + "?debts=1"
+            url += "?debts=1"
         return url
 
 
@@ -820,7 +842,7 @@ class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
     def get_success_url(self):
         url = reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
         if self.storage['debts']:
-            url = url + "?debts=1"
+            url += "?debts=1"
         return url
 
 
@@ -889,7 +911,8 @@ class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
         if self.storage['debts']:
             self.storage['students'] = Account.students.enrolled().debtors(self.storage['course'].level)
         else:
-            self.storage['students'] = Account.students.enrolled().filter(level=self.storage['course'].level).with_credits()
+            self.storage['students'] = Account.students.enrolled().filter(
+                level=self.storage['course'].level).with_credits()
         bool(self.storage['students'])  # evaluate now
         return (Assignment.objects
                 .filter(user__in=self.storage['students'].values_list('user'),
@@ -933,9 +956,9 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
         context['from_url'] = self.storage['from_url']
         comments = self.object.comment_set.actual()
         context['paginator'], \
-            context['page_obj'], \
-            context['comments'], \
-            context['is_paginated'] = self.paginate_queryset(comments)
+        context['page_obj'], \
+        context['comments'], \
+        context['is_paginated'] = self.paginate_queryset(comments)
         return context
 
 
@@ -1085,6 +1108,34 @@ def submission_get_progress(request, task_id):
     return JsonResponse(progress.get_info())
 
 
+class SubmissionClearTask(LoginRedirectOwnershipOrPermissionRequiredMixin, BaseUpdateView):
+    model = Submission
+    http_method_names = ['get']
+    permission_required = 'contests.evaluate_submission'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['from_url'] = request.GET.get('from', '')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
+            self.object = self.get_object()
+        self.object.task_id = None
+        self.object.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        url = reverse('contests:submission-detail', kwargs={'pk': self.object.pk})
+        if self.storage['from_url']:
+            return url + '?from=' + self.storage['from_url']
+        else:
+            return url
+
+
 class SubmissionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Submission
     template_name = 'contests/submission/submission_delete.html'
@@ -1114,6 +1165,29 @@ class SubmissionList(LoginRedirectPermissionRequiredMixin, ListView):
         if course_id:
             context['course'] = get_object_or_404(Course, id=course_id)
         return context
+
+
+class SubmissionBackup(LoginRedirectPermissionRequiredMixin, BaseListView):
+    model = Submission
+    permission_required = 'contests.download_submission'
+
+    def dispatch(self, request, *args, **kwargs):
+        course_id = self.kwargs.get('course_id', None)
+        if not Course.objects.filter(id=course_id).exists():
+            raise Http404("Course does not exist")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        self.object_list = self.get_queryset()
+        course_id = self.kwargs.get('course_id', None)
+        response = HttpResponse(Submission.objects.backup(self.object_list), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename={}.zip'.format(course_id)
+        return response
+
+    def get_queryset(self):
+        course_id = self.kwargs.get('course_id', None)
+        queryset = super().get_queryset().filter(problem__contest__course_id=course_id).select_related('problem')
+        return queryset
 
 
 """=================================================== Execution ===================================================="""
@@ -1248,3 +1322,172 @@ def index(request):
         return render(request, 'contests/index.html', {'courses': Course.objects.all()})
     else:
         return redirect(reverse('contests:assignment-list'))
+
+
+"""=================================================== TestSuite ===================================================="""
+
+
+class TestSuiteDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
+    model = TestSuite
+    template_name = 'contests/testsuite/testsuite_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tests'] = self.object.test_set.all()
+        return context
+
+
+class TestSuiteCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+    model = TestSuite
+    form_class = TestSuiteForm
+    template_name = 'contests/testsuite/testsuite_form.html'
+    permission_required = 'contests.add_testsuite'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
+        TestInlineFormSet = inlineformset_factory(TestSuite, Test, form=TestForm, fields=('question', 'right_answer'),
+                                                  extra=0)
+        inlineformset_kwargs = {'initial': []}
+        if self.request.method in ('POST', 'PUT'):
+            inlineformset_kwargs.update({'data': self.request.POST})
+        self.storage['test_formset'] = TestInlineFormSet(**inlineformset_kwargs)
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        test_formset = self.storage['test_formset']
+        if test_formset.total_form_count() == 0:
+            form.errors.update({'test_formset': "Необходимо добавить хотя бы один тест."})
+            self.storage['test_formset'] = test_formset
+            return self.form_invalid(form)
+        if test_formset.is_valid():
+            form.instance.owner = self.request.user
+            form.instance.contest = self.storage['contest']
+            self.object = form.save()
+            test_formset.instance = self.object
+            test_formset.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            self.storage['test_formset'] = test_formset
+            return self.form_invalid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['contest'] = self.storage['contest']
+        context['test_formset'] = self.storage['test_formset']
+        context['test_form'] = TestForm()
+        return context
+
+
+class TestSuiteUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+    model = TestSuite
+    form_class = TestSuiteForm
+    template_name = 'contests/testsuite/testsuite_form.html'
+    permission_required = 'contests.change_testsuite'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['contest'] = self.object.contest
+        return context
+
+
+class TestSuiteDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+    model = TestSuite
+    template_name = 'contests/testsuite/testsuite_delete.html'
+    permission_required = 'contests.delete_testsuite'
+
+    def get_success_url(self):
+        return self.object.contest.get_absolute_url()
+
+
+"""============================================== TestSuiteSubmission ==============================================="""
+
+
+class TestSuiteSubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+    model = TestSuiteSubmission
+    form_class = TestSuiteSubmissionForm
+    template_name = 'contests/testsuitesubmission/testsuitesubmission_form.html'
+    permission_required = 'contests.add_testsuitesubmission'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['testsuite'] = get_object_or_404(TestSuite, id=kwargs.pop('testsuite_id'))
+
+        test_set = self.storage['testsuite'].test_set.all()
+        forms_num = len(test_set)
+        TestSubmissionInlineFormSet = inlineformset_factory(TestSuiteSubmission, TestSubmission,
+                                                            form=TestSubmissionForm, fields=('answer',),
+                                                            extra=forms_num,
+                                                            min_num=forms_num, validate_min=True,
+                                                            max_num=forms_num, validate_max=True)
+        inlineformset_kwargs = {'initial': []}
+        if self.request.method in ('POST', 'PUT'):
+            inlineformset_kwargs.update({'data': self.request.POST})
+
+        self.storage['testsubmission_formset'] = TestSubmissionInlineFormSet(**inlineformset_kwargs)
+        self.storage['testsubmission_pairs'] = zip(test_set, self.storage['testsubmission_formset'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        testsubmission_formset = self.storage['testsubmission_formset']
+        if testsubmission_formset.is_valid():
+            form.instance.owner = self.request.user
+            form.instance.testsuite = self.storage['testsuite']
+            self.object = form.save()
+            testsubmission_formset.instance = self.object
+            testsubmission_formset.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return self.form_invalid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['testsuite'] = self.storage['testsuite']
+        context['testsubmission_formset'] = self.storage['testsubmission_formset']
+        context['testsubmission_pairs'] = self.storage['testsubmission_pairs']
+        return context
+
+
+class TestSuiteSubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, PaginatorMixin, DetailView):
+    model = TestSuiteSubmission
+    template_name = 'contests/testsuitesubmission/testsuitesubmission_detail.html'
+    permission_required = 'contests.view_testsuitesubmission'
+    paginate_by = 30
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
+            self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['testsubmissions'] = self.object.testsubmission_set.all()
+        # comments = self.object.comment_set.actual()
+        # context['paginator'], \
+        #     context['page_obj'], \
+        #     context['comments'], \
+        #     context['is_paginated'] = self.paginate_queryset(comments)
+        return context
+
+
+class TestSuiteSubmissionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+    model = TestSuiteSubmission
+    template_name = 'contests/testsuitesubmission/testsuitesubmission_delete.html'
+    permission_required = 'contests.delete_testsuitesubmission'
+
+    def get_success_url(self):
+        return self.object.testsuite.get_absolute_url()

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views contests comments static %}
+{% load views accounts contests comments static %}
 
 {% block title %}
 Задание
@@ -23,11 +23,7 @@
         <a class="nav-link" href="{% url 'contests:assignment-detail' assignment.id %}" id="description-tab" role="tab">Описание</a>
     </li>
     <li class="nav-item">
-        {% with assignment.comment_set.actual.count as comments_count %}
-        <a aria-controls="discussion" aria-selected="true" class="nav-link active" data-toggle="tab" href="#discussion" id="discussion-tab" role="tab">
-            Обсуждение{% if comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ comments_count }}</span>{% endif %}
-        </a>
-        {% endwith %}
+        {% render_discussion_tab assignment %}
     </li>
 </ul>
 <div class="tab-content">

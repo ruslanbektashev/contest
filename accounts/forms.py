@@ -11,7 +11,7 @@ from accounts.widgets import CommentWidget
 
 
 class AccountPartialForm(forms.ModelForm):
-    email = forms.EmailField(label="E-mail", required=False)
+    email = forms.EmailField(label="e-mail", required=False)
 
     class Meta:
         model = Account
@@ -25,14 +25,32 @@ class AccountPartialForm(forms.ModelForm):
 
 
 class AccountForm(AccountPartialForm):
+    first_name = forms.CharField(max_length=30, label="Имя")
+    last_name = forms.CharField(max_length=150, label="Фамилия")
+
     class Meta:
         model = Account
-        fields = ['level', 'type', 'admission_year', 'enrolled', 'graduated']
+        fields = ['patronymic', 'department', 'position', 'degree', 'image', 'level', 'type', 'admission_year',
+                  'enrolled', 'graduated']
+
+    def save(self, commit=True):
+        super(AccountPartialForm, self).save(commit)
+        for field_name in ['email', 'first_name', 'last_name']:
+            if field_name in self.changed_data:
+                setattr(self.instance.user, field_name, self.cleaned_data[field_name])
+        self.instance.user.save()
+        return self.instance
 
 
 class AccountListForm(forms.Form):
     accounts = forms.ModelMultipleChoiceField(queryset=Account.students.all(),
                                               widget=forms.CheckboxSelectMultiple)
+
+    def __init__(self, *args, **kwargs):
+        account_type = kwargs.pop('type', None)
+        super().__init__(*args, **kwargs)
+        if account_type is not None and account_type > 1:
+            self.fields['accounts'].queryset = Account.staff.filter(type=account_type)
 
 
 class AccountSetForm(forms.ModelForm):
@@ -40,7 +58,7 @@ class AccountSetForm(forms.ModelForm):
 
     class Meta:
         model = Account
-        fields = ['level', 'admission_year']
+        fields = ['level', 'type', 'admission_year']
 
     def __init__(self, level, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -54,6 +72,10 @@ class AccountSetForm(forms.ModelForm):
             name = name.split()
             if len(name) < 2:
                 raise ValidationError('Неверный формат списка имен', code='wrong_format')
+            for i in range(2):
+                if not name[i].isalpha():
+                    raise ValidationError('Фамилия и Имя должны состоять только из букв', code='not_a_letter')
+                name[i].lower().capitalize()
             cleaned_names.append(name)
         return cleaned_names
 

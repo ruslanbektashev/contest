@@ -1,8 +1,7 @@
-from django.conf import settings
 from django.urls import path, include
-from django.views.generic import TemplateView
 
 from accounts import views
+from contest.utils import under_development
 
 app_name = 'accounts'
 
@@ -11,10 +10,16 @@ urlpatterns = [
         path('create/set', views.AccountCreateSet.as_view(), name='account-create-set'),
         path('<int:pk>/', include([
             path('', views.AccountDetail.as_view(), name='account-detail'),
-            path('update', views.AccountUpdate.as_view(), name='account-update')
+            path('update', views.AccountUpdate.as_view(), name='account-update'),
         ])),
         path('list', views.AccountFormList.as_view(), name='account-list'),
         path('credentials', views.AccountCredentials.as_view(), name='account-credentials'),
+    ])),
+    path('subscription/', include([
+        path('create/<str:object_model>/<int:object_id>/<int:open_discussion>', views.SubscriptionCreate.as_view(), name='subscription-create'),
+        path('<int:pk>/', include([
+            path('delete/<int:open_discussion>', views.SubscriptionDelete.as_view(), name='subscription-delete'),
+        ])),
     ])),
     path('activity/', include([
         path('list', views.ActivityList.as_view(), name='activity-list'),
@@ -28,12 +33,8 @@ urlpatterns = [
             path('delete', views.CommentDelete.as_view(), name='comment-delete'),
         ])),
     ])),
-    path('message/<int:user_id>/create',
-         views.MessageCreate.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),
-         name='message-create'),
-    path('chat/list',
-         views.ChatList.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),
-         name='chat-list'),
+    path('message/<int:user_id>/create', under_development(views.MessageCreate.as_view()), name='message-create'),
+    path('chat/list', under_development(views.ChatList.as_view()), name='chat-list'),
     path('announcement/', include([
         path('create', views.AnnouncementCreate.as_view(), name='announcement-create'),
         path('<int:pk>/', include([
@@ -43,4 +44,5 @@ urlpatterns = [
         ])),
         path('list', views.AnnouncementList.as_view(), name='announcement-list'),
     ])),
+    path('mark_comments_as_read', views.mark_comments_as_read, name='mark-comments-as-read'),
 ]

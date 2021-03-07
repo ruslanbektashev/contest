@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load views forms static %}
+
+{% block title %}
+Расписание
+{% endblock title %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{% static 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css' %}"/>
+<style>
+.bootstrap-datetimepicker-widget .datepicker-days table tbody tr:hover {
+    background-color: #eee;
+}
+</style>
+{% endblock stylesheets %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Расписание" 'schedule:schedule-list' %}
+{% if schedule %}
+{% breadcrumb schedule schedule %}
+{% breadcrumb "Редактирование" %}
+{% else %}
+{% breadcrumb "Новое расписание" %}
+{% endif %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{% if schedule %}Редактирование{% else %}Добавление{% endif %} расписания</legend>
+<form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% render_form_errors form %}
+    <div class="form-group">
+        <label for="id_date_interval">В интервале</label>
+        <input type="text" class="form-control {% if form.date_from.errors %}is-invalid{% endif %}" id="id_date_interval"/>
+        {% if form.date_from.errors %}
+        <div class="invalid-feedback">
+            {% for error in form.date_from.errors %}{{ error }}{% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {{ form.date_from.as_hidden }}
+    {{ form.date_to.as_hidden }}
+    {{ attachment_formset.management_form }}
+    {% if attachment_formset.non_form_errors %}
+    <div class="form-group">
+        <div class="alert alert-danger">
+            {% for error in attachment_formset.non_form_errors %}
+            {{ error }}<br>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% for form in attachment_formset %}
+    <div class="form-row">
+        <div class="form-group col-md-4 col-sm-12">
+        {% with form.name as field %}
+            <div class="input-group">
+                {% with is_invalid=field.errors|yesno:"is-invalid," %}
+                {% render_field field class+="form-control" placeholder=field.label class+=is_invalid %}
+                {% endwith %}
+                {% if field.field.append_text %}
+                <div class="input-group-append">
+                    <span class="input-group-text">{{ field.field.append_text }}</span>
+                </div>
+                {% endif %}
+                {% if field.errors %}
+                <div class="invalid-feedback">
+                    {% for error in field.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% if field.help_text %}
+            <small class="form-text text-muted">{{ field.help_text }}</small>
+            {% endif %}
+        {% endwith %}
+        </div>
+        <div class="form-group col-md-8 col-sm-12">
+        {% with form.file as field %}
+            <div class="input-group {% if field.errors %}is-invalid{% endif %}">
+                <div class="custom-file">
+                    {% with is_invalid=field.errors|yesno:"is-invalid," %}
+                    {% render_field field class+="custom-file-input" class+=is_invalid %}
+                    {% endwith %}
+                    <label class="custom-file-label" for="{{ field.id_for_label }}">Выберите файл с расширением .htm</label>
+                </div>
+            </div>
+            {% if field.errors %}
+            <div class="invalid-feedback">
+                {% for error in field.errors %}{{ error }}{% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+        </div>
+    </div>
+    {% endfor %}
+    {% render_submit_button value="Сохранить" %}
+</form>
+{% endblock content %}
+
+{% block javascript %}
+<script src="{% static 'js/bs-custom-file-input.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'moment/min/moment.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'moment/min/locales.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+$(function () {
+    bsCustomFileInput.init()
+    moment.updateLocale('ru', { week: { dow: 1 } });
+    let date_interval_field = $("#id_date_interval");
+    let date_from_field = $("#id_date_from");
+    let date_to_field = $("#id_date_to");
+    date_interval_field.datetimepicker({
+        locale: 'ru',
+        format: 'DD.MM.YYYY',
+        //useCurrent: true,
+        //inline: true,
+        icons: {
+            time: "fa fa-clock-o",
+            date: "fa fa-calendar",
+            previous: "fa fa-angle-left",
+            next: "fa fa-angle-right"
+        }
+    });
+    function f() {
+        let value = date_interval_field.val();
+        if (value) {
+            let new_date_from = moment(value, "DD.MM.YYYY").day(1);
+            let new_date_to =  moment(value, "DD.MM.YYYY").day(7)
+            date_from_field.val(new_date_from.format("YYYY-MM-DD"));
+            date_to_field.val(new_date_to.format("YYYY-MM-DD"));
+            date_interval_field.val(new_date_from.format("DD.MM.YYYY") + " - " + new_date_to.format("DD.MM.YYYY"))
+        }
+        else {
+            let cur_date_from_value = date_from_field.val();
+            let cur_date_to_value = date_to_field.val();
+            let cur_date_from = moment(cur_date_from_value, "YYYY-MM-DD").format("DD.MM.YYYY");
+            let cur_date_to = moment(cur_date_to_value, "YYYY-MM-DD").format("DD.MM.YYYY");
+            date_interval_field.val(cur_date_from + " - " + cur_date_to)
+        }
+    }
+    f();
+    date_interval_field.on("dp.change", f);
+    date_interval_field.on("dp.hide", f);
+    date_interval_field.on("dp.show", f);
+});
+</script>
+{% endblock javascript %}

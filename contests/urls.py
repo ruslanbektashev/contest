@@ -1,7 +1,6 @@
-from django.conf import settings
 from django.urls import path, include
-from django.views.generic import TemplateView
 
+from contest.utils import under_development
 from contests import views
 
 app_name = 'contests'
@@ -102,12 +101,14 @@ urlpatterns = [
         path('list', views.AssignmentUserTable.as_view(), name='assignment-list')
     ])),
     path('course/<int:course_id>/submission/list', views.SubmissionList.as_view(), name='submission-list'),
+    path('course/<int:course_id>/submission/backup', views.SubmissionBackup.as_view(), name='submission-backup'),
     path('problem/<int:problem_id>/submission/create', views.SubmissionCreate.as_view(), name='submission-create'),
     path('submission/', include([
         path('<int:pk>/', include([
             path('', views.SubmissionDetail.as_view(), name='submission-detail'),
             path('delete', views.SubmissionDelete.as_view(), name='submission-delete'),
             path('evaluate', views.SubmissionEvaluate.as_view(), name='submission-evaluate'),
+            path('clear_task', views.SubmissionClearTask.as_view(), name='submission-clear-task'),
             path('moss', views.SubmissionMoss.as_view(), name='submission-moss'),
             path('download', views.SubmissionDownload.as_view(), name='submission-download'),
             path('attachment/<int:attachment_id>', views.SubmissionAttachment.as_view(), name='submission-attachment'),
@@ -117,22 +118,27 @@ urlpatterns = [
         path('list', views.SubmissionList.as_view(), name='submission-list'),
     ])),
     path('event/', include([
-        path('create',
-             views.EventCreate.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),
-             name='event-create'),
+        path('create', under_development(views.EventCreate.as_view()), name='event-create'),
         path('<int:pk>/', include([
-            path('',
-                 views.EventDetail.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),
-                 name='event-detail'),
-            path('update',
-                 views.EventUpdate.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),
-                 name='event-update'),
-            path('delete',
-                 views.EventDelete.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),
-                 name='event-delete')
+            path('', under_development(views.EventDetail.as_view()), name='event-detail'),
+            path('update', under_development(views.EventUpdate.as_view()), name='event-update'),
+            path('delete', under_development(views.EventDelete.as_view()), name='event-delete')
         ])),
-        path('schedule',
-             views.EventSchedule.as_view() if settings.DEBUG else TemplateView.as_view(template_name='under_development.html'),
-             name='event-schedule')
+        path('schedule', under_development(views.EventSchedule.as_view()), name='event-schedule')
+    ])),
+    path('contest/<int:contest_id>/testsuite/create', under_development(views.TestSuiteCreate.as_view()), name='testsuite-create'),
+    path('testsuite/', include([
+        path('<int:pk>/', include([
+            path('', under_development(views.TestSuiteDetail.as_view()), name='testsuite-detail'),
+            path('delete', under_development(views.TestSuiteDelete.as_view()), name='testsuite-delete'),
+            path('update', under_development(views.TestSuiteUpdate.as_view()), name='testsuite-update'),
+        ]))
+    ])),
+    path('testsuite/<int:testsuite_id>/testsuitesubmission/create', under_development(views.TestSuiteSubmissionCreate.as_view()), name='testsuitesubmission-create'),
+    path('testsuitesubmission/', include([
+        path('<int:pk>/', include([
+            path('', under_development(views.TestSuiteSubmissionDetail.as_view()), name='testsuitesubmission-detail'),
+            path('delete', under_development(views.TestSuiteSubmissionDelete.as_view()), name='testsuitesubmission-delete'),
+        ]))
     ]))
 ]

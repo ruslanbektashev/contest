@@ -11,7 +11,18 @@ from contest.abstract import CRUDEntry
 """==================================================== Account ====================================================="""
 
 
-class StudentQuerySet(models.QuerySet):
+class AccountQuerySet(models.QuerySet):
+    def reset_password(self):
+        credentials = []
+        for student in self:
+            new_password = User.objects.make_random_password()
+            student.user.set_password(new_password)
+            student.user.save()
+            credentials.append([student.last_name, student.first_name, student.username, new_password])
+        return credentials
+
+
+class StudentQuerySet(AccountQuerySet):
     def enrolled(self):
         return self.filter(enrolled=True)
 
@@ -43,10 +54,10 @@ class StudentQuerySet(models.QuerySet):
         ).filter(credit_score__lte=2)
 
     def level_up(self):
-        return self.update(level=models.F('level') + 1)
+        return self.filter(level__lt=Account.LEVEL_MAX).update(level=models.F('level') + 1)
 
     def level_down(self):
-        return self.update(level=models.F('level') - 1)
+        return self.filter(level__gt=Account.LEVEL_MIN).update(level=models.F('level') - 1)
 
     def enroll(self):
         return self.update(enrolled=True, graduated=False)
@@ -57,14 +68,35 @@ class StudentQuerySet(models.QuerySet):
     def graduate(self):
         return self.update(enrolled=False, graduated=True)
 
-    def reset_password(self):
-        credentials = []
-        for student in self:
-            new_password = User.objects.make_random_password()
-            student.user.set_password(new_password)
-            student.user.save()
-            credentials.append([student.last_name, student.first_name, student.username, new_password])
-        return credentials
+
+class StaffManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(type__gt=1).select_related('user')
+
+    def create_set(self, level, type, admission_year, names):
+        alphabet_ru_a = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
+        alphabet_ru_s = 'жйхцчшщыюя'
+        translit_en_a = 'abvgdee_zi_klmnoprstuf________e__'
+        translit_en_s = ['zh', 'y', 'kh', 'ts', 'ch', 'sh', 'sh', 'y', 'yu', 'ya']
+        transtable = {ord(c): p for c, p in zip(alphabet_ru_a, translit_en_a)}
+        transtable.update({ord(c): p for c, p in zip(alphabet_ru_s, translit_en_s)})
+        new_accounts, credentials = [], []
+        for name in names:
+            first_name = name[1].lower()
+            last_name = name[0].lower()
+            username = last_name.translate(transtable)
+            if User.objects.filter(username=username).exists():
+                username = first_name[0].translate(transtable) + username
+            password = User.objects.make_random_password()
+            user = User.objects.create_user(username, password=password, first_name=first_name.capitalize(),
+                                            last_name=last_name.capitalize())
+            group_name = "Преподаватель" if type > 2 else "Модератор"
+            group, _ = Group.objects.get_or_create(name=group_name)
+            user.groups.add(group)
+            new_account = Account(user_id=user.id, level=level, type=type, admission_year=admission_year, enrolled=False)
+            new_accounts.append(new_account)
+            credentials.append([name[0], name[1], username, password])
+        return self.bulk_create(new_accounts), credentials
 
 
 class StudentManager(models.Manager):
@@ -82,7 +114,9 @@ class StudentManager(models.Manager):
                 suffix = str(i).zfill(2)
             username = prefix + suffix
             password = User.objects.make_random_password()
-            user = User.objects.create_user(username, password=password, first_name=name[1], last_name=name[0])
+            first_name = name[1].lower().capitalize()
+            last_name = name[0].lower().capitalize()
+            user = User.objects.create_user(username, password=password, first_name=first_name, last_name=last_name)
             for group_name in ('Студент', 'M' + str(admission_year)[2:]):
                 group, _ = Group.objects.get_or_create(name=group_name)
                 user.groups.add(group)
@@ -91,6 +125,13 @@ class StudentManager(models.Manager):
             credentials.append([name[0], name[1], username, password])
             i += 1
         return self.bulk_create(new_accounts), credentials
+
+
+def account_image_path(instance, filename):
+    return "attachments/{app_label}/{model}/{id}/{filename}".format(app_label=instance._meta.app_label.lower(),
+                                                                    model=instance._meta.model_name,
+                                                                    id=instance.id,
+                                                                    filename=filename)
 
 
 class Account(models.Model):
@@ -105,6 +146,8 @@ class Account(models.Model):
         (8, "4 курс, 2 семестр"),
     )
     LEVEL_DEFAULT = 1
+    LEVEL_MIN = 1
+    LEVEL_MAX = 8
     TYPE_CHOICES = (
         (1, 'студент'),
         (2, 'модератор'),
@@ -115,8 +158,12 @@ class Account(models.Model):
     ADMISSION_YEAR_DEFAULT = timezone.now().year
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    old_id = models.PositiveIntegerField(null=True, default=None, unique=True)
 
+    patronymic = models.CharField(max_length=30, blank=True, verbose_name="Отчество")
+    department = models.CharField(max_length=150, blank=True, verbose_name="Кафедра")
+    position = models.CharField(max_length=100, blank=True, verbose_name="Должность")
+    degree = models.CharField(max_length=50, blank=True, verbose_name="Ученая степень")
+    image = models.ImageField(upload_to=account_image_path, blank=True, verbose_name="Аватар")
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, default=LEVEL_DEFAULT, verbose_name="Уровень")
     type = models.PositiveSmallIntegerField(choices=TYPE_CHOICES, default=TYPE_DEFAULT, verbose_name="Тип")
     admission_year = models.PositiveSmallIntegerField(choices=ADMISSION_YEAR_CHOICES, default=ADMISSION_YEAR_DEFAULT,
@@ -127,7 +174,10 @@ class Account(models.Model):
     date_updated = models.DateTimeField(auto_now=True)
 
     objects = models.Manager()
+    staff = StaffManager.from_queryset(AccountQuerySet)()
     students = StudentManager.from_queryset(StudentQuerySet)()
+
+    comments_read = models.ManyToManyField('Comment', blank=True)
 
     class Meta:
         ordering = ('user__last_name', 'user__first_name', 'user_id')
@@ -151,12 +201,14 @@ class Account(models.Model):
         return self.user.last_name
 
     def get_full_name(self):
-        full_name = '%s %s' % (self.user.last_name, self.user.first_name)
+        full_name = "{last_name} {first_name} {patronymic}".format(first_name=self.first_name, last_name=self.last_name,
+                                                                   patronymic=self.patronymic)
         return full_name.strip() or self.user.username
 
     def get_short_name(self):
-        if self.user.first_name:
-            return "%s %s." % (self.user.last_name, self.user.first_name[0])
+        if self.first_name:
+            return "{last_name} {first_name_0}.".format(first_name_0=self.first_name[0],
+                                                        last_name=self.last_name).strip()
         else:
             return self.user.username
 
@@ -175,8 +227,36 @@ class Account(models.Model):
     def get_absolute_url(self):
         return reverse('accounts:account-detail', kwargs={'pk': self.pk})
 
+    def mark_comments_as_read(self, comments):
+        self.comments_read.add(*comments)
+
+    def unread_comments_count(self, obj):
+        comments_on_object = obj.comment_set.exclude(author=self.user)
+        comments_on_object_read_by_user = self.comments_read.filter(object_type=ContentType.objects.get_for_model(obj),
+                                                                    object_id=obj.id).exclude(author=self.user)
+        return comments_on_object.count() - comments_on_object_read_by_user.count()
+
     def __str__(self):
         return self.get_full_name()
+
+
+"""================================================== Subscription =================================================="""
+
+
+class Subscription(models.Model):
+    object_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    object = GenericForeignKey(ct_field='object_type')
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
+
+    class Meta:
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
+        unique_together = ('user', 'object_id', 'object_type')
+
+    def __str__(self):
+        return '%s, %s: %s' % (self.user.account.get_full_name(), self.object_type.model, self.object.title)
 
 
 """==================================================== Activity ===================================================="""
@@ -242,6 +322,10 @@ class ActivityManager(models.Manager):
         new_activities = make_activities(user, **kwargs)
         self.bulk_create(new_activities)
 
+    def notify_users(self, users, **kwargs):
+        new_activities = make_activities(users, **kwargs)
+        self.bulk_create(new_activities)
+
     def on_assignment_updated(self, assignment):
         pass
 
@@ -298,7 +382,7 @@ class Activity(models.Model):
         if self.object:
             context['object'] = self.object
         if self.reference:
-            context['slash'] = '/'
+            context['slash'] = ' / '
             context['reference'] = self.reference
         if isinstance(self.subject, User):
             context['subject'] = self.subject.last_name
@@ -330,7 +414,6 @@ class CommentManager(models.Manager):
 class Comment(models.Model):
     MAX_LEVEL = 5
     author = models.ForeignKey(User, related_name='+', on_delete=models.CASCADE, verbose_name="Автор")
-    old_id = models.PositiveIntegerField(null=True, default=None, unique=True)
 
     thread_id = models.PositiveIntegerField(default=0, db_index=True)
     parent_id = models.PositiveIntegerField(default=0)
@@ -401,6 +484,15 @@ class Comment(models.Model):
 
     def is_repliable(self):
         return self.level < self.MAX_LEVEL
+
+    def get_absolute_url(self):
+        return reverse(
+            'contests:{object_type}-{view_name}'.format(
+                object_type=self.object_type.model,
+                view_name='detail' if self.object_type.model == 'submission' else 'discussion'
+            ),
+            kwargs={'pk': self.object_id}
+        ) + '#comment_{comment_id}'.format(comment_id=self.pk)
 
     def __str__(self):
         return "Комментарий {}".format(self.pk)

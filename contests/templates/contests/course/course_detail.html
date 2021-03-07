@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views markdown static %}
+{% load views accounts contests markdown static %}
 
 {% block title %}
 Курс
@@ -19,24 +19,13 @@
            href="#description" id="description-tab" role="tab">Описание</a>
     </li>
     <li class="nav-item">
-        <a aria-controls="contests" aria-selected="{% if tab == 'contests' %}true{% else %}false{% endif %}"
-           class="nav-link {% if tab == 'contests' %}active{% endif %}" data-toggle="tab" href="#contests"
-           id="contests-tab" role="tab">Разделы</a>
-    </li>
-    <li class="nav-item">
-        {% with course.comment_set.actual.count as comments_count %}
-        <a class="nav-link" href="{% url 'contests:course-discussion' course.id %}" id="discussion-tab" role="tab">
-            Обсуждение{% if comments_count > 0 %} <span class="badge badge-pill badge-secondary align-middle">{{ comments_count }}</span>{% endif %}
-        </a>
-        {% endwith %}
+        {% render_discussion_tab course %}
     </li>
 </ul>
 <div class="tab-content">
-    <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %}" id="description" role="tabpanel">
+    <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %} text-justify" id="description" role="tabpanel">
         <p>{{ course.description|markdown|safe }}</p>
-    </div>
-    <div aria-labelledby="contests-tab" class="tab-pane fade {% if tab == 'contests' %}show active{% endif %}" id="contests" role="tabpanel">
-        {% render_list course.contest_set.all %}
+        {% include 'list.html' with lst=course.contest_set.all title="Разделы:" %}
     </div>
 </div>
 {% endblock content %}
@@ -51,6 +40,13 @@
     {% endif %}
 </div>
 <div class="list-group mb-3">
+    {% if perms.account.add_subscription %}
+        {% if request.user.id in subscribers_ids %}
+            <a href="{% url 'accounts:subscription-delete' subscription_id 0 %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к курсу и всем вложенным сущностям"><i class="fa fa-bell-slash fa-fw"></i> Отписаться</a>
+        {% else %}
+            <a href="{% url 'accounts:subscription-create' 'course' course.id 0 %}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комметнариях к курсу и всем вложенным сущностям"><i class="fa fa-bell fa-fw"></i> Подписаться</a>
+        {% endif %}
+    {% endif %}
     {% if perms.contests.change_course %}
     <a href="{% url 'contests:course-update' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать курс</a>
     {% endif %}
@@ -66,6 +62,13 @@
     <a href="{% url 'contests:contest-create' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить раздел</a>
     {% endif %}
 </div>
+
+{% if course.leaders.exists %}
+<legend>Преподаватели курса:</legend>
+{% for leader in course.leaders.all %}
+{% include 'accounts/account/account_card.html' with account=leader.account %}
+{% endfor %}
+{% endif %}
 {% endblock submenu %}
 
 {% block javascript %}

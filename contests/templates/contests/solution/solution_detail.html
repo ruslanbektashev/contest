@@ -13,16 +13,15 @@
 {% block content %}
 <legend>{{ solution }}</legend>
 <div>
-    <p>Описание:</p>
+    <h6>Описание:</h6>
     <div class="alert alert-secondary">
         {{ solution.description|safe|linebreaksbr }}
     </div>
-    <p>Шаблон:</p>
+    <h6>Шаблон:</h6>
     <div class="alert alert-secondary">
         <samp>{{ solution.pattern|safe|linebreaksbr }}</samp>
     </div>
-    <p>Задачи:</p>
-    {% render_list solution.problems.all %}
+    {% include 'list.html' with lst=solution.problems.all title="Задачи:" %}
 </div>
 {% endblock content %}
 

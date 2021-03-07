@@ -6,7 +6,7 @@ class TaskProgress {
         this.execution_list_element.innerHTML = '';
         this.progress_url = progress_url;
         this.execution_list_url = execution_list_url;
-        this.poll_interval = 500;
+        this.poll_interval = 1000;
         this.retry = 0;
         this.max_retries = 5;
     }
@@ -16,14 +16,14 @@ class TaskProgress {
         this.progress_bar_element.classList.add('bg-info');
         if (this.progress_bar_element.style.width.slice(0, -1) <= json.progress) {
             this.progress_bar_element.style.width = json.progress + '%';
-            if (json.progress <= 50 && this.progress_bar_message_element.style.color == 'white') {
+            if (json.progress <= 50 && this.progress_bar_message_element.style.color === 'white') {
                 this.progress_bar_message_element.style.color = 'black';
-            } else if (json.progress > 50 && this.progress_bar_message_element.style.color == 'black') {
+            } else if (json.progress > 50 && this.progress_bar_message_element.style.color === 'black') {
                 this.progress_bar_message_element.style.color = 'white';
             }
-            if (json.state == 'PENDING') {
+            if (json.state === 'PENDING') {
                 this.progress_bar_message_element.textContent = "Ждем своей очереди";
-            } else if (json.state == 'STARTED') {
+            } else if (json.state === 'STARTED') {
                 this.progress_bar_message_element.textContent = "Компилируем";
             } else {
                 this.progress_bar_message_element.textContent = json.state;
@@ -73,27 +73,25 @@ class TaskProgress {
     }
 
     async poll() {
-        try {
-            let response = await fetch(this.progress_url, {cache: "no-store"});
-            if (response.ok) {
-                let progress = await response.json();
-                if (!this.updateBar(progress)) {
-                    this.delayPoll(this.poll_interval);
-                } else {
-                    response = await fetch(this.execution_list_url, {cache: "no-store"});
-                    if (response.ok) {
-                        let html = await response.text();
-                        this.execution_list_element.innerHTML = html;
-                    } else {
-                        throw new Error('fetch(executions): http status ' + response.status);
-                    }
-                }
+        let response = await fetch(this.progress_url, {cache: "no-store"});
+        if (response.ok) {
+            let progress = await response.json();
+            if (!this.updateBar(progress)) {
+                this.delayPoll(this.poll_interval);
             } else {
-                throw new Error('fetch(progress): http status ' + response.status);
+                response = await fetch(this.execution_list_url, {cache: "no-store"});
+                if (response.ok) {
+                    this.execution_list_element.innerHTML = await response.text();
+                } else {
+                    let err = Error('fetch(executions): http status ' + response.status);
+                    console.log(err);
+                    this.retryPoll(err);
+                }
             }
-        } catch(error) {
-            console.log(error);
-            this.retryPoll(error);
+        } else {
+            let err = Error('fetch(progress): http status ' + response.status);
+            console.log(err);
+            this.retryPoll(err);
         }
     }
 }

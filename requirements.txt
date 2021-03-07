@@ -1,6 +1,8 @@
-Django==2.2.12
+Django==2.2.13
 Markdown==3.1.1
 Pygments==2.5.2
+Pillow==7.2.0
 celery==4.3.0
 mosspy==1.0.8
 django-pagedown==2.0.3
+django-ckeditor==6.0.0
