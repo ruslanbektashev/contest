@@ -133,11 +133,8 @@ class ContestForm(AttachmentForm):
 
     class Meta:
         model = Contest
-        fields = ['title', 'description', 'number']
-
-    def __init__(self, *args, initial_number=Contest.DEFAULT_NUMBER, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['number'].initial = initial_number
+        fields = ['course', 'title', 'description', 'number']
+        widgets = {'course': forms.HiddenInput}
 
 
 """==================================================== Problem ====================================================="""
@@ -146,12 +143,12 @@ class ContestForm(AttachmentForm):
 class ProblemForm(AttachmentForm):
     class Meta:
         model = Problem
-        fields = ['title', 'description', 'number', 'difficulty', 'language', 'compile_args', 'launch_args',
+        fields = ['contest', 'title', 'description', 'number', 'difficulty', 'language', 'compile_args', 'launch_args',
                   'time_limit', 'memory_limit', 'is_testable']
+        widgets = {'contest': forms.HiddenInput}
 
-    def __init__(self, *args, initial_number=Problem.DEFAULT_NUMBER, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['number'].initial = initial_number
         self.fields['time_limit'].append_text = "секунд"
         self.fields['memory_limit'].append_text = "КБайт"
 
