@@ -293,14 +293,13 @@ class ContestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
         return super().dispatch(request, *args, **kwargs)
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['initial_number'] = Contest.objects.get_new_number(self.storage['course'])
-        return kwargs
+    def get_initial(self):
+        self.initial['course'] = self.storage['course']
+        self.initial['number'] = Contest.objects.get_new_number(self.storage['course'])
+        return super().get_initial()
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
-        form.instance.course = self.storage['course']
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -439,14 +438,13 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
         return super().dispatch(request, *args, **kwargs)
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['initial_number'] = Problem.objects.get_new_number(self.storage['contest'])
-        return kwargs
+    def get_initial(self):
+        self.initial['contest'] = self.storage['contest']
+        self.initial['number'] = Problem.objects.get_new_number(self.storage['contest'])
+        return super().get_initial()
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
-        form.instance.contest = self.storage['contest']
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):

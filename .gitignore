@@ -80,3 +80,4 @@ contest/prepros.config
 # Private Tests
 tools/
 /static/
+__log__.txt

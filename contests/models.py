@@ -190,6 +190,7 @@ class Contest(CRUDEntry):
     class Meta(CRUDEntry.Meta):
         verbose_name = "Раздел"
         verbose_name_plural = "Разделы"
+        unique_together = ('course', 'number')
         ordering = ('number', 'id')
 
     @property
@@ -251,6 +252,7 @@ class Problem(CRUDEntry):
     class Meta(CRUDEntry.Meta):
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
+        unique_together = ('contest', 'number')
         ordering = ('number', 'id')
 
     @property
