@@ -168,7 +168,10 @@ class Lecture(CRUDEntry):
 
 class ContestManager(models.Manager):
     def get_new_number(self, course):
-        return self.filter(course=course).aggregate(models.Max('number')).get('number__max', 0) + 1
+        max_number = self.filter(course=course).aggregate(models.Max('number')).get('number__max', 0)
+        if max_number is None:
+            return 1
+        return max_number + 1
 
 
 class Contest(CRUDEntry):
@@ -209,7 +212,10 @@ class Contest(CRUDEntry):
 
 class ProblemManager(models.Manager):
     def get_new_number(self, contest):
-        return self.filter(contest=contest).aggregate(models.Max('number')).get('number__max', 0) + 1
+        max_number = self.filter(contest=contest).aggregate(models.Max('number')).get('number__max', 0)
+        if max_number is None:
+            return 1
+        return max_number + 1
 
 
 class Problem(CRUDEntry):
