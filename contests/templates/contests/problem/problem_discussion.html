@@ -23,10 +23,10 @@
         <a aria-controls="submissions" aria-selected="false" class="nav-link" data-toggle="tab" href="#submissions" id="submissions-tab"
            role="tab">Посылки</a>
     </li>
-    {% if perms.contests.view_solution %}
+    {% if perms.contests.view_submission_pattern %}
     <li class="nav-item">
-        <a aria-controls="solutions" aria-selected="false" class="nav-link" data-toggle="tab" href="#solutions" id="solutions-tab"
-           role="tab"><i class="fa fa-lock fa-fw"></i> Решение</a>
+        <a aria-controls="submission_patterns" aria-selected="false" class="nav-link" data-toggle="tab" href="#submission_patterns" id="submission-patterns-tab"
+           role="tab"><i class="fa fa-lock fa-fw"></i> Шаблоны посылок</a>
     </li>
     {% endif %}
     {% if perms.contests.view_iotest or perms.contests.view_uttest or perms.contests.view_fntest %}
@@ -72,10 +72,10 @@
     <div aria-labelledby="submissions-tab" class="tab-pane fade" id="submissions" role="tabpanel">
         {% render_submission_table %}
     </div>
-    {% if perms.contests.view_solution %}
-    <div aria-labelledby="solutions-tab" class="tab-pane fade" id="solutions" role="tabpanel">
+    {% if perms.contests.view_submission_pattern %}
+    <div aria-labelledby="submission-patterns-tab" class="tab-pane fade" id="submission_patterns" role="tabpanel">
         <div class="alert alert-warning">Доступно только преподавателям</div>
-        {% include 'list.html' with lst=problem.solution_set.all %}
+        {% include 'list.html' with lst=problem.submission_patterns.all %}
     </div>
     {% endif %}
     {% if perms.contests.view_iotest or perms.contests.view_uttest or perms.contests.view_fntest %}
@@ -102,8 +102,8 @@
     {% endif %}
 </div>
 <div class="list-group mb-3">
-    {% if perms.contests.add_solution %}
-    <a href="{% url 'contests:solution-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить решение</a>
+    {% if perms.contests.add_submission_pattern %}
+    <a href="{% url 'contests:submission-pattern-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить решение</a>
     {% endif %}
 </div>
 <div class="list-group mb-3">

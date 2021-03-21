@@ -23,9 +23,9 @@
            href="#description" id="description-tab" role="tab">Описание</a>
     </li>
     <li class="nav-item">
-        <a aria-controls="solutions" aria-selected="{% if tab == 'solutions' %}true{% else %}false{% endif %}"
-           class="nav-link {% if tab == 'solutions' %}active{% endif %}" data-toggle="tab" href="#solutions"
-           id="solutions-tab" role="tab">Ответы</a>
+        <a aria-controls="submission_patterns" aria-selected="{% if tab == 'submission_patterns' %}true{% else %}false{% endif %}"
+           class="nav-link {% if tab == 'submission_patterns' %}active{% endif %}" data-toggle="tab" href="#submission_patterns"
+           id="submission-patterns-tab" role="tab">Ответы</a>
     </li>
 </ul>
 <div class="tab-content">
@@ -56,7 +56,7 @@
         {% endif %}
         {% endwith %}
     </div>
-    <div aria-labelledby="solutions-tab" class="tab-pane fade {% if tab == 'solutions' %}show active{% endif %}" id="solutions" role="tabpanel">
+    <div aria-labelledby="submission-patterns-tab" class="tab-pane fade {% if tab == 'submission_patterns' %}show active{% endif %}" id="submission_patterns" role="tabpanel">
         {% with options=question.option_set.all%}
         <p>{{ question.text }}</p>
 

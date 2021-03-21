@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import Account
-from contests.models import Course, Credit, Contest, Problem, Solution, IOTest, UTTest, FNTest, Assignment, Submission
+from contests.models import Course, Credit, Contest, Problem, SubmissionPattern, IOTest, UTTest, FNTest, Assignment, Submission
 
 """===================================================== Course ====================================================="""
 
@@ -405,15 +405,15 @@ class ProblemViewsTest(TestCase):
         self.assertEqual(resp.status_code, 200)
 
 
-"""==================================================== Solution ===================================================="""
+"""=============================================== SubmissionPattern ================================================"""
 
 
-class SolutionViewsTest(TestCase):
+class SubmissionPatternViewsTest(TestCase):
     admin = 'admin'
     student = 'student'
     courses_num = 8
     problems = []
-    solutions = []
+    submission_patterns = []
 
     @classmethod
     def setUpTestData(cls):
@@ -427,97 +427,97 @@ class SolutionViewsTest(TestCase):
             problem = Problem.objects.create(owner=admin, contest=contest, title="Test Problem %s" % i,
                                              description="Test Description %s" % i)
             cls.problems.append(problem)
-            solution = Solution.objects.create(owner=admin, title="Test Solution %s" % i,
-                                               description="Test Description %s" % i)
-            solution.problems.add(problem)
-            cls.solutions.append(solution)
+            submission_pattern = SubmissionPattern.objects.create(owner=admin, title="Test SubmissionPattern %s" % i,
+                                                                  description="Test Description %s" % i)
+            submission_pattern.problems.add(problem)
+            cls.submission_patterns.append(submission_pattern)
 
     """=================================================== Detail ==================================================="""
 
     def test_detail_view_requires_login(self):
-        url = '/solution/{}/'.format(self.solutions[0].id)
+        url = '/submission/pattern/{}/'.format(self.submission_patterns[0].id)
         resp = self.client.get(url)
         self.assertRedirects(resp, settings.LOGIN_URL + '?next=' + url)
 
     def test_detail_view_requires_permission(self):
         self.client.login(username=self.student, password=self.student)
-        resp = self.client.get('/solution/{}/'.format(self.solutions[0].id))
+        resp = self.client.get('/submission/pattern/{}/'.format(self.submission_patterns[0].id))
         self.assertEqual(resp.status_code, 403)
 
     def test_detail_view_accessible_by_url(self):
         self.client.login(username=self.admin, password=self.admin)
-        resp = self.client.get('/solution/{}/'.format(self.solutions[0].id))
+        resp = self.client.get('/submission/pattern/{}/'.format(self.submission_patterns[0].id))
         self.assertEqual(resp.status_code, 200)
 
     def test_detail_view_accessible_by_name(self):
         self.client.login(username=self.admin, password=self.admin)
-        resp = self.client.get(reverse('contests:solution-detail', kwargs={'pk': self.solutions[0].id}))
+        resp = self.client.get(reverse('contests:submission-pattern-detail', kwargs={'pk': self.submission_patterns[0].id}))
         self.assertEqual(resp.status_code, 200)
 
     """=================================================== Create ==================================================="""
 
     def test_create_view_requires_login(self):
-        url = '/problem/{}/solution/create'.format(self.problems[0].id)
+        url = '/problem/{}/submission/pattern/create'.format(self.problems[0].id)
         resp = self.client.get(url)
         self.assertRedirects(resp, settings.LOGIN_URL + '?next=' + url)
 
     def test_create_view_requires_permission(self):
         self.client.login(username=self.student, password=self.student)
-        resp = self.client.get('/problem/{}/solution/create'.format(self.problems[0].id))
+        resp = self.client.get('/problem/{}/submission/pattern/create'.format(self.problems[0].id))
         self.assertEqual(resp.status_code, 403)
 
     def test_create_view_accessible_by_url(self):
         self.client.login(username=self.admin, password=self.admin)
-        resp = self.client.get('/problem/{}/solution/create'.format(self.problems[0].id))
+        resp = self.client.get('/problem/{}/submission/pattern/create'.format(self.problems[0].id))
         self.assertEqual(resp.status_code, 200)
 
     def test_create_view_accessible_by_name(self):
         self.client.login(username=self.admin, password=self.admin)
-        resp = self.client.get(reverse('contests:solution-create', kwargs={'problem_id': self.problems[0].id}))
+        resp = self.client.get(reverse('contests:submission-pattern-create', kwargs={'problem_id': self.problems[0].id}))
         self.assertEqual(resp.status_code, 200)
 
     """=================================================== Update ==================================================="""
 
     def test_update_view_requires_login(self):
-        url = '/solution/{}/update'.format(self.solutions[0].id)
+        url = '/submission/pattern/{}/update'.format(self.submission_patterns[0].id)
         resp = self.client.get(url)
         self.assertRedirects(resp, settings.LOGIN_URL + '?next=' + url)
 
     def test_update_view_requires_permission(self):
         self.client.login(username=self.student, password=self.student)
-        resp = self.client.get('/solution/{}/update'.format(self.solutions[0].id))
+        resp = self.client.get('/submission/pattern/{}/update'.format(self.submission_patterns[0].id))
         self.assertEqual(resp.status_code, 403)
 
     def test_update_view_accessible_by_url(self):
         self.client.login(username=self.admin, password=self.admin)
-        resp = self.client.get('/solution/{}/update'.format(self.solutions[0].id))
+        resp = self.client.get('/submission/pattern/{}/update'.format(self.submission_patterns[0].id))
         self.assertEqual(resp.status_code, 200)
 
     def test_update_view_accessible_by_name(self):
         self.client.login(username=self.admin, password=self.admin)
-        resp = self.client.get(reverse('contests:solution-update', kwargs={'pk': self.solutions[0].id}))
+        resp = self.client.get(reverse('contests:submission-pattern-update', kwargs={'pk': self.submission_patterns[0].id}))
         self.assertEqual(resp.status_code, 200)
 
     """=================================================== Delete ==================================================="""
 
     def test_delete_view_requires_login(self):
-        url = '/solution/{}/delete'.format(self.solutions[0].id)
+        url = '/submission/pattern/{}/delete'.format(self.submission_patterns[0].id)
         resp = self.client.get(url)
         self.assertRedirects(resp, settings.LOGIN_URL + '?next=' + url)
 
     def test_delete_view_requires_permission(self):
         self.client.login(username=self.student, password=self.student)
-        resp = self.client.get('/solution/{}/delete'.format(self.solutions[0].id))
+        resp = self.client.get('/submission/pattern/{}/delete'.format(self.submission_patterns[0].id))
         self.assertEqual(resp.status_code, 403)
 
     def test_delete_view_accessible_by_url(self):
         self.client.login(username=self.admin, password=self.admin)
-        resp = self.client.get('/solution/{}/delete'.format(self.solutions[0].id))
+        resp = self.client.get('/submission/pattern/{}/delete'.format(self.submission_patterns[0].id))
         self.assertEqual(resp.status_code, 200)
 
     def test_delete_view_accessible_by_name(self):
         self.client.login(username=self.admin, password=self.admin)
-        resp = self.client.get(reverse('contests:solution-delete', kwargs={'pk': self.solutions[0].id}))
+        resp = self.client.get(reverse('contests:submission-pattern-delete', kwargs={'pk': self.submission_patterns[0].id}))
         self.assertEqual(resp.status_code, 200)
 
 

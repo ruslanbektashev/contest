@@ -10,7 +10,7 @@ from django.forms.models import BaseInlineFormSet, BaseModelFormSet
 from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
-from contests.models import (Answer, Attachment, Course, Contest, Option, Problem, Solution, TestSubmission, UTTest, FNTest, Assignment, Submission, Event, Test, Question)
+from contests.models import (Answer, Attachment, Course, Contest, Option, Problem, SubmissionPattern, TestSubmission, UTTest, FNTest, Assignment, Submission, Event, Test, Question)
 
 
 class UserChoiceField(forms.ModelChoiceField):
@@ -160,12 +160,12 @@ class ProblemRollbackResultsForm(forms.Form):
         self.fields['submissions'].queryset = Submission.objects.to_rollback(problem_id)
 
 
-"""==================================================== Solution ===================================================="""
+"""=============================================== SubmissionPattern ================================================"""
 
 
-class SolutionForm(forms.ModelForm):
+class SubmissionPatternForm(forms.ModelForm):
     class Meta:
-        model = Solution
+        model = SubmissionPattern
         fields = ['problems', 'title', 'description', 'pattern']
 
     def __init__(self, *args, problem=None, **kwargs):
@@ -282,11 +282,11 @@ class SubmissionForm(AttachmentForm):
 
     def clean_files(self):
         files = super().clean_files()
-        solutions = self.problem.solution_set.all()
-        if solutions.exists():
+        submission_patterns = self.problem.submission_patterns.all()
+        if submission_patterns.exists():
             patterns = []
-            for solution in solutions:
-                patterns.extend(solution.pattern.split())
+            for submission_pattern in submission_patterns:
+                patterns.extend(submission_pattern.pattern.split())
             if len(patterns) != len(files):
                 raise ValidationError(
                     'Количество файлов не соответствует комплекту поставки решения',

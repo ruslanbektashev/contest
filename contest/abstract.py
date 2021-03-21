@@ -23,13 +23,9 @@ class CRDEntry(CDEntry):
         abstract = True
 
     def get_absolute_url(self):
-        return reverse(
-            '{app_label}:{model}-detail'.format(
-                app_label=self._meta.app_label.lower(),
-                model=self._meta.object_name.lower()
-            ),
-            kwargs={'pk': self.pk}
-        )
+        return reverse('{app_label}:{model}-detail'.format(app_label=self._meta.app_label.lower(),
+                                                           model=self._meta.object_name.lower()),
+                       kwargs={'pk': self.pk})
 
 
 class CRUDEntry(CRDEntry):

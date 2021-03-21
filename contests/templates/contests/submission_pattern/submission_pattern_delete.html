@@ -2,16 +2,16 @@
 {% load views forms %}
 
 {% block title %}
-Решение
+Шаблон посылки
 {% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
-{% breadcrumb solution solution %}
+{% breadcrumb submission_pattern submission_pattern %}
 {% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Удаление решения</legend>
-{% render_delete_form solution %}
+<legend>Удаление шаблона посылки</legend>
+{% render_delete_form submission_pattern %}
 {% endblock content %}

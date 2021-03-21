@@ -55,12 +55,12 @@ urlpatterns = [
             path('delete', views.ProblemDelete.as_view(), name='problem-delete')
         ]))
     ])),
-    path('problem/<int:problem_id>/solution/create', views.SolutionCreate.as_view(), name='solution-create'),
-    path('solution/', include([
+    path('problem/<int:problem_id>/submission/pattern/create', views.SubmissionPatternCreate.as_view(), name='submission-pattern-create'),
+    path('submission/pattern/', include([
         path('<int:pk>/', include([
-            path('', views.SolutionDetail.as_view(), name='solution-detail'),
-            path('update', views.SolutionUpdate.as_view(), name='solution-update'),
-            path('delete', views.SolutionDelete.as_view(), name='solution-delete')
+            path('', views.SubmissionPatternDetail.as_view(), name='submission-pattern-detail'),
+            path('update', views.SubmissionPatternUpdate.as_view(), name='submission-pattern-update'),
+            path('delete', views.SubmissionPatternDelete.as_view(), name='submission-pattern-delete')
         ]))
     ])),
     path('problem/<int:problem_id>/iotest/create', views.IOTestCreate.as_view(), name='iotest-create'),

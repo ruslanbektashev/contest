@@ -22,10 +22,10 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (AnswerCheckForm, AnswerForm, CourseForm, CreditSetForm, ContestForm, OptionForm, ProblemForm, QuestionForm, SolutionForm, TestForm, UTTestForm, FNTestForm,
+from contests.forms import (AnswerCheckForm, AnswerForm, CourseForm, CreditSetForm, ContestForm, OptionForm, ProblemForm, QuestionForm, SubmissionPatternForm, TestForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
                             AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
-from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, Question, Solution, IOTest, Test, TestSubmission, UTTest, FNTest,
+from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, Question, SubmissionPattern, IOTest, Test, TestSubmission, UTTest, FNTest,
                              Assignment, Submission, Execution, Event)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
@@ -474,20 +474,21 @@ class ProblemDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
         return reverse('contests:contest-detail', kwargs={'pk': self.object.contest_id})
 
 
-"""==================================================== Solution ===================================================="""
+"""=============================================== SubmissionPattern ================================================"""
 
 
-class SolutionDetail(LoginRedirectPermissionRequiredMixin, DetailView):
-    model = Solution
-    template_name = 'contests/solution/solution_detail.html'
-    permission_required = 'contests.view_solution'
+class SubmissionPatternDetail(LoginRedirectPermissionRequiredMixin, DetailView):
+    model = SubmissionPattern
+    context_object_name = 'submission_pattern'
+    template_name = 'contests/submission_pattern/submission_pattern_detail.html'
+    permission_required = 'contests.view_submission_pattern'
 
 
-class SolutionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
-    model = Solution
-    form_class = SolutionForm
-    template_name = 'contests/solution/solution_form.html'
-    permission_required = 'contests.add_solution'
+class SubmissionPatternCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+    model = SubmissionPattern
+    form_class = SubmissionPatternForm
+    template_name = 'contests/submission_pattern/submission_pattern_form.html'
+    permission_required = 'contests.add_submission_pattern'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -513,11 +514,12 @@ class SolutionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return context
 
 
-class SolutionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
-    model = Solution
-    form_class = SolutionForm
-    template_name = 'contests/solution/solution_form.html'
-    permission_required = 'contests.change_solution'
+class SubmissionPatternUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+    model = SubmissionPattern
+    form_class = SubmissionPatternForm
+    context_object_name = 'submission_pattern'
+    template_name = 'contests/submission_pattern/submission_pattern_form.html'
+    permission_required = 'contests.change_submission_pattern'
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -525,13 +527,14 @@ class SolutionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         return kwargs
 
 
-class SolutionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
-    model = Solution
-    template_name = 'contests/solution/solution_delete.html'
-    permission_required = 'contests.delete_solution'
+class SubmissionPatternDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+    model = SubmissionPattern
+    context_object_name = 'submission_pattern'
+    template_name = 'contests/submission_pattern/submission_pattern_delete.html'
+    permission_required = 'contests.delete_submission_pattern'
 
     def get_success_url(self):
-        return reverse('contests:solution-detail', kwargs={'pk': self.object.problem_id})
+        return reverse('contests:submission-pattern-detail', kwargs={'pk': self.object.problem_id})
 
 
 """===================================================== IOTest ====================================================="""

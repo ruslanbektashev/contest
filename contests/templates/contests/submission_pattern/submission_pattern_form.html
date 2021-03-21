@@ -2,21 +2,21 @@
 {% load views forms %}
 
 {% block title %}
-Решение
+Шаблон посылки
 {% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
-{% if solution %}
-{% breadcrumb solution solution %}
+{% if submission_pattern %}
+{% breadcrumb submission_pattern submission_pattern %}
 {% breadcrumb "Редактирование" %}
 {% else %}
-{% breadcrumb "Новое решение" %}
+{% breadcrumb "Новый шаблон посылки" %}
 {% endif %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if solution %}Редактирование{% else %}Добавление{% endif %} решения</legend>
+<legend>{% if submission_pattern %}Редактирование{% else %}Добавление{% endif %} шаблона посылки</legend>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_form_errors form %}

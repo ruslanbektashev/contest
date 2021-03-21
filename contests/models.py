@@ -289,19 +289,22 @@ class Problem(CRUDEntry):
         return "#%i. %s" % (self.number, self.title)
 
 
-"""==================================================== Solution ===================================================="""
+"""=============================================== SubmissionPattern ================================================"""
 
 
-class Solution(CRUDEntry):
-    problems = models.ManyToManyField(Problem, verbose_name="Задачи")
+class SubmissionPattern(CRUDEntry):
+    problems = models.ManyToManyField(Problem, related_name='submission_patterns', verbose_name="Задачи")
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     description = models.TextField(verbose_name="Описание")
     pattern = models.TextField(blank=True, verbose_name="Шаблон")
 
     class Meta(CRUDEntry.Meta):
-        verbose_name = "Решение"
-        verbose_name_plural = "Решения"
+        verbose_name = "Шаблон посылки"
+        verbose_name_plural = "Шаблоны посылок"
+
+    def get_absolute_url(self):
+        return reverse('contests:submission-pattern-detail', kwargs={'pk': self.pk})
 
     def __str__(self):
         return "%s" % self.title

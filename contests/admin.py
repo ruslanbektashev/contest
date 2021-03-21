@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericStackedInline
 
 from contests.forms import CourseForm
-from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, Solution, IOTest, Question, Test, TestSubmission, UTTest, FNTest,
+from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, SubmissionPattern, IOTest, Question, Test, TestSubmission, UTTest, FNTest,
                              Assignment, Submission, Execution, Tag, Event)
 
 
@@ -146,8 +146,8 @@ class ProblemAdmin(admin.ModelAdmin):
     inlines = [AttachmentInline, IOTestInline, UTTestInline]
 
 
-@admin.register(Solution)
-class SolutionAdmin(admin.ModelAdmin):
+@admin.register(SubmissionPattern)
+class SubmissionPatternAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Ссылки', {
             'fields': ('owner', 'problems')

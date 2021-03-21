@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load views %}
+
+{% block title %}
+Шаблон посылки
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb submission_pattern %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{{ submission_pattern }}</legend>
+<div>
+    <h6>Описание:</h6>
+    <div class="alert alert-secondary">
+        {{ submission_pattern.description|safe|linebreaksbr }}
+    </div>
+    <h6>Шаблон:</h6>
+    <div class="alert alert-secondary">
+        <samp>{{ submission_pattern.pattern|safe|linebreaksbr }}</samp>
+    </div>
+    {% include 'list.html' with lst=submission_pattern.problems.all title="Задачи:" %}
+</div>
+{% endblock content %}
+
+{% block submenu %}
+<div class="list-group mb-3">
+    {% if perms.contests.change_submission_pattern %}
+    <a href="{% url 'contests:submission-pattern-update' submission_pattern.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать шаблон посылки</a>
+    {% endif %}
+    {% if perms.contests.delete_submission_pattern %}
+    <a href="{% url 'contests:submission-pattern-delete' submission_pattern.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить шаблон посылки</a>
+    {% endif %}
+</div>
+{% endblock submenu %}

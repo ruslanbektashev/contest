@@ -22,10 +22,10 @@
         Некоторые ошибки компиляции могут быть связаны с различием компиляторов.<br>
         Принимаются файлы только с кодировкой UTF-8.<br>
     </div>
-    {% if problem.solution_set.exists %}
+    {% if problem.submission_patterns.exists %}
     <div class="alert alert-info" role="contentinfo">
-        {% for solution in problem.solution_set.all %}
-        {{ solution.description|safe|linebreaksbr }}
+        {% for submission_pattern in problem.submission_patterns.all %}
+        {{ submission_pattern.description|safe|linebreaksbr }}
         {% endfor %}
     </div>
     {% endif %}
