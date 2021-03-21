@@ -829,35 +829,33 @@ class QuestionManager(models.Manager):
 
 
 class Question(CRUDEntry):
-    ANSWER_TYPES = (
+    TYPE_CHOICES = (
         (1, "Текст"),
         (2, "Тест"),
         (3, "Файл"),
     )
+    DEFAULT_TYPE = 1
+    DEFAULT_NUMBER = 1
 
-    owner = None
+    owner = None  # TODO: убрать эту строку, т.е. вернуть поле owner в класс
+    # contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")  # TODO: добавить это поле
+    test = models.ForeignKey(Test, null=True, on_delete=models.CASCADE, verbose_name="Набор задач")
 
-    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Набор задач")
-
-    answer_type = models.PositiveSmallIntegerField(verbose_name="Способ ответа", choices=ANSWER_TYPES, default=1)
-    number = models.PositiveSmallIntegerField(verbose_name="Номер", default=1)
-    text = models.TextField(verbose_name="Вопрос")
+    # title = models.CharField(max_length=100, verbose_name="Заголовок")  # TODO: добавить это поле
+    text = models.TextField(verbose_name="Вопрос")  # TODO: изменить название поля на description
+    answer_type = models.PositiveSmallIntegerField(verbose_name="Способ ответа", choices=TYPE_CHOICES, default=DEFAULT_TYPE)  # TODO: изменить название на type
+    number = models.PositiveSmallIntegerField(verbose_name="Номер", default=DEFAULT_NUMBER)
 
     objects = QuestionManager()
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
-        unique_together = ['test', 'number']
-        ordering = ['number']
-
-    def get_answer_type_display(self):
-        for pair in self.ANSWER_TYPES:
-            if pair[0] == self.answer_type:
-                return pair[1]
+        unique_together = ('test', 'number')  # TODO: теперь, т.к. поле test может быть NULL, подумать, как добиться уникальности "номера и раздела" и "номера и набора задач"
+        ordering = ('number',)
 
     def __str__(self):
-        return f"Задача {self.id}"
+        return "Задача {}".format(self.id)
 
 
 class Option(CRUDEntry):
@@ -877,9 +875,11 @@ class Option(CRUDEntry):
 
 
 class TestSubmission(CRUDEntry):
+    DEFAULT_SCORE = 0
+
     test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Набор задач")
 
-    score = models.PositiveSmallIntegerField(default=2, verbose_name="Оценка")
+    score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE, verbose_name="Оценка")
 
     class Meta(CRUDEntry.Meta):
         verbose_name = "Решение набора задач"
@@ -897,7 +897,7 @@ class TestSubmission(CRUDEntry):
         self.save(update_fields=['score'])
 
     def __str__(self):
-        return f"Решение {self.id}"
+        return "Решение {}".format(self.id)
 
 
 class Answer(CRUDEntry):
@@ -908,12 +908,11 @@ class Answer(CRUDEntry):
     )
     DEFAULT_STATUS = 1
 
-    owner = None
-
-    test_submission = models.ForeignKey(TestSubmission, on_delete=models.CASCADE, verbose_name="Решение набора задач")
+    owner = None  # TODO: убрать эту строку, т.е. вернуть поле owner в класс
+    test_submission = models.ForeignKey(TestSubmission, null=True, on_delete=models.CASCADE, verbose_name="Решение набора задач")
     question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
-    options = models.ManyToManyField(Option, blank=True, verbose_name="Выбранные варианты")
 
+    options = models.ManyToManyField(Option, blank=True, verbose_name="Выбранные варианты")
     text = models.TextField(verbose_name="Развёрнутый ответ", blank=True, null=True)
     file = models.FileField(verbose_name="Файл", blank=True, null=True)
     status = models.PositiveSmallIntegerField(choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
@@ -921,8 +920,8 @@ class Answer(CRUDEntry):
     class Meta(CRUDEntry.Meta):
         verbose_name = "Решение задачи"
         verbose_name_plural = "Решения задач"
-        unique_together = ['test_submission', 'question']
-        ordering = ['question__number']
+        unique_together = ('test_submission', 'question')  # TODO: теперь, т.к. поле test_submission может быть NULL, подумать, как добиться уникальности пары "решение набора задач и задача" только при test_submission != NULL
+        ordering = ('question__number',)
 
     def check_correctness(self) -> None:
         if self.question.answer_type == 2:
@@ -934,4 +933,4 @@ class Answer(CRUDEntry):
             self.save(update_fields=['status'])
 
     def __str__(self):
-        return f"Решение задачи {self.question.id}"
+        return "Решение задачи {}".format(self.question.id)
