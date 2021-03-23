@@ -3,6 +3,7 @@ import io
 import os
 import random
 import zipfile
+from ckeditor.fields import RichTextField
 
 from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth.models import User
@@ -84,7 +85,7 @@ class Course(CRUDEntry):
     leaders = models.ManyToManyField(User, related_name="courses_leading", verbose_name="Ведущие преподаватели")
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
-    description = models.TextField(verbose_name="Описание")
+    description = RichTextField(verbose_name="Описание")
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, verbose_name="Уровень")
 
     comment_set = GenericRelation(Comment, content_type_field='object_type')
@@ -180,7 +181,7 @@ class Contest(CRUDEntry):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Курс")
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
-    description = models.TextField(verbose_name="Описание")
+    description = RichTextField(verbose_name="Описание")
 
     number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер")
 

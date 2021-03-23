@@ -21,6 +21,7 @@
     {% csrf_token %}
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {{ form.media }}
     {% render_field form.title class+="form-control" %}
     {% render_field form.description class+="form-control" %}
     {% render_field form.level class+="form-control selectpicker" %}

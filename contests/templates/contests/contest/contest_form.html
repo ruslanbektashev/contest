@@ -23,6 +23,7 @@
     {% render_form_errors form %}
     {% render_field form.course %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {{ form.media }}
     {% render_field form.title class+="form-control" %}
     {% render_field form.description class+="form-control" %}
     {% render_field form.number class+="form-control" %}
