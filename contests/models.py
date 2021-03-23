@@ -847,8 +847,8 @@ class Question(CRUDEntry):
     # contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")  # TODO: добавить это поле
     test = models.ForeignKey(Test, null=True, on_delete=models.CASCADE, verbose_name="Набор задач")
 
-    # title = models.CharField(max_length=100, verbose_name="Заголовок")  # TODO: добавить это поле
-    text = models.TextField(verbose_name="Вопрос")  # TODO: изменить название поля на description
+    title = models.CharField(max_length=100, verbose_name="Заголовок")
+    description = models.TextField(verbose_name="Вопрос")
     answer_type = models.PositiveSmallIntegerField(verbose_name="Способ ответа", choices=TYPE_CHOICES, default=DEFAULT_TYPE)  # TODO: изменить название на type
     number = models.PositiveSmallIntegerField(verbose_name="Номер", default=DEFAULT_NUMBER)
 

@@ -1421,6 +1421,10 @@ class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         initial['number'] = Question.objects.get_new_number(self.storage['test'])
         return initial
 
+    def form_valid(self, form):
+        # form.instance.owner = self.request.user
+        return super().form_valid(form)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['test'] = self.storage['test']
@@ -1591,6 +1595,7 @@ class AnswerCreate(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.test_submission = self.storage['testsubmission']
         form.instance.question = self.storage['question']
+        # form.instance.owner = self.request.user
         response = super().form_valid(form)
         self.object.check_correctness()
         self.storage['testsubmission'].update_score()

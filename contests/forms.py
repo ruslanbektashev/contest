@@ -383,7 +383,7 @@ class TestForm(forms.ModelForm):
 class QuestionForm(forms.ModelForm):
     class Meta:
         model = Question
-        fields = ['text', 'answer_type', 'number']
+        fields = ['title', 'description', 'answer_type', 'number']
 
     def __init__(self, *args, **kwargs):
         test = kwargs.pop('test', None)
