@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 from contest.abstract import CRUDEntry
@@ -6,6 +7,8 @@ from contest.abstract import CRUDEntry
 
 
 class Question(CRUDEntry):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Владелец", related_name="+")
+
     question = models.CharField(max_length=255, verbose_name="Вопрос")
     answer = models.TextField(blank=True, verbose_name="Ответ")
 

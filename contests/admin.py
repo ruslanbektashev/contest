@@ -83,7 +83,7 @@ class ContestAdmin(admin.ModelAdmin):
             'fields': ('owner', 'course')
         }),
         ('Детали', {
-            'fields': ('title', 'description')
+            'fields': ('title', 'description', 'number')
         }),
         ('Даты', {
             'fields': ('date_updated', 'date_created')
