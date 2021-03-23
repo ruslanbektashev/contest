@@ -857,8 +857,8 @@ class Question(CRUDEntry):
     class Meta(CRUDEntry.Meta):
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
-        unique_together = ('test', 'number')  # TODO: теперь, т.к. поле test может быть NULL, подумать, как добиться уникальности "номера и раздела" и "номера и набора задач"
         ordering = ('number',)
+        # TODO: подумать, как добиться уникальности "номера и раздела" и "номера и набора задач"
 
     def __str__(self):
         return "Задача {}".format(self.id)
@@ -926,8 +926,8 @@ class Answer(CRUDEntry):
     class Meta(CRUDEntry.Meta):
         verbose_name = "Решение задачи"
         verbose_name_plural = "Решения задач"
-        unique_together = ('test_submission', 'question')  # TODO: теперь, т.к. поле test_submission может быть NULL, подумать, как добиться уникальности пары "решение набора задач и задача" только при test_submission != NULL
         ordering = ('question__number',)
+        # TODO: подумать, как добиться уникальности пары "решение набора задач и задача" только при test_submission != NULL
 
     def check_correctness(self) -> None:
         if self.question.answer_type == 2:
