@@ -844,7 +844,7 @@ class Question(CRUDEntry):
     DEFAULT_NUMBER = 1
 
     owner = None  # TODO: убрать эту строку, т.е. вернуть поле owner в класс
-    # contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")  # TODO: добавить это поле
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
     test = models.ForeignKey(Test, null=True, on_delete=models.CASCADE, verbose_name="Набор задач")
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
