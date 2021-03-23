@@ -383,7 +383,7 @@ class TestForm(forms.ModelForm):
 class QuestionForm(forms.ModelForm):
     class Meta:
         model = Question
-        fields = ['title', 'description', 'answer_type', 'number']
+        fields = ['title', 'description', 'type', 'number']
 
     def __init__(self, *args, **kwargs):
         test = kwargs.pop('test', None)
@@ -415,11 +415,11 @@ class AnswerForm(forms.ModelForm):
     def __init__(self, *args, question, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if question.answer_type == 1:
+        if question.type == 1:
             self.fields['text'].required = True
-        elif question.answer_type == 3:
+        elif question.type == 3:
             self.fields['file'].required = True
-        elif question.answer_type == 2:
+        elif question.type == 2:
             if question.option_set.count():
                 if question.option_set.filter(is_right=True).count() > 1:
                     self.fields['options'] = forms.ModelMultipleChoiceField(required=True,

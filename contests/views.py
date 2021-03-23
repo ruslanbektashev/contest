@@ -1431,7 +1431,7 @@ class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return context
 
     def get_success_url(self):
-        if self.object.answer_type == 2:
+        if self.object.type == 2:
             return reverse('contests:question-detail', kwargs={'pk': self.object.id})
         return reverse('contests:test-detail', kwargs={'pk': self.storage['test'].id})
 
@@ -1642,7 +1642,7 @@ class AnswerDetail(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         answer = self.get_object()
 
-        if answer.question.answer_type in [1, 2]:
+        if answer.question.type in [1, 2]:
             return context
 
         filetype, _ = mimetypes.guess_type(url=answer.file.path)

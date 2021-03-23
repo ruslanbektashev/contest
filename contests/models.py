@@ -849,7 +849,7 @@ class Question(CRUDEntry):
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     description = models.TextField(verbose_name="Вопрос")
-    answer_type = models.PositiveSmallIntegerField(verbose_name="Способ ответа", choices=TYPE_CHOICES, default=DEFAULT_TYPE)  # TODO: изменить название на type
+    type = models.PositiveSmallIntegerField(verbose_name="Способ ответа", choices=TYPE_CHOICES, default=DEFAULT_TYPE)
     number = models.PositiveSmallIntegerField(verbose_name="Номер", default=DEFAULT_NUMBER)
 
     objects = QuestionManager()
@@ -930,7 +930,7 @@ class Answer(CRUDEntry):
         # TODO: подумать, как добиться уникальности пары "решение набора задач и задача" только при test_submission != NULL
 
     def check_correctness(self) -> None:
-        if self.question.answer_type == 2:
+        if self.question.type == 2:
             right_options = list(self.question.option_set.filter(is_right=True).order_by('id').values_list('id', flat=True))
             if right_options == list(self.options.order_by('id').values_list('id', flat=True)):
                 self.status = 2

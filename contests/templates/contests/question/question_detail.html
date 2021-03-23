@@ -15,7 +15,7 @@
 
 {% block content %}
 
-<legend>Задача {{ question.number }} <small class="text-muted">способ ответа: {{ question.get_answer_type_display|lower }}</small></legend>
+<legend>Задача {{ question.number }} <small class="text-muted">способ ответа: {{ question.get_type_display|lower }}</small></legend>
 <ul class="nav nav-tabs mb-3" role="tablist">
     <li class="nav-item">
         <a aria-controls="description" aria-selected="{% if not tab or tab == 'description' %}true{% else %}false{% endif %}"
@@ -49,7 +49,7 @@
             </li>
             {% endfor %}
         </ul>
-        {% elif question.answer_type == 2 %}
+        {% elif question.type == 2 %}
         <div class="alert alert-warning">
             Добавьте варианты ответов.
         </div>
@@ -80,7 +80,7 @@
             </li>
             {% endfor %}
         </ul>
-        {% elif question.answer_type == 2 %}
+        {% elif question.type == 2 %}
         <div class="alert alert-warning">
             Добавьте варианты ответов.
         </div>
@@ -100,7 +100,7 @@
     <a href="{% url 'contests:question-delete' question.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash fa-fw"></i> Удалить задачу</a>
     {% endif %}
 </div>
-{% if perms.contests.add_option and question.answer_type == 2 %}
+{% if perms.contests.add_option and question.type == 2 %}
 <div class="list-group mb-3">
     <a href="{% url 'contests:option-create' question.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить вариант ответа</a>
 </div>

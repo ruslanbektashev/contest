@@ -35,7 +35,7 @@
         {% for question in test.question_set.all %}
         <div class="card mb-3">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                #{{ question.number }} <span class="badge badge-pill badge-light">Способ ответа: {{ question.get_answer_type_display|lower }}</span>
+                #{{ question.number }} <span class="badge badge-pill badge-light">Способ ответа: {{ question.get_type_display|lower }}</span>
             </div>
             <div class="card-body">
                 <p class="card-text">{{ question.text }}</p>
