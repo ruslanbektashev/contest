@@ -844,7 +844,6 @@ class Question(CRUDEntry):
     DEFAULT_TYPE = 1
     DEFAULT_NUMBER = 1
 
-    owner = None  # TODO: убрать эту строку, т.е. вернуть поле owner в класс
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
     test = models.ForeignKey(Test, null=True, on_delete=models.CASCADE, verbose_name="Набор задач")
 
@@ -915,7 +914,6 @@ class Answer(CRUDEntry):
     )
     DEFAULT_STATUS = 1
 
-    owner = None  # TODO: убрать эту строку, т.е. вернуть поле owner в класс
     test_submission = models.ForeignKey(TestSubmission, null=True, on_delete=models.CASCADE, verbose_name="Решение набора задач")
     question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
 
