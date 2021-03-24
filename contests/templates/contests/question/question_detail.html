@@ -7,8 +7,8 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
-{% breadcrumb question.test.contest.course question.test.contest.course %}
-{% breadcrumb question.test.contest question.test.contest %}
+{% breadcrumb question.contest.course question.contest.course %}
+{% breadcrumb question.contest question.contest %}
 {% breadcrumb question.test question.test %}
 {% breadcrumb question %}
 {% endblock breadcrumbs %}
@@ -31,7 +31,7 @@
 <div class="tab-content">
     <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %}" id="description" role="tabpanel">
         {% with options=question.option_set.all%}
-        <p>{{ question.text }}</p>
+        <p>{{ question.description }}</p>
 
         {% if options %}
         <h6 class="mb-3">Варианты ответа</h6>
@@ -58,7 +58,7 @@
     </div>
     <div aria-labelledby="submission-patterns-tab" class="tab-pane fade {% if tab == 'submission_patterns' %}show active{% endif %}" id="submission_patterns" role="tabpanel">
         {% with options=question.option_set.all%}
-        <p>{{ question.text }}</p>
+        <p>{{ question.description }}</p>
 
         {% if options %}
         <h6 class="mb-3">Варианты ответа</h6>

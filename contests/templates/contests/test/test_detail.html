@@ -38,7 +38,7 @@
                 #{{ question.number }} <span class="badge badge-pill badge-light">Способ ответа: {{ question.get_type_display|lower }}</span>
             </div>
             <div class="card-body">
-                <p class="card-text">{{ question.text }}</p>
+                <p class="card-text">{{ question.description }}</p>
             </div>
             {% if question.option_set.all %}
             <div class="card ml-2 mb-2 mr-2">

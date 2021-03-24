@@ -17,7 +17,7 @@
 {% block content %}
 
 <legend>Решение задачи {{ question.number }}</legend>
-<p>{{ answer.question.text }}</p>
+<p>{{ answer.question.description }}</p>
 {% if answer.question.type == 1 %}
     <label class="text-muted">Ответ:
         <p>{{ answer.text }}</p>
