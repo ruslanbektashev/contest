@@ -92,7 +92,7 @@ class Course(CRUDEntry):
     subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
     class Meta(CRUDEntry.Meta):
-        ordering = ('level',)
+        ordering = ('level', 'id')
         verbose_name = "Курс"
         verbose_name_plural = "Курсы"
 
@@ -138,8 +138,8 @@ class Credit(CRUDEntry):
     objects = CreditManager()
 
     class Meta(CRUDEntry.Meta):
-        ordering = ('-course',)
         unique_together = ('user', 'course')
+        ordering = ('-course',)
         verbose_name = "Зачет"
         verbose_name_plural = "Зачеты"
 
@@ -192,10 +192,10 @@ class Contest(CRUDEntry):
     objects = ContestManager()
 
     class Meta(CRUDEntry.Meta):
-        verbose_name = "Раздел"
-        verbose_name_plural = "Разделы"
         unique_together = ('course', 'number')
         ordering = ('number', 'id')
+        verbose_name = "Раздел"
+        verbose_name_plural = "Разделы"
 
     @property
     def files(self):
@@ -257,10 +257,10 @@ class Problem(CRUDEntry):
     objects = ProblemManager()
 
     class Meta(CRUDEntry.Meta):
-        verbose_name = "Задача"
-        verbose_name_plural = "Задачи"
         unique_together = ('contest', 'number')
         ordering = ('number', 'id')
+        verbose_name = "Задача"
+        verbose_name_plural = "Задачи"
 
     @property
     def files(self):
@@ -855,10 +855,9 @@ class Question(CRUDEntry):
     objects = QuestionManager()
 
     class Meta(CRUDEntry.Meta):
+        ordering = ('number',)
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
-        ordering = ('number',)
-        # TODO: подумать, как добиться уникальности "номера и раздела" и "номера и набора задач"
 
     def __str__(self):
         return "Задача {}".format(self.id)
@@ -923,10 +922,9 @@ class Answer(CRUDEntry):
     status = models.PositiveSmallIntegerField(choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
 
     class Meta(CRUDEntry.Meta):
+        ordering = ('question__number',)
         verbose_name = "Решение задачи"
         verbose_name_plural = "Решения задач"
-        ordering = ('question__number',)
-        # TODO: подумать, как добиться уникальности пары "решение набора задач и задача" только при test_submission != NULL
 
     def check_correctness(self) -> None:
         if self.question.type == 2:
