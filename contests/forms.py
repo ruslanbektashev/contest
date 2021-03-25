@@ -223,11 +223,11 @@ class AssignmentForm(forms.ModelForm):
     def __init__(self, course, *args, contest=None, user=None, debts=False, **kwargs):
         super().__init__(*args, **kwargs)
         if debts:
-            self.fields['user'].queryset = User.objects.filter(id__in=Account.students.enrolled()
-                                                               .debtors(course).values_list('user_id'))
+            user_ids = Account.students.enrolled().debtors(course).values_list('user_id')
+            self.fields['user'].queryset = User.objects.filter(id__in=user_ids)
         else:
-            self.fields['user'].queryset = User.objects.filter(id__in=Account.students.enrolled()
-                                                               .filter(level=course.level).values_list('user_id'))
+            user_ids = Account.students.enrolled().current(course).values_list('user_id')
+            self.fields['user'].queryset = User.objects.filter(id__in=user_ids)
         if user:
             self.fields['user'].initial = user
         self.fields['problem'].choices = grouped_problems(course, contest)
@@ -299,10 +299,8 @@ class SubmissionForm(AttachmentForm):
             for submission_pattern in submission_patterns:
                 patterns.extend(submission_pattern.pattern.split())
             if len(patterns) != len(files):
-                raise ValidationError(
-                    'Количество файлов не соответствует комплекту поставки решения',
-                    code='no_match'
-                )
+                raise ValidationError('Количество файлов не соответствует комплекту поставки решения',
+                                      code='no_match')
             label = None
             for f in files:
                 for ptn in patterns:
@@ -312,32 +310,24 @@ class SubmissionForm(AttachmentForm):
                         if label is None:
                             label = match.group(1)
                         elif label != match.group(1):
-                            raise ValidationError(
-                                'Идентификаторы в именах файлов не совпадают',
-                                code='label_mismatch'
-                            )
+                            raise ValidationError('Идентификаторы в именах файлов не совпадают',
+                                                  code='label_mismatch')
                         break
                 else:
-                    raise ValidationError(
-                        'Некорректное имя файла: %(filename)s',
-                        code='invalid_filename',
-                        params={'filename': f.name}
-                    )
+                    raise ValidationError('Некорректное имя файла: %(filename)s',
+                                          code='invalid_filename',
+                                          params={'filename': f.name})
             if int(label[-2:]) != self.problem.number:
-                raise ValidationError(
-                    'Идентификатор %(label)s не соответствует комплекту поставки решения',
-                    code='wrong_label',
-                    params={'label': label}
-                )
+                raise ValidationError('Идентификатор %(label)s не соответствует комплекту поставки решения',
+                                      code='wrong_label',
+                                      params={'label': label})
         return files
 
     def clean(self):
         last_submission = self.problem.get_latest_submission_by(self.owner)
         if last_submission and last_submission.is_un:
-            raise ValidationError(
-                'Последнее присланное решение еще не проверено',
-                code='last_submission_is_un'
-            )
+            raise ValidationError('Последнее присланное решение еще не проверено',
+                                  code='last_submission_is_un')
         try:
             assignment = Assignment.objects.get(user=self.owner, problem=self.problem)
         except ObjectDoesNotExist:
@@ -345,10 +335,8 @@ class SubmissionForm(AttachmentForm):
         else:
             nsubmissions = Submission.objects.filter(owner=self.owner, problem=self.problem).count()
             if nsubmissions >= assignment.submission_limit:
-                raise ValidationError(
-                    'Количество попыток исчерпано',
-                    code='limit_reached'
-                )
+                raise ValidationError('Количество попыток исчерпано',
+                                      code='limit_reached')
         return super().clean()
 
 
