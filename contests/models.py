@@ -478,9 +478,9 @@ class AssignmentManager(models.Manager):
             aligning their number to limit_per_user for contest.course.level students """
         problem_ids = contest.problem_set.all().values_list('id', flat=True)
         if debts:
-            user_ids = (Account.students.enrolled().debtors(contest.course.level).values_list('user_id', flat=True))
+            user_ids = Account.students.enrolled().debtors(contest.course).values_list('user_id', flat=True)
         else:
-            user_ids = (Account.students.enrolled().filter(level=contest.course.level).values_list('user_id', flat=True))
+            user_ids = Account.students.enrolled().current(contest.course).values_list('user_id', flat=True)
         for user_id in user_ids:
             assigned_problem_ids = self.filter(
                 user_id=user_id,

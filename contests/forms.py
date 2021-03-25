@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.forms.models import BaseInlineFormSet, BaseModelFormSet
 from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
@@ -21,6 +20,20 @@ class UserChoiceField(forms.ModelChoiceField):
 class UserMultipleChoiceField(forms.ModelMultipleChoiceField):
     def label_from_instance(self, obj):
         return "{} {}".format(obj.last_name, obj.first_name)
+
+
+class AccountSelectMultiple(forms.SelectMultiple):
+    def __init__(self, attrs=None, choices=(), option_attrs=None):
+        super().__init__(attrs, choices)
+        self.option_attrs = option_attrs
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex, attrs)
+        displays = dict(Account.LEVEL_CHOICES)
+        if self.option_attrs is not None:
+            for data_attr, values in self.option_attrs.items():
+                option['attrs'][data_attr] = displays[values[option['value']]]
+        return option
 
 
 """=================================================== Attachment ==================================================="""
@@ -109,19 +122,17 @@ class CourseForm(forms.ModelForm):
 
 
 class CreditSetForm(forms.Form):
-    runner_ups = forms.ModelMultipleChoiceField(queryset=Account.objects.none(), required=False,
-                                                label="Перевести на этот курс и назначить зачет")
-    non_credited = forms.ModelMultipleChoiceField(queryset=Account.objects.none(), required=False,
-                                                  label="Назначить зачет")
+    runner_ups = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите студентов")
 
     def __init__(self, course, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        runner_ups = Account.students.enrolled().filter(level=course.level - 1).with_credits()
-        self.fields['runner_ups'].queryset = runner_ups
-        self.fields['runner_ups'].initial = runner_ups.filter(credit_score__gt=2)
-        non_credited = Account.students.enrolled().filter(level=course.level).none_credits()
-        self.fields['non_credited'].queryset = non_credited
-        self.fields['non_credited'].initial = non_credited
+        runner_ups = Account.students.enrolled().allowed(course).filter(credit_id=None)
+        self.fields['runner_ups'].queryset = runner_ups.order_by('-level', 'user__last_name', 'user__first_name')
+        self.fields['runner_ups'].initial = runner_ups.filter(level__in=[course.level - 1, course.level])
+        option_attrs = {'data-subtext': dict(self.fields['runner_ups'].queryset.values_list('pk', 'level'))}
+        option_attrs['data-subtext'][''] = ''
+        self.fields['runner_ups'].widget = AccountSelectMultiple(choices=self.fields['runner_ups'].choices,
+                                                                 option_attrs=option_attrs)
 
 
 """==================================================== Contest ====================================================="""
@@ -213,7 +224,7 @@ class AssignmentForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if debts:
             self.fields['user'].queryset = User.objects.filter(id__in=Account.students.enrolled()
-                                                               .debtors(course.level).values_list('user_id'))
+                                                               .debtors(course).values_list('user_id'))
         else:
             self.fields['user'].queryset = User.objects.filter(id__in=Account.students.enrolled()
                                                                .filter(level=course.level).values_list('user_id'))

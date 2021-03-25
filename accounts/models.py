@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.contrib.auth.models import User, Group
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -26,32 +27,20 @@ class StudentQuerySet(AccountQuerySet):
     def enrolled(self):
         return self.filter(enrolled=True)
 
-    def with_credits(self):
-        from contests.models import Credit
-        return self.annotate(
-            credit_id=models.Subquery(Credit.objects.filter(course__level=models.OuterRef('level'),
-                                                            user_id=models.OuterRef('user_id')).values('id'))
-        ).annotate(
-            credit_score=models.Subquery(Credit.objects.filter(course__level=models.OuterRef('level'),
-                                                               user_id=models.OuterRef('user_id')).values('score'))
-        )
+    def with_credits(self, course):
+        Credit = apps.get_model('contests', 'Credit')
+        subquery = Credit.objects.filter(course=course, user_id=models.OuterRef('user_id'))
+        return (self.annotate(credit_id=models.Subquery(subquery.values('id')))
+                    .annotate(credit_score=models.Subquery(subquery.values('score'))))
 
-    def none_credits(self):
-        from contests.models import Credit
-        return self.annotate(
-            has_credit=models.Exists(Credit.objects.filter(course__level=models.OuterRef('level'),
-                                                           user_id=models.OuterRef('user_id')))
-        ).filter(has_credit=False)
+    def allowed(self, course):
+        return self.with_credits(course).filter(level__lte=course.level)
 
-    def debtors(self, level):
-        from contests.models import Credit
-        return self.filter(~models.Q(level=level)).annotate(
-            credit_id=models.Subquery(Credit.objects.filter(course__level=level,
-                                                            user_id=models.OuterRef('user_id')).values('id'))
-        ).annotate(
-            credit_score=models.Subquery(Credit.objects.filter(course__level=level,
-                                                               user_id=models.OuterRef('user_id')).values('score'))
-        ).filter(credit_score__lte=2)
+    def current(self, course):
+        return self.allowed(course).exclude(credit_id=None)
+
+    def debtors(self, course):
+        return self.with_credits(course).filter(level__gt=course.level).filter(credit_score__lte=2)
 
     def level_up(self):
         return self.filter(level__lt=Account.LEVEL_MAX).update(level=models.F('level') + 1)

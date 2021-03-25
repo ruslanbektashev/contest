@@ -131,9 +131,7 @@ class CourseStart(LoginRedirectPermissionRequiredMixin, FormView):
     def post(self, request, *args, **kwargs):
         form = self.get_form()
         if form.is_valid():
-            Credit.objects.create_set(request.user, self.storage['course'],
-                                      form.cleaned_data['non_credited'].union(form.cleaned_data['runner_ups']))
-            form.cleaned_data['runner_ups'].level_up()
+            Credit.objects.create_set(request.user, self.storage['course'], form.cleaned_data['runner_ups'])
             return self.form_valid(form)
         return self.form_invalid(form)
 
@@ -910,15 +908,15 @@ class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
+        course = self.storage['course']
         if self.storage['debts']:
-            self.storage['students'] = Account.students.enrolled().debtors(self.storage['course'].level)
+            self.storage['students'] = Account.students.enrolled().debtors(course)
         else:
-            self.storage['students'] = Account.students.enrolled().filter(
-                level=self.storage['course'].level).with_credits()
+            self.storage['students'] = Account.students.enrolled().current(course)
         bool(self.storage['students'])  # evaluate now
         return (Assignment.objects
                 .filter(user__in=self.storage['students'].values_list('user'),
-                        problem__contest__course=self.storage['course'])
+                        problem__contest__course=course)
                 .select_related('user', 'problem')
                 .order_by('user__account', 'problem__contest', 'date_created'))
 
