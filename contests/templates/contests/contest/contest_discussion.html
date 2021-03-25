@@ -19,30 +19,18 @@
            role="tab">Описание</a>
     </li>
     <li class="nav-item">
-        <a aria-controls="problems" aria-selected="false" class="nav-link" data-toggle="tab" href="#problems" id="problems-tab"
-           role="tab">Задачи</a>
-    </li>
-    <li class="nav-item">
         {% render_discussion_tab contest %}
-    </li>
-    <li class="nav-item">
-        <a aria-controls="tests" aria-selected="false" class="nav-link" data-toggle="tab" href="#tests" id="tests-tab"
-           role="tab">Наборы задач</a>
     </li>
 </ul>
 <div class="tab-content">
     <div aria-labelledby="description-tab" class="tab-pane fade" id="description" role="tabpanel">
         <p>{{ contest.description|markdown|safe }}</p>
+        {% include 'list.html' with lst=contest.problem_set.all title="Задачи:" %}
+        {% include 'list.html' with lst=contest.test_set.all title="Тесты:" %}
         {% render_attachment_list contest %}
-    </div>
-    <div aria-labelledby="problems-tab" class="tab-pane fade" id="problems" role="tabpanel">
-        {% include 'list.html' with lst=contest.problem_set.all %}
     </div>
     <div aria-labelledby="discussion-tab" class="tab-pane fade show active" id="discussion" role="tabpanel">
         {% render_comments contest comments %}
-    </div>
-    <div aria-labelledby="tests-tab" class="tab-pane fade" id="tests" role="tabpanel">
-        {% include 'list.html' with lst=contest.test_set.all %}
     </div>
 </div>
 {% endblock content %}

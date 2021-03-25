@@ -450,6 +450,9 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         context['contest'] = self.storage['contest']
         return context
 
+    def get_success_url(self):
+        return reverse('contests:contest-detail', kwargs={'pk': self.object.contest_id})
+
 
 class ProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Problem
