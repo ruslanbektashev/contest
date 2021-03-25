@@ -1,4 +1,3 @@
-from os import name
 from django.urls import path, include
 
 from contest.utils import under_development
@@ -127,41 +126,41 @@ urlpatterns = [
         ])),
         path('schedule', under_development(views.EventSchedule.as_view()), name='event-schedule')
     ])),
-    path('contest/<int:contest_id>/test/create', under_development(views.TestCreate.as_view()), name='test-create'),
-    path('test/<int:test_id>/question/create', under_development(views.QuestionCreate.as_view()), name='question-create'),
-    path('test/<int:test_id>/testsubmission/create', under_development(views.TestSubmissionRedirect.as_view()), name='testsubmission-create'),
+    path('contest/<int:contest_id>/test/create', views.TestCreate.as_view(), name='test-create'),
+    path('test/<int:test_id>/question/create', views.QuestionCreate.as_view(), name='question-create'),
+    path('test/<int:test_id>/testsubmission/create', views.TestSubmissionRedirect.as_view(), name='testsubmission-create'),
     path('test/', include([
         path('<int:pk>/', include([
-            path('', under_development(views.TestDetail.as_view()), name='test-detail'),
-            path('update', under_development(views.TestUpdate.as_view()), name='test-update'),
-            path('delete', under_development(views.TestDelete.as_view()), name='test-delete'),
+            path('', views.TestDetail.as_view(), name='test-detail'),
+            path('update', views.TestUpdate.as_view(), name='test-update'),
+            path('delete', views.TestDelete.as_view(), name='test-delete'),
         ]))
     ])),
-    path('question/<int:question_id>/option/create', under_development(views.OptionCreate.as_view()), name='option-create'),
+    path('question/<int:question_id>/option/create', views.OptionCreate.as_view(), name='option-create'),
     path('question/', include([
         path('<int:pk>/', include([
-            path('', under_development(views.QuestionDetail.as_view()), name='question-detail'),
-            path('update', under_development(views.QuestionUpdate.as_view()), name='question-update'),
-            path('delete', under_development(views.QuestionDelete.as_view()), name='question-delete'),
+            path('', views.QuestionDetail.as_view(), name='question-detail'),
+            path('update', views.QuestionUpdate.as_view(), name='question-update'),
+            path('delete', views.QuestionDelete.as_view(), name='question-delete'),
         ]))
     ])),
     path('option/', include([
         path('<int:pk>/', include([
-            path('update', under_development(views.OptionUpdate.as_view()), name='option-update'),
-            path('delete', under_development(views.OptionDelete.as_view()), name='option-delete'),
+            path('update', views.OptionUpdate.as_view(), name='option-update'),
+            path('delete', views.OptionDelete.as_view(), name='option-delete'),
         ]))
     ])),
-    path('test/<int:test_id>/testsubmission/create', under_development(views.TestSubmissionRedirect.as_view()), name='testsubmission-create'),
-    path('testsubmission/<int:testsubmission_id>/answer/create', under_development(views.AnswerCreate.as_view()), name='answer-create'),
+    path('test/<int:test_id>/testsubmission/create', views.TestSubmissionRedirect.as_view(), name='testsubmission-create'),
+    path('testsubmission/<int:testsubmission_id>/answer/create', views.AnswerCreate.as_view(), name='answer-create'),
     path('testsubmission/', include([
         path('<int:pk>/', include([
-            path('', under_development(views.TestSubmissionDetail.as_view()), name='testsubmission-detail'),
+            path('', views.TestSubmissionDetail.as_view(), name='testsubmission-detail'),
         ]))
     ])),
     path('answer/', include([
         path('<int:pk>/', include([
-            path('', under_development(views.AnswerDetail.as_view()), name='answer-detail'),
-            path('check', under_development(views.AnswerCheck.as_view()), name='answer-check'),
+            path('', views.AnswerDetail.as_view(), name='answer-detail'),
+            path('check', views.AnswerCheck.as_view(), name='answer-check'),
         ]))
     ])),
 ]
