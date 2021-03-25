@@ -117,11 +117,13 @@
     <a href="{% url 'contests:fntest-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить FN-тест</a>
     {% endif %}
 </div>
+{% if request.user.account.type == 1 or request.user.is_superuser %}
 <div class="list-group mb-3">
     {% if perms.contests.add_submission %}
     <a href="{% url 'contests:submission-create' problem.id %}" class="btn btn-info btn-block"><i class="fa fa-file-code-o fa-fw"></i> Отправить решение</a>
     {% endif %}
 </div>
+{% endif %}
 {% endblock submenu %}
 
 {% block javascript %}
