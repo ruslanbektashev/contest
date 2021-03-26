@@ -116,9 +116,9 @@
     </a>
     {% endif %}
 </div>
-{% if perms.contests.add_question %}
-    <div class="list-group mb-3">
-    <a href="{% url 'contests:question-create' test.id %}" class="list-group-item list-group-item-action">
+{% if perms.contests.add_testmembership %}
+<div class="list-group mb-3">
+    <a href="{% url 'contests:question-in-test-create' test.contest.id test.id %}" class="list-group-item list-group-item-action">
         <i class="fa fa-plus fa-fw"></i> Добавить задачу
     </a>
 </div>

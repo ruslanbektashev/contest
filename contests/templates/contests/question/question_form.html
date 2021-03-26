@@ -28,6 +28,9 @@
         {% render_field form.description class+="form-control" %}
         {% render_field form.title class+="form-control" %}
         {% render_field form.type class+="form-control" %}
+        {% if form.number_in_test %}
+            {% render_field form.number_in_test class+="form-control" %}
+        {% endif %}
         {% render_field form.number class+="form-control" %}
     {% endwith %}
 

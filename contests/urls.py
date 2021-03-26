@@ -136,6 +136,7 @@ urlpatterns = [
             path('delete', views.TestDelete.as_view(), name='test-delete'),
         ]))
     ])),
+    path('contest/<int:contest_id>/test/<int:test_id>/question/create', views.QuestionCreate.as_view(), name='question-in-test-create'),
     path('question/<int:question_id>/option/create', views.OptionCreate.as_view(), name='option-create'),
     path('question/', include([
         path('<int:pk>/', include([
