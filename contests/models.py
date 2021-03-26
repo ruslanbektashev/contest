@@ -814,23 +814,6 @@ class Event(CRUDEntry):
 """====================================================== Test ======================================================"""
 
 
-class Test(CRUDEntry):
-    contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
-
-    title = models.CharField(max_length=100, verbose_name="Заголовок")
-    description = models.TextField(verbose_name="Описание", blank=True, null=True)
-    excellent_percentage = models.PositiveSmallIntegerField(default=90, verbose_name="Процент для оценки 5")
-    good_percentage = models.PositiveSmallIntegerField(default=60, verbose_name="Процент для оценки 4")
-    satisfactorily_percentage = models.PositiveSmallIntegerField(default=30, verbose_name="Процент для оценки 3")
-
-    class Meta(CRUDEntry.Meta):
-        verbose_name = "Набор задач"
-        verbose_name_plural = "Наборы задач"
-
-    def __str__(self):
-        return self.title
-
-
 class QuestionManager(models.Manager):
     def get_new_number(self, test):
         return (self.filter(test=test).aggregate(models.Max('number')).get('number__max', 0) or 0) + 1
@@ -846,7 +829,6 @@ class Question(CRUDEntry):
     DEFAULT_NUMBER = 1
 
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
-    test = models.ForeignKey(Test, null=True, on_delete=models.CASCADE, verbose_name="Набор задач")
 
     title = models.CharField(max_length=100, verbose_name="Заголовок", blank=True, null=True)
     description = models.TextField(verbose_name="Вопрос")
@@ -862,6 +844,42 @@ class Question(CRUDEntry):
 
     def __str__(self):
         return "Задача {}".format(self.id)
+
+
+class Test(CRUDEntry):
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
+    questions = models.ManyToManyField(Question, through='TestMembership', verbose_name="Вопросы")
+
+    title = models.CharField(max_length=100, verbose_name="Заголовок")
+    description = models.TextField(verbose_name="Описание", blank=True, null=True)
+    excellent_percentage = models.PositiveSmallIntegerField(default=90, verbose_name="Процент для оценки 5")
+    good_percentage = models.PositiveSmallIntegerField(default=60, verbose_name="Процент для оценки 4")
+    satisfactorily_percentage = models.PositiveSmallIntegerField(default=30, verbose_name="Процент для оценки 3")
+
+    class Meta(CRUDEntry.Meta):
+        verbose_name = "Набор задач"
+        verbose_name_plural = "Наборы задач"
+
+    def __str__(self):
+        return self.title
+
+
+class TestMembership(CRUDEntry):
+    DEFAULT_NUMBER = 1
+
+    owner = None
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Набор задач")
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
+
+    number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер в наборе")
+
+    class Meta:
+        unique_together = (('test', 'question'), ('test', 'number'))
+        verbose_name = "Привязка задачи к набору"
+        verbose_name_plural = "Привязки задач к наборам"
+
+    def __str__(self):
+        return "Привязка задачи {} к набору {}".format(self.question, self.test)
 
 
 class Option(CRUDEntry):
