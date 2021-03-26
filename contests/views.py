@@ -1471,7 +1471,7 @@ class QuestionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['test'] = self.object.test
+        context['contest'] = self.object.contest
         return context
 
 
