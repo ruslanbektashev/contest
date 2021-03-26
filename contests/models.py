@@ -838,7 +838,7 @@ class Question(CRUDEntry):
     title = models.CharField(max_length=100, verbose_name="Заголовок", blank=True, null=True)
     description = models.TextField(verbose_name="Вопрос")
     type = models.PositiveSmallIntegerField(verbose_name="Способ ответа", choices=TYPE_CHOICES, default=DEFAULT_TYPE)
-    number = models.PositiveSmallIntegerField(verbose_name="Номер", default=DEFAULT_NUMBER)
+    number = models.PositiveSmallIntegerField(verbose_name="Номер в разделе", default=DEFAULT_NUMBER)
 
     objects = QuestionManager()
 
@@ -869,6 +869,11 @@ class Test(CRUDEntry):
         return self.title
 
 
+class TestMembershipManager(models.Manager):
+    def get_new_number(self, test):
+        return (self.filter(test=test).aggregate(models.Max('number')).get('number__max', 0) or 0) + 1
+
+
 class TestMembership(CRUDEntry):
     DEFAULT_NUMBER = 1
 
@@ -876,7 +881,9 @@ class TestMembership(CRUDEntry):
     test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Набор задач")
     question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
 
-    number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер в наборе")
+    number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер задачи в наборе")
+
+    objects = TestMembershipManager()
 
     class Meta:
         unique_together = (('test', 'question'), ('test', 'number'))
