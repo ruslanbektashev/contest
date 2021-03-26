@@ -816,8 +816,9 @@ class Event(CRUDEntry):
 
 class Test(CRUDEntry):
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
+
     title = models.CharField(max_length=100, verbose_name="Заголовок")
-    description = models.TextField(verbose_name="Описание")
+    description = models.TextField(verbose_name="Описание", blank=True, null=True)
     excellent_percentage = models.PositiveSmallIntegerField(default=90, verbose_name="Процент для оценки 5")
     good_percentage = models.PositiveSmallIntegerField(default=60, verbose_name="Процент для оценки 4")
     satisfactorily_percentage = models.PositiveSmallIntegerField(default=30, verbose_name="Процент для оценки 3")
@@ -847,7 +848,7 @@ class Question(CRUDEntry):
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
     test = models.ForeignKey(Test, null=True, on_delete=models.CASCADE, verbose_name="Набор задач")
 
-    title = models.CharField(max_length=100, verbose_name="Заголовок")
+    title = models.CharField(max_length=100, verbose_name="Заголовок", blank=True, null=True)
     description = models.TextField(verbose_name="Вопрос")
     type = models.PositiveSmallIntegerField(verbose_name="Способ ответа", choices=TYPE_CHOICES, default=DEFAULT_TYPE)
     number = models.PositiveSmallIntegerField(verbose_name="Номер", default=DEFAULT_NUMBER)
