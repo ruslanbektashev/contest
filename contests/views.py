@@ -22,10 +22,10 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (AnswerCheckForm, AnswerForm, CourseForm, CreditSetForm, ContestForm, OptionForm, ProblemForm, QuestionForm, SubmissionPatternForm, TestForm, UTTestForm, FNTestForm,
+from contests.forms import (AnswerCheckForm, AnswerForm, CourseForm, CreditSetForm, ContestForm, OptionForm, ProblemForm, QuestionExtendedForm, QuestionForm,  SubmissionPatternForm, TestForm, TestMembershipForm, UTTestForm, FNTestForm,
                             SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
                             AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
-from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, Question, SubmissionPattern, IOTest, Test, TestSubmission, UTTest, FNTest,
+from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, Question, SubmissionPattern, IOTest, Test, TestMembership, TestSubmission, UTTest, FNTest,
                              Assignment, Submission, Execution, Event)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
@@ -1373,10 +1373,12 @@ class TestDetail(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         if self.request.user.has_perm('contests.view_testsubmission_list'):
             testsubmissions = self.object.testsubmission_set.all().order_by('-date_created')
         else:
             testsubmissions = self.object.testsubmission_set.filter(owner_id=self.request.user.id).order_by('-date_created')
+
         context['testsubmissions'] = testsubmissions
         return context
 
@@ -1391,8 +1393,7 @@ class TestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
         self.storage = dict()
 
     def get_success_url(self):
-        test = self.get_object()
-        return reverse('contests:contest-detail', kwargs={'pk': test.contest.id}) + '?tab=tests'
+        return reverse('contests:contest-detail', kwargs={'pk': self.object.contest.id}) + '?tab=tests'
 
 
 """=================================================== Question ===================================================="""
@@ -1409,33 +1410,57 @@ class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['test'] = get_object_or_404(Test, id=kwargs.pop('test_id'))
+        self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
+
+        test_id = kwargs.get('test_id')
+        if test_id:
+            self.storage['test'] = get_object_or_404(Test, id=test_id)
+
         return super().dispatch(request, *args, **kwargs)
+
+    def get_form_class(self):
+        if self.storage.get('test'):
+            return QuestionExtendedForm
+        else:
+            return super().get_form_class()
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['test'] = self.storage['test']
+        kwargs['contest'] = self.storage['contest']
+
+        test = self.storage.get('test')
+        if test:
+            kwargs['test'] = test
+
         return kwargs
 
     def get_initial(self):
         initial = super().get_initial()
-        initial['number'] = Question.objects.get_new_number(self.storage['test'])
+        number = Question.objects.get_new_number(self.storage['contest'])
+
+        initial.update({
+            'number': number,
+            'title': "Задача {}".format(number),
+        })
+
+        test = self.storage.get('test')
+        if test:
+            initial['number_in_test'] = TestMembership.objects.get_new_number(test)
+
         return initial
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
-        form.instance.contest = self.storage['test'].contest
+        form.instance.contest = self.storage['contest']
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['test'] = self.storage['test']
+        context['contest'] = self.storage['contest']
         return context
 
     def get_success_url(self):
-        if self.object.type == 2:
-            return reverse('contests:question-detail', kwargs={'pk': self.object.id})
-        return reverse('contests:test-detail', kwargs={'pk': self.storage['test'].id})
+        return reverse('contests:question-detail', kwargs={'pk': self.object.id})
 
 
 class QuestionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
@@ -1446,7 +1471,7 @@ class QuestionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['test'] = self.object.test
+        context['contest'] = self.object.contest
         return context
 
 
@@ -1462,8 +1487,7 @@ class QuestionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     permission_required = 'contests.delete_question'
 
     def get_success_url(self):
-        question = self.get_object()
-        return reverse('contests:test-detail', kwargs={'pk': question.test_id})
+        return reverse('contests:contest-detail', kwargs={'pk': self.object.contest_id})
 
 
 """==================================================== Option ====================================================="""
@@ -1627,8 +1651,7 @@ class AnswerCheck(LoginRedirectPermissionRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        answer = self.get_object()
-        answer.test_submission.update_score()
+        self.object.test_submission.update_score()
         return response
 
     def get_success_url(self):
@@ -1657,3 +1680,6 @@ class AnswerDetail(LoginRequiredMixin, DetailView):
             context['image'] = answer.file.url
 
         return context
+
+
+"""================================================ TestMembership ================================================="""

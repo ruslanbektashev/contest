@@ -127,7 +127,7 @@ urlpatterns = [
         path('schedule', under_development(views.EventSchedule.as_view()), name='event-schedule')
     ])),
     path('contest/<int:contest_id>/test/create', views.TestCreate.as_view(), name='test-create'),
-    path('test/<int:test_id>/question/create', views.QuestionCreate.as_view(), name='question-create'),
+    path('contest/<int:contest_id>/question/create', views.QuestionCreate.as_view(), name='question-create'),
     path('test/<int:test_id>/testsubmission/create', views.TestSubmissionRedirect.as_view(), name='testsubmission-create'),
     path('test/', include([
         path('<int:pk>/', include([
@@ -136,6 +136,7 @@ urlpatterns = [
             path('delete', views.TestDelete.as_view(), name='test-delete'),
         ]))
     ])),
+    path('contest/<int:contest_id>/test/<int:test_id>/question/create', views.QuestionCreate.as_view(), name='question-in-test-create'),
     path('question/<int:question_id>/option/create', views.OptionCreate.as_view(), name='option-create'),
     path('question/', include([
         path('<int:pk>/', include([

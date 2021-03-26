@@ -814,10 +814,49 @@ class Event(CRUDEntry):
 """====================================================== Test ======================================================"""
 
 
+class QuestionManager(models.Manager):
+    def get_new_number(self, contest):
+        return (self.filter(contest=contest).aggregate(models.Max('number')).get('number__max', 0) or 0) + 1
+
+
+class Question(CRUDEntry):
+    TEXT_TYPE = 1
+    TEST_TYPE = 2
+    FILE_TYPE = 3
+
+    TYPE_CHOICES = (
+        (1, "Текст"),
+        (2, "Тест"),
+        (3, "Файл"),
+    )
+
+    DEFAULT_TYPE = TEXT_TYPE
+    DEFAULT_NUMBER = 1
+
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
+
+    title = models.CharField(max_length=100, verbose_name="Заголовок", blank=True, null=True)
+    description = models.TextField(verbose_name="Вопрос")
+    type = models.PositiveSmallIntegerField(verbose_name="Способ ответа", choices=TYPE_CHOICES, default=DEFAULT_TYPE)
+    number = models.PositiveSmallIntegerField(verbose_name="Номер в разделе", default=DEFAULT_NUMBER)
+
+    objects = QuestionManager()
+
+    class Meta(CRUDEntry.Meta):
+        ordering = ('number',)
+        verbose_name = "Задача"
+        verbose_name_plural = "Задачи"
+
+    def __str__(self):
+        return "Задача {}".format(self.id)
+
+
 class Test(CRUDEntry):
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
+    questions = models.ManyToManyField(Question, through='TestMembership', verbose_name="Вопросы")
+
     title = models.CharField(max_length=100, verbose_name="Заголовок")
-    description = models.TextField(verbose_name="Описание")
+    description = models.TextField(verbose_name="Описание", blank=True, null=True)
     excellent_percentage = models.PositiveSmallIntegerField(default=90, verbose_name="Процент для оценки 5")
     good_percentage = models.PositiveSmallIntegerField(default=60, verbose_name="Процент для оценки 4")
     satisfactorily_percentage = models.PositiveSmallIntegerField(default=30, verbose_name="Процент для оценки 3")
@@ -830,37 +869,29 @@ class Test(CRUDEntry):
         return self.title
 
 
-class QuestionManager(models.Manager):
+class TestMembershipManager(models.Manager):
     def get_new_number(self, test):
         return (self.filter(test=test).aggregate(models.Max('number')).get('number__max', 0) or 0) + 1
 
 
-class Question(CRUDEntry):
-    TYPE_CHOICES = (
-        (1, "Текст"),
-        (2, "Тест"),
-        (3, "Файл"),
-    )
-    DEFAULT_TYPE = 1
+class TestMembership(CRUDEntry):
     DEFAULT_NUMBER = 1
 
-    contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
-    test = models.ForeignKey(Test, null=True, on_delete=models.CASCADE, verbose_name="Набор задач")
+    owner = None
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Набор задач")
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
 
-    title = models.CharField(max_length=100, verbose_name="Заголовок")
-    description = models.TextField(verbose_name="Вопрос")
-    type = models.PositiveSmallIntegerField(verbose_name="Способ ответа", choices=TYPE_CHOICES, default=DEFAULT_TYPE)
-    number = models.PositiveSmallIntegerField(verbose_name="Номер", default=DEFAULT_NUMBER)
+    number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер задачи в наборе")
 
-    objects = QuestionManager()
+    objects = TestMembershipManager()
 
-    class Meta(CRUDEntry.Meta):
-        ordering = ('number',)
-        verbose_name = "Задача"
-        verbose_name_plural = "Задачи"
+    class Meta:
+        unique_together = (('test', 'question'), ('test', 'number'))
+        verbose_name = "Привязка задачи к набору"
+        verbose_name_plural = "Привязки задач к наборам"
 
     def __str__(self):
-        return "Задача {}".format(self.id)
+        return "Привязка задачи {} к набору {}".format(self.question, self.test)
 
 
 class Option(CRUDEntry):
@@ -906,12 +937,17 @@ class TestSubmission(CRUDEntry):
 
 
 class Answer(CRUDEntry):
+    NOT_CHECKED_STATUS = 1
+    CORRECT_STATUS = 2
+    INCORRECT_STATUS = 3
+
     STATUS_CHOICES = (
-        (1, "Не проверено"),
-        (2, "Правильно"),
-        (3, "Неправильно"),
+        (NOT_CHECKED_STATUS, "Не проверено"),
+        (CORRECT_STATUS, "Правильно"),
+        (INCORRECT_STATUS, "Неправильно"),
     )
-    DEFAULT_STATUS = 1
+
+    DEFAULT_STATUS = NOT_CHECKED_STATUS
 
     test_submission = models.ForeignKey(TestSubmission, null=True, on_delete=models.CASCADE, verbose_name="Решение набора задач")
     question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
@@ -927,12 +963,12 @@ class Answer(CRUDEntry):
         verbose_name_plural = "Решения задач"
 
     def check_correctness(self) -> None:
-        if self.question.type == 2:
+        if self.question.type == Question.TEST_TYPE:
             right_options = list(self.question.option_set.filter(is_right=True).order_by('id').values_list('id', flat=True))
             if right_options == list(self.options.order_by('id').values_list('id', flat=True)):
-                self.status = 2
+                self.status = self.CORRECT_STATUS
             else:
-                self.status = 3
+                self.status = self.INCORRECT_STATUS
             self.save(update_fields=['status'])
 
     def __str__(self):

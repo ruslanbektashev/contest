@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericStackedInline
 
 from contests.forms import CourseForm
-from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, SubmissionPattern, IOTest, Question, Test, TestSubmission, UTTest, FNTest,
+from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, SubmissionPattern, IOTest, Question, Test, TestMembership, TestSubmission, UTTest, FNTest,
                              Assignment, Submission, Execution, Tag, Event)
 
 
@@ -290,3 +290,4 @@ admin.site.register(Question)
 admin.site.register(Answer)
 admin.site.register(Option)
 admin.site.register(TestSubmission)
+admin.site.register(TestMembership)

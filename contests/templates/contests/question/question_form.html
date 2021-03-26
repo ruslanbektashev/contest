@@ -7,9 +7,8 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
-{% breadcrumb test.contest.course test.contest.course %}
-{% breadcrumb test.contest test.contest %}
-{% breadcrumb test test %}
+{% breadcrumb contest.course contest.course %}
+{% breadcrumb contest contest %}
 {% if question %}
 {% breadcrumb question question %}
 {% breadcrumb "Редактирование" %}
@@ -26,9 +25,12 @@
 
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-        {% render_field form.title class+="form-control" %}
         {% render_field form.description class+="form-control" %}
+        {% render_field form.title class+="form-control" %}
         {% render_field form.type class+="form-control" %}
+        {% if form.number_in_test %}
+            {% render_field form.number_in_test class+="form-control" %}
+        {% endif %}
         {% render_field form.number class+="form-control" %}
     {% endwith %}
 

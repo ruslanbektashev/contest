@@ -35,7 +35,7 @@
         {% for question in test.question_set.all %}
         <div class="card mb-3">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                #{{ question.number }} <span class="badge badge-pill badge-light">Способ ответа: {{ question.get_type_display|lower }}</span>
+                #{{ question.number }} {% if question.title %}{{ question.title }}{% endif %} <span class="badge badge-pill badge-light">Способ ответа: {{ question.get_type_display|lower }}</span>
             </div>
             <div class="card-body">
                 <p class="card-text">{{ question.description }}</p>
@@ -116,9 +116,9 @@
     </a>
     {% endif %}
 </div>
-{% if perms.contests.add_question %}
-    <div class="list-group mb-3">
-    <a href="{% url 'contests:question-create' test.id %}" class="list-group-item list-group-item-action">
+{% if perms.contests.add_testmembership %}
+<div class="list-group mb-3">
+    <a href="{% url 'contests:question-in-test-create' test.contest.id test.id %}" class="list-group-item list-group-item-action">
         <i class="fa fa-plus fa-fw"></i> Добавить задачу
     </a>
 </div>

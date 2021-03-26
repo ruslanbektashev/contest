@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
-from contests.models import (Answer, Attachment, Course, Contest, Option, Problem, SubmissionPattern, TestSubmission, UTTest, FNTest, Assignment, Submission, Event, Test, Question)
+from contests.models import (Answer, Attachment, Course, Contest, Option, Problem, SubmissionPattern, TestMembership, TestSubmission, UTTest, FNTest, Assignment, Submission, Event, Test, Question)
 
 
 class UserChoiceField(forms.ModelChoiceField):
@@ -379,31 +379,83 @@ class TestForm(forms.ModelForm):
         fields = ['title', 'description', 'satisfactorily_percentage', 'good_percentage', 'excellent_percentage']
 
 
+"""=================================================== Question ===================================================="""
+
+
 class QuestionForm(forms.ModelForm):
     class Meta:
         model = Question
         fields = ['title', 'description', 'type', 'number']
 
     def __init__(self, *args, **kwargs):
-        test = kwargs.pop('test', None)
+        contest = kwargs.pop('contest', None)
         super().__init__(*args, **kwargs)
-        if test:
-            self.instance.test = test
+        if contest:
+            self.instance.contest = contest
 
     def clean_number(self):
         number = self.cleaned_data['number']
 
-        test = self.instance.test
-        if number in test.question_set.exclude(id=self.instance.id).values_list('number', flat=True):
+        contest = self.instance.contest
+        if number in contest.question_set.exclude(id=self.instance.id).values_list('number', flat=True):
             raise ValidationError("Этот номер уже занят.")
 
         return number
+
+
+class QuestionExtendedForm(forms.ModelForm):
+    number_in_test = forms.IntegerField(min_value=1, required=True, label="Номер в наборе")
+
+    class Meta:
+        model = Question
+        fields = ['title', 'description', 'type', 'number']
+
+    def __init__(self, *args, **kwargs):
+        contest = kwargs.pop('contest', None)
+        test = kwargs.pop('test', None)
+
+        super().__init__(*args, **kwargs)
+        if contest:
+            self.instance.contest = contest
+        if test:
+            self.storage = {'test': test}
+
+    def clean_number_in_test(self):
+        number_in_test = self.cleaned_data['number_in_test']
+
+        test = self.storage['test']
+        if number_in_test in test.testmembership_set.values_list('number', flat=True):
+            raise ValidationError("Этот номер уже занят.")
+
+        return number_in_test
+
+    def clean_number(self):
+        number = self.cleaned_data['number']
+
+        contest = self.instance.contest
+        if number in contest.question_set.exclude(id=self.instance.id).values_list('number', flat=True):
+            raise ValidationError("Этот номер уже занят.")
+
+        return number
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        TestMembership.objects.create(test=self.storage['test'],
+                                      question=instance,
+                                      number=self.cleaned_data['number_in_test'])
+        return instance
+
+
+"""==================================================== Option ====================================================="""
 
 
 class OptionForm(forms.ModelForm):
     class Meta:
         model = Option
         fields = ['text', 'is_right']
+
+
+"""==================================================== Answer ====================================================="""
 
 
 class AnswerForm(forms.ModelForm):
@@ -445,3 +497,12 @@ class AnswerCheckForm(forms.ModelForm):
     class Meta:
         model = Answer
         fields = ['status']
+
+
+"""================================================ TestMembership ================================================="""
+
+
+class TestMembershipForm(forms.ModelForm):
+    class Meta:
+        model = TestMembership
+        fields = ['number']
