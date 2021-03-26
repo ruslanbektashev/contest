@@ -820,12 +820,17 @@ class QuestionManager(models.Manager):
 
 
 class Question(CRUDEntry):
+    TEXT_TYPE = 1
+    TEST_TYPE = 2
+    FILE_TYPE = 3
+
     TYPE_CHOICES = (
         (1, "Текст"),
         (2, "Тест"),
         (3, "Файл"),
     )
-    DEFAULT_TYPE = 1
+
+    DEFAULT_TYPE = TEXT_TYPE
     DEFAULT_NUMBER = 1
 
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
@@ -925,12 +930,17 @@ class TestSubmission(CRUDEntry):
 
 
 class Answer(CRUDEntry):
+    NOT_CHECKED_STATUS = 1
+    CORRECT_STATUS = 2
+    INCORRECT_STATUS = 3
+
     STATUS_CHOICES = (
-        (1, "Не проверено"),
-        (2, "Правильно"),
-        (3, "Неправильно"),
+        (NOT_CHECKED_STATUS, "Не проверено"),
+        (CORRECT_STATUS, "Правильно"),
+        (INCORRECT_STATUS, "Неправильно"),
     )
-    DEFAULT_STATUS = 1
+
+    DEFAULT_STATUS = NOT_CHECKED_STATUS
 
     test_submission = models.ForeignKey(TestSubmission, null=True, on_delete=models.CASCADE, verbose_name="Решение набора задач")
     question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
@@ -946,12 +956,12 @@ class Answer(CRUDEntry):
         verbose_name_plural = "Решения задач"
 
     def check_correctness(self) -> None:
-        if self.question.type == 2:
+        if self.question.type == Question.TEST_TYPE:
             right_options = list(self.question.option_set.filter(is_right=True).order_by('id').values_list('id', flat=True))
             if right_options == list(self.options.order_by('id').values_list('id', flat=True)):
-                self.status = 2
+                self.status = self.CORRECT_STATUS
             else:
-                self.status = 3
+                self.status = self.INCORRECT_STATUS
             self.save(update_fields=['status'])
 
     def __str__(self):
