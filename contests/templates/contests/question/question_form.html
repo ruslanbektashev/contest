@@ -7,9 +7,8 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
-{% breadcrumb test.contest.course test.contest.course %}
-{% breadcrumb test.contest test.contest %}
-{% breadcrumb test test %}
+{% breadcrumb contest.course contest.course %}
+{% breadcrumb contest contest %}
 {% if question %}
 {% breadcrumb question question %}
 {% breadcrumb "Редактирование" %}

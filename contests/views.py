@@ -1373,10 +1373,12 @@ class TestDetail(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         if self.request.user.has_perm('contests.view_testsubmission_list'):
             testsubmissions = self.object.testsubmission_set.all().order_by('-date_created')
         else:
             testsubmissions = self.object.testsubmission_set.filter(owner_id=self.request.user.id).order_by('-date_created')
+
         context['testsubmissions'] = testsubmissions
         return context
 
@@ -1391,11 +1393,50 @@ class TestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
         self.storage = dict()
 
     def get_success_url(self):
-        test = self.get_object()
-        return reverse('contests:contest-detail', kwargs={'pk': test.contest.id}) + '?tab=tests'
+        return reverse('contests:contest-detail', kwargs={'pk': self.object.contest.id}) + '?tab=tests'
 
 
 """=================================================== Question ===================================================="""
+
+
+# class QuestionToTestAdd(LoginRedirectPermissionRequiredMixin, CreateView):
+#     model = Question
+#     form_class = QuestionForm
+#     template_name = 'contests/question/question_form.html'
+#     permission_required = 'contests.add_question'
+
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+#         self.storage = dict()
+
+#     def dispatch(self, request, *args, **kwargs):
+#         self.storage['test'] = get_object_or_404(Test, id=kwargs.pop('test_id'))
+#         return super().dispatch(request, *args, **kwargs)
+
+#     def get_form_kwargs(self):
+#         kwargs = super().get_form_kwargs()
+#         kwargs['test'] = self.storage['test']
+#         return kwargs
+
+#     def get_initial(self):
+#         initial = super().get_initial()
+#         initial['number'] = Question.objects.get_new_number(self.storage['test'])
+#         return initial
+
+#     def form_valid(self, form):
+#         form.instance.owner = self.request.user
+#         form.instance.contest = self.storage['test'].contest
+#         return super().form_valid(form)
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['test'] = self.storage['test']
+#         return context
+
+#     def get_success_url(self):
+#         if self.object.type == 2:
+#             return reverse('contests:question-detail', kwargs={'pk': self.object.id})
+#         return reverse('contests:test-detail', kwargs={'pk': self.storage['test'].id})
 
 
 class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
@@ -1409,33 +1450,35 @@ class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['test'] = get_object_or_404(Test, id=kwargs.pop('test_id'))
+        self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['test'] = self.storage['test']
+        kwargs['contest'] = self.storage['contest']
         return kwargs
 
     def get_initial(self):
         initial = super().get_initial()
-        initial['number'] = Question.objects.get_new_number(self.storage['test'])
+
+        number = Question.objects.get_new_number(self.storage['contest'])
+        initial['number'] = number
+        initial['title'] = "Задача {}".format(number)
+
         return initial
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
-        form.instance.contest = self.storage['test'].contest
+        form.instance.contest = self.storage['contest']
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['test'] = self.storage['test']
+        context['contest'] = self.storage['contest']
         return context
 
     def get_success_url(self):
-        if self.object.type == 2:
-            return reverse('contests:question-detail', kwargs={'pk': self.object.id})
-        return reverse('contests:test-detail', kwargs={'pk': self.storage['test'].id})
+        return reverse('contests:question-detail', kwargs={'pk': self.object.id})
 
 
 class QuestionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
@@ -1462,8 +1505,7 @@ class QuestionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     permission_required = 'contests.delete_question'
 
     def get_success_url(self):
-        question = self.get_object()
-        return reverse('contests:test-detail', kwargs={'pk': question.test_id})
+        return reverse('contests:contest-detail', kwargs={'pk': self.object.contest_id})
 
 
 """==================================================== Option ====================================================="""

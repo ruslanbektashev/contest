@@ -397,16 +397,16 @@ class QuestionForm(forms.ModelForm):
         fields = ['title', 'description', 'type', 'number']
 
     def __init__(self, *args, **kwargs):
-        test = kwargs.pop('test', None)
+        contest = kwargs.pop('contest', None)
         super().__init__(*args, **kwargs)
-        if test:
-            self.instance.test = test
+        if contest:
+            self.instance.contest = contest
 
     def clean_number(self):
         number = self.cleaned_data['number']
 
-        test = self.instance.test
-        if number in test.question_set.exclude(id=self.instance.id).values_list('number', flat=True):
+        contest = self.instance.contest
+        if number in contest.question_set.exclude(id=self.instance.id).values_list('number', flat=True):
             raise ValidationError("Этот номер уже занят.")
 
         return number
