@@ -2,7 +2,7 @@
 {% if title %}
 <h6>{{ title }}</h6>
 {% endif %}
-<div class="list-group mb-3">
+<div class="list-group mb-{% if mb is not None %}{{ mb }}{% else %}3{% endif %}">
     {% for obj in lst %}
     <a href="{{ obj.get_absolute_url }}" class="list-group-item list-group-item-action">{{ obj }}</a>
     {% endfor %}

@@ -13,80 +13,116 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ problem }}</legend>
-<ul class="nav nav-tabs mb-3" role="tablist">
-    <li class="nav-item">
-        <a aria-controls="description" aria-selected="{% if not tab or tab == 'description' %}true{% else %}false{% endif %}"
-           class="nav-link {% if not tab or tab == 'description' %}active{% endif %}" data-toggle="tab"
-           href="#description" id="description-tab" role="tab">Описание</a>
-    </li>
-    <li class="nav-item">
-        <a aria-controls="submissions" aria-selected="{% if tab == 'submissions' %}true{% else %}false{% endif %}"
-           class="nav-link {% if tab == 'submissions' %}active{% endif %}" data-toggle="tab" href="#submissions"
-           id="submissions-tab" role="tab">Посылки</a>
-    </li>
+<legend>{{ problem.title }} <small class="text-muted">№{{ problem.number }}</small></legend>
+<a class="btn btn-light btn-block border mb-3" href="{% url 'contests:problem-discussion' problem.id %}">
+    {% unread_comments_count request.user.account problem as ucc %}
+    Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+</a>
+<div class="accordion mb-3" id="problem_details">
+    <div class="card">
+        <div class="card-header" id="problem_description">
+            <h2 class="mb-0">
+                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                        data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    Условия задачи
+                </button>
+            </h2>
+        </div>
+        <div id="collapseOne" class="collapse {% if request.user.account.type == 1 %}show{% endif %}" aria-labelledby="problem_description">
+            <div class="card-body">
+                {{ problem.description|markdown|safe }}
+                <table class="table table-sm">
+                    <tr><td class="text-right">Сложность</td><td style="width: 20%;">{{ problem.get_difficulty_display }}</td></tr>
+                    <tr><td class="text-right">Язык</td><td style="width: 20%;">{{ problem.get_language_display }}</td></tr>
+                    {% if problem.compile_args %}
+                    <tr><td class="text-right">Параметры компиляции</td><td style="width: 20%;"><code>{{ problem.compile_args|default:"-" }}</code></td></tr>
+                    {% endif %}
+                    {% if problem.launch_args %}
+                    <tr><td class="text-right">Параметры запуска</td><td style="width: 20%;"><code>{{ problem.launch_args|default:"-" }}</code></td></tr>
+                    {% endif %}
+                    <tr><td class="text-right">Ограничение по времени</td><td style="width: 20%;">{{ problem.time_limit }} с</td></tr>
+                    <tr><td class="text-right">Ограничение по памяти</td><td style="width: 20%;">{{ problem.memory_limit|filesizeformat }}</td></tr>
+                    <tr><td class="text-right">Доступно для тестирования</td><td style="width: 20%;">{{ problem.is_testable|yesno:'да,нет' }}</td></tr>
+                    {% if latest_submission %}
+                    <tr>
+                        <td class="text-right">Мой результат</td>
+                        <td>
+                            <a href="{{ latest_submission.get_absolute_url }}" class="badge badge-{{ latest_submission.status|colorize }}" title="{{ latest_submission.get_status_display }}">
+                                {{ latest_submission.get_status_display }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </table>
+                {% render_attachment_list problem %}
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header" id="contest_description">
+            <h2 class="mb-0">
+                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                        data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+                    Описание раздела
+                </button>
+            </h2>
+        </div>
+        <div id="collapseTwo" class="collapse {% if request.user.account.type == 1 %}show{% endif %}" aria-labelledby="contest_description">
+            <div class="card-body">
+                {{ problem.contest.description|markdown|safe }}
+                {% render_attachment_list problem.contest %}
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header" id="problem_submissions">
+            <h2 class="mb-0">
+                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                        data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
+                    Посылки
+                </button>
+            </h2>
+        </div>
+        <div id="collapseThree" class="collapse show" aria-labelledby="problem_submissions">
+            {% include 'contests/submission/submission_table.html' with borderless=True %}
+        </div>
+    </div>
     {% if perms.contests.view_submission_pattern %}
-    <li class="nav-item">
-        <a aria-controls="submission_patterns" aria-selected="false" class="nav-link" data-toggle="tab" href="#submission_patterns" id="submission-patterns-tab"
-           role="tab"><i class="fa fa-lock fa-fw"></i> Шаблоны посылок</a>
-    </li>
+    <div class="card">
+        <div class="card-header" id="problem_submission_patterns">
+            <h2 class="mb-0">
+                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                        data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                    <i class="fa fa-lock fa-fw"></i> Шаблоны посылок
+                </button>
+            </h2>
+        </div>
+        <div id="collapseFour" class="collapse" aria-labelledby="problem_submission_patterns">
+            <div class="card-body">
+                <div class="alert alert-warning">Доступно только преподавателям</div>
+                {% include 'list.html' with lst=problem.submission_patterns.all mb=0 %}
+            </div>
+        </div>
+    </div>
     {% endif %}
     {% if perms.contests.view_iotest or perms.contests.view_uttest or perms.contests.view_fntest %}
-    <li class="nav-item">
-        <a aria-controls="tests" aria-selected="false" class="nav-link" data-toggle="tab" href="#tests" id="tests-tab"
-           role="tab"><i class="fa fa-lock fa-fw"></i> Тесты</a>
-    </li>
-    {% endif %}
-    <li class="nav-item">
-        {% render_discussion_tab problem %}
-    </li>
-</ul>
-<div class="tab-content">
-    <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %}" id="description" role="tabpanel">
-        <p>{{ problem.description|markdown|safe }}</p>
-        <table class="table table-sm">
-            <tr><td class="text-right">Сложность</td><td style="width: 20%;">{{ problem.get_difficulty_display }}</td></tr>
-            <tr><td class="text-right">Язык</td><td style="width: 20%;">{{ problem.get_language_display }}</td></tr>
-            {% if problem.compile_args %}
-            <tr><td class="text-right">Параметры компиляции</td><td style="width: 20%;"><code>{{ problem.compile_args|default:"-" }}</code></td></tr>
-            {% endif %}
-            {% if problem.launch_args %}
-            <tr><td class="text-right">Параметры запуска</td><td style="width: 20%;"><code>{{ problem.launch_args|default:"-" }}</code></td></tr>
-            {% endif %}
-            <tr><td class="text-right">Ограничение по времени</td><td style="width: 20%;">{{ problem.time_limit }} с</td></tr>
-            <tr><td class="text-right">Ограничение по памяти</td><td style="width: 20%;">{{ problem.memory_limit|filesizeformat }}</td></tr>
-            <tr><td class="text-right">Доступно для тестирования</td><td style="width: 20%;">{{ problem.is_testable|yesno:'да,нет' }}</td></tr>
-            {% if latest_submission %}
-            <tr>
-                <td class="text-right">Мой результат</td>
-                <td>
-                    <a href="{{ latest_submission.get_absolute_url }}" class="badge badge-{{ latest_submission.status|colorize }}" title="{{ latest_submission.get_status_display }}">
-                        {{ latest_submission.get_status_display }}
-                    </a>
-                </td>
-            </tr>
-            {% endif %}
-        </table>
-        {% render_attachment_list problem %}
-        <hr/>
-        <p>{{ problem.contest.description|markdown|safe }}</p>
-        {% render_attachment_list problem.contest %}
-    </div>
-    <div aria-labelledby="submissions-tab" class="tab-pane fade {% if tab == 'submissions' %}show active{% endif %}" id="submissions" role="tabpanel">
-        {% render_submission_table %}
-    </div>
-    {% if perms.contests.view_submission_pattern %}
-    <div aria-labelledby="submission-patterns-tab" class="tab-pane fade" id="submission_patterns" role="tabpanel">
-        <div class="alert alert-warning">Доступно только преподавателям</div>
-        {% include 'list.html' with lst=problem.submission_patterns.all %}
-    </div>
-    {% endif %}
-    {% if perms.contests.view_iotest or perms.contests.view_uttest or perms.contests.view_fntest %}
-    <div aria-labelledby="tests-tab" class="tab-pane fade" id="tests" role="tabpanel">
-        <div class="alert alert-warning">Доступно только преподавателям</div>
-        {% include 'list.html' with lst=problem.iotest_set.all title="IO-тесты:" %}
-        {% include 'list.html' with lst=problem.uttest_set.all title="UT-тесты:" %}
-        {% include 'list.html' with lst=problem.fntest_set.all title="FN-тесты:" %}
+    <div class="card">
+        <div class="card-header" id="problem_tests">
+            <h2 class="mb-0">
+                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                        data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                    <i class="fa fa-lock fa-fw"></i> Автоматические тесты
+                </button>
+            </h2>
+        </div>
+        <div id="collapseFive" class="collapse" aria-labelledby="problem_tests">
+            <div class="card-body">
+                <div class="alert alert-warning">Доступно только преподавателям</div>
+                {% include 'list.html' with lst=problem.iotest_set.all title="IO-тесты:" %}
+                {% include 'list.html' with lst=problem.uttest_set.all title="UT-тесты:" %}
+                {% include 'list.html' with lst=problem.fntest_set.all title="FN-тесты:" %}
+            </div>
+        </div>
     </div>
     {% endif %}
 </div>

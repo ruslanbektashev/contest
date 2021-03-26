@@ -18,19 +18,14 @@
 
 {% block content %}
 <legend>{{ assignment }}</legend>
-<ul class="nav nav-tabs mb-3" role="tablist">
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'contests:assignment-detail' assignment.id %}" id="description-tab" role="tab">Описание</a>
-    </li>
-    <li class="nav-item">
-        {% render_discussion_tab assignment %}
-    </li>
-</ul>
-<div class="tab-content">
-    <div aria-labelledby="discussion-tab" class="tab-pane fade show active" id="discussion" role="tabpanel">
-        {% render_comments assignment comments %}
-    </div>
+<div class="btn-group btn-block mb-3">
+    <a class="btn btn-light border col-6" href="{% url 'contests:assignment-detail' assignment.id %}">Вернуться к заданию</a>
+    <a class="btn btn-light border col-6 disabled">
+        {% unread_comments_count request.user.account assignment as ucc %}
+        Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+    </a>
 </div>
+{% render_comments assignment comments %}
 {% endblock content %}
 
 {% block submenu %}

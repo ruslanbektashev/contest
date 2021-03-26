@@ -12,27 +12,15 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ contest }}</legend>
-<ul class="nav nav-tabs mb-3" role="tablist">
-    <li class="nav-item">
-        <a aria-controls="description" aria-selected="false" class="nav-link" data-toggle="tab" href="#description" id="description-tab"
-           role="tab">Описание</a>
-    </li>
-    <li class="nav-item">
-        {% render_discussion_tab contest %}
-    </li>
-</ul>
-<div class="tab-content">
-    <div aria-labelledby="description-tab" class="tab-pane fade" id="description" role="tabpanel">
-        <p>{{ contest.description|markdown|safe }}</p>
-        {% include 'list.html' with lst=contest.problem_set.all title="Задачи:" %}
-        {% include 'list.html' with lst=contest.test_set.all title="Тесты:" %}
-        {% render_attachment_list contest %}
-    </div>
-    <div aria-labelledby="discussion-tab" class="tab-pane fade show active" id="discussion" role="tabpanel">
-        {% render_comments contest comments %}
-    </div>
+<legend>Обсуждение раздела {{ contest.title }} <small class="text-muted">№{{ contest.number }}</small></legend>
+<div class="btn-group btn-block mb-3">
+    <a class="btn btn-light border col-6" href="{% url 'contests:contest-detail' contest.id %}">Вернуться к разделу</a>
+    <a class="btn btn-light border col-6 disabled">
+        {% unread_comments_count request.user.account contest as ucc %}
+        Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+    </a>
 </div>
+{% render_comments contest comments %}
 {% endblock content %}
 
 {% block submenu %}

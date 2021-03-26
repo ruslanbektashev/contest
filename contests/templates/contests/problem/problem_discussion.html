@@ -13,83 +13,15 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ problem }}</legend>
-<ul class="nav nav-tabs mb-3" role="tablist">
-    <li class="nav-item">
-        <a aria-controls="description" aria-selected="false" class="nav-link" data-toggle="tab" href="#description" id="description-tab"
-           role="tab">Описание</a>
-    </li>
-    <li class="nav-item">
-        <a aria-controls="submissions" aria-selected="false" class="nav-link" data-toggle="tab" href="#submissions" id="submissions-tab"
-           role="tab">Посылки</a>
-    </li>
-    {% if perms.contests.view_submission_pattern %}
-    <li class="nav-item">
-        <a aria-controls="submission_patterns" aria-selected="false" class="nav-link" data-toggle="tab" href="#submission_patterns" id="submission-patterns-tab"
-           role="tab"><i class="fa fa-lock fa-fw"></i> Шаблоны посылок</a>
-    </li>
-    {% endif %}
-    {% if perms.contests.view_iotest or perms.contests.view_uttest or perms.contests.view_fntest %}
-    <li class="nav-item">
-        <a aria-controls="tests" aria-selected="false" class="nav-link" data-toggle="tab" href="#tests" id="tests-tab"
-           role="tab"><i class="fa fa-lock fa-fw"></i> Тесты</a>
-    </li>
-    {% endif %}
-    <li class="nav-item">
-        {% render_discussion_tab problem %}
-    </li>
-</ul>
-<div class="tab-content">
-    <div aria-labelledby="description-tab" class="tab-pane fade" id="description" role="tabpanel">
-        <p>{{ problem.description|markdown|safe }}</p>
-        <table class="table table-sm">
-            <tr><td class="text-right">Сложность</td><td style="width: 20%;">{{ problem.get_difficulty_display }}</td></tr>
-            <tr><td class="text-right">Язык</td><td style="width: 20%;">{{ problem.get_language_display }}</td></tr>
-            {% if problem.compile_args %}
-            <tr><td class="text-right">Параметры компиляции</td><td style="width: 20%;"><code>{{ problem.compile_args|default:"-" }}</code></td></tr>
-            {% endif %}
-            {% if problem.launch_args %}
-            <tr><td class="text-right">Параметры запуска</td><td style="width: 20%;"><code>{{ problem.launch_args|default:"-" }}</code></td></tr>
-            {% endif %}
-            <tr><td class="text-right">Ограничение по времени</td><td style="width: 20%;">{{ problem.time_limit }} с</td></tr>
-            <tr><td class="text-right">Ограничение по памяти</td><td style="width: 20%;">{{ problem.memory_limit|filesizeformat }}</td></tr>
-            <tr><td class="text-right">Доступно для тестирования</td><td style="width: 20%;">{{ problem.is_testable|yesno:'да,нет' }}</td></tr>
-            {% if latest_submission %}
-            <tr>
-                <td class="text-right">Мой результат</td>
-                <td>
-                    <a href="{{ latest_submission.get_absolute_url }}" class="badge badge-{{ latest_submission.status|colorize }}" title="{{ latest_submission.get_status_display }}">
-                        {{ latest_submission.get_status_display }}
-                    </a>
-                </td>
-            </tr>
-            {% endif %}
-        </table>
-        {% render_attachment_list problem %}
-        <p>{{ problem.contest.description|markdown|safe }}</p>
-        {% render_attachment_list problem.contest %}
-    </div>
-    <div aria-labelledby="submissions-tab" class="tab-pane fade" id="submissions" role="tabpanel">
-        {% render_submission_table %}
-    </div>
-    {% if perms.contests.view_submission_pattern %}
-    <div aria-labelledby="submission-patterns-tab" class="tab-pane fade" id="submission_patterns" role="tabpanel">
-        <div class="alert alert-warning">Доступно только преподавателям</div>
-        {% include 'list.html' with lst=problem.submission_patterns.all %}
-    </div>
-    {% endif %}
-    {% if perms.contests.view_iotest or perms.contests.view_uttest or perms.contests.view_fntest %}
-    <div aria-labelledby="tests-tab" class="tab-pane fade" id="tests" role="tabpanel">
-        <div class="alert alert-warning">Доступно только преподавателям</div>
-        {% include 'list.html' with lst=problem.iotest_set.all title="IO-тесты:" %}
-        {% include 'list.html' with lst=problem.uttest_set.all title="UT-тесты:" %}
-        {% include 'list.html' with lst=problem.fntest_set.all title="FN-тесты:" %}
-    </div>
-    {% endif %}
-    <div aria-labelledby="discussion-tab" class="tab-pane fade show active" id="discussion" role="tabpanel">
-        {% render_comments problem comments %}
-    </div>
+<legend>Обсуждение задачи {{ problem.title }} <small class="text-muted">№{{ problem.number }}</small></legend>
+<div class="btn-group btn-block mb-3">
+    <a class="btn btn-light border col-6" href="{% url 'contests:problem-detail' problem.id %}">Вернуться к задаче</a>
+    <a class="btn btn-light border col-6 disabled">
+        {% unread_comments_count request.user.account problem as ucc %}
+        Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+    </a>
 </div>
+{% render_comments problem comments %}
 {% endblock content %}
 
 {% block submenu %}

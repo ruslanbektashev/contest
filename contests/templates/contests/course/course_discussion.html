@@ -1,26 +1,16 @@
 {% extends 'contests/course/course_detail.html' %}
-{% load comments contests markdown static %}
+{% load accounts comments contests markdown static %}
 
 {% block content %}
-<legend>{{ course }} <small class="text-muted">{{ course.get_level_display }}</small></legend>
-<ul class="nav nav-tabs mb-3" role="tablist">
-    <li class="nav-item">
-        <a aria-controls="description" aria-selected="false" class="nav-link" data-toggle="tab" href="#description"
-           id="description-tab" role="tab">Описание</a>
-    </li>
-    <li class="nav-item">
-        {% render_discussion_tab course %}
-    </li>
-</ul>
-<div class="tab-content">
-    <div aria-labelledby="description-tab" class="tab-pane fade " id="description" role="tabpanel">
-        <p>{{ course.description|markdown|safe }}</p>
-        {% include 'list.html' with lst=course.contest_set.all title="Разделы:" %}
-    </div>
-    <div aria-labelledby="discussion-tab" class="tab-pane fade show active" id="discussion" role="tabpanel">
-        {% render_comments course comments %}
-    </div>
+<legend>Обсуждение курса {{ course }} <small class="text-muted">{{ course.get_level_display }}</small></legend>
+<div class="btn-group btn-block mb-3">
+    <a class="btn btn-light border col-6" href="{% url 'contests:course-detail' course.id %}">Вернуться к курсу</a>
+    <a class="btn btn-light border col-6 disabled">
+        {% unread_comments_count request.user.account course as ucc %}
+        Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+    </a>
 </div>
+{% render_comments course comments %}
 {% endblock content %}
 
 {% block javascript %}

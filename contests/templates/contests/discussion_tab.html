@@ -1,9 +1,0 @@
-{% load accounts static %}
-
-{% if tab == 'discussion' %}
-    <a aria-controls="discussion" aria-selected="true" class="nav-link active" data-toggle="tab" href="#discussion" id="discussion-tab" role="tab">
-{% else %}
-    <a class="nav-link" href="{% url discussion_url obj.id %}" id="discussion-tab" role="tab">
-{% endif %}
-    Обсуждение{% if unread_comments_count > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ unread_comments_count }}</span>{% endif %}
-    </a>

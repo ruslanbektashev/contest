@@ -12,20 +12,40 @@
 
 {% block content %}
 <legend>{{ course }} <small class="text-muted">{{ course.get_level_display }}</small></legend>
-<ul class="nav nav-tabs mb-3" role="tablist">
-    <li class="nav-item">
-        <a aria-controls="description" aria-selected="{% if not tab or tab == 'description' %}true{% else %}false{% endif %}"
-           class="nav-link {% if not tab or tab == 'description' %}active{% endif %}" data-toggle="tab"
-           href="#description" id="description-tab" role="tab">Описание</a>
-    </li>
-    <li class="nav-item">
-        {% render_discussion_tab course %}
-    </li>
-</ul>
-<div class="tab-content">
-    <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %} text-justify" id="description" role="tabpanel">
-        <p>{{ course.description|markdown|safe }}</p>
-        {% include 'list.html' with lst=course.contest_set.all title="Разделы:" %}
+<a class="btn btn-light btn-block border mb-3" href="{% url 'contests:course-discussion' course.id %}">
+    {% unread_comments_count request.user.account course as ucc %}
+    Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+</a>
+<div class="accordion mb-3" id="contest_details">
+    <div class="card">
+        <div class="card-header" id="course_description">
+            <h2 class="mb-0">
+                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                        data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    Описание курса
+                </button>
+            </h2>
+        </div>
+        <div id="collapseOne" class="collapse {% if request.user.account.type == 1 %}show{% endif %}" aria-labelledby="course_description">
+            <div class="card-body">
+                {{ course.description|markdown|safe }}
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header" id="course_contests">
+            <h2 class="mb-0">
+                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                        data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+                    Разделы
+                </button>
+            </h2>
+        </div>
+        <div id="collapseTwo" class="collapse show" aria-labelledby="course_contests">
+            <div class="card-body">
+                {% include 'list.html' with lst=course.contest_set.all mb=0 %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock content %}
@@ -55,9 +75,6 @@
     {% endif %}
 </div>
 <div class="list-group mb-3">
-    {% if perms.contests.add_lecture %}
-    <a href="{% url 'contests:lecture-create' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить лекцию</a>
-    {% endif %}
     {% if perms.contests.add_contest %}
     <a href="{% url 'contests:contest-create' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить раздел</a>
     {% endif %}

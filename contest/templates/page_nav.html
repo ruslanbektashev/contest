@@ -1,9 +1,9 @@
 {% load views %}
 {% if is_paginated %}
-<nav aria-label="Страницы">
+<nav aria-label="Страницы" id="page_nav">
     <ul class="pagination justify-content-center">
         <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
-            <a class="page-link" href="{% get_full_path_with_updated_query_string request page=1 %}" aria-label="Первая страница">
+            <a class="page-link" href="{% get_full_path_with_updated_query_string request page=1 %}#p" aria-label="Первая страница">
                 <span aria-hidden="true"><i class="fa fa-angle-double-left fa-fw"></i></span>
             </a>
         </li>
@@ -14,12 +14,12 @@
         </li>
             {% else %}
         <li class="page-item">
-            <a class="page-link" href="{% get_full_path_with_updated_query_string request page=i %}">{{ i }}</a>
+            <a class="page-link" href="{% get_full_path_with_updated_query_string request page=i %}#p">{{ i }}</a>
         </li>
             {% endif %}
         {% endfor %}
         <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
-            <a class="page-link" href="{% get_full_path_with_updated_query_string request page=page_obj.paginator.num_pages %}" aria-label="Последняя страница">
+            <a class="page-link" href="{% get_full_path_with_updated_query_string request page=page_obj.paginator.num_pages %}#p" aria-label="Последняя страница">
                 <span aria-hidden="true"><i class="fa fa-angle-double-right fa-fw"></i></span>
             </a>
         </li>

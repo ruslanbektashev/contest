@@ -1,7 +1,7 @@
 {% if submissions %}
 {% load views contests %}
 <div class="table-responsive">
-    <table id="p" class="table table-bordered table-sm">
+    <table id="p" class="table {% if not borderless %}table-bordered{% endif %} table-sm mt-{% if mt is not None %}{{ mt }}{% else %}0{% endif %}">
         <thead>
             <tr>
                 <th class="text-center" style="width: 18%;">Дата</th>

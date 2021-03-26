@@ -12,26 +12,57 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ contest }}</legend>
-<ul class="nav nav-tabs mb-3" role="tablist">
-    <li class="nav-item">
-        <a aria-controls="description" aria-selected="{% if not tab or tab == 'description' %}true{% else %}false{% endif %}"
-           class="nav-link {% if not tab or tab == 'description' %}active{% endif %}" data-toggle="tab"
-           href="#description" id="description-tab" role="tab">Описание</a>
-    </li>
-    <li class="nav-item">
-        {% render_discussion_tab contest %}
-    </li>
-</ul>
-<div class="tab-content">
-    <div aria-labelledby="description-tab" class="tab-pane fade {% if not tab or tab == 'description' %}show active{% endif %}" id="description" role="tabpanel">
-        <p>{{ contest.description|markdown|safe }}</p>
-        {% include 'list.html' with lst=contest.problem_set.all title="Задачи:" %}
-        {% include 'list.html' with lst=contest.test_set.all title="Тесты:" %}
-        {% render_attachment_list contest %}
+<legend>{{ contest.title }} <small class="text-muted">№{{ contest.number }}</small></legend>
+<a class="btn btn-light btn-block border mb-3" href="{% url 'contests:contest-discussion' contest.id %}">
+    {% unread_comments_count request.user.account contest as ucc %}
+    Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+</a>
+<div class="accordion mb-3" id="contest_details">
+    <div class="card">
+        <div class="card-header" id="contest_description">
+            <h2 class="mb-0">
+                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                        data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    Описание раздела
+                </button>
+            </h2>
+        </div>
+        <div id="collapseOne" class="collapse {% if request.user.account.type == 1 %}show{% endif %}" aria-labelledby="contest_description">
+            <div class="card-body">
+                {{ contest.description|markdown|safe }}
+                {% render_attachment_list contest %}
+            </div>
+        </div>
     </div>
-    <div aria-labelledby="tests-tab" class="tab-pane fade {% if tab == 'tests' %}show active{% endif %}" id="tests" role="tabpanel">
-        {% include 'list.html' with lst=contest.test_set.all %}
+    <div class="card">
+        <div class="card-header" id="contest_problems">
+            <h2 class="mb-0">
+                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                        data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+                    Задачи
+                </button>
+            </h2>
+        </div>
+        <div id="collapseTwo" class="collapse show" aria-labelledby="contest_problems">
+            <div class="card-body">
+                {% include 'list.html' with lst=contest.problem_set.all mb=0 %}
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header" id="contest_tests">
+            <h2 class="mb-0">
+                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                        data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
+                    Наборы задач
+                </button>
+            </h2>
+        </div>
+        <div id="collapseThree" class="collapse show" aria-labelledby="contest_tests">
+            <div class="card-body">
+                {% include 'list.html' with lst=contest.test_set.all mb=0%}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock content %}
