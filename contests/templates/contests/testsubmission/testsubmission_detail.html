@@ -27,8 +27,9 @@
 {% for question, answer in questions %}
 <div class="card mb-3" id="question_{{ question.number }}">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        #{{ question.number }}
-        <span class="badge badge-pill badge-light`">Способ ответа: {{ question.get_type_display|lower }}</span>
+        <span>{{ question.number }}</span>
+        <!-- TODO: придумать, куда вставить заголовок вопроса -->
+        <small>Способ ответа: {{ question.get_type_display|lower }}</small>
         <span class="text-{% if answer == None %}warning{% elif answer.status == 1 %}dark{% elif answer.status == 2 %}success{% elif answer.status == 3 %}danger{% endif %}">
             {% if answer == None %}Не решено{% elif answer.status == 1 %}Не проверено{% elif answer.status == 2 %}Правильно{% elif answer.status == 3 %}Неправильно{% endif %}
         </span>

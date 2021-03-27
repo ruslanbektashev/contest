@@ -936,7 +936,7 @@ class TestSubmission(CRUDEntry):
 
     def update_score(self):
         right_answers_count = self.answer_set.filter(status=2).count()
-        questions_count = self.test.question_set.count()
+        questions_count = self.test.questions.count()
         percentage = right_answers_count * 100 // questions_count
 
         for i, level in enumerate([self.test.satisfactorily_percentage, self.test.good_percentage, self.test.excellent_percentage]):

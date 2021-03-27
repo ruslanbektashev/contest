@@ -1567,13 +1567,7 @@ class TestSubmissionRedirect(LoginRequiredMixin, RedirectView):
 
     def get_redirect_url(self, *args, **kwargs):
         testsubmission = self.storage['testsubmission']
-        # question = testsubmission.test.question_set.first()
-
-        kwargs.update({
-            'testsubmission_id': testsubmission.id,
-            # 'question_number': question.number
-        })
-
+        kwargs['testsubmission_id'] = testsubmission.id
         return super().get_redirect_url(*args, **kwargs)
 
 
@@ -1587,7 +1581,7 @@ class TestSubmissionDetail(LoginRequiredMixin, DetailView):
         testsubmission = self.get_object()
 
         questions = []
-        for question in testsubmission.test.question_set.all():
+        for question in testsubmission.test.questions.all():
             questions.append((question, testsubmission.answer_set.filter(question=question).first()))
 
         context['questions'] = questions
@@ -1608,7 +1602,7 @@ class AnswerCreate(LoginRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         testsubmission = get_object_or_404(TestSubmission, id=kwargs.pop('testsubmission_id'))
-        questions = testsubmission.test.question_set.exclude(answer__in=testsubmission.answer_set.all()).order_by('number')
+        questions = testsubmission.test.questions.exclude(answer__in=testsubmission.answer_set.all()).order_by('number')
 
         self.storage.update({
             'testsubmission': testsubmission,
