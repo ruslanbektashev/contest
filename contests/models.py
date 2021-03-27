@@ -275,7 +275,7 @@ class Problem(CRUDEntry):
     def get_tests(self):
         return list(self.iotest_set.all()) + list(self.uttest_set.all()) + list(self.fntest_set.all())
 
-    def test(self, submission, observer):
+    def do_test(self, submission, observer):
         state, executions = Status.UN, []
         for test in self.get_tests():
             stats = {}
@@ -675,7 +675,7 @@ class Submission(CRDEntry):
         return Status.OK
 
     def test(self, observer):
-        return self.problem.test(self, observer)
+        return self.problem.do_test(self, observer)
 
     def update(self, state):
         self.task_id = None

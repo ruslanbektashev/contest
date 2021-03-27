@@ -24,7 +24,11 @@
 </a>
 <table class="table table-sm">
     <tr><td class="text-right" style="width: 20%;">Студент</td><td><a href="{{ assignment.user.account.get_absolute_url }}">{{ assignment.user.account }}</a></td></tr>
+    {% if assignment.test %}
+    <tr><td class="text-right" style="width: 20%;">Тест</td><td><a href="{{ assignment.test.get_absolute_url }}">{{ assignment.test }}</a></td></tr>
+    {% else %}
     <tr><td class="text-right" style="width: 20%;">Задача</td><td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td></tr>
+    {% endif %}
     <tr>
         <td class="text-right" style="width: 20%;">Оценка</td>
         <td>
@@ -52,10 +56,14 @@
     <a href="{% url 'contests:assignment-delete' assignment.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить задание</a>
     {% endif %}
     {% if request.user == assignment.user %}
+    {% if assignment.test %}
     {% if assignment.submission_limit > assignment.get_submissions.count %}
     <a href="{% url 'contests:submission-create' assignment.problem.id %}" class="btn btn-info btn-block"><i class="fa fa-file-code-o fa-fw"></i> Отправить решение</a>
     {% else %}
     <button class="btn btn-warning btn-block">Все попытки потрачены</button>
+    {% endif %}
+    {% else %}
+    <a href="{% url 'contests:testsubmission-create' assignment.test.id %}" class="btn btn-info btn-block"><i class="fa fa-file-code-o fa-fw"></i> Пройти тест</a>
     {% endif %}
     {% endif %}
 </div>

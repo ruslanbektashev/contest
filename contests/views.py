@@ -335,6 +335,14 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
     template_name = 'contests/problem/problem_detail.html'
     paginate_by = 10
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        # TODO: temp
+        if hasattr(self.object, 'test') and self.object.test:
+            return HttpResponseRedirect(reverse('contests:test-detail', kwargs={'pk': self.object.test.id}))
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tab'] = self.request.GET.get('tab', None)
