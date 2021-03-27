@@ -854,6 +854,7 @@ class Question(CRUDEntry):
 class Test(CRUDEntry):
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
     questions = models.ManyToManyField(Question, through='TestMembership', verbose_name="Вопросы")
+    problem = models.OneToOneField('Problem', on_delete=models.CASCADE, null=True)
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     description = models.TextField(verbose_name="Описание", blank=True, null=True)
@@ -864,6 +865,18 @@ class Test(CRUDEntry):
     class Meta(CRUDEntry.Meta):
         verbose_name = "Набор задач"
         verbose_name_plural = "Наборы задач"
+
+    def save(self, *args, **kwargs):
+        self.problem = Problem.objects.create(
+            owner=self.owner,
+            contest=self.contest,
+            title=self.title,
+            description=self.description,
+            number=Problem.objects.get_new_number(self.contest),
+            is_testable=False,
+        )
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
