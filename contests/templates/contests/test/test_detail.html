@@ -32,10 +32,10 @@
         <p>{{ test.description|safe }}</p>
         <h5 class="mb-3">Задачи</h5>
 
-        {% for question in test.question_set.all %}
+        {% for question in test.questions.all %}
         <div class="card mb-3">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                #{{ question.number }} {% if question.title %}{{ question.title }}{% endif %} <span class="badge badge-pill badge-light">Способ ответа: {{ question.get_type_display|lower }}</span>
+                <span>{{ question.number }}</span>{% if question.title %}<small>{{ question.title }}</small>{% endif %}<small>Способ ответа: {{ question.get_type_display|lower }}</small>
             </div>
             <div class="card-body">
                 <p class="card-text">{{ question.description }}</p>
@@ -54,9 +54,9 @@
                 {% if perms.contests.view_problem %}
                 <a href="{% url 'contests:question-detail' question.id %}" class="card-link">Просмотреть</a>
                 {% endif %}
-                {% if perms.contests.delete_problem %}
-                <a href="{% url 'contests:question-delete' question.id %}" class="card-link text-danger">Удалить</a>
-                {% endif %}
+                <!-- {% if perms.contests.delete_testmembership %}
+                <a href="{% url 'contests:question-delete' question.id %}" class="card-link text-danger">Удалить из набора</a>
+                {% endif %} -->
             </div>
             {% endif %}
         </div>

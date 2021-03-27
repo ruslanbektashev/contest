@@ -1393,7 +1393,7 @@ class TestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
         self.storage = dict()
 
     def get_success_url(self):
-        return reverse('contests:contest-detail', kwargs={'pk': self.object.contest.id}) + '?tab=tests'
+        return reverse('contests:contest-detail', kwargs={'pk': self.object.contest.id})
 
 
 """=================================================== Question ===================================================="""
@@ -1445,7 +1445,9 @@ class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
         test = self.storage.get('test')
         if test:
-            initial['number_in_test'] = TestMembership.objects.get_new_number(test)
+            number_in_test = TestMembership.objects.get_new_number(test)
+            initial['number_in_test'] = number_in_test
+            initial['title'] += ".{}".format(number_in_test)
 
         return initial
 
@@ -1460,6 +1462,9 @@ class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return context
 
     def get_success_url(self):
+        test = self.storage.get('test')
+        if test and self.object.type != Question.TEST_TYPE:
+            return reverse('contests:test-detail', kwargs={'pk': test.id})
         return reverse('contests:question-detail', kwargs={'pk': self.object.id})
 
 
