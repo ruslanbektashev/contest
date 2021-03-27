@@ -476,33 +476,33 @@ class AssignmentManager(models.Manager):
     def create_random_set(self, owner, contest, limit_per_user, debts=False):
         """ create random set of assignments with problems of given contest
             aligning their number to limit_per_user for contest.course.level students """
-        problem_ids = contest.problem_set.all().values_list('id', flat=True)
+        problem_ids = contest.problem_set.order_by('number').values_list('id', flat=True)
         if debts:
             user_ids = Account.students.enrolled().debtors(contest.course).values_list('user_id', flat=True)
         else:
             user_ids = Account.students.enrolled().current(contest.course).values_list('user_id', flat=True)
+        new_assignments = []
         for user_id in user_ids:
-            assigned_problem_ids = self.filter(
-                user_id=user_id,
-                problem_id__in=problem_ids
-            ).values_list(
-                'problem_id',
-                flat=True
-            )
+            assigned_problem_ids = (self.filter(user_id=user_id, problem_id__in=problem_ids)
+                                        .select_related('problem')
+                                        .values_list('problem_id', flat=True))
             problem_id_set = set(problem_ids)
             assigned_problem_id_set = set(assigned_problem_ids)
-            if len(assigned_problem_ids) < limit_per_user:
-                unassigned_problem_ids = list(problem_id_set - assigned_problem_id_set)
-                while unassigned_problem_ids and len(assigned_problem_id_set) < limit_per_user:
-                    i = random.randint(0, len(unassigned_problem_ids) - 1)
-                    problem_id = unassigned_problem_ids.pop(i)
-                    new_assignment = Assignment(
-                        owner_id=owner.id,
-                        user_id=user_id,
-                        problem_id=problem_id
-                    )
-                    new_assignment.save()
+            if len(assigned_problem_id_set) < limit_per_user:
+                to_assign_problem_id_list = []
+                unassigned_problem_id_list = list(problem_id_set - assigned_problem_id_set)
+                while unassigned_problem_id_list and len(assigned_problem_id_set) < limit_per_user:
+                    i = random.randint(0, len(unassigned_problem_id_list) - 1)
+                    problem_id = unassigned_problem_id_list.pop(i)
+                    to_assign_problem_id_list.append(problem_id)
                     assigned_problem_id_set.add(problem_id)
+                to_assign_problem_id_list = list(filter(lambda x: x in to_assign_problem_id_list, problem_ids))
+                for to_assign_problem_id in to_assign_problem_id_list:
+                    new_assignment = Assignment(owner_id=owner.id,
+                                                user_id=user_id,
+                                                problem_id=to_assign_problem_id)
+                    new_assignments.append(new_assignment)
+        Assignment.objects.bulk_create(new_assignments)
 
 
 class Assignment(CRUDEntry):

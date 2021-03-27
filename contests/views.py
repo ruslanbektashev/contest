@@ -921,7 +921,7 @@ class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
                 .filter(user__in=self.storage['students'].values_list('user'),
                         problem__contest__course=course)
                 .select_related('user', 'problem')
-                .order_by('user__account', 'problem__contest', 'date_created'))
+                .order_by('user__account', 'problem__contest', 'date_created', 'problem__number'))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
