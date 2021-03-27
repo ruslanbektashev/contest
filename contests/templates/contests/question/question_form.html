@@ -27,7 +27,7 @@
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
         {% render_field form.description class+="form-control" %}
         {% render_field form.title class+="form-control" %}
-        {% render_field form.type class+="form-control" %}
+        {% render_field form.type class+="form-control selectpicker" %}
         {% if form.number_in_test %}
             {% render_field form.number_in_test class+="form-control" %}
         {% endif %}
