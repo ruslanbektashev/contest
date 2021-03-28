@@ -385,7 +385,7 @@ class TestForm(forms.ModelForm):
 class QuestionForm(forms.ModelForm):
     class Meta:
         model = Question
-        fields = ['title', 'description', 'type', 'number']
+        fields = ['title', 'description', 'type', 'number', 'score_max']
 
     def __init__(self, *args, **kwargs):
         contest = kwargs.pop('contest', None)
@@ -408,7 +408,7 @@ class QuestionExtendedForm(forms.ModelForm):
 
     class Meta:
         model = Question
-        fields = ['title', 'description', 'type', 'number']
+        fields = ['title', 'description', 'type', 'number', 'score_max']
 
     def __init__(self, *args, **kwargs):
         contest = kwargs.pop('contest', None)
