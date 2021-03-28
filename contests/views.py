@@ -1561,8 +1561,9 @@ class OptionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 """================================================ TestSubmission ================================================="""
 
 
-class TestSubmissionRedirect(LoginRequiredMixin, RedirectView):
+class TestSubmissionRedirect(LoginRedirectPermissionRequiredMixin, RedirectView):
     pattern_name = 'contests:answer-create'
+    permission_required = 'contests.add_testsubmission'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1599,10 +1600,11 @@ class TestSubmissionDetail(LoginRequiredMixin, DetailView):
 """==================================================== Answer ====================================================="""
 
 
-class AnswerCreate(LoginRequiredMixin, CreateView):
+class AnswerCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Answer
     form_class = AnswerForm
     template_name = 'contests/answer/answer_form.html'
+    permission_required = 'contests.add_answer'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
