@@ -58,7 +58,7 @@
 
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-        {% render_field form.status class+="form-control" %}
+        {% render_field form.status class+="form-control selectpicker" %}
     {% endwith %}
     {% render_submit_button value="Сохранить" %}
 </form>
