@@ -30,8 +30,8 @@
         <span>{{ question.number }}</span>
         <!-- TODO: придумать, куда вставить заголовок вопроса -->
         <small>Способ ответа: {{ question.get_type_display|lower }}</small>
-        <span class="text-{% if answer == None %}warning{% elif answer.status == 1 %}dark{% elif answer.status == 2 %}success{% elif answer.status == 3 %}danger{% endif %}">
-            {% if answer == None %}Не решено{% elif answer.status == 1 %}Не проверено{% elif answer.status == 2 %}Правильно{% elif answer.status == 3 %}Неправильно{% endif %}
+        <span>
+            {% if answer == None %}Не решено{% elif answer.status == 1 %}Не проверено{% else %}Оценка: {{ answer.score }} / {{ question.score_max }}{% endif %}
         </span>
     </div>
     <div class="card-body">
