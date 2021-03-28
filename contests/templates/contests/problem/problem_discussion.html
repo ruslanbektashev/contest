@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views accounts contests comments markdown static %}
 
 {% block title %}
@@ -23,38 +23,6 @@
 </div>
 {% render_comments problem comments %}
 {% endblock content %}
-
-{% block submenu %}
-<div class="list-group mb-3">
-    {% if perms.contests.change_problem %}
-    <a href="{% url 'contests:problem-update' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать задачу</a>
-    {% endif %}
-    {% if perms.contests.delete_problem %}
-    <a href="{% url 'contests:problem-delete' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить задачу</a>
-    {% endif %}
-</div>
-<div class="list-group mb-3">
-    {% if perms.contests.add_submission_pattern %}
-    <a href="{% url 'contests:submission-pattern-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить решение</a>
-    {% endif %}
-</div>
-<div class="list-group mb-3">
-    {% if perms.contests.add_iotest %}
-    <a href="{% url 'contests:iotest-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить IO-тест</a>
-    {% endif %}
-    {% if perms.contests.add_uttest %}
-    <a href="{% url 'contests:uttest-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить UT-тест</a>
-    {% endif %}
-    {% if perms.contests.add_fntest %}
-    <a href="{% url 'contests:fntest-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить FN-тест</a>
-    {% endif %}
-</div>
-<div class="list-group mb-3">
-    {% if perms.contests.add_submission %}
-    <a href="{% url 'contests:submission-create' problem.id %}" class="btn btn-info btn-block"><i class="fa fa-file-code-o fa-fw"></i> Отправить решение</a>
-    {% endif %}
-</div>
-{% endblock submenu %}
 
 {% block javascript %}
 <script src="{% static 'MathJax/es5/tex-chtml.js' %}" type="text/javascript"></script>

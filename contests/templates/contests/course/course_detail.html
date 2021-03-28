@@ -43,7 +43,7 @@
         </div>
         <div id="collapseTwo" class="collapse show" aria-labelledby="course_contests">
             <div class="card-body">
-                {% include 'list.html' with lst=course.contest_set.all mb=0 %}
+                {% include 'list.html' with lst=course.contest_set.all mb=0 warn_if_empty="Добавьте раздел" %}
             </div>
         </div>
     </div>

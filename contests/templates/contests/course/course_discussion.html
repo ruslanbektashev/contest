@@ -1,5 +1,14 @@
-{% extends 'contests/course/course_detail.html' %}
-{% load accounts comments contests markdown static %}
+{% extends 'base_wide.html' %}
+{% load views accounts comments contests markdown static %}
+
+{% block title %}
+Курс
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb course %}
+{% endblock breadcrumbs %}
 
 {% block content %}
 <legend>Обсуждение курса {{ course }} <small class="text-muted">{{ course.get_level_display }}</small></legend>

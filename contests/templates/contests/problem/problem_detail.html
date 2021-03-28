@@ -84,7 +84,13 @@
             </h2>
         </div>
         <div id="collapseThree" class="collapse show" aria-labelledby="problem_submissions">
+            {% if submissions %}
             {% include 'contests/submission/submission_table.html' with borderless=True %}
+            {% else %}
+            <div class="card-body">
+                <div class="alert alert-info mb-0">Посылок нет</div>
+            </div>
+            {% endif %}
         </div>
     </div>
     {% if perms.contests.view_submission_pattern %}
@@ -100,7 +106,7 @@
         <div id="collapseFour" class="collapse" aria-labelledby="problem_submission_patterns">
             <div class="card-body">
                 <div class="alert alert-warning">Доступно только преподавателям</div>
-                {% include 'list.html' with lst=problem.submission_patterns.all mb=0 %}
+                {% include 'list.html' with lst=problem.submission_patterns.all mb=0 warn_if_empty="Добавьте шаблон посылки" %}
             </div>
         </div>
     </div>
@@ -111,16 +117,20 @@
             <h2 class="mb-0">
                 <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
                         data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
-                    <i class="fa fa-lock fa-fw"></i> Автоматические тесты
+                    <i class="fa fa-lock fa-fw"></i> Тесты
                 </button>
             </h2>
         </div>
         <div id="collapseFive" class="collapse" aria-labelledby="problem_tests">
             <div class="card-body">
                 <div class="alert alert-warning">Доступно только преподавателям</div>
+                {% if problem.iotest_set.exists or problem.uttest_set.exists or problem.fntest_set.exists %}
                 {% include 'list.html' with lst=problem.iotest_set.all title="IO-тесты:" %}
                 {% include 'list.html' with lst=problem.uttest_set.all title="UT-тесты:" %}
                 {% include 'list.html' with lst=problem.fntest_set.all title="FN-тесты:" %}
+                {% else %}
+                <div class="alert alert-info mb-0">Тестов нет</div>
+                {% endif %}
             </div>
         </div>
     </div>

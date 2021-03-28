@@ -45,7 +45,7 @@
         </div>
         <div id="collapseTwo" class="collapse show" aria-labelledby="contest_problems">
             <div class="card-body">
-                {% include 'list.html' with lst=contest.problem_set.all mb=0 %}
+                {% include 'list.html' with lst=contest.problem_set.all mb=0 warn_if_empty="Добавьте задачу" %}
             </div>
         </div>
     </div>
@@ -61,7 +61,7 @@
         </div>
         <div id="collapseThree" class="collapse show" aria-labelledby="contest_tests">
             <div class="card-body">
-                {% include 'list.html' with lst=contest.test_set.all mb=0%}
+                {% include 'list.html' with lst=contest.test_set.all mb=0 warn_if_empty="Добавьте набор задач" %}
             </div>
         </div>
     </div>

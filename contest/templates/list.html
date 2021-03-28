@@ -7,4 +7,8 @@
     <a href="{{ obj.get_absolute_url }}" class="list-group-item list-group-item-action">{{ obj }}</a>
     {% endfor %}
 </div>
+{% elif warn_if_empty %}
+<div class="alert alert-info mb-{% if mb is not None %}{{ mb }}{% else %}3{% endif %}" role="alert">
+    {{ warn_if_empty }}
+</div>
 {% endif %}
