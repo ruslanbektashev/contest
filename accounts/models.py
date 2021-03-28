@@ -174,6 +174,10 @@ class Account(models.Model):
         verbose_name_plural = "Аккаунты"
 
     @property
+    def is_student(self):
+        return self.type == 1
+
+    @property
     def owner(self):
         return self.user
 
