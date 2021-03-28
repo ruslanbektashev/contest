@@ -839,6 +839,7 @@ class Question(CRUDEntry):
     description = models.TextField(verbose_name="Вопрос")
     type = models.PositiveSmallIntegerField(verbose_name="Способ ответа", choices=TYPE_CHOICES, default=DEFAULT_TYPE)
     number = models.PositiveSmallIntegerField(verbose_name="Номер в разделе", default=DEFAULT_NUMBER)
+    score_max = models.PositiveSmallIntegerField(default=100, verbose_name="Максимальная оценка")
 
     objects = QuestionManager()
 
@@ -969,6 +970,7 @@ class Answer(CRUDEntry):
     text = models.TextField(verbose_name="Развёрнутый ответ", blank=True, null=True)
     file = models.FileField(verbose_name="Файл", blank=True, null=True)
     status = models.PositiveSmallIntegerField(choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
+    score = models.PositiveSmallIntegerField(null=True, verbose_name="Оценка")
 
     class Meta(CRUDEntry.Meta):
         ordering = ('question__number',)
