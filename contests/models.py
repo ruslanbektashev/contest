@@ -936,8 +936,8 @@ class TestSubmission(CRUDEntry):
         verbose_name_plural = "Решения наборов задач"
 
     def update_score(self):
-        score_max = self.test.questions.aggregate(models.Sum('score_max')).get('score_max__sum', 0)
-        score = self.answer_set.aggregate(models.Sum('score')).get('score__sum', 0)
+        score_max = self.test.questions.aggregate(models.Sum('score_max')).get('score_max__sum', 0) or 0
+        score = self.answer_set.aggregate(models.Sum('score')).get('score__sum', 0) or 0
         percentage = score * 100 / score_max
 
         for i, level in enumerate([self.test.satisfactorily_percentage, self.test.good_percentage, self.test.excellent_percentage]):
