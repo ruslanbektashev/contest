@@ -496,7 +496,7 @@ class AnswerCheckForm(forms.ModelForm):
 
     class Meta:
         model = Answer
-        fields = ['status']
+        fields = ['status', 'score']
 
 
 """================================================ TestMembership ================================================="""

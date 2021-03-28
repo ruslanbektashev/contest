@@ -936,9 +936,9 @@ class TestSubmission(CRUDEntry):
         verbose_name_plural = "Решения наборов задач"
 
     def update_score(self):
-        right_answers_count = self.answer_set.filter(status=2).count()
-        questions_count = self.test.questions.count()
-        percentage = right_answers_count * 100 // questions_count
+        score_max = self.test.questions.aggregate(models.Sum('score_max')).get('score_max__sum', 0)
+        score = self.answer_set.aggregate(models.Sum('score')).get('score__sum', 0)
+        percentage = score * 100 / score_max
 
         for i, level in enumerate([self.test.satisfactorily_percentage, self.test.good_percentage, self.test.excellent_percentage]):
             if percentage >= level:
@@ -982,9 +982,11 @@ class Answer(CRUDEntry):
             right_options = list(self.question.option_set.filter(is_right=True).order_by('id').values_list('id', flat=True))
             if right_options == list(self.options.order_by('id').values_list('id', flat=True)):
                 self.status = self.CORRECT_STATUS
+                self.score = self.question.score_max
             else:
                 self.status = self.INCORRECT_STATUS
-            self.save(update_fields=['status'])
+                self.score = 0
+            self.save(update_fields=['status', 'score'])
 
     def __str__(self):
         return "Решение задачи {}".format(self.question.id)
