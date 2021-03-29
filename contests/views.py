@@ -1367,7 +1367,7 @@ class TestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Test
     form_class = TestForm
     template_name = 'contests/test/test_form.html'
-    permission_required = 'contests.update_test'
+    permission_required = 'contests.change_test'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1480,7 +1480,7 @@ class QuestionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Question
     form_class = QuestionForm
     template_name = 'contests/question/question_form.html'
-    permission_required = 'contests.update_question'
+    permission_required = 'contests.change_question'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1537,7 +1537,7 @@ class OptionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Option
     form_class = OptionForm
     template_name = 'contests/option/option_form.html'
-    permission_required = 'contests.update_option'
+    permission_required = 'contests.change_option'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
