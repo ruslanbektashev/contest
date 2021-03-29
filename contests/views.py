@@ -1455,7 +1455,7 @@ class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         if test:
             number_in_test = TestMembership.objects.get_new_number(test)
             initial['number_in_test'] = number_in_test
-            initial['title'] += ".{}".format(number_in_test)
+            initial['title'] = "Задача {}.{}".format(test.problem.number, number_in_test)
 
         return initial
 

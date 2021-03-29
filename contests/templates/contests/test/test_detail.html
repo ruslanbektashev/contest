@@ -32,18 +32,18 @@
         <p>{{ test.description|safe }}</p>
         <h5 class="mb-3">Задачи</h5>
 
-        {% for question in test.questions.all %}
+        {% for membership in test.testmembership_set.all %}
         <div class="card mb-3">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <span>{{ question.number }}</span>{% if question.title %}<small>{{ question.title }}</small>{% endif %}<small>Способ ответа: {{ question.get_type_display|lower }}</small>
+                <span>{{ membership.number }}</span>{% if membership.question.title %}<small>{{ membership.question.title }}</small>{% endif %}<small>Способ ответа: {{ membership.question.get_type_display|lower }}</small>
             </div>
             <div class="card-body">
-                <p class="card-text">{{ question.description }}</p>
+                <p class="card-text">{{ membership.question.description }}</p>
             </div>
-            {% if question.option_set.all %}
+            {% if membership.question.option_set.all %}
             <div class="card ml-2 mb-2 mr-2">
                 <ul class="list-group list-group-flush">
-                    {% for option in question.option_set.all %}
+                    {% for option in membership.question.option_set.all %}
                     <li class="list-group-item">{{ option.text }}</li>
                     {% endfor %}
                 </ul>
@@ -52,10 +52,10 @@
             {% if perms.contests.view_problem or perms.contests.delete_problem %}
             <div class="card-footer">
                 {% if perms.contests.view_problem %}
-                <a href="{% url 'contests:question-detail' question.id %}" class="card-link">Просмотреть</a>
+                <a href="{% url 'contests:question-detail' membership.question.id %}" class="card-link">Просмотреть</a>
                 {% endif %}
                 <!-- {% if perms.contests.delete_testmembership %}
-                <a href="{% url 'contests:question-delete' question.id %}" class="card-link text-danger">Удалить из набора</a>
+                <a href="{% url 'contests:test-update' membership.question.id %}" class="card-link text-danger">Удалить из набора</a>
                 {% endif %} -->
             </div>
             {% endif %}
