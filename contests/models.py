@@ -976,6 +976,9 @@ class Answer(CRUDEntry):
         ordering = ('question__number',)
         verbose_name = "Решение задачи"
         verbose_name_plural = "Решения задач"
+        permissions = [
+            ("check_answer", "Проверять Решение задачи"),
+        ]
 
     def check_correctness(self) -> None:
         if self.question.type == Question.TEST_TYPE:
