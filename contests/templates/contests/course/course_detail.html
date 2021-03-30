@@ -26,7 +26,7 @@
                 </button>
             </h2>
         </div>
-        <div id="collapseOne" class="collapse {% if request.user.account.is_student %}show{% endif %}" aria-labelledby="course_description">
+        <div id="collapseOne" class="collapse show" aria-labelledby="course_description">
             <div class="card-body">
                 {{ course.description|markdown|safe }}
             </div>

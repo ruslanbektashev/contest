@@ -28,7 +28,7 @@
                 </button>
             </h2>
         </div>
-        <div id="collapseOne" class="collapse {% if request.user.account.is_student %}show{% endif %}" aria-labelledby="problem_description">
+        <div id="collapseOne" class="collapse show" aria-labelledby="problem_description">
             <div class="card-body">
                 {{ problem.description|markdown|safe }}
                 <table class="table table-sm">
@@ -67,7 +67,7 @@
                 </button>
             </h2>
         </div>
-        <div id="collapseTwo" class="collapse {% if request.user.account.is_student %}show{% endif %}" aria-labelledby="contest_description">
+        <div id="collapseTwo" class="collapse show" aria-labelledby="contest_description">
             <div class="card-body">
                 {{ problem.contest.description|markdown|safe }}
                 {% render_attachment_list problem.contest %}

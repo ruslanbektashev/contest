@@ -27,7 +27,7 @@
                 </button>
             </h2>
         </div>
-        <div id="collapseOne" class="collapse {% if request.user.account.is_student %}show{% endif %}" aria-labelledby="contest_description">
+        <div id="collapseOne" class="collapse show" aria-labelledby="contest_description">
             <div class="card-body">
                 {{ contest.description|markdown|safe }}
                 {% render_attachment_list contest %}
