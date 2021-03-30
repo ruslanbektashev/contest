@@ -56,7 +56,7 @@
     <a href="{% url 'contests:assignment-delete' assignment.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить задание</a>
     {% endif %}
     {% if request.user == assignment.user %}
-    {% if assignment.test %}
+    {% if not assignment.test %}
     {% if assignment.submission_limit > assignment.get_submissions.count %}
     <a href="{% url 'contests:submission-create' assignment.problem.id %}" class="btn btn-info btn-block"><i class="fa fa-file-code-o fa-fw"></i> Отправить решение</a>
     {% else %}

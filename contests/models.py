@@ -3,8 +3,8 @@ import io
 import os
 import random
 import zipfile
-from ckeditor.fields import RichTextField
 
+from ckeditor.fields import RichTextField
 from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -530,6 +530,13 @@ class Assignment(CRUDEntry):
         verbose_name = "Задание"
         verbose_name_plural = "Задания"
 
+    @property
+    def test(self):
+        try:
+            return self.problem.test
+        except Test.DoesNotExist:
+            return None
+
     def get_latest_submission(self):
         return self.problem.get_latest_submission_by(self.user)
 
@@ -855,7 +862,7 @@ class Question(CRUDEntry):
 class Test(CRUDEntry):
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
     questions = models.ManyToManyField(Question, through='TestMembership', verbose_name="Вопросы")
-    problem = models.OneToOneField('Problem', on_delete=models.CASCADE, null=True)
+    problem = models.OneToOneField(Problem, on_delete=models.CASCADE, null=True)
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     description = models.TextField(verbose_name="Описание", blank=True, null=True)
