@@ -139,7 +139,7 @@ class CreditSetForm(forms.Form):
 
 
 class ContestForm(AttachmentForm):
-    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx']
+    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf']
 
     class Meta:
         model = Contest
@@ -151,6 +151,8 @@ class ContestForm(AttachmentForm):
 
 
 class ProblemForm(AttachmentForm):
+    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf']
+
     class Meta:
         model = Problem
         fields = ['contest', 'title', 'description', 'number', 'difficulty', 'language', 'compile_args', 'launch_args',

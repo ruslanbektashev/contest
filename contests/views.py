@@ -1,4 +1,3 @@
-from django.db.models.query_utils import Q
 from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 from django.views.generic.base import RedirectView
@@ -13,7 +12,7 @@ from markdown import markdown
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http404
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http404, FileResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView
@@ -31,6 +30,31 @@ from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 
 """=================================================== Attachment ==================================================="""
+
+
+class AttachmentDetail(DetailView):
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        try:
+            attachment = self.object.attachment_set.get(id=kwargs.get('attachment_id'))
+        except Attachment.DoesNotExist:
+            raise Http404('Attachment with id = %s does not exist.' % kwargs.get('attachment_id'))
+        attachment_file_type, _ = mimetypes.guess_type(attachment.file.path)
+        if 'x-c' not in attachment_file_type:
+            return HttpResponseRedirect(attachment.file.url)
+        context = self.get_context_data(object=self.object, attachment=attachment)
+        return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        attachment = kwargs.get('attachment')
+        try:
+            content = attachment.file.read()
+        except FileNotFoundError:
+            raise Http404('File %s does not exist.' % attachment.filename)
+        formatter = HtmlFormatter(linenos='inline', wrapcode=True)
+        context['code'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter)
+        return context
 
 
 class AttachmentDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
@@ -51,7 +75,6 @@ class CourseDetail(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['tab'] = self.request.GET.get('tab', None)
         context['subscribers_ids'] = self.object.subscription_set.all().values_list('user', flat=True)
         if self.request.user.id in context['subscribers_ids']:
             context['subscription_id'] = self.object.subscription_set.get(user=self.request.user).id
@@ -229,11 +252,6 @@ class ContestDetail(LoginRequiredMixin, DetailView):
     model = Contest
     template_name = 'contests/contest/contest_detail.html'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['tab'] = self.request.GET.get('tab', None)
-        return context
-
 
 class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
     model = Contest
@@ -250,31 +268,9 @@ class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         return context
 
 
-class ContestAttachment(LoginRequiredMixin, DetailView):
+class ContestAttachment(LoginRequiredMixin, AttachmentDetail):
     model = Contest
     template_name = 'contests/contest/contest_attachment.html'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        self.storage['attachment_id'] = kwargs.pop('attachment_id')
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        try:
-            context['attachment'] = self.object.attachment_set.get(id=self.storage['attachment_id'])
-        except Attachment.DoesNotExist:
-            raise Http404('Attachment with id = %s does not exist.' % self.storage['attachment_id'])
-        try:
-            content = context['attachment'].file.read()
-        except FileNotFoundError:
-            raise Http404('File %s does not exist.' % context['attachment'].filename)
-        formatter = HtmlFormatter(linenos='inline', wrapcode=True)
-        context['code'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter)
-        return context
 
 
 class ContestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
@@ -345,7 +341,6 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['tab'] = self.request.GET.get('tab', None)
         context['latest_submission'] = self.object.get_latest_submission_by(self.request.user)
         if self.request.user.has_perm('contests.view_submission_list'):
             submissions = self.object.submission_set.all()
@@ -373,31 +368,9 @@ class ProblemDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         return context
 
 
-class ProblemAttachment(LoginRequiredMixin, DetailView):
+class ProblemAttachment(LoginRequiredMixin, AttachmentDetail):
     model = Problem
     template_name = 'contests/problem/problem_attachment.html'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        self.storage['attachment_id'] = kwargs.pop('attachment_id')
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        try:
-            context['attachment'] = self.object.attachment_set.get(id=self.storage['attachment_id'])
-        except Attachment.DoesNotExist:
-            raise Http404('Attachment with id = %s does not exist.' % self.storage['attachment_id'])
-        try:
-            content = context['attachment'].file.read()
-        except FileNotFoundError:
-            raise Http404('File %s does not exist.' % context['attachment'].filename)
-        formatter = HtmlFormatter(linenos='inline', wrapcode=True)
-        context['code'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter)
-        return context
 
 
 class ProblemRollbackResults(LoginRedirectPermissionRequiredMixin, FormView):
@@ -984,32 +957,10 @@ class SubmissionDownload(LoginRedirectPermissionRequiredMixin, BaseDetailView):
         return response
 
 
-class SubmissionAttachment(LoginRedirectPermissionRequiredMixin, DetailView):
+class SubmissionAttachment(LoginRedirectPermissionRequiredMixin, AttachmentDetail):
     model = Submission
     template_name = 'contests/submission/submission_attachment.html'
     permission_required = 'contests.view_submission'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        self.storage['attachment_id'] = kwargs.pop('attachment_id')
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        try:
-            context['attachment'] = self.object.attachment_set.get(id=self.storage['attachment_id'])
-        except Attachment.DoesNotExist:
-            raise Http404('Attachment with id = %s does not exist.' % self.storage['attachment_id'])
-        try:
-            content = context['attachment'].file.read()
-        except FileNotFoundError:
-            raise Http404('File %s does not exist.' % context['attachment'].filename)
-        formatter = HtmlFormatter(linenos='inline', wrapcode=True)
-        context['code'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter)
-        return context
 
 
 class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
