@@ -395,6 +395,22 @@ class TestForm(forms.ModelForm):
         model = Test
         fields = ['title', 'description', 'satisfactorily_percentage', 'good_percentage', 'excellent_percentage']
 
+    def save(self, commit=True):
+        super().save(commit)
+        try:
+            self.instance.problem.title = self.instance.title
+            self.instance.problem.description = self.instance.description
+            self.instance.problem.number = self.instance.number
+            self.instance.problem.save()
+        except Problem.DoesNotExist:
+            self.instance.problem = Problem.objects.create(owner=self.owner,
+                                                           contest=self.contest,
+                                                           title=self.title,
+                                                           description=self.description,
+                                                           number=Problem.objects.get_new_number(self.contest),
+                                                           is_testable=False)
+        return self.instance
+
 
 """=================================================== Question ===================================================="""
 

@@ -874,18 +874,6 @@ class Test(CRUDEntry):
         verbose_name = "Набор задач"
         verbose_name_plural = "Наборы задач"
 
-    def save(self, *args, **kwargs):
-        self.problem = Problem.objects.create(
-            owner=self.owner,
-            contest=self.contest,
-            title=self.title,
-            description=self.description,
-            number=Problem.objects.get_new_number(self.contest),
-            is_testable=False,
-        )
-
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return self.title
 
