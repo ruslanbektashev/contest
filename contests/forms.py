@@ -326,10 +326,11 @@ class SubmissionForm(AttachmentForm):
         return files
 
     def clean(self):
-        last_submission = self.problem.get_latest_submission_by(self.owner)
-        if last_submission and last_submission.is_un:
-            raise ValidationError('Последнее присланное решение еще не проверено',
-                                  code='last_submission_is_un')
+        if self.problem.is_testable:
+            last_submission = self.problem.get_latest_submission_by(self.owner)
+            if last_submission and last_submission.is_un:
+                raise ValidationError('Последнее присланное решение еще не проверено',
+                                      code='last_submission_is_un')
         try:
             assignment = Assignment.objects.get(user=self.owner, problem=self.problem)
         except ObjectDoesNotExist:
@@ -340,6 +341,18 @@ class SubmissionForm(AttachmentForm):
                 raise ValidationError('Количество попыток исчерпано',
                                       code='limit_reached')
         return super().clean()
+
+
+class SubmissionUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Submission
+        fields = ['status']
+
+    def clean_status(self):
+        if self.instance.problem.is_testable:
+            raise ValidationError('Посылки к этой задаче проверяются автоматически',
+                                  code='problem_is_testable')
+        return self.cleaned_data['status']
 
 
 class ToSubmissionsChoiceField(forms.ModelMultipleChoiceField):

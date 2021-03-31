@@ -21,8 +21,10 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (AnswerCheckForm, AnswerForm, CourseForm, CreditSetForm, ContestForm, OptionForm, ProblemForm, QuestionExtendedForm, QuestionForm,  SubmissionPatternForm, TestForm, TestMembershipForm, UTTestForm, FNTestForm,
-                            SubmissionForm, SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
+from contests.forms import (AnswerCheckForm, AnswerForm, CourseForm, CreditSetForm, ContestForm, OptionForm,
+                            ProblemForm, QuestionExtendedForm, QuestionForm, SubmissionPatternForm, TestForm,
+                            TestMembershipForm, UTTestForm, FNTestForm, SubmissionForm, SubmissionUpdateForm,
+                            SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
                             AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
 from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, Question, SubmissionPattern, IOTest, Test, TestMembership, TestSubmission, UTTest, FNTest,
                              Assignment, Submission, Execution, Event)
@@ -1002,6 +1004,13 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['problem'] = self.storage['problem']
         return context
+
+
+class SubmissionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+    model = Submission
+    form_class = SubmissionUpdateForm
+    template_name = 'contests/submission/submission_update_form.html'
+    permission_required = 'contests.change_submission'
 
 
 class SubmissionMoss(LoginRedirectPermissionRequiredMixin, SingleObjectMixin, FormView):

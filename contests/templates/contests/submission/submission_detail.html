@@ -29,7 +29,11 @@
     <span class="status-display align-self-center" style="position: absolute;"><strong id="progress-bar-message" style="color: white;">{{ submission.get_status_display }}</strong></span>
 </div>
 {% if not submission.problem.is_testable %}
+{% if perms.contests.change_submission %}
+<a href="{% url 'contests:submission-update' submission.id %}{% if from_url %}?from={{ from_url }}{% endif %}" class="btn btn-light btn-block border mb-3">Изменить статус</a>
+{% else %}
 <span class="btn btn-warning btn-block mb-3" title="Решение может быть проверено вручную преподавателем">Автоматическая проверка решения этой задачи временно отключена</span>
+{% endif %}
 {% elif submission.is_un %}
 <a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url %}?from={{ from_url }}{% endif %}" class="btn btn-light btn-block border mb-3">Проверить</a>
 {% elif perms.contests.evaluate_submission %}

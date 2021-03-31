@@ -106,6 +106,7 @@ urlpatterns = [
     path('submission/', include([
         path('<int:pk>/', include([
             path('', views.SubmissionDetail.as_view(), name='submission-detail'),
+            path('update', views.SubmissionUpdate.as_view(), name='submission-update'),
             path('delete', views.SubmissionDelete.as_view(), name='submission-delete'),
             path('evaluate', views.SubmissionEvaluate.as_view(), name='submission-evaluate'),
             path('clear_task', views.SubmissionClearTask.as_view(), name='submission-clear-task'),

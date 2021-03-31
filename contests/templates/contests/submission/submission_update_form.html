@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load views forms static %}
+
+{% block title %}
+Посылка
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb submission.problem.contest.course submission.problem.contest.course %}
+{% breadcrumb submission.problem.contest submission.problem.contest %}
+{% breadcrumb submission.problem submission.problem %}
+{% breadcrumb submission submission %}
+{% breadcrumb "Редактирование" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Изменение статуса посылки</legend>
+<form action="" id="submission-form" method="post" class="form-horizontal">
+    {% csrf_token %}
+    {% render_form_errors form %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.status class+="form-control selectpicker" %}
+    {% endwith %}
+    {% render_submit_button value="Сохранить" %}
+</form>
+{% endblock %}
