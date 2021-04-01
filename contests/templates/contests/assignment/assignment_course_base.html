@@ -15,6 +15,18 @@
 <legend>Таблица заданий {% if debts %}должников{% endif %}</legend>
 {% render_assignment_course_table course students assignments debts %}
 {% render_assignment_progress assignments %}
+<div class="collapse mt-3" id="assignments_legend">
+    <div class="card card-body">
+        <p><span class="numtus status-success">#</span> - 4, 5</p>
+        <p><span class="numtus status-warning">#</span> - 3</p>
+        <p><span class="numtus status-danger">#</span> - 2</p>
+        <p><span class="numtus status-info">#</span> - есть непроверенные посылки</p>
+        <p class="mb-0"><span class="numtus status-default">#</span> - посылок нет</p>
+    </div>
+</div>
+<button class="btn btn-light btn-block mt-3" type="button" data-toggle="collapse" data-target="#assignments_legend" aria-expanded="false" aria-controls="assignments_legend">
+    Показать легенду
+</button>
 {% endblock content %}
 
 {% block submenu %}

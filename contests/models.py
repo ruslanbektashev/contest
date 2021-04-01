@@ -460,6 +460,16 @@ class FNTest(CRUDEntry):
 
 
 class AssignmentQuerySet(models.QuerySet):
+    def for_course_table(self, course, students):
+        latest_submission = (Submission.objects.filter(owner_id=models.OuterRef('user_id'),
+                                                       problem_id=models.OuterRef('problem_id'))
+                                               .order_by('-date_created')[:1])
+        return (self.filter(user__in=students.values_list('user'),
+                            problem__contest__course=course)
+                    .select_related('user', 'problem')
+                    .annotate(latest_submission_status=models.Subquery(latest_submission.values_list('status')))
+                    .order_by('user__account', 'problem__contest', 'date_created', 'problem__number'))
+
     def rollback_score(self):
         return self.update(score=models.F('score') - 1)
 

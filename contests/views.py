@@ -24,9 +24,10 @@ from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectO
 from contests.forms import (AnswerCheckForm, AnswerForm, CourseForm, CreditSetForm, ContestForm, OptionForm,
                             ProblemForm, QuestionExtendedForm, QuestionForm, SubmissionPatternForm, TestForm,
                             TestMembershipForm, UTTestForm, FNTestForm, SubmissionForm, SubmissionUpdateForm,
-                            SubmissionMossForm, AssignmentForm, AssignmentUpdateForm,
-                            AssignmentSetForm, EventForm, ProblemRollbackResultsForm)
-from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, Question, SubmissionPattern, IOTest, Test, TestMembership, TestSubmission, UTTest, FNTest,
+                            SubmissionMossForm, AssignmentForm, AssignmentUpdateForm, AssignmentSetForm, EventForm,
+                            ProblemRollbackResultsForm)
+from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, Question,
+                             SubmissionPattern, IOTest, Test, TestMembership, TestSubmission, UTTest, FNTest,
                              Assignment, Submission, Execution, Event)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
@@ -900,11 +901,7 @@ class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
         else:
             self.storage['students'] = Account.students.enrolled().current(course)
         bool(self.storage['students'])  # evaluate now
-        return (Assignment.objects
-                .filter(user__in=self.storage['students'].values_list('user'),
-                        problem__contest__course=course)
-                .select_related('user', 'problem')
-                .order_by('user__account', 'problem__contest', 'date_created', 'problem__number'))
+        return Assignment.objects.for_course_table(course, self.storage['students'])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

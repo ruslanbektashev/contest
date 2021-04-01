@@ -21,7 +21,7 @@
                 {% for col in row.columns %}
                 <td class="msu-problem-set lake">
                     {% for assignment in col.assignments %}
-                    <a href="{% url 'contests:assignment-detail' assignment.id %}" class="numtus status-{{ assignment.score|colorize }}">
+                    <a href="{% url 'contests:assignment-detail' assignment.id %}" class="numtus status-{% get_assignment_style assignment %}">
                         {{ assignment.problem.number }}<sup>{{ assignment.remark.0 }}</sup>
                     </a>
                     {% if forloop.last %}

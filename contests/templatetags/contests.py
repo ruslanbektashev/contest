@@ -46,6 +46,13 @@ def colorize(value):
     return STATE_COLORS.get(value, 'info')
 
 
+@register.simple_tag()
+def get_assignment_style(assignment):
+    if assignment.latest_submission_status == 'UN':
+        return 'info'
+    return colorize(assignment.score)
+
+
 @register.inclusion_tag('contests/assignment/assignment_user_table.html', takes_context=True)
 def render_assignment_user_table(context, assignments, credits):
     for credit in credits:
