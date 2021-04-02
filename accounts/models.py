@@ -221,6 +221,7 @@ class Account(models.Model):
         return reverse('accounts:account-detail', kwargs={'pk': self.pk})
 
     def mark_comments_as_read(self, comments):
+        Activity.objects.filter(recipient=self.user, object_type=ContentType.objects.get_for_model(Comment), object_id__in=comments.values_list('id', flat=True)).mark_as_read()
         self.comments_read.add(*comments)
 
     def unread_comments_count(self, obj):
