@@ -55,6 +55,11 @@
                     {% endif %}
                 </table>
                 {% render_attachment_list problem %}
+                {% if perms.contests.change_problem %}
+                <a href="{% url 'contests:problem-update' problem.id %}?add_files=1" class="btn btn-block btn-outline-light">
+                    <i class="fa fa-files-o fa-fw"></i> Добавить файлы
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>

@@ -18,10 +18,11 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if problem %}Редактирование{% else %}Добавление{% endif %} задачи</legend>
+<legend>{% if add_files %}Добавление файлов в задачу{% else %}{% if problem %}Редактирование{% else %}Добавление{% endif %} задачи{% endif %}</legend>
 <form action="" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}
     {% render_form_errors form %}
+    {% if not add_files %}
     {% render_field form.contest %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {{ form.media }}
@@ -34,12 +35,13 @@
     {% render_field form.launch_args class+="form-control" %}
     {% render_field form.time_limit class+="form-control" %}
     {% render_field form.memory_limit class+="form-control" %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" %}
+    {% endwith %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.is_testable class+="custom-control-input" %}
     {% endwith %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" %}
+    {% endif %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.files class+="custom-file-input" %}
-    {% endwith %}
     {% endwith %}
     {% render_submit_button value="Сохранить" %}
 </form>
