@@ -74,6 +74,7 @@ urlpatterns = [
     path('uttest/', include([
         path('<int:pk>/', include([
             path('', views.UTTestDetail.as_view(), name='uttest-detail'),
+            path('attachment/<int:attachment_id>', views.UTTestAttachment.as_view(), name='uttest-attachment'),
             path('update', views.UTTestUpdate.as_view(), name='uttest-update'),
             path('delete', views.UTTestDelete.as_view(), name='uttest-delete')
         ]))

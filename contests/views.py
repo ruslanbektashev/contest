@@ -600,6 +600,11 @@ class UTTestDetail(LoginRedirectPermissionRequiredMixin, DetailView):
     permission_required = 'contests.view_uttest'
 
 
+class UTTestAttachment(LoginRequiredMixin, AttachmentDetail):
+    model = Problem
+    template_name = 'contests/uttest/uttest_attachment.html'
+
+
 class UTTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = UTTest
     form_class = UTTestForm

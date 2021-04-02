@@ -1,0 +1,24 @@
+{% extends 'base_wide.html' %}
+{% load views static %}
+
+{% block title %}
+Тест
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb uttest.problem.contest.course uttest.problem.contest.course %}
+{% breadcrumb uttest.problem.contest uttest.problem.contest %}
+{% breadcrumb uttest.problem uttest.problem %}
+{% breadcrumb attachment.filename %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{{ uttest }}</legend>
+<samp>{{ attachment.filename }}</samp>
+<div class="alert alert-light border mt-2">{{ code|safe }}</div>
+{% endblock content %}
+
+{% block stylesheets %}
+<link href="{% static 'css/highlight.css' %}" rel="stylesheet"/>
+{% endblock stylesheets %}
