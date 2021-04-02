@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
-{% load views %}
+{% load views accounts %}
 
 {% block title %}
+{% mark_notification_as_read request.user.account schedule %}
 Расписание
 {% endblock title %}
 

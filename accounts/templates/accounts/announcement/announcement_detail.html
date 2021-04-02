@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
-{% load views comments %}
+{% load views accounts comments %}
 
 {% block title %}
+{% mark_notification_as_read request.user.account announcement %}
 Объявление
 {% endblock title %}
 
