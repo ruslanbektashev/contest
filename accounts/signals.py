@@ -1,7 +1,8 @@
+from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from accounts.models import Activity, Comment
+from accounts.models import Account, Activity, Announcement, Comment
 from support.models import Report
 from contests.models import Submission
 
@@ -41,5 +42,15 @@ def receive_submission_signal(sender, instance, created, **kwargs):
     if created:
         course = instance.problem.contest.course
         users = course.subscription_set.values_list('user_id', flat=True)
-        action = "отправил посылку"
-        Activity.objects.notify_users(users, subject=instance.owner, action=action, object=instance)
+        Activity.objects.notify_users(users, subject=instance.owner, action="отправил посылку", object=instance)
+
+
+@receiver(post_save, sender=Announcement)
+def receive_announcement_signal(sender, instance, created, **kwargs):
+    if created:
+        if instance.group == None:
+            users = User.objects.all()
+        else:
+            users = User.objects.filter(groups__name=instance.group.name)
+        users = users.exclude(id=instance.owner.id).values_list('id', flat=True)
+        Activity.objects.notify_users(users, subject=instance.owner, action="добавил объявление", object=instance)
