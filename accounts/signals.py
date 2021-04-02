@@ -2,9 +2,10 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from accounts.models import Account, Activity, Announcement, Comment
+from accounts.models import Activity, Announcement, Comment
 from support.models import Report
 from contests.models import Submission
+from schedule.models import Schedule
 
 
 @receiver(post_save, sender=Report)
@@ -54,3 +55,10 @@ def receive_announcement_signal(sender, instance, created, **kwargs):
             users = User.objects.filter(groups__name=instance.group.name)
         users = users.exclude(id=instance.owner.id).values_list('id', flat=True)
         Activity.objects.notify_users(users, subject=instance.owner, action="добавил объявление", object=instance)
+
+
+@receiver(post_save, sender=Schedule)
+def receive_schedule_signal(sender, instance, created, **kwargs):
+    if created:
+        users = User.objects.exclude(id=instance.owner.id).values_list('id', flat=True)
+        Activity.objects.notify_users(users, subject=instance.owner, action="добавил расписание", object=instance)
