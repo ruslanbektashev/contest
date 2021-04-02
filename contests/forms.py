@@ -6,10 +6,11 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.forms.widgets import SelectMultiple
 from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
-from contests.models import (Answer, Attachment, Course, Contest, Option, Problem, SubmissionPattern, TestMembership, TestSubmission, UTTest, FNTest, Assignment, Submission, Event, Test, Question)
+from contests.models import (Answer, Attachment, Course, Contest, Option, Problem, SubmissionPattern, TestMembership, UTTest, FNTest, Assignment, Submission, Event, Test, Question)
 
 
 class UserChoiceField(forms.ModelChoiceField):
@@ -410,6 +411,21 @@ class TestForm(forms.ModelForm):
                                                            number=Problem.objects.get_new_number(self.contest),
                                                            is_testable=False)
         return self.instance
+
+
+class QuestionMultipleChoiceField(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, obj):
+        return obj.title
+
+
+class QuestionSetForm(forms.Form):
+    questions = QuestionMultipleChoiceField(queryset=Question.objects.none(), required=True, label="Выберите задачи")
+
+    def __init__(self, test, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        questions = test.contest.question_set.exclude(id__in=test.questions.values_list('id', flat=True))
+        self.fields['questions'].queryset = questions
+        self.fields['questions'].widget = SelectMultiple(choices=self.fields['questions'].choices)
 
 
 """=================================================== Question ===================================================="""

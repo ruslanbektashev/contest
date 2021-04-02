@@ -105,7 +105,7 @@
 
 {% block submenu %}
 <div class="list-group mb-3">
-    {% if perms.contests.delete_test %}
+    {% if perms.contests.update_test %}
     <a href="{% url 'contests:test-update' test.id %}" class="list-group-item list-group-item-action">
         <i class="fa fa-edit fa-fw"></i> Редактировать набор задач
     </a>
@@ -120,6 +120,9 @@
 <div class="list-group mb-3">
     <a href="{% url 'contests:question-in-test-create' test.contest.id test.id %}" class="list-group-item list-group-item-action">
         <i class="fa fa-plus fa-fw"></i> Добавить задачу
+    </a>
+    <a href="{% url 'contests:questions-add' test.id %}" class="list-group-item list-group-item-action">
+        <i class="fa fa-plus fa-fw"></i> Добавить существующую задачу
     </a>
 </div>
 {% endif %}

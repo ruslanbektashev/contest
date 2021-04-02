@@ -22,7 +22,7 @@ from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
 from contests.forms import (AnswerCheckForm, AnswerForm, CourseForm, CreditSetForm, ContestForm, OptionForm,
-                            ProblemForm, QuestionExtendedForm, QuestionForm, SubmissionPatternForm, TestForm,
+                            ProblemForm, QuestionExtendedForm, QuestionForm, QuestionSetForm, SubmissionPatternForm, TestForm,
                             TestMembershipForm, UTTestForm, FNTestForm, SubmissionForm, SubmissionUpdateForm,
                             SubmissionMossForm, AssignmentForm, AssignmentUpdateForm, AssignmentSetForm, EventForm,
                             ProblemRollbackResultsForm)
@@ -1554,6 +1554,43 @@ class TestSubmissionDetail(LoginRequiredMixin, DetailView):
         return context
 
 
+class AddQuestions(LoginRedirectPermissionRequiredMixin, FormView):
+    form_class = QuestionSetForm
+    template_name = 'contests/test/questions_add.html'
+    permission_required = 'contests.change_test'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['test'] = get_object_or_404(Test, id=kwargs.pop('test_id'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['test'] = self.storage['test']
+        return kwargs
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            for question in form.cleaned_data['questions']:
+                TestMembership.objects.create(test=self.storage['test'],
+                                              question=question,
+                                              number=TestMembership.objects.get_new_number(self.storage['test']))
+            return self.form_valid(form)
+        return self.form_invalid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['test'] = self.storage['test']
+        return context
+
+    def get_success_url(self):
+        return reverse('contests:test-detail', kwargs={'pk': self.storage['test'].id})
+
+
 """==================================================== Answer ====================================================="""
 
 
@@ -1646,6 +1683,3 @@ class AnswerDetail(LoginRequiredMixin, DetailView):
             context['image'] = answer.file.url
 
         return context
-
-
-"""================================================ TestMembership ================================================="""

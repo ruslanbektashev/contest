@@ -130,6 +130,7 @@ urlpatterns = [
     path('contest/<int:contest_id>/test/create', views.TestCreate.as_view(), name='test-create'),
     path('contest/<int:contest_id>/question/create', views.QuestionCreate.as_view(), name='question-create'),
     path('test/<int:test_id>/testsubmission/create', views.TestSubmissionRedirect.as_view(), name='testsubmission-create'),
+    path('test/<int:test_id>/questions/add', views.AddQuestions.as_view(), name='questions-add'),
     path('test/', include([
         path('<int:pk>/', include([
             path('', views.TestDetail.as_view(), name='test-detail'),
