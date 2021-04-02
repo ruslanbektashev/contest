@@ -905,6 +905,7 @@ class TestMembership(CRUDEntry):
     objects = TestMembershipManager()
 
     class Meta:
+        ordering = ('number',)
         unique_together = (('test', 'question'), ('test', 'number'))
         verbose_name = "Привязка задачи к набору"
         verbose_name_plural = "Привязки задач к наборам"
