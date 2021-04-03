@@ -881,8 +881,8 @@ class Test(CRUDEntry):
     satisfactorily_percentage = models.PositiveSmallIntegerField(default=30, verbose_name="Процент для оценки 3")
 
     class Meta(CRUDEntry.Meta):
-        verbose_name = "Набор задач"
-        verbose_name_plural = "Наборы задач"
+        verbose_name = "Тест"
+        verbose_name_plural = "Тесты"
 
     def __str__(self):
         return self.title
@@ -897,21 +897,21 @@ class TestMembership(CRUDEntry):
     DEFAULT_NUMBER = 1
 
     owner = None
-    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Набор задач")
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Тест")
     question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
 
-    number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер задачи в наборе")
+    number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер задачи в тесте")
 
     objects = TestMembershipManager()
 
     class Meta:
         ordering = ('number',)
         unique_together = (('test', 'question'), ('test', 'number'))
-        verbose_name = "Привязка задачи к набору"
-        verbose_name_plural = "Привязки задач к наборам"
+        verbose_name = "Привязка задачи к тесту"
+        verbose_name_plural = "Привязки задач к тестам"
 
     def __str__(self):
-        return "Привязка задачи {} к набору {}".format(self.question.number, self.test)
+        return "Привязка задачи {} к тесту {}".format(self.question.number, self.test)
 
 
 class Option(CRUDEntry):
@@ -933,13 +933,13 @@ class Option(CRUDEntry):
 class TestSubmission(CRUDEntry):
     DEFAULT_SCORE = 0
 
-    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Набор задач")
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Тест")
 
     score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE, verbose_name="Оценка")
 
     class Meta(CRUDEntry.Meta):
-        verbose_name = "Решение набора задач"
-        verbose_name_plural = "Решения наборов задач"
+        verbose_name = "Решение теста"
+        verbose_name_plural = "Решения тестов"
 
     def update_score(self):
         score_max = self.test.questions.aggregate(models.Sum('score_max')).get('score_max__sum', 0) or 0
@@ -969,7 +969,7 @@ class Answer(CRUDEntry):
 
     DEFAULT_STATUS = NOT_CHECKED_STATUS
 
-    test_submission = models.ForeignKey(TestSubmission, null=True, on_delete=models.CASCADE, verbose_name="Решение набора задач")
+    test_submission = models.ForeignKey(TestSubmission, null=True, on_delete=models.CASCADE, verbose_name="Решение теста")
     question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
 
     options = models.ManyToManyField(Option, blank=True, verbose_name="Выбранные варианты")
