@@ -24,7 +24,7 @@ from contests.forms import (AnswerCheckForm, AnswerForm, AssignmentForm, Assignm
                             ContestForm, ContestPartialForm, CourseForm, CreditSetForm, EventForm, FNTestForm,
                             OptionForm, ProblemForm, ProblemPartialForm, ProblemRollbackResultsForm,
                             QuestionExtendedForm, QuestionForm, QuestionSetForm, SubmissionForm, SubmissionMossForm,
-                            SubmissionPatternForm, SubmissionUpdateForm, TestForm, UTTestForm)
+                            SubmissionPatternForm, SubmissionUpdateForm, TestForm, TestMembershipForm, UTTestForm)
 from contests.models import (Answer, Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, IOTest,
                              Lecture, Option, Problem, Question, Submission, SubmissionPattern, Test, TestMembership,
                              TestSubmission, UTTest)
@@ -1673,8 +1673,7 @@ class AnswerCheck(LoginRedirectPermissionRequiredMixin, UpdateView):
         return response
 
     def get_success_url(self):
-        answer = self.get_object()
-        return reverse('contests:testsubmission-detail', kwargs={'pk': answer.test_submission.id}) + '#question_' + str(answer.question.number)
+        return reverse('contests:testsubmission-detail', kwargs={'pk': self.object.test_submission.id}) + '#question_' + str(self.object.question.number)
 
 
 class AnswerDetail(LoginRequiredMixin, DetailView):
@@ -1701,6 +1700,16 @@ class AnswerDetail(LoginRequiredMixin, DetailView):
 
 
 """================================================ TestMembership ================================================="""
+
+
+class TestMembershipUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+    model = TestMembership
+    form_class = TestMembershipForm
+    template_name = 'contests/testmembership/testmembership_form.html'
+    permission_required = 'contests.change_testmembership'
+
+    def get_success_url(self):
+        return reverse('contests:test-detail', kwargs={'pk': self.object.test_id})
 
 
 class TestMembershipDelete(LoginRedirectPermissionRequiredMixin, DeleteView):

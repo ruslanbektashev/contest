@@ -568,3 +568,12 @@ class TestMembershipForm(forms.ModelForm):
     class Meta:
         model = TestMembership
         fields = ['number']
+
+    def clean_number(self):
+        number = self.cleaned_data['number']
+
+        test = self.instance.test
+        if number in test.testmembership_set.exclude(id=self.instance.id).values_list('number', flat=True):
+            raise ValidationError("Этот номер уже занят.")
+
+        return number

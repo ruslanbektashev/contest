@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load views forms %}
+
+{% block title %}
+Привязка задачи к тесту
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb testmembership.test.contest.course testmembership.test.contest.course %}
+{% breadcrumb testmembership.test.contest testmembership.test.contest %}
+{% breadcrumb testmembership.test testmembership.test %}
+{% breadcrumb "Редактирование привязки" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{% if testmembership %}Редактирование{% else %}Добавление{% endif %} привязки задачи к тесту</legend>
+
+<form id="root" method="post" enctype="multipart/form-data" class="form-horizontal">
+    {% csrf_token %}
+
+    {% render_form_errors form %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+        {% render_field form.number class+="form-control" %}
+    {% endwith %}
+
+    {% render_submit_button value="Сохранить" %}
+</form>
+
+{% endblock content %}

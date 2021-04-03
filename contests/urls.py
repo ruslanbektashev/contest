@@ -169,7 +169,8 @@ urlpatterns = [
     ])),
     path('testmembership/', include([
         path('<int:pk>/', include([
-            path('delete', views.TestMembershipDelete.as_view(), name='testmembership-delete')
+            path('update', views.TestMembershipUpdate.as_view(), name='testmembership-update'),
+            path('delete', views.TestMembershipDelete.as_view(), name='testmembership-delete'),
         ])),
     ])),
 ]

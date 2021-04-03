@@ -35,7 +35,7 @@
         {% for membership in test.testmembership_set.all %}
         <div class="card mb-3">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <span>{{ membership.number }}</span>{% if membership.question.title %}<small>{{ membership.question.title }}</small>{% endif %}<small>Способ ответа: {{ membership.question.get_type_display|lower }}</small>
+                <a href="{% url 'contests:testmembership-update' membership.id %}" title="Изменить номер">{{ membership.number }}</a>{% if membership.question.title %}<small>{{ membership.question.title }}</small>{% endif %}<small>Способ ответа: {{ membership.question.get_type_display|lower }}</small>
             </div>
             <div class="card-body">
                 <p class="card-text">{{ membership.question.description }}</p>
