@@ -166,4 +166,9 @@ urlpatterns = [
             path('check', views.AnswerCheck.as_view(), name='answer-check'),
         ]))
     ])),
+    path('testmembership/', include([
+        path('<int:pk>/', include([
+            path('delete', views.TestMembershipDelete.as_view(), name='testmembership-delete')
+        ])),
+    ])),
 ]

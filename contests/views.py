@@ -1511,8 +1511,7 @@ class OptionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     permission_required = 'contests.delete_option'
 
     def get_success_url(self):
-        option = self.get_object()
-        return reverse('contests:question-detail', kwargs={'pk': option.question_id})
+        return reverse('contests:question-detail', kwargs={'pk': self.object.question_id})
 
 
 """================================================ TestSubmission ================================================="""
@@ -1683,3 +1682,15 @@ class AnswerDetail(LoginRequiredMixin, DetailView):
             context['image'] = answer.file.url
 
         return context
+
+
+"""================================================ TestMembership ================================================="""
+
+
+class TestMembershipDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+    model = TestMembership
+    template_name = 'contests/testmembership/testmembership_delete.html'
+    permission_required = 'contests.delete_testmembership'
+
+    def get_success_url(self):
+        return reverse('contests:test-detail', kwargs={'pk': self.object.test_id})

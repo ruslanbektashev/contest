@@ -911,7 +911,7 @@ class TestMembership(CRUDEntry):
         verbose_name_plural = "Привязки задач к наборам"
 
     def __str__(self):
-        return "Привязка задачи {} к набору {}".format(self.question, self.test)
+        return "Привязка задачи {} к набору {}".format(self.question.number, self.test)
 
 
 class Option(CRUDEntry):

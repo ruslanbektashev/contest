@@ -14,7 +14,7 @@
 
 {% block content %}
 
-<legend>{{ test }}</legend>
+<legend>#{{ test.problem.number }}. {{ test }}</legend>
 <ul class="nav nav-tabs mb-3" role="tablist">
     <li class="nav-item">
         <a aria-controls="description" aria-selected="{% if not tab or tab == 'description' %}true{% else %}false{% endif %}"
@@ -54,9 +54,9 @@
                 {% if perms.contests.view_problem %}
                 <a href="{% url 'contests:question-detail' membership.question.id %}" class="card-link">Просмотреть</a>
                 {% endif %}
-                <!-- {% if perms.contests.delete_testmembership %}
-                <a href="{% url 'contests:test-update' membership.question.id %}" class="card-link text-danger">Удалить из набора</a>
-                {% endif %} -->
+                {% if perms.contests.delete_testmembership %}
+                <a href="{% url 'contests:testmembership-delete' membership.id %}" class="card-link text-danger">Удалить из набора</a>
+                {% endif %}
             </div>
             {% endif %}
         </div>
