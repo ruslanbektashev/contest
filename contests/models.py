@@ -28,12 +28,10 @@ except ImportError:
 
 
 def attachment_path(instance, filename):
-    return "attachments/{app_label}/{model}/{id}/{filename}".format(
-        app_label=instance.object._meta.app_label.lower(),
-        model=instance.object._meta.object_name.lower(),
-        id=instance.object.id,
-        filename=filename
-    )
+    return "attachments/{app_label}/{model}/{id}/{filename}".format(app_label=instance.object._meta.app_label.lower(),
+                                                                    model=instance.object._meta.object_name.lower(),
+                                                                    id=instance.object.id,
+                                                                    filename=filename)
 
 
 class Attachment(CDEntry):

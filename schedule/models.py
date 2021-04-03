@@ -53,12 +53,10 @@ class Schedule(CRUDEntry):
 
 
 def schedule_attachment_file_path(instance, filename):
-    return "attachments/{app_label}/{model}/{id}/{filename}".format(
-        app_label=instance.schedule._meta.app_label.lower(),
-        model=instance.schedule._meta.object_name.lower(),
-        id=instance.schedule.id,
-        filename=filename
-    )
+    return "attachments/{app_label}/{model}/{id}/{filename}".format(app_label=instance.schedule._meta.app_label.lower(),
+                                                                    model=instance.schedule._meta.object_name.lower(),
+                                                                    id=instance.schedule.id,
+                                                                    filename=filename)
 
 
 class ScheduleAttachment(CRUDEntry):
