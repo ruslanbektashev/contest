@@ -26,7 +26,7 @@
 
 {% block submenu %}
 <div class="list-group mb-3">
-    {% if perms.support.change_report %}
+    {% if perms.support.change_report or request.user.id == report.owner.id %}
     <a href="{% url 'support:report-update' report.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать сообщение</a>
     {% endif %}
     {% if perms.support.delete_report %}

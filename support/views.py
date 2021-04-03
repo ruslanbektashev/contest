@@ -104,11 +104,10 @@ class ReportDelete(LoginRedirectOwnershipOrPermissionRequiredMixin, DeleteView):
     permission_required = 'support.delete_report'
 
 
-class ReportList(LoginRedirectPermissionRequiredMixin, ListView):
+class ReportList(LoginRequiredMixin, ListView):
     model = Report
     template_name = 'support/report/report_list.html'
     context_object_name = 'reports'
-    permission_required = 'support.view_report'
 
     def get_queryset(self):
         if not self.request.user.is_superuser:
