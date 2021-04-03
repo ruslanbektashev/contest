@@ -60,13 +60,13 @@
             <h2 class="mb-0">
                 <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
                         data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
-                    Наборы задач
+                    Тесты
                 </button>
             </h2>
         </div>
         <div id="collapseThree" class="collapse show" aria-labelledby="contest_tests">
             <div class="card-body">
-                {% include 'list.html' with lst=contest.test_set.all mb=0 warn_if_empty="Добавьте набор задач" %}
+                {% include 'list.html' with lst=contest.test_set.all mb=0 warn_if_empty="Добавьте тест" %}
             </div>
         </div>
     </div>
@@ -93,7 +93,7 @@
     {% endif %}
     -->
     {% if perms.contests.add_test %}
-    <a href="{% url 'contests:test-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить набор задач</a>
+    <a href="{% url 'contests:test-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить тест</a>
     {% endif %}
 </div>
 {% endblock submenu %}

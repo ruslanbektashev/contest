@@ -2,7 +2,7 @@
 {% load views forms markdown %}
 
 {% block title %}
-Набор задач
+Тест
 {% endblock title %}
 
 {% block breadcrumbs %}
@@ -13,12 +13,12 @@
 {% breadcrumb test test %}
 {% breadcrumb "Редактирование" %}
 {% else %}
-{% breadcrumb "Новый набор задач" %}
+{% breadcrumb "Новый тест" %}
 {% endif %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if test %}Редактирование{% else %}Добавление{% endif %} набора задач</legend>
+<legend>{% if test %}Редактирование{% else %}Добавление{% endif %} теста</legend>
 
 <form id="root" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}

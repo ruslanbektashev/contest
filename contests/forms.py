@@ -466,7 +466,7 @@ class QuestionForm(forms.ModelForm):
 
 
 class QuestionExtendedForm(forms.ModelForm):
-    number_in_test = forms.IntegerField(min_value=1, required=True, label="Номер в наборе")
+    number_in_test = forms.IntegerField(min_value=1, required=True, label="Номер в тесте")
 
     class Meta:
         model = Question

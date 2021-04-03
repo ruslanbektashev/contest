@@ -2,7 +2,7 @@
 {% load views contests markdown static %}
 
 {% block title %}
-Набор задач
+Тест
 {% endblock title %}
 
 {% block breadcrumbs %}
@@ -55,7 +55,7 @@
                 <a href="{% url 'contests:question-detail' membership.question.id %}" class="card-link">Просмотреть</a>
                 {% endif %}
                 {% if perms.contests.delete_testmembership %}
-                <a href="{% url 'contests:testmembership-delete' membership.id %}" class="card-link text-danger">Удалить из набора</a>
+                <a href="{% url 'contests:testmembership-delete' membership.id %}" class="card-link text-danger">Удалить из теста</a>
                 {% endif %}
             </div>
             {% endif %}
@@ -107,12 +107,12 @@
 <div class="list-group mb-3">
     {% if perms.contests.update_test %}
     <a href="{% url 'contests:test-update' test.id %}" class="list-group-item list-group-item-action">
-        <i class="fa fa-edit fa-fw"></i> Редактировать набор задач
+        <i class="fa fa-edit fa-fw"></i> Редактировать тест
     </a>
     {% endif %}
     {% if perms.contests.delete_test %}
     <a href="{% url 'contests:test-delete' test.id %}" class="list-group-item list-group-item-action">
-        <i class="fa fa-trash fa-fw"></i> Удалить набор задач
+        <i class="fa fa-trash fa-fw"></i> Удалить тест
     </a>
     {% endif %}
 </div>
@@ -122,7 +122,7 @@
         <i class="fa fa-plus fa-fw"></i> Добавить задачу
     </a>
     <a href="{% url 'contests:questions-add' test.id %}" class="list-group-item list-group-item-action">
-        <i class="fa fa-plus fa-fw"></i> Добавить существующую задачу
+        <i class="fa fa-plus fa-fw"></i> Добавить существующие задачи
     </a>
 </div>
 {% endif %}
@@ -130,7 +130,7 @@
 {% if test.questions.exists %}
 <div class="list-group mb-3">
     <a href="{% url 'contests:testsubmission-create' test.id %}" class="btn btn-info btn-block">
-        <i class="fa fa-check-square-o fa-fw"></i> Решить набор задач
+        <i class="fa fa-check-square-o fa-fw"></i> Решить тест
     </a>
 </div>
 {% endif %}
