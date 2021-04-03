@@ -1,10 +1,12 @@
 import os
 
+from django.contrib.auth.models import User
 from django.db import models
 from django.dispatch import receiver
 from django.template.defaultfilters import date
 from django.utils import timezone
 
+from accounts.models import Activity
 from contest.abstract import CRUDEntry
 from contests.templatetags.events import iso_to_gregorian
 
@@ -33,11 +35,18 @@ class Schedule(CRUDEntry):
 
     def is_current(self):
         today = timezone.now().date()
-        return self.date_from <= today and today <= self.date_to
+        return self.date_from <= today <= self.date_to
 
     def is_upcoming(self):
         today = timezone.now().date()
         return today < self.date_from
+
+    def save(self, *args, **kwargs):
+        created = self._state.adding
+        super().save(*args, **kwargs)
+        if created:
+            user_ids = User.objects.exclude(id=self.owner.id).values_list('id', flat=True)
+            Activity.objects.notify_users(user_ids, subject=self.owner, action="добавил расписание", object=self)
 
     def __str__(self):
         return "{} - {}".format(date(self.date_from, 'd E Y'), date(self.date_to, 'd E Y'))

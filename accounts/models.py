@@ -433,9 +433,9 @@ class Comment(models.Model):
         verbose_name_plural = "Комментарии"
 
     def save(self, *args, **kwargs):
-        is_new = self.pk is None
+        created = self._state.adding
         super().save(*args, **kwargs)
-        if is_new:
+        if created:
             if not self.parent_id:
                 self.parent_id = self.id
                 self.thread_id = self.id
@@ -448,6 +448,30 @@ class Comment(models.Model):
                     raise e
             kwargs["force_insert"] = False
             super().save(*args, **kwargs)
+        self._notify_users(created)
+
+    @property
+    def course(self):
+        model = self.object_type.model
+        if model == 'course':
+            return self.object
+        elif model == 'contest':
+            return self.object.course
+        elif model == 'problem':
+            return self.object.contest.course
+        elif model == 'assignment' or 'submission':
+            return self.object.problem.contest.course
+        else:
+            return None
+
+    def _notify_users(self, created=False):
+        user_ids = self.course.subscription_set.exclude(user=self.author).values_list('user_id', flat=True)
+        if self.author_id != self.object.owner_id:
+            user_ids_set = set(user_ids)
+            user_ids_set.add(self.object.owner_id)
+            user_ids = list(user_ids_set)
+        action = "оставил комментарий" if created else "изменил комментарий"
+        Activity.objects.notify_users(user_ids, subject=self.author, action=action, object=self, reference=self.object)
 
     def _set_thread(self):
         parent = Comment.objects.get(id=self.parent_id)
@@ -594,6 +618,17 @@ class Announcement(CRUDEntry):
         ordering = ('-date_created',)
         verbose_name = "Объявление"
         verbose_name_plural = "Объявления"
+
+    def save(self, *args, **kwargs):
+        created = self._state.adding
+        super().save(*args, **kwargs)
+        if created:
+            if self.group is None:
+                users = User.objects.all()
+            else:
+                users = User.objects.filter(groups__name=self.group.name)
+            user_ids = users.exclude(id=self.owner.id).values_list('id', flat=True)
+            Activity.objects.notify_users(user_ids, subject=self.owner, action="добавил объявление", object=self)
 
     def __str__(self):
         return "%s" % self.title

@@ -713,6 +713,13 @@ class Submission(CRDEntry):
     def get_discussion_url(self):
         return self.get_absolute_url()
 
+    def save(self, *args, **kwargs):
+        created = self._state.adding
+        super().save(*args, **kwargs)
+        if created:
+            user_ids = self.problem.contest.course.subscription_set.values_list('user_id', flat=True)
+            Activity.objects.notify_users(user_ids, subject=self.owner, action="отправил посылку", object=self)
+
     def __str__(self):
         return "Посылка от %s к задаче %s" % (self.owner.account, self.problem)
 
@@ -883,6 +890,20 @@ class Test(CRUDEntry):
     class Meta(CRUDEntry.Meta):
         verbose_name = "Тест"
         verbose_name_plural = "Тесты"
+
+    def save(self, *args, **kwargs):
+        if self._state.adding or self.problem is None:
+            self.problem = Problem.objects.create(owner=self.owner,
+                                                  contest=self.contest,
+                                                  title=self.title,
+                                                  description=self.description,
+                                                  number=Problem.objects.get_new_number(self.contest),
+                                                  is_testable=False)
+        else:
+            self.problem.title = self.title
+            self.problem.description = self.description
+            self.problem.save()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title

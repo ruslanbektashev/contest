@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from accounts.models import Activity
 from contest.abstract import CRUDEntry
 
 """==================================================== Question ===================================================="""
@@ -35,6 +36,13 @@ class Report(CRUDEntry):
         ordering = ('-date_created',)
         verbose_name = "Багрепорт"
         verbose_name_plural = "Багрепорты"
+
+    def save(self, *args, **kwargs):
+        created = self._state.adding
+        super().save(*args, **kwargs)
+        if created:
+            Activity.objects.notify_group(group_name='Преподаватель', subject=self.owner, action="отправил багрепорт",
+                                          object=self)
 
     def __str__(self):
         return self.title
