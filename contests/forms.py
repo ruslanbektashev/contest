@@ -5,12 +5,13 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.forms.widgets import SelectMultiple
 from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
-from contests.models import (Answer, Attachment, Course, Contest, Option, Problem, SubmissionPattern, TestMembership, UTTest, FNTest, Assignment, Submission, Event, Test, Question)
+from contests.models import (Answer, Assignment, Attachment, Contest, Course, Event, FNTest, Option, Problem, Question,
+                             Submission, SubmissionPattern, Test, TestMembership, UTTest)
 
 
 class UserChoiceField(forms.ModelChoiceField):
@@ -139,10 +140,16 @@ class CreditSetForm(forms.Form):
 """==================================================== Contest ====================================================="""
 
 
-class ContestForm(AttachmentForm):
+class ContestPartialForm(AttachmentForm):
     FILES_SIZE_LIMIT = 10 * 1024 * 1024
     FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf']
 
+    class Meta:
+        model = Contest
+        fields = []
+
+
+class ContestForm(ContestPartialForm):
     class Meta:
         model = Contest
         fields = ['course', 'title', 'description', 'number']
@@ -152,10 +159,16 @@ class ContestForm(AttachmentForm):
 """==================================================== Problem ====================================================="""
 
 
-class ProblemForm(AttachmentForm):
+class ProblemPartialForm(AttachmentForm):
     FILES_SIZE_LIMIT = 10 * 1024 * 1024
     FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf']
 
+    class Meta:
+        model = Problem
+        fields = []
+
+
+class ProblemForm(ProblemPartialForm):
     class Meta:
         model = Problem
         fields = ['contest', 'title', 'description', 'number', 'difficulty', 'language', 'compile_args', 'launch_args',

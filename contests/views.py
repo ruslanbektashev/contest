@@ -1,34 +1,33 @@
-from django.views.generic.edit import BaseUpdateView
-from django.views.generic.list import BaseListView
-from django.views.generic.base import RedirectView
-from pygments import highlight
-from pygments.lexers import CppLexer, TextLexer
-from pygments.formatters import HtmlFormatter
-
-import mimetypes
 from datetime import date, datetime
 from markdown import markdown
+from mimetypes import guess_type
+from pygments import highlight
+from pygments.formatters import HtmlFormatter
+from pygments.lexers import CppLexer, TextLexer
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http404, FileResponse
-from django.shortcuts import get_object_or_404, render, redirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
-from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView
+from django.views.generic import CreateView, DeleteView, DetailView, FormView, ListView, UpdateView
+from django.views.generic.base import RedirectView
 from django.views.generic.detail import BaseDetailView, SingleObjectMixin
+from django.views.generic.edit import BaseUpdateView
+from django.views.generic.list import BaseListView
 
 from accounts.models import Account, Activity
-from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
+from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (AnswerCheckForm, AnswerForm, CourseForm, CreditSetForm, ContestForm, OptionForm,
-                            ProblemForm, QuestionExtendedForm, QuestionForm, QuestionSetForm, SubmissionPatternForm, TestForm,
-                            TestMembershipForm, UTTestForm, FNTestForm, SubmissionForm, SubmissionUpdateForm,
-                            SubmissionMossForm, AssignmentForm, AssignmentUpdateForm, AssignmentSetForm, EventForm,
-                            ProblemRollbackResultsForm)
-from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, Question,
-                             SubmissionPattern, IOTest, Test, TestMembership, TestSubmission, UTTest, FNTest,
-                             Assignment, Submission, Execution, Event)
+from contests.forms import (AnswerCheckForm, AnswerForm, AssignmentForm, AssignmentSetForm, AssignmentUpdateForm,
+                            ContestForm, ContestPartialForm, CourseForm, CreditSetForm, EventForm, FNTestForm,
+                            OptionForm, ProblemForm, ProblemPartialForm, ProblemRollbackResultsForm,
+                            QuestionExtendedForm, QuestionForm, QuestionSetForm, SubmissionForm, SubmissionMossForm,
+                            SubmissionPatternForm, SubmissionUpdateForm, TestForm, UTTestForm)
+from contests.models import (Answer, Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, IOTest,
+                             Lecture, Option, Problem, Question, Submission, SubmissionPattern, Test, TestMembership,
+                             TestSubmission, UTTest)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 
@@ -42,7 +41,7 @@ class AttachmentDetail(DetailView):
             attachment = self.object.attachment_set.get(id=kwargs.get('attachment_id'))
         except Attachment.DoesNotExist:
             raise Http404('Attachment with id = %s does not exist.' % kwargs.get('attachment_id'))
-        attachment_file_type, _ = mimetypes.guess_type(attachment.file.path)
+        attachment_file_type, _ = guess_type(attachment.file.path)
         if 'x-c' not in attachment_file_type:
             return HttpResponseRedirect(attachment.file.url)
         context = self.get_context_data(object=self.object, attachment=attachment)
@@ -307,13 +306,19 @@ class ContestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
 class ContestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Contest
-    form_class = ContestForm
     template_name = 'contests/contest/contest_form.html'
     permission_required = 'contests.change_contest'
+
+    def get_form_class(self):
+        if self.request.GET.get('add_files') == '1':
+            return ContestPartialForm
+        return ContestForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['course'] = self.object.course
+        if self.request.GET.get('add_files') == '1':
+            context['add_files'] = True
         return context
 
 
@@ -440,13 +445,19 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
 class ProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Problem
-    form_class = ProblemForm
     template_name = 'contests/problem/problem_form.html'
     permission_required = 'contests.change_problem'
+
+    def get_form_class(self):
+        if self.request.GET.get('add_files') == '1':
+            return ProblemPartialForm
+        return ProblemForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['contest'] = self.object.contest
+        if self.request.GET.get('add_files') == '1':
+            context['add_files'] = True
         return context
 
 
@@ -598,6 +609,11 @@ class UTTestDetail(LoginRedirectPermissionRequiredMixin, DetailView):
     model = UTTest
     template_name = 'contests/uttest/uttest_detail.html'
     permission_required = 'contests.view_uttest'
+
+
+class UTTestAttachment(LoginRequiredMixin, AttachmentDetail):
+    model = Problem
+    template_name = 'contests/uttest/uttest_attachment.html'
 
 
 class UTTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
@@ -1672,7 +1688,7 @@ class AnswerDetail(LoginRequiredMixin, DetailView):
         if answer.question.type in [1, 2]:
             return context
 
-        filetype, _ = mimetypes.guess_type(url=answer.file.path)
+        filetype, _ = guess_type(url=answer.file.path)
 
         if 'text' in filetype:
             content = answer.file.read()
