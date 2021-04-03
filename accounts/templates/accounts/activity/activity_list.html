@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views humanize %}
 
 {% block title %}
@@ -12,57 +12,34 @@
 
 {% block content %}
 <legend>Оповещения</legend>
-<form action="{% url 'accounts:activity-mark' %}" method="post" id="marker">
-    {% csrf_token %}
-    <table id="p" class="table table-hover">
-        <thead>
-            <tr>
-                <th class="text-center"></th>
-                <th>Событие</th>
-                <th>Произошло</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for activity in activities %}
-            <tr>
-                <td class="text-center">
-                    <input type="checkbox" value="{{ activity.id }}" name="choices" id="choices" {% if not activity.is_read %}checked{% endif %}/>
-                </td>
-                <td>
-                    <label for="choices" class="label-activity">
-                        {% if not activity.is_read %}
-                        <span class="badge badge-primary">Новое</span>
-                        {% endif %}
-                        {% if activity.subject.last_name %}
-                        <a href="{{ activity.subject.account.get_absolute_url }}">{{ activity.subject.account }}</a>
-                        {% else %}
-                        <a href="{{ activity.subject.get_absolute_url }}">{{ activity.subject }}</a>
-                        {% endif %}
-                        {{ activity.action }}
-                        {% if activity.object %}
-                        <a href="{{ activity.object.get_absolute_url }}">{{ activity.object }}</a>
-                        {% endif %}
-                        {% if activity.reference %}
-                        / <a href="{{ activity.reference.get_absolute_url }}"> {{ activity.reference }}</a>
-                        {% endif %}
-                    </label>
-                </td>
-                <td>
-                    <span class="text-muted">{{ activity.date_created|naturaltime }}</span>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</form>
+{% if activities %}
+<div id="p" class="list-group mb-3">
+    {% for activity in activities %}
+    <li class="list-group-item d-flex {% if not activity.is_read %}bg-light{% endif %}">
+    <span class="mr-auto ">
+        {% if activity.subject.username %}
+        <a href="{{ activity.subject.account.get_absolute_url }}">{{ activity.subject.account }}</a>
+        {% else %}
+        <a href="{{ activity.subject.get_absolute_url }}"> {{ activity.subject }}</a>
+        {% endif %}
+        {{ activity.action }}
+        {% if activity.object %}
+        <a href="{{ activity.object.get_absolute_url }}"> {{ activity.object }}</a>
+        {% endif %}
+        {% if activity.reference %}
+        / <a href="{{ activity.reference.get_absolute_url }}"> {{ activity.reference }}</a>
+        {% endif %}
+    </span>
+    <span class="text-muted text-right"  style="width: 20%;">
+        {{ activity.date_created|naturaltime }}
+    </span>
+    </li>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info mb-3" role="alert">
+    Оповещений нет
+</div>
+{% endif %}
 {% render_page_nav %}
 {% endblock content %}
-
-{% block submenu %}
-<div class="list-group mb-3">
-    <button type=submit form="marker" name="mark" value="read" class="list-group-item list-group-item-action"><i class="fa fa-check fa-fw"></i> Отметить как прочтенные</button>
-</div>
-<div class="list-group mb-3">
-    <button type=submit form="marker" name="mark" value="delete" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить отмеченные</button>
-</div>
-{% endblock submenu %}
