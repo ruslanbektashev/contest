@@ -2,16 +2,35 @@
 {% load views views %}
 
 {% block title %}
-Багрепорты
+Сообщения об ошибках
 {% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb "Помощь" 'support:index' %}
-{% breadcrumb "Багрепорты" 'support:index' %}
+{% breadcrumb "Сообщения об ошибках" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Багрепорты</legend>
-{% include 'list.html' with lst=reports %}
+<legend>Сообщения об ошибках</legend>
+{% if reports %}
+<div class="list-group mb-3">
+    {% for report in reports %}
+    <li class="list-group-item d-flex">
+        <a href="{{ report.get_absolute_url }}" class="mr-auto">{{ report }}{% if request.user.is_superuser %} ({{ report.owner.account }}){% endif %}</a>
+        <span class="user-select-none">
+            {% if report.closed %}
+            <span class="numtus status-success">Закрыто</span>
+            {% else %}
+            <span class="numtus status-warning">Открыто</span>
+            {% endif %}
+        </span>
+    </li>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info mb-3" role="alert">
+    Сообщений нет
+</div>
+{% endif %}
 {% endblock content %}

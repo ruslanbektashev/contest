@@ -9,7 +9,7 @@
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb "Помощь" 'support:index' %}
 {% if perms.support.view_report %}
-{% breadcrumb "Багрепорты" 'support:report-list' %}
+{% breadcrumb "Сообщения об ошибках" 'support:report-list' %}
 {% endif %}
 {% if report %}
 {% breadcrumb report report %}
@@ -28,6 +28,11 @@
     {% render_field form.title class+="form-control" %}
     {% render_field form.text class+="form-control" %}
     {% endwith %}
+    {% if report %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.closed class+="custom-control-input" %}
+    {% endwith %}
+    {% endif %}
     {% render_submit_button value="Отправить" %}
 </form>
 {% endblock content %}

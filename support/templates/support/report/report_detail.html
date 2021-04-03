@@ -2,36 +2,35 @@
 {% load views accounts %}
 
 {% block title %}
-{% mark_notification_as_read request.user.account report %}
-Багрепорт
+Сообщение об ошибке
 {% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb "Помощь" 'support:index' %}
-{% breadcrumb "Багрепорты" 'support:report-list' %}
+{% breadcrumb "Сообщения об ошибках" 'support:report-list' %}
 {% breadcrumb report %}
 {% endblock breadcrumbs %}
 
 {% block content %}
 <legend>{{ report }}</legend>
-<div>
-    <p>{{ report.text }}</p>
-</div>
-<div class="pull-right text-right">
-    <p>{{ report.owner }}</p>
-    <p><a href="{{ object.page_url }}">{{ report.page_url }}</a></p>
-    <p>{{ report.date_created|date:"P, F d, Y" }}</p>
-</div>
+<p>
+    {{ report.text }}
+</p>
+<p>
+    От: <a href="{{ report.owner.account.get_absolute_url }}">{{ report.owner.account }}</a><br>
+    Со страницы: <a href="{{ report.page_url }}">{{ report.page_url }}</a><br>
+    Отправлено: {{ report.date_created|date }}
+</p>
 {% endblock content %}
 
 {% block submenu %}
 <div class="list-group mb-3">
     {% if perms.support.change_report %}
-    <a href="{% url 'support:report-update' report.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать багрепорт</a>
+    <a href="{% url 'support:report-update' report.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать сообщение</a>
     {% endif %}
     {% if perms.support.delete_report %}
-    <a href="{% url 'support:report-delete' report.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить багрепорт</a>
+    <a href="{% url 'support:report-delete' report.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить сообщение</a>
     {% endif %}
 </div>
 {% endblock submenu %}

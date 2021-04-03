@@ -8,7 +8,7 @@ from contest.abstract import CRUDEntry
 
 
 class Question(CRUDEntry):
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Владелец", related_name="+")
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+", verbose_name="Владелец")
 
     question = models.CharField(max_length=255, verbose_name="Вопрос")
     answer = models.TextField(blank=True, verbose_name="Ответ")
@@ -31,18 +31,18 @@ class Report(CRUDEntry):
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     text = models.TextField(blank=True, verbose_name="Сообщение")
     page_url = models.URLField(verbose_name="Откуда отправлено")
+    closed = models.BooleanField(default=False, verbose_name="Закрыто")
 
     class Meta:
         ordering = ('-date_created',)
-        verbose_name = "Багрепорт"
-        verbose_name_plural = "Багрепорты"
+        verbose_name = "Сообщение об ошибке"
+        verbose_name_plural = "Сообщения об ошибках"
 
     def save(self, *args, **kwargs):
         created = self._state.adding
         super().save(*args, **kwargs)
-        if created:
-            Activity.objects.notify_group(group_name='Преподаватель', subject=self.owner, action="отправил багрепорт",
-                                          object=self)
+        if not created:
+            Activity.objects.notify_user(self.owner, subject=self, action="обновлен статус сообщения")
 
     def __str__(self):
-        return self.title
+        return self.title or (str(self.text[:64]) + (str(self.text[64:]) and '...'))

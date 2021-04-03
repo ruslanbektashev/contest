@@ -270,7 +270,7 @@ def make_activities(recipients, subject, action, object=None, reference=None, le
         optional['date_created'] = date_created
     new_activities = []
     for recipient_id in recipient_ids:
-        if subject.id == recipient_id:
+        if isinstance(subject, User) and subject.id == recipient_id:
             continue
         activity = Activity(subject_type=ContentType.objects.get_for_model(subject),
                             subject_id=subject.id,
@@ -310,11 +310,12 @@ class ActivityManager(models.Manager):
         new_activities = make_activities(group, **kwargs)
         self.bulk_create(new_activities)
 
-    def notify_user(self, username, **kwargs):
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            return
+    def notify_user(self, user, **kwargs):
+        if isinstance(user, str):
+            try:
+                user = User.objects.get(username=user)
+            except User.DoesNotExist:
+                return
         new_activities = make_activities(user, **kwargs)
         self.bulk_create(new_activities)
 

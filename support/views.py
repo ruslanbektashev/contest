@@ -3,7 +3,7 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, TemplateView
 from markdown import markdown
 
-from contest.mixins import LoginRedirectPermissionRequiredMixin
+from contest.mixins import LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin
 from support.models import Question, Report
 
 
@@ -61,7 +61,7 @@ class QuestionList(LoginRequiredMixin, ListView):
 """===================================================== Report ====================================================="""
 
 
-class ReportDetail(LoginRedirectPermissionRequiredMixin, DetailView):
+class ReportDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
     model = Report
     template_name = 'support/report/report_detail.html'
     permission_required = 'support.view_report'
@@ -89,14 +89,15 @@ class ReportCreate(LoginRequiredMixin, CreateView):
         return self.storage['from_url'] or reverse('support:report-list')
 
 
-class ReportUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class ReportUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView):
     model = Report
-    fields = ['title', 'text']
+    fields = ['title', 'text', 'closed']
+    success_url = reverse_lazy('support:report-list')
     template_name = 'support/report/report_form.html'
     permission_required = 'support.change_report'
 
 
-class ReportDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class ReportDelete(LoginRedirectOwnershipOrPermissionRequiredMixin, DeleteView):
     model = Report
     success_url = reverse_lazy('support:report-list')
     template_name = 'support/report/report_delete.html'
@@ -108,3 +109,8 @@ class ReportList(LoginRedirectPermissionRequiredMixin, ListView):
     template_name = 'support/report/report_list.html'
     context_object_name = 'reports'
     permission_required = 'support.view_report'
+
+    def get_queryset(self):
+        if not self.request.user.is_superuser:
+            return Report.objects.filter(owner=self.request.user)
+        return super().get_queryset()

@@ -2,18 +2,18 @@
 {% load views forms %}
 
 {% block title %}
-Багрепорт
+Сообщение
 {% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb "Помощь" 'support:index' %}
-{% breadcrumb "Багрепорты" 'support:report-list' %}
+{% breadcrumb "Сообщения об ошибках" 'support:report-list' %}
 {% breadcrumb report report %}
 {% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Удаление багрепорта</legend>
+<legend>Удаление сообщения об ошибке</legend>
 {% render_delete_form report %}
 {% endblock content %}
