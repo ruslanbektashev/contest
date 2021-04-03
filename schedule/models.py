@@ -45,7 +45,7 @@ class Schedule(CRUDEntry):
         created = self._state.adding
         super().save(*args, **kwargs)
         if created:
-            user_ids = User.objects.exclude(id=self.owner.id).values_list('id', flat=True)
+            user_ids = User.objects.values_list('id', flat=True)
             Activity.objects.notify_users(user_ids, subject=self.owner, action="добавил расписание", object=self)
 
     def __str__(self):

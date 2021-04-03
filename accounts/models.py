@@ -270,6 +270,8 @@ def make_activities(recipients, subject, action, object=None, reference=None, le
         optional['date_created'] = date_created
     new_activities = []
     for recipient_id in recipient_ids:
+        if subject.id == recipient_id:
+            continue
         activity = Activity(subject_type=ContentType.objects.get_for_model(subject),
                             subject_id=subject.id,
                             recipient_id=recipient_id,
@@ -465,8 +467,8 @@ class Comment(models.Model):
             return None
 
     def _notify_users(self, created=False):
-        user_ids = self.course.subscription_set.exclude(user=self.author).values_list('user_id', flat=True)
-        if self.author_id != self.object.owner_id:
+        user_ids = self.course.subscription_set.values_list('user_id', flat=True)
+        if self.object.owner_id not in user_ids:
             user_ids_set = set(user_ids)
             user_ids_set.add(self.object.owner_id)
             user_ids = list(user_ids_set)
@@ -623,11 +625,10 @@ class Announcement(CRUDEntry):
         created = self._state.adding
         super().save(*args, **kwargs)
         if created:
-            if self.group is None:
-                users = User.objects.all()
-            else:
-                users = User.objects.filter(groups__name=self.group.name)
-            user_ids = users.exclude(id=self.owner.id).values_list('id', flat=True)
+            users = User.objects.all()
+            if self.group is not None:
+                users = users.filter(groups__name=self.group.name)
+            user_ids = users.values_list('id', flat=True)
             Activity.objects.notify_users(user_ids, subject=self.owner, action="добавил объявление", object=self)
 
     def __str__(self):
