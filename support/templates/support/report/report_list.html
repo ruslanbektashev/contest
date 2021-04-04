@@ -16,9 +16,9 @@
 {% if reports %}
 <div class="list-group mb-3">
     {% for report in reports %}
-    <li class="list-group-item d-flex">
-        <a href="{{ report.get_absolute_url }}" class="mr-auto">{{ report }}{% if request.user.is_superuser %} ({{ report.owner.account }}){% endif %}</a>
-        <span class="user-select-none">
+    <li class="list-group-item d-flex text-nowrap">
+        <a href="{{ report.get_absolute_url }}" class="mr-auto overflow-hidden">{{ report }}{% if request.user.is_superuser %} ({{ report.owner.account }}){% endif %}</a>
+        <span class="user-select-none ml-3">
             {% if report.closed %}
             <span class="numtus status-success">Закрыто</span>
             {% else %}
