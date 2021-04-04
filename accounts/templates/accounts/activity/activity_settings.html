@@ -1,0 +1,37 @@
+{% extends 'base_wide.html' %}
+{% load views forms humanize %}
+
+{% block title %}
+Настройки оповещений
+{% endblock title %}
+
+{% block stylesheets %}
+<style>
+    #id_object_type {
+        list-style-type: none;
+        padding: 0;
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Оповещения" 'accounts:activity-list' %}
+{% breadcrumb "Настройки оповещений" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Настройки оповещений</legend>
+
+<form id="root" method="post" enctype="multipart/form-data" class="form-horizontal">
+    {% csrf_token %}
+
+    {% render_form_errors form %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+        {{ form.object_type }}
+    {% endwith %}
+
+    {% render_submit_button value="Сохранить" %}
+</form>
+
+{% endblock content %}

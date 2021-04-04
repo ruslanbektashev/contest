@@ -2,6 +2,7 @@ from html.entities import name2codepoint
 from html.parser import HTMLParser
 
 from django import forms
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
@@ -162,3 +163,21 @@ class CommentForm(forms.ModelForm):
         if parent_id and not Comment.objects.actual().filter(id=parent_id).exists():
             raise ValidationError('Нить комментирования отсутствует', code='no_parent')
         return self.cleaned_data
+
+
+class ManageSubscriptionsForm(forms.Form):
+    ANNOUNCEMENT_TYPE_ID = ContentType.objects.get(model='announcement').id
+    SCHEDULE_TYPE_ID = ContentType.objects.get(model='schedule').id
+    REPORT_TYPE_ID = ContentType.objects.get(model='report').id
+    COMMENT_TYPE_ID = ContentType.objects.get(model='comment').id
+    SUBMISSION_TYPE_ID = ContentType.objects.get(model='submission').id
+
+    OBJECT_TYPE_CHOICES = (
+        (ANNOUNCEMENT_TYPE_ID, "Объявления"),
+        (SCHEDULE_TYPE_ID, "Расписание"),
+        (REPORT_TYPE_ID, "Сообщения об ошибках"),
+        (COMMENT_TYPE_ID, "Комментарии"),
+        (SUBMISSION_TYPE_ID, "Посылки"),
+    )
+
+    object_type = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple(), choices=OBJECT_TYPE_CHOICES, required=False)

@@ -147,4 +147,11 @@ class AnnouncementAdmin(admin.ModelAdmin):
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
-    pass
+    fieldsets = (
+        ('Объект', {
+            'fields': ('object_type', 'object_id')
+        }),
+        ('Пользователь', {
+            'fields': ('user',)
+        }),
+    )

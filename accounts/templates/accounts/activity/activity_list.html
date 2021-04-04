@@ -1,4 +1,4 @@
-{% extends 'base_wide.html' %}
+{% extends 'base.html' %}
 {% load views humanize %}
 
 {% block title %}
@@ -43,3 +43,9 @@
 {% endif %}
 {% render_page_nav %}
 {% endblock content %}
+
+{% block submenu %}
+<div class="list-group mb-3">
+    <a href="{% url 'accounts:activity-settings' %}" class="list-group-item list-group-item-action"><i class="fa fa-cog fa-fw"></i> Настройки оповещений</a>
+</div>
+{% endblock submenu %}

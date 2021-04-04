@@ -1,12 +1,13 @@
 import os
 
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.dispatch import receiver
 from django.template.defaultfilters import date
 from django.utils import timezone
 
-from accounts.models import Activity
+from accounts.models import Activity, Subscription
 from contest.abstract import CRUDEntry
 from contests.templatetags.events import iso_to_gregorian
 
@@ -45,7 +46,7 @@ class Schedule(CRUDEntry):
         created = self._state.adding
         super().save(*args, **kwargs)
         if created:
-            user_ids = User.objects.values_list('id', flat=True)
+            user_ids = Subscription.objects.filter(object_type=ContentType.objects.get(model='schedule')).values_list('user', flat=True)
             Activity.objects.notify_users(user_ids, subject=self.owner, action="добавил расписание", object=self)
 
     def __str__(self):
