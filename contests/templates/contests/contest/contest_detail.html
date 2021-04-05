@@ -54,23 +54,21 @@
             </div>
         </div>
     </div>
-    <!--
     <div class="card">
-        <div class="card-header" id="contest_tests">
+        <div class="card-header" id="contest_questions">
             <h2 class="mb-0">
                 <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
                         data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
-                    Тесты
+                    Вопросы
                 </button>
             </h2>
         </div>
-        <div id="collapseThree" class="collapse show" aria-labelledby="contest_tests">
+        <div id="collapseThree" class="collapse show" aria-labelledby="contest_questions">
             <div class="card-body">
-                {% include 'list.html' with lst=contest.test_set.all mb=0 warn_if_empty="Добавьте тест" %}
+                {% include 'list.html' with lst=contest.question_set.all mb=0 warn_if_empty="Добавьте вопрос" %}
             </div>
         </div>
     </div>
-    -->
 </div>
 {% endblock content %}
 
@@ -87,11 +85,9 @@
     {% if perms.contests.add_problem %}
     <a href="{% url 'contests:problem-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить задачу</a>
     {% endif %}
-    <!--
     {% if perms.contests.add_question %}
-    <a href="{% url 'contests:question-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить задачу (!)</a>
+    <a href="{% url 'contests:question-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить вопрос</a>
     {% endif %}
-    -->
     {% if perms.contests.add_test %}
     <a href="{% url 'contests:test-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить тест</a>
     {% endif %}
