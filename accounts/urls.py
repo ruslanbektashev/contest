@@ -24,6 +24,7 @@ urlpatterns = [
     path('activity/', include([
         path('list', views.ActivityList.as_view(), name='activity-list'),
         path('mark', views.ActivityMark.as_view(), name='activity-mark'),
+        path('settings', views.ManageSubscriptions.as_view(), name='activity-settings'),
     ])),
     path('comment/', include([
         path('create', views.CommentCreate.as_view(), name='comment-create'),

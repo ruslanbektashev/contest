@@ -6,6 +6,7 @@ from django.db import models
 from django.db.transaction import atomic
 from django.urls import reverse
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 from contest.abstract import CRUDEntry
 
@@ -239,18 +240,23 @@ class Account(models.Model):
 
 class Subscription(models.Model):
     object_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
+    object_id = models.PositiveIntegerField(null=True, blank=True)
     object = GenericForeignKey(ct_field='object_type')
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "Подписка"
         verbose_name_plural = "Подписки"
-        unique_together = ('user', 'object_id', 'object_type')
+        unique_together = ('user', 'object_type', 'object_id')
+
+    def validate_unique(self, exclude=None):
+        if Subscription.objects.exclude(id=self.id).filter(user=self.user, object_type=self.object_type, object_id__isnull=True).exists():
+            raise ValidationError("Подписка с такими значениями полей User, Object type и Object id уже существует.")
+        super(Subscription, self).validate_unique(exclude)
 
     def __str__(self):
-        return '%s, %s: %s' % (self.user.account.get_full_name(), self.object_type.model, self.object.title)
+        return '%s, %s%s' % (self.user.account.get_full_name(), self.object_type.model, ': ' + self.object.title if self.object_id is not None else '')
 
 
 """==================================================== Activity ===================================================="""
@@ -468,7 +474,9 @@ class Comment(models.Model):
             return None
 
     def _notify_users(self, created=False):
-        user_ids = self.course.subscription_set.values_list('user_id', flat=True)
+        comment_subscribers_ids = Subscription.objects.filter(object_type=ContentType.objects.get(model='comment')).values_list('user', flat=True)
+        course_subscribers_ids = self.course.subscription_set.values_list('user_id', flat=True)
+        user_ids = list(set(comment_subscribers_ids) & set(course_subscribers_ids))
         if self.object.owner_id not in user_ids:
             user_ids_set = set(user_ids)
             user_ids_set.add(self.object.owner_id)
@@ -626,10 +634,10 @@ class Announcement(CRUDEntry):
         created = self._state.adding
         super().save(*args, **kwargs)
         if created:
-            users = User.objects.all()
+            user_ids = Subscription.objects.filter(object_type=ContentType.objects.get(model='announcement')).values_list('user', flat=True)
             if self.group is not None:
-                users = users.filter(groups__name=self.group.name)
-            user_ids = users.values_list('id', flat=True)
+                group_user_ids = User.objects.filter(groups__name=self.group.name).values_list('id', flat=True)
+                user_ids = list(set(user_ids) & set(group_user_ids))
             Activity.objects.notify_users(user_ids, subject=self.owner, action="добавил объявление", object=self)
 
     def __str__(self):

@@ -16,7 +16,7 @@ from accounts.templatetags.comments import get_comment_query_string
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
 from accounts.forms import (AccountPartialForm, AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm,
-                            CommentForm)
+                            CommentForm, ManageSubscriptionsForm)
 from accounts.models import Account, Activity, Comment, Message, Chat, Announcement, Subscription
 
 """==================================================== Account ====================================================="""
@@ -266,6 +266,34 @@ class SubscriptionDelete(DeleteView):
             ),
             kwargs={'pk': self.object.object_id}
         )
+
+
+class ManageSubscriptions(LoginRequiredMixin, FormView):
+    form_class = ManageSubscriptionsForm
+    template_name = 'accounts/activity/activity_settings.html'
+
+    def get_initial(self):
+        self.initial['object_type'] = list(self.request.user.subscription_set.values_list('object_type', flat=True))
+        return super().get_initial()
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            user = self.request.user
+            choices = ManageSubscriptionsForm.OBJECT_TYPE_CHOICES
+            data = form.cleaned_data['object_type']
+            
+            user.subscription_set.filter(object_type__in=choices).exclude(object_type__in=data).delete()
+            
+            new_object_type_ids = set(map(int, data)) - set(user.subscription_set.values_list('object_type', flat=True))
+            new_subscriptions = (Subscription(object_type=ContentType.objects.get(id=i), user=user) for i in new_object_type_ids)
+            Subscription.objects.bulk_create(new_subscriptions)
+
+            return self.form_valid(form)
+        return self.form_invalid(form)
+    
+    def get_success_url(self):
+        return reverse('accounts:activity-list')
 
 
 """==================================================== Activity ===================================================="""

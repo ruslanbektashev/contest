@@ -7,6 +7,7 @@ from support.models import Question, Report
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('owner', 'question', 'is_published')
     list_editable = ('is_published',)
+    readonly_fields = ('date_created', 'date_updated')
     fieldsets = (
         ('Пользователь', {
             'fields': ('owner',)
@@ -24,6 +25,7 @@ class QuestionAdmin(admin.ModelAdmin):
 @admin.register(Report)
 class ReportAdmin(admin.ModelAdmin):
     list_display = ('owner', 'title')
+    readonly_fields = ('date_created', 'date_updated')
     fieldsets = (
         ('Пользователь', {
             'fields': ('owner',)

@@ -715,7 +715,9 @@ class Submission(CRDEntry):
         created = self._state.adding
         super().save(*args, **kwargs)
         if created:
-            user_ids = self.problem.contest.course.subscription_set.values_list('user_id', flat=True)
+            submission_subscribers_ids = Subscription.objects.filter(object_type=ContentType.objects.get(model='submission')).values_list('user', flat=True)
+            course_subscribers_ids = self.problem.contest.course.subscription_set.values_list('user_id', flat=True)
+            user_ids = list(set(submission_subscribers_ids) & set(course_subscribers_ids))
             Activity.objects.notify_users(user_ids, subject=self.owner, action="отправил посылку", object=self)
 
     def __str__(self):
