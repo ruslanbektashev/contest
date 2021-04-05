@@ -1534,7 +1534,7 @@ class OptionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 
 
 class TestSubmissionRedirect(LoginRedirectPermissionRequiredMixin, RedirectView):
-    pattern_name = 'contests:answer-create'
+    pattern_name = 'contests:answer-in-testsubmission-create'
     permission_required = 'contests.add_testsubmission'
 
     def __init__(self, **kwargs):
@@ -1609,7 +1609,7 @@ class AddQuestions(LoginRedirectPermissionRequiredMixin, FormView):
 """==================================================== Answer ====================================================="""
 
 
-class AnswerCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+class AnswerInTestSubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Answer
     form_class = AnswerForm
     template_name = 'contests/answer/answer_form.html'
@@ -1652,9 +1652,41 @@ class AnswerCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def get_success_url(self):
         if self.storage['has_next']:
-            return reverse('contests:answer-create', kwargs={'testsubmission_id': self.storage['testsubmission'].id})
+            return reverse('contests:answer-in-testsubmission-create', kwargs={'testsubmission_id': self.storage['testsubmission'].id})
         else:
             return reverse('contests:testsubmission-detail', kwargs={'pk': self.storage['testsubmission'].id})
+
+
+class AnswerCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+    model = Answer
+    form_class = AnswerForm
+    template_name = 'contests/answer/answer_form.html'
+    permission_required = 'contests.add_answer'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['question'] = get_object_or_404(Question, id=kwargs.pop('question_id'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['question'] = self.storage['question']
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.question = self.storage['question']
+        form.instance.owner = self.request.user
+        response = super().form_valid(form)
+        self.object.check_correctness()
+        return response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(self.storage)
+        return context
 
 
 class AnswerCheck(LoginRedirectPermissionRequiredMixin, UpdateView):

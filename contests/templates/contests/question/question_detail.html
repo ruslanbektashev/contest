@@ -92,7 +92,7 @@
 
 {% block submenu %}
 <div class="list-group mb-3">
-    {% if perms.contests.update_question %}
+    {% if perms.contests.change_question %}
     <a href="{% url 'contests:question-update' question.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать задачу</a>
     {% endif %}
     {% if perms.contests.delete_question %}
@@ -102,6 +102,13 @@
 {% if perms.contests.add_option and question.type == 2 %}
 <div class="list-group mb-3">
     <a href="{% url 'contests:option-create' question.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить вариант ответа</a>
+</div>
+{% endif %}
+{% if perms.contests.add_answer %}
+<div class="list-group mb-3">
+    <a href="{% url 'contests:answer-create' question.id %}" class="btn btn-info btn-block">
+        <i class="fa fa-check-square-o fa-fw"></i> Решить задачу
+    </a>
 </div>
 {% endif %}
 {% endblock submenu %}

@@ -16,10 +16,16 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
+{% if testsubmission %}
 {% breadcrumb testsubmission.test.contest.course testsubmission.test.contest.course %}
 {% breadcrumb testsubmission.test.contest testsubmission.test.contest %}
 {% breadcrumb testsubmission.test testsubmission.test %}
 {% breadcrumb testsubmission testsubmission %}
+{% else %}
+{% breadcrumb question.contest.course question.contest.course %}
+{% breadcrumb question.contest question.contest %}
+{% breadcrumb question question %}
+{% endif %}
 {% if answer %}
 {% breadcrumb answer answer %}
 {% breadcrumb "Редактирование" %}
@@ -50,11 +56,7 @@
             {% endwith %}
         {% endif %}
     {% endwith %}
-    {% if has_next %}
-        {% render_submit_button value="Далее" %}
-    {% else %}
-        {% render_submit_button value="Завершить" %}
-    {% endif %}
+    {% render_submit_button value="Завершить решение" %}
 </form>
 {% endblock content %}
 
