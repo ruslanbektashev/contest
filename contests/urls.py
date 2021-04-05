@@ -155,12 +155,13 @@ urlpatterns = [
         ]))
     ])),
     path('test/<int:test_id>/testsubmission/create', views.TestSubmissionRedirect.as_view(), name='testsubmission-create'),
-    path('testsubmission/<int:testsubmission_id>/answer/create', views.AnswerCreate.as_view(), name='answer-create'),
+    path('testsubmission/<int:testsubmission_id>/answer/create', views.AnswerInTestSubmissionCreate.as_view(), name='answer-in-testsubmission-create'),
     path('testsubmission/', include([
         path('<int:pk>/', include([
             path('', views.TestSubmissionDetail.as_view(), name='testsubmission-detail'),
         ]))
     ])),
+    path('question/<int:question_id>/answer/create', views.AnswerCreate.as_view(), name='answer-create'),
     path('answer/', include([
         path('<int:pk>/', include([
             path('', views.AnswerDetail.as_view(), name='answer-detail'),

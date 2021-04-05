@@ -7,11 +7,17 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
+{% if answer.test_submission %}
 {% breadcrumb answer.test_submission.test.contest.course answer.test_submission.test.contest.course %}
 {% breadcrumb answer.test_submission.test.contest answer.test_submission.test.contest %}
 {% breadcrumb answer.test_submission.test answer.test_submission.test %}
 {% breadcrumb answer.test_submission answer.test_submission %}
-{% breadcrumb answer %}
+{% else %}
+{% breadcrumb answer.question.contest.course answer.question.contest.course %}
+{% breadcrumb answer.question.contest answer.question.contest %}
+{% breadcrumb answer.question answer.question %}
+{% endif %}
+{% breadcrumb answer answer %}
 {% breadcrumb "Проверка" %}
 {% endblock breadcrumbs %}
 

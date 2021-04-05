@@ -22,9 +22,14 @@
            href="#description" id="description-tab" role="tab">Описание</a>
     </li>
     <li class="nav-item">
-        <a aria-controls="submission_patterns" aria-selected="{% if tab == 'submission_patterns' %}true{% else %}false{% endif %}"
-           class="nav-link {% if tab == 'submission_patterns' %}active{% endif %}" data-toggle="tab" href="#submission_patterns"
-           id="submission-patterns-tab" role="tab">Ответы</a>
+        <a aria-controls="solution" aria-selected="{% if tab == 'solution' %}true{% else %}false{% endif %}"
+           class="nav-link {% if tab == 'solution' %}active{% endif %}" data-toggle="tab" href="#solution"
+           id="solution-tab" role="tab">Ответы</a>
+    </li>
+    <li class="nav-item">
+        <a aria-controls="submissions" aria-selected="{% if tab == 'submissions' %}true{% else %}false{% endif %}"
+           class="nav-link {% if tab == 'submissions' %}active{% endif %}" data-toggle="tab" href="#submissions"
+           id="submissions-tab" role="tab">Посылки</a>
     </li>
 </ul>
 <div class="tab-content">
@@ -55,7 +60,7 @@
         {% endif %}
         {% endwith %}
     </div>
-    <div aria-labelledby="submission-patterns-tab" class="tab-pane fade {% if tab == 'submission_patterns' %}show active{% endif %}" id="submission_patterns" role="tabpanel">
+    <div aria-labelledby="solution-tab" class="tab-pane fade {% if tab == 'solution' %}show active{% endif %}" id="solution" role="tabpanel">
         {% with options=question.option_set.all%}
         <p>{{ question.description }}</p>
 
@@ -86,13 +91,61 @@
         {% endif %}
         {% endwith %}
     </div>
+    <div aria-labelledby="submissions-tab" class="tab-pane fade {% if tab == 'submissions' %}show active{% endif %}" id="submissions" role="tabpanel">
+        {% if answers %}
+        {% load views contests %}
+        <div class="table-responsive">
+            <table id="p" class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 18%;">Дата</th>
+                        {% if perms.contests.view_testsubmission_list %}
+                        <th>Студент</th>
+                        {% endif %}
+                        <th class="text-center" style="width: 8%;">Статус</th>
+                        <th class="text-center" style="width: 8%;">Оценка</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% now 'Y' as current_year %}
+                    {% for answer in answers %}
+                    <tr>
+                        <td class="text-center">{% if answer.date_created|date:'Y' == current_year %}{{ answer.date_created|date:'d b в H:i' }}{% else %}{{ answer.date_created|date:'d b y г. в H:i' }}{% endif %}</td>
+                        {% if perms.contests.view_submission_list %}
+                        <td>
+                            <a href="{{ answer.owner.account.get_absolute_url }}">
+                                {{ answer.owner.account }}
+                            </a>
+                        </td>
+                        {% endif %}
+                        <td class="text-center">
+                            <a href="{{ answer.get_absolute_url }}" class="badge badge-secondary">
+                                {{ answer.get_status_display|lower }}
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            {% if answer.score %}
+                            <a href="{{ answer.get_absolute_url }}" class="badge badge-secondary">
+                                {{ answer.score }}
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">Нет посылок.</div>
+        {% endif %}
+    </div>
 </div>
 
 {% endblock content %}
 
 {% block submenu %}
 <div class="list-group mb-3">
-    {% if perms.contests.update_question %}
+    {% if perms.contests.change_question %}
     <a href="{% url 'contests:question-update' question.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать задачу</a>
     {% endif %}
     {% if perms.contests.delete_question %}
@@ -102,6 +155,13 @@
 {% if perms.contests.add_option and question.type == 2 %}
 <div class="list-group mb-3">
     <a href="{% url 'contests:option-create' question.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить вариант ответа</a>
+</div>
+{% endif %}
+{% if perms.contests.add_answer %}
+<div class="list-group mb-3">
+    <a href="{% url 'contests:answer-create' question.id %}" class="btn btn-info btn-block">
+        <i class="fa fa-check-square-o fa-fw"></i> Решить задачу
+    </a>
 </div>
 {% endif %}
 {% endblock submenu %}

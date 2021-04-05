@@ -7,16 +7,23 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
+{% if answer.test_submission %}
 {% breadcrumb answer.test_submission.test.contest.course answer.test_submission.test.contest.course %}
 {% breadcrumb answer.test_submission.test.contest answer.test_submission.test.contest %}
 {% breadcrumb answer.test_submission.test answer.test_submission.test %}
 {% breadcrumb answer.test_submission answer.test_submission %}
+{% else %}
+{% breadcrumb answer.question.contest.course answer.question.contest.course %}
+{% breadcrumb answer.question.contest answer.question.contest %}
+{% breadcrumb answer.question answer.question %}
+{% endif %}
 {% breadcrumb answer %}
 {% endblock breadcrumbs %}
 
 {% block content %}
 
-<legend>Решение задачи {{ question.number }}</legend>
+<legend>Решение задачи {{ answer.question.number }}</legend>
+<h5>{{ answer.question.title }}</h5>
 <p>{{ answer.question.description }}</p>
 {% if answer.question.type == 1 %}
     <label class="text-muted">Ответ:
@@ -51,3 +58,11 @@
 {% endif %}
 
 {% endblock content %}
+
+{% block submenu %}
+<div class="list-group mb-3">
+    {% if perms.contests.check_answer %}
+    <a href="{% url 'contests:answer-check' answer.id %}" class="list-group-item list-group-item-action"><i class="fa fa-check"></i> Проверить решение</a>
+    {% endif %}
+</div>
+{% endblock submenu %}
