@@ -58,3 +58,11 @@
 {% endif %}
 
 {% endblock content %}
+
+{% block submenu %}
+<div class="list-group mb-3">
+    {% if perms.contests.check_answer %}
+    <a href="{% url 'contests:answer-check' answer.id %}" class="list-group-item list-group-item-action"><i class="fa fa-check"></i> Проверить решение</a>
+    {% endif %}
+</div>
+{% endblock submenu %}

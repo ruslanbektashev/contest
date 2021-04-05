@@ -1706,17 +1706,15 @@ class AnswerCheck(LoginRedirectPermissionRequiredMixin, UpdateView):
     template_name = 'contests/answer/answer_check.html'
     permission_required = 'contests.check_answer'
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
     def form_valid(self, form):
         response = super().form_valid(form)
-        self.object.test_submission.update_score()
+        if self.object.test_submission:
+            self.object.test_submission.update_score()
         return response
 
     def get_success_url(self):
-        return reverse('contests:testsubmission-detail', kwargs={'pk': self.object.test_submission.id}) + '#question_' + str(self.object.question.number)
+        if self.object.test_submission:
+            return reverse('contests:testsubmission-detail', kwargs={'pk': self.object.test_submission.id}) + '#question_' + str(self.object.question.number)
 
 
 class AnswerDetail(LoginRequiredMixin, DetailView):
