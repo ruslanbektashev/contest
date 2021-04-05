@@ -1466,6 +1466,17 @@ class QuestionDetail(LoginRedirectPermissionRequiredMixin, DetailView):
     template_name = 'contests/question/question_detail.html'
     permission_required = 'contests.view_question'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        if self.request.user.has_perm('contests.view_answer_list'):
+            answers = self.object.answer_set.all().order_by('-date_created')
+        else:
+            answers = self.object.answer_set.filter(owner_id=self.request.user.id).order_by('-date_created')
+
+        context['answers'] = answers
+        return context
+
 
 class QuestionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     model = Question
