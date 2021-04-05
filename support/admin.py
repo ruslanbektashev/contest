@@ -18,6 +18,7 @@ class QuestionAdmin(admin.ModelAdmin):
             'fields': ('date_created', 'date_updated')
         })
     )
+    readonly_fields = ('date_created', 'date_updated')
 
 
 @admin.register(Report)
@@ -34,3 +35,4 @@ class ReportAdmin(admin.ModelAdmin):
             'fields': ('date_created', 'date_updated')
         })
     )
+    readonly_fields = ('date_created', 'date_updated')
