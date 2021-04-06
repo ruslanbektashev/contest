@@ -145,6 +145,18 @@ class Credit(CRUDEntry):
         return "Зачет по курсу: %s" % self.course.title
 
 
+"""===================================================== Filter ====================================================="""
+
+
+class Filter(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Курс")
+
+    class Meta:
+        verbose_name = "Фильтр"
+        verbose_name_plural = "Фильтры"
+
+
 """===================================================== Lesson ====================================================="""
 
 

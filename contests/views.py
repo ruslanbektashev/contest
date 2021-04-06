@@ -12,9 +12,9 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonRespons
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, FormView, ListView, UpdateView
-from django.views.generic.base import RedirectView
+from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.detail import BaseDetailView, SingleObjectMixin
-from django.views.generic.edit import BaseUpdateView
+from django.views.generic.edit import BaseCreateView, BaseDeleteView, BaseUpdateView
 from django.views.generic.list import BaseListView
 
 from accounts.models import Account, Activity
@@ -25,7 +25,8 @@ from contests.forms import (AnswerCheckForm, AnswerForm, AssignmentForm, Assignm
                             OptionForm, ProblemForm, ProblemPartialForm, ProblemRollbackResultsForm,
                             QuestionExtendedForm, QuestionForm, QuestionSetForm, SubmissionForm, SubmissionMossForm,
                             SubmissionPatternForm, SubmissionUpdateForm, TestForm, TestMembershipForm, UTTestForm)
-from contests.models import (Answer, Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, IOTest,
+from contests.models import (Answer, Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, Filter,
+                             IOTest,
                              Lecture, Option, Problem, Question, Submission, SubmissionPattern, Test, TestMembership,
                              TestSubmission, UTTest)
 from contests.results import TaskProgress
@@ -186,6 +187,61 @@ class CreditDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 
     def get_success_url(self):
         return reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
+
+
+"""===================================================== Filter ====================================================="""
+
+
+class FilterCreate(LoginRedirectPermissionRequiredMixin, BaseCreateView):
+    model = Filter
+    http_method_names = ['get']
+    success_url = reverse_lazy('contests:filter-table')
+    permission_required = 'contests.add_filter'
+
+    def get(self, request, *args, **kwargs):
+        user = get_object_or_404(User, id=kwargs.get('user_id'))
+        course = get_object_or_404(Course, id=kwargs.get('course_id'))
+        if not Filter.objects.filter(user=user, course=course).exists():
+            Filter.objects.create(user=user, course=course)
+        return HttpResponseRedirect(self.success_url)
+
+
+class FilterDelete(LoginRedirectPermissionRequiredMixin, BaseDeleteView):
+    model = Filter
+    http_method_names = ['get']
+    success_url = reverse_lazy('contests:filter-table')
+    permission_required = 'contests.delete_filter'
+
+    def get(self, request, *args, **kwargs):
+        return self.delete(request, *args, **kwargs)
+
+
+class FilterTable(LoginRedirectPermissionRequiredMixin, TemplateView):
+    template_name = 'contests/filter/filter_table.html'
+    permission_required = 'contests.view_filter'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        users = User.objects.filter(account__type=3)
+        courses = Course.objects.all()
+        table = []
+        for i in range(len(users)):
+            row = []
+            for j in range(len(courses)):
+                col = {}
+                try:
+                    _filter = Filter.objects.get(user=users[i], course=courses[j])
+                    col['exists'] = True
+                    col['params'] = {'id': _filter.id}
+                except Filter.DoesNotExist:
+                    col['exists'] = False
+                    col['params'] = {'user_id': users[i].id, 'course_id': courses[j].id}
+                row.append(col)
+            table.append({'user': users[i], 'cols': row})
+        context['users'] = users
+        context['courses'] = courses
+        context['table'] = table
+        return context
 
 
 """===================================================== Lecture ===================================================="""
@@ -1140,7 +1196,11 @@ class SubmissionList(LoginRedirectPermissionRequiredMixin, ListView):
         course_id = self.kwargs.get('course_id', None)
         queryset = super().get_queryset().select_related('owner', 'problem', 'problem__contest')
         if course_id:
-            queryset = queryset.filter(problem__contest__course_id=course_id).select_related('problem__contest__course')
+            queryset = queryset.filter(problem__contest__course_id=course_id)
+        else:
+            course_ids = self.request.user.filter_set.values_list('course_id')
+            queryset = (queryset.filter(problem__contest__course_id__in=course_ids)
+                        .select_related('problem__contest__course'))
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -1303,7 +1363,8 @@ class EventSchedule(LoginRequiredMixin, ListView):
 @login_required
 def index(request):
     if request.user.has_perm('contests.view_assignment_table'):
-        return render(request, 'contests/index.html', {'courses': Course.objects.all()})
+        course_ids = request.user.filter_set.values_list('course_id')
+        return render(request, 'contests/index.html', {'courses': Course.objects.filter(id__in=course_ids)})
     else:
         return redirect(reverse('contests:assignment-list'))
 

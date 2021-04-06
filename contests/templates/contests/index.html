@@ -49,6 +49,11 @@
 {% block submenu %}
 <div class="list-group mb-3">
     <a href="{% url 'contests:submission-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
+    {% if perms.accounts.change_account %}
     <a href="{% url 'accounts:account-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-users fa-fw"></i> Пользователи</a>
+    {% endif %}
+    {% if perms.accounts.view_filter %}
+    <a href="{% url 'contests:filter-table' %}" class="list-group-item list-group-item-action"><i class="fa fa-bookmark fa-fw"></i> Фильтры</a>
+    {% endif %}
 </div>
 {% endblock submenu %}

@@ -1,0 +1,47 @@
+{% extends 'base_wide.html' %}
+{% load views humanize %}
+
+{% block title %}
+Фильтры
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Фильтры" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Фильтры</legend>
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <td></td>
+                {% for course in courses %}
+                <td class="text-center"><a href="{{ course.get_absolute_url }}">{{ course }}</a></td>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in table %}
+            <tr>
+                <td class="text-nowrap" style="width: 12%;"><a href="{{ row.user.account.get_absolute_url }}">{{ row.user.account.get_short_name }}</a></td>
+                {% for col in row.cols %}
+                <td class="text-center lake {% if col.exists %}bg-success{% endif %}">
+                    {% if col.exists %}
+                    <a href="{% url 'contests:filter-delete' col.params.id %}">
+                        <span class="numtus badge-success comment-timesince p-0"><i class="fa fa-check fa-fw fa-2x comment-naturaltime"></i><i class="fa fa-remove fa-fw fa-2x comment-datetime"></i></span>
+                    </a>
+                    {% else %}
+                    <a class="pebble" href="{% url 'contests:filter-create' col.params.user_id col.params.course_id %}">
+                        <span class="numtus badge-info p-0"><i class="fa fa-plus fa-fw fa-2x"></i></span>
+                    </a>
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}
