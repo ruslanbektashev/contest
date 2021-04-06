@@ -17,7 +17,7 @@
         <tbody>
             {% now 'Y' as current_year %}
             {% for submission in page_obj %}
-            <tr>
+            <tr class="{% if assignment and submission.date_created > assignment.date_updated %}bg-light{% endif %}">
                 <td class="text-center">{% if submission.date_created|date:'Y' == current_year %}{{ submission.date_created|date:'d b в H:i' }}{% else %}{{ submission.date_created|date:'d b y г. в H:i' }}{% endif %}</td>
                 {% if perms.contests.view_submission_list and not assignment %}
                 <td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>

@@ -35,13 +35,13 @@
             <span class="numtus status-{{ assignment.score|colorize }}">{{ assignment.score|default:'-' }}</span>{% if perms.contests.change_assignment %} {% if assignment.score_max < 5 %}/ {{ assignment.score_max }}{% endif %}{% if assignment.score_is_locked %} <span class="numtus status-warning" title="Оценка заблокирована и не может быть изменена системой автоматической проверки посылок"><i class="fa fa-lock"></i></span>{% endif %}{% endif %}
         </td>
     </tr>
+    <tr><td class="text-right" style="width: 20%;">Назначено</td><td>{{ assignment.date_created }}</td></tr>
+    <tr><td class="text-right" style="width: 20%;">Обновлено</td><td>{{ assignment.date_updated }}</td></tr>
     <tr><td class="text-right" style="width: 20%;">Посылок</td><td>{{ assignment.get_submissions.count }} / {{ assignment.submission_limit }}</td></tr>
-    {% if perms.contests.view_assignment_table %}
-    <tr title="Отображается только преподавателям">
-        <td class="text-right text-warning" style="width: 20%;"><i class="fa fa-lock fa-fw"></i>Пометка</td><td>{{ assignment.remark }}</td>
-    </tr>
-    {% endif %}
 </table>
+{% if perms.contests.view_assignment_table and assignment.remark %}
+<div class="alert alert-warning" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>Пометка для преподавателей: {{ assignment.remark }}</div>
+{% endif %}
 <div class="col-xs-12 col-md-6 mx-auto">
     {% include 'contests/submission/submission_table.html' %}
 </div>

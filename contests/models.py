@@ -474,10 +474,10 @@ class AssignmentQuerySet(models.QuerySet):
         latest_submission = (Submission.objects.filter(owner_id=models.OuterRef('user_id'),
                                                        problem_id=models.OuterRef('problem_id'))
                                                .order_by('-date_created')[:1])
-        return (self.filter(user__in=students.values_list('user'),
-                            problem__contest__course=course)
+        return (self.filter(user__in=students.values_list('user'), problem__contest__course=course)
                     .select_related('user', 'problem')
                     .annotate(latest_submission_status=models.Subquery(latest_submission.values_list('status')))
+                    .annotate(latest_submission_date_created=models.Subquery(latest_submission.values_list('date_created')))
                     .order_by('user__account', 'problem__contest', 'date_created', 'problem__number'))
 
     def rollback_score(self):

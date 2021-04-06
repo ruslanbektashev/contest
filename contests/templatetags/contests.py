@@ -48,7 +48,7 @@ def colorize(value):
 
 @register.simple_tag()
 def get_assignment_style(assignment):
-    if assignment.latest_submission_status == 'UN':
+    if assignment.latest_submission_status == 'UN' and assignment.latest_submission_date_created > assignment.date_updated:
         return 'info'
     return colorize(assignment.score)
 
