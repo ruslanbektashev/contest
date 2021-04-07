@@ -15,10 +15,12 @@
 {% block content %}
 <legend>Обсуждение задачи {{ problem.title }} <small class="text-muted">№{{ problem.number }}</small></legend>
 <div class="btn-group btn-block mb-3">
-    <a class="btn btn-light border col-6" href="{% url 'contests:problem-detail' problem.id %}">Вернуться к задаче</a>
+    <a class="btn btn-light border col-6" href="{% url 'contests:problem-detail' problem.id %}">
+        <i class="fa fa-chevron-left fa-fw"></i> Вернуться к задаче
+    </a>
     <a class="btn btn-light border col-6 disabled">
         {% unread_comments_count request.user.account problem as ucc %}
-        Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+        <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
     </a>
 </div>
 {% render_comments problem comments %}

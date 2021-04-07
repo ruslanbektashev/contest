@@ -15,7 +15,7 @@
 <legend>{{ contest.title }} <small class="text-muted">№{{ contest.number }}</small></legend>
 <a class="btn btn-light btn-block border mb-3" href="{% url 'contests:contest-discussion' contest.id %}">
     {% unread_comments_count request.user.account contest as ucc %}
-    Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+    <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
 </a>
 <div class="accordion mb-3" id="contest_details">
     <div class="card">
@@ -32,7 +32,7 @@
                 {{ contest.description|markdown|safe }}
                 {% render_attachment_list contest %}
                 {% if perms.contests.change_contest %}
-                <a href="{% url 'contests:contest-update' contest.id %}?add_files=1" class="btn btn-block btn-outline-light">
+                <a href="{% url 'contests:contest-update' contest.id %}?add_files=1" class="btn btn-block btn-light">
                     <i class="fa fa-files-o fa-fw"></i> Добавить файлы
                 </a>
                 {% endif %}
@@ -50,7 +50,7 @@
         </div>
         <div id="collapseTwo" class="collapse show" aria-labelledby="contest_problems">
             <div class="card-body">
-                {% include 'list.html' with lst=contest.problem_set.all mb=0 warn_if_empty="Добавьте задачу" %}
+                {% include 'list.html' with lst=contest.problem_set.all mb=0 warn_if_empty="Задачи еще не добавлены" %}
             </div>
         </div>
     </div>
@@ -65,7 +65,7 @@
         </div>
         <div id="collapseThree" class="collapse show" aria-labelledby="contest_questions">
             <div class="card-body">
-                {% include 'list.html' with lst=contest.question_set.all mb=0 warn_if_empty="Добавьте вопрос" %}
+                {% include 'list.html' with lst=contest.question_set.all mb=0 warn_if_empty="Вопросы еще не добавлены" %}
             </div>
         </div>
     </div>

@@ -28,8 +28,8 @@
             {% for account in accounts %}
             <tr>
                 <td class="text-center"><input type="checkbox" class="check" name="accounts" value="{{ account.user_id }}"></td>
-                <td><a href="{{ account.get_absolute_url }}">{{ account }}</a></td>
-                <td class="text-center">{{ account.get_level_display }}</td>
+                <td class="text-nowrap"><a href="{{ account.get_absolute_url }}">{{ account }}</a></td>
+                <td class="text-center text-nowrap">{{ account.get_level_display }}</td>
             </tr>
             {% empty %}
             <tr>

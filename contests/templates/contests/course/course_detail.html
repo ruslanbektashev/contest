@@ -14,7 +14,7 @@
 <legend>{{ course }} <small class="text-muted">{{ course.get_level_display }}</small></legend>
 <a class="btn btn-light btn-block border mb-3" href="{% url 'contests:course-discussion' course.id %}">
     {% unread_comments_count request.user.account course as ucc %}
-    Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+    <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
 </a>
 <div class="accordion mb-3" id="contest_details">
     <div class="card">
@@ -43,7 +43,7 @@
         </div>
         <div id="collapseTwo" class="collapse show" aria-labelledby="course_contests">
             <div class="card-body">
-                {% include 'list.html' with lst=course.contest_set.all mb=0 warn_if_empty="Добавьте раздел" %}
+                {% include 'list.html' with lst=course.contest_set.all mb=0 warn_if_empty="Разделы еще не добавлены" %}
             </div>
         </div>
     </div>

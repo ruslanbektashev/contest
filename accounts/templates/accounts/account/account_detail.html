@@ -12,52 +12,35 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Учетная запись пользователя</legend>
-<ul class="nav nav-tabs mb-3" role="tablist">
-    <li class="nav-item">
-        <a aria-controls="profile" aria-selected="true" class="nav-link active" data-toggle="tab" href="#profile" id="profile-tab"
-           role="tab">Профиль</a>
-    </li>
-    {% if perms.contests.view_assignment_table and account.is_student %}
-    <li class="nav-item">
-        <a aria-controls="assignments" aria-selected="false" class="nav-link" data-toggle="tab" href="#assignments" id="assignments-tab"
-           role="tab">Задания</a>
-    </li>
-    {% endif %}
-</ul>
-<div class="tab-content">
-    <div aria-labelledby="profile-tab" class="tab-pane fade show active" id="profile" role="tabpanel">
-        <div class="row">
-            <div class="col-4">
-                {% include 'accounts/account/account_card.html' with image=True %}
-            </div>
-            <div class="col-8">
-                <table class="table table-borderless">
-                    <tr><td class="text-right" style="width: 30%;">e-mail</td><td>{% if account.email %}<a href="mailto:{{ account.email }}">{{ account.email }}</a>{% elif perms.auth.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}<a href="{% url 'accounts:account-update' account.user_id %}" class="text-danger" >укажите e-mail</a>{% else %}-{% endif %}</td></tr>
-                    <tr><td class="text-right" style="width: 30%;">Группа</td><td>{% for group in account.user.groups.all %} <span class="badge badge-secondary">{{ group }}</span>{% endfor %}</td></tr>
-                    <tr><td class="text-right" style="width: 30%;">Тип учетной записи</td><td>{{ account.get_type_display }}</td></tr>
-                    {% if account.is_student %}
-                    <tr><td class="text-right" style="width: 30%;">Уровень</td><td>{{ account.get_level_display }}</td></tr>
-                    <tr><td class="text-right" style="width: 30%;">Год поступления</td><td>{{ account.admission_year }}</td></tr>
-                    <tr><td class="text-right" style="width: 30%;">Обучается</td><td>{{ account.enrolled|yesno:'да,нет' }}</td></tr>
-                    <tr><td class="text-right" style="width: 30%;">Закончил обучение</td><td>{{ account.graduated|yesno:'да,нет' }}</td></tr>
-                    {% endif %}
-                    {% if perms.accounts.change_account %}
-                    <tr><td class="text-right" style="width: 30%;">Логин</td><td>{{ account.username }}</td></tr>
-                    <tr><td class="text-right" style="width: 30%;">Последний вход</td><td>{{ account.last_login|date:'d E Y, H:i' }}</td></tr>
-                    <tr><td class="text-right" style="width: 30%;">Дата регистрации</td><td>{{ account.date_joined|date:'d E Y' }}</td></tr>
-                    {% endif %}
-                </table>
-            </div>
-        </div>
+<legend>Учетная запись пользователя {{ account }}</legend>
+<div class="row">
+    <div class="col-4">
+        {% include 'accounts/account/account_card.html' with image=True %}
     </div>
-    {% if perms.contests.view_assignment_table and account.is_student %}
-    <div aria-labelledby="assignments-tab" class="tab-pane fade" id="assignments" role="tabpanel">
-        {% render_assignment_user_table assignments credits %}
-        {% render_assignment_progress assignments %}
+    <div class="col-8">
+        <table class="table table-borderless table-sm">
+            <tr><td class="text-right" style="width: 30%;">e-mail</td><td>{% if account.email %}<a href="mailto:{{ account.email }}">{{ account.email }}</a>{% elif perms.auth.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}<a href="{% url 'accounts:account-update' account.user_id %}" class="text-danger" >укажите e-mail</a>{% else %}-{% endif %}</td></tr>
+            <tr><td class="text-right" style="width: 30%;">Группа</td><td>{% for group in account.user.groups.all %} <span class="badge badge-secondary">{{ group }}</span>{% endfor %}</td></tr>
+            <tr><td class="text-right" style="width: 30%;">Тип учетной записи</td><td>{{ account.get_type_display }}</td></tr>
+            {% if account.is_student %}
+            <tr><td class="text-right" style="width: 30%;">Уровень</td><td>{{ account.get_level_display }}</td></tr>
+            <tr><td class="text-right" style="width: 30%;">Год поступления</td><td>{{ account.admission_year }}</td></tr>
+            <tr><td class="text-right" style="width: 30%;">Обучается</td><td>{{ account.enrolled|yesno:'да,нет' }}</td></tr>
+            <tr><td class="text-right" style="width: 30%;">Закончил обучение</td><td>{{ account.graduated|yesno:'да,нет' }}</td></tr>
+            {% endif %}
+            {% if perms.accounts.change_account %}
+            <tr><td class="text-right" style="width: 30%;">Логин</td><td>{{ account.username }}</td></tr>
+            <tr><td class="text-right" style="width: 30%;">Последний вход</td><td>{{ account.last_login|date:'d E Y, H:i' }}</td></tr>
+            <tr><td class="text-right" style="width: 30%;">Дата регистрации</td><td>{{ account.date_joined|date:'d E Y' }}</td></tr>
+            {% endif %}
+        </table>
     </div>
-    {% endif %}
 </div>
+{% if perms.contests.view_assignment_table and account.is_student %}
+<legend>Задания</legend>
+{% render_assignment_user_table assignments credits %}
+{% render_assignment_progress assignments %}
+{% endif %}
 {% endblock content %}
 
 {% block submenu %}

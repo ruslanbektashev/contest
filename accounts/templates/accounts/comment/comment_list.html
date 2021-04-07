@@ -12,7 +12,7 @@
         </div>
         <div class="comment-main">
             <div class="comment-header mb-1 d-flex lake">
-                <div class="comment-user mr-2">
+                <div class="comment-user text-nowrap mr-2">
                     <a href="{{ comment.author.account.get_absolute_url }}" class="{% if comment.author.is_staff %}text-success{% endif %}">
                         {{ comment.author.account }}
                     </a>
@@ -20,7 +20,7 @@
                 <div class="text-muted">
                     ∙
                 </div>
-                <div class="comment-timesince text-muted ml-2">
+                <div class="comment-timesince text-muted text-nowrap ml-2">
                     <small class="comment-naturaltime">{{ comment.date_created|naturaltime }}</small>
                     <small class="comment-datetime"><a href="{{ comment.object.get_discussion_url }}{% get_comment_query_string page_obj.number %}#comment_{{ comment.id }}" class="text-muted">{{ comment.date_created|date:'d b Y г. в H:i' }}</a></small>
                 </div>

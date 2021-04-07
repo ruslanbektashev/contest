@@ -13,10 +13,12 @@
 {% block content %}
 <legend>Обсуждение курса {{ course }} <small class="text-muted">{{ course.get_level_display }}</small></legend>
 <div class="btn-group btn-block mb-3">
-    <a class="btn btn-light border col-6" href="{% url 'contests:course-detail' course.id %}">Вернуться к курсу</a>
+    <a class="btn btn-light border col-6" href="{% url 'contests:course-detail' course.id %}">
+        <i class="fa fa-chevron-left fa-fw"></i> Вернуться к курсу
+    </a>
     <a class="btn btn-light border col-6 disabled">
         {% unread_comments_count request.user.account course as ucc %}
-        Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+        <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
     </a>
 </div>
 {% render_comments course comments %}

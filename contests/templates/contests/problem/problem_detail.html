@@ -16,7 +16,7 @@
 <legend>{{ problem.title }} <small class="text-muted">№{{ problem.number }}</small></legend>
 <a class="btn btn-light btn-block border mb-3" href="{% url 'contests:problem-discussion' problem.id %}">
     {% unread_comments_count request.user.account problem as ucc %}
-    Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+    <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
 </a>
 <div class="accordion mb-3" id="problem_details">
     <div class="card">
@@ -56,7 +56,7 @@
                 </table>
                 {% render_attachment_list problem %}
                 {% if perms.contests.change_problem %}
-                <a href="{% url 'contests:problem-update' problem.id %}?add_files=1" class="btn btn-block btn-outline-light">
+                <a href="{% url 'contests:problem-update' problem.id %}?add_files=1" class="btn btn-block btn-light">
                     <i class="fa fa-files-o fa-fw"></i> Добавить файлы
                 </a>
                 {% endif %}
@@ -111,7 +111,7 @@
         <div id="collapseFour" class="collapse" aria-labelledby="problem_submission_patterns">
             <div class="card-body">
                 <div class="alert alert-warning">Доступно только преподавателям</div>
-                {% include 'list.html' with lst=problem.submission_patterns.all mb=0 warn_if_empty="Добавьте шаблон посылки" %}
+                {% include 'list.html' with lst=problem.submission_patterns.all mb=0 warn_if_empty="Шаблоны посылки еще не добавлены" %}
             </div>
         </div>
     </div>
