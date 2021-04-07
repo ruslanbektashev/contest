@@ -253,7 +253,7 @@ class Subscription(models.Model):
     def validate_unique(self, exclude=None):
         if Subscription.objects.exclude(id=self.id).filter(user=self.user, object_type=self.object_type, object_id__isnull=True).exists():
             raise ValidationError("Подписка с такими значениями полей User, Object type и Object id уже существует.")
-        super(Subscription, self).validate_unique(exclude)
+        super().validate_unique(exclude)
 
     def __str__(self):
         return '%s, %s%s' % (self.user.account.get_full_name(), self.object_type.model, ': ' + self.object.title if self.object_id is not None else '')
