@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.forms import BaseInlineFormSet
 from django.forms.widgets import SelectMultiple
 from django.template.defaultfilters import filesizeformat
 
@@ -159,7 +160,7 @@ class ContestForm(ContestPartialForm):
 """==================================================== Problem ====================================================="""
 
 
-class ProblemPartialForm(AttachmentForm):
+class ProblemAttachmentForm(AttachmentForm):
     FILES_SIZE_LIMIT = 10 * 1024 * 1024
     FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf']
 
@@ -168,17 +169,45 @@ class ProblemPartialForm(AttachmentForm):
         fields = []
 
 
-class ProblemForm(ProblemPartialForm):
+class ProblemProgramForm(ProblemAttachmentForm):
     class Meta:
         model = Problem
-        fields = ['contest', 'title', 'description', 'number', 'difficulty', 'language', 'compile_args', 'launch_args',
-                  'time_limit', 'memory_limit', 'is_testable']
+        fields = ['contest', 'type', 'title', 'description', 'number', 'score_max', 'difficulty', 'language',
+                  'compile_args', 'launch_args', 'time_limit', 'memory_limit', 'is_testable']
         widgets = {'contest': forms.HiddenInput}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['type'].disabled = True
         self.fields['time_limit'].append_text = "секунд"
         self.fields['memory_limit'].append_text = "КБайт"
+
+
+class ProblemCommonForm(ProblemAttachmentForm):
+    class Meta:
+        model = Problem
+        fields = ['contest', 'type', 'title', 'description', 'number', 'score_max', 'difficulty']
+        widgets = {'contest': forms.HiddenInput}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['type'].disabled = True
+
+
+class OptionsFormSet(BaseInlineFormSet):
+    pass
+
+
+class ProblemTestForm(ProblemAttachmentForm):
+    class Meta:
+        model = Problem
+        fields = ['contest', 'sub_problems', 'type', 'title', 'description', 'number', 'score_max', 'difficulty']
+        widgets = {'contest': forms.HiddenInput}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['type'].disabled = True
+        self.fields['sub_problems'].choices = grouped_problems(None, self.initial['contest'], multiple=True)
 
 
 class ProblemRollbackResultsForm(forms.Form):
@@ -297,7 +326,7 @@ def grouped_problems(course, contest, multiple=False):
 """=================================================== Submission ==================================================="""
 
 
-class SubmissionForm(AttachmentForm):
+class SubmissionAttachmentForm(AttachmentForm):
     FILES_MIN = 1
 
     class Meta:
@@ -317,8 +346,7 @@ class SubmissionForm(AttachmentForm):
             for submission_pattern in submission_patterns:
                 patterns.extend(submission_pattern.pattern.split())
             if len(patterns) != len(files):
-                raise ValidationError('Количество файлов не соответствует комплекту поставки решения',
-                                      code='no_match')
+                raise ValidationError('Количество файлов не соответствует комплекту поставки решения', code='no_match')
             label = None
             for f in files:
                 for ptn in patterns:
@@ -332,13 +360,11 @@ class SubmissionForm(AttachmentForm):
                                                   code='label_mismatch')
                         break
                 else:
-                    raise ValidationError('Некорректное имя файла: %(filename)s',
-                                          code='invalid_filename',
+                    raise ValidationError('Некорректное имя файла: %(filename)s', code='invalid_filename',
                                           params={'filename': f.name})
             if int(label[-2:]) != self.problem.number:
                 raise ValidationError('Идентификатор %(label)s не соответствует комплекту поставки решения',
-                                      code='wrong_label',
-                                      params={'label': label})
+                                      code='wrong_label', params={'label': label})
         return files
 
     def clean(self):
@@ -354,21 +380,36 @@ class SubmissionForm(AttachmentForm):
         else:
             nsubmissions = Submission.objects.filter(owner=self.owner, problem=self.problem).count()
             if nsubmissions >= assignment.submission_limit:
-                raise ValidationError('Количество попыток исчерпано',
-                                      code='limit_reached')
+                raise ValidationError('Количество попыток исчерпано', code='limit_reached')
         return super().clean()
+
+
+class SubmissionTextForm(forms.ModelForm):
+    class Meta:
+        model = Submission
+        fields = ['text']
+
+
+class SubmissionOptionsForm(forms.ModelForm):
+    class Meta:
+        model = Submission
+        fields = ['options']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        problem = kwargs.pop('problem', None)
+        self.fields['options'].queryset = problem.option_set.all()
 
 
 class SubmissionUpdateForm(forms.ModelForm):
     class Meta:
         model = Submission
-        fields = ['status']
+        fields = ['status', 'score']
 
-    def clean_status(self):
+    def clean(self):
         if self.instance.problem.is_testable:
-            raise ValidationError('Посылки к этой задаче проверяются автоматически',
-                                  code='problem_is_testable')
-        return self.cleaned_data['status']
+            raise ValidationError('Посылки к этой задаче проверяются автоматически', code='problem_is_testable')
+        return super().clean()
 
 
 class ToSubmissionsChoiceField(forms.ModelMultipleChoiceField):
@@ -377,8 +418,7 @@ class ToSubmissionsChoiceField(forms.ModelMultipleChoiceField):
 
 
 class SubmissionMossForm(forms.Form):
-    to_submissions = ToSubmissionsChoiceField(queryset=Submission.objects.none(), required=True,
-                                              label="С посылками")
+    to_submissions = ToSubmissionsChoiceField(queryset=Submission.objects.none(), required=True, label="С посылками")
 
     def __init__(self, *args, **kwargs):
         self.submission = kwargs.pop('submission')

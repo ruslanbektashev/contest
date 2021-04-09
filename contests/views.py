@@ -1,4 +1,5 @@
 from datetime import date, datetime
+
 from markdown import markdown
 from mimetypes import guess_type
 from pygments import highlight
@@ -22,13 +23,13 @@ from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, Log
                             PaginatorMixin)
 from contests.forms import (AnswerCheckForm, AnswerForm, AssignmentForm, AssignmentSetForm, AssignmentUpdateForm,
                             ContestForm, ContestPartialForm, CourseForm, CreditSetForm, EventForm, FNTestForm,
-                            OptionForm, ProblemForm, ProblemPartialForm, ProblemRollbackResultsForm,
-                            QuestionExtendedForm, QuestionForm, QuestionSetForm, SubmissionForm, SubmissionMossForm,
-                            SubmissionPatternForm, SubmissionUpdateForm, TestForm, TestMembershipForm, UTTestForm)
+                            OptionForm, ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm,
+                            ProblemRollbackResultsForm, ProblemTestForm, QuestionExtendedForm, QuestionForm,
+                            QuestionSetForm, SubmissionAttachmentForm, SubmissionMossForm, SubmissionPatternForm,
+                            SubmissionUpdateForm, TestForm, TestMembershipForm, UTTestForm)
 from contests.models import (Answer, Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, Filter,
-                             IOTest,
-                             Lecture, Option, Problem, Question, Submission, SubmissionPattern, Test, TestMembership,
-                             TestSubmission, UTTest)
+                             IOTest, Lecture, Option, Problem, Question, Submission, SubmissionPattern, Test,
+                             TestMembership, TestSubmission, UTTest)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 
@@ -469,7 +470,6 @@ class ProblemRollbackResults(LoginRedirectPermissionRequiredMixin, FormView):
 
 class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Problem
-    form_class = ProblemForm
     template_name = 'contests/problem/problem_form.html'
     permission_required = 'contests.add_problem'
 
@@ -479,10 +479,20 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
+        self.storage['type'] = 'Program'  # request.GET.get('type')
         return super().dispatch(request, *args, **kwargs)
+
+    def get_form_class(self):
+        if self.storage['type'] == 'Program':
+            return ProblemProgramForm
+        elif self.storage['type'] == 'Test':
+            return ProblemTestForm
+        else:
+            return ProblemCommonForm
 
     def get_initial(self):
         self.initial['contest'] = self.storage['contest']
+        self.initial['type'] = self.storage['type']
         self.initial['number'] = Problem.objects.get_new_number(self.storage['contest'])
         return super().get_initial()
 
@@ -493,6 +503,7 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['contest'] = self.storage['contest']
+        context['type'] = self.storage['type']
         return context
 
     def get_success_url(self):
@@ -506,8 +517,13 @@ class ProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
 
     def get_form_class(self):
         if self.request.GET.get('add_files') == '1':
-            return ProblemPartialForm
-        return ProblemForm
+            return ProblemAttachmentForm
+        elif self.object.type == 'Program':
+            return ProblemProgramForm
+        elif self.object.type == 'Test':
+            return ProblemTestForm
+        else:
+            return ProblemCommonForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1036,7 +1052,7 @@ class SubmissionAttachment(LoginRedirectPermissionRequiredMixin, AttachmentDetai
 
 class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Submission
-    form_class = SubmissionForm
+    form_class = SubmissionAttachmentForm
     template_name = 'contests/submission/submission_form.html'
     permission_required = 'contests.add_submission'
 

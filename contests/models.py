@@ -179,10 +179,7 @@ class Lecture(CRUDEntry):
 
 class ContestManager(models.Manager):
     def get_new_number(self, course):
-        max_number = self.filter(course=course).aggregate(models.Max('number')).get('number__max', 0)
-        if max_number is None:
-            return 1
-        return max_number + 1
+        return (self.filter(course=course).aggregate(models.Max('number')).get('number__max') or 0) + 1
 
 
 class Contest(CRUDEntry):
@@ -223,35 +220,47 @@ class Contest(CRUDEntry):
 
 class ProblemManager(models.Manager):
     def get_new_number(self, contest):
-        max_number = self.filter(contest=contest).aggregate(models.Max('number')).get('number__max', 0)
-        if max_number is None:
-            return 1
-        return max_number + 1
+        return (self.filter(contest=contest).aggregate(models.Max('number')).get('number__max') or 0) + 1
 
 
 class Problem(CRUDEntry):
+    TYPE_CHOICES = (
+        ('Program', "Способ ответа: программа"),
+        ('Text', "Способ ответа: текст"),
+        ('Files', "Способ ответа: файлы"),
+        ('Options', "Способ ответа: варианты"),
+        ('Test', "Тест"),
+    )
+
     DIFFICULTY_CHOICES = (
         (0, "Легкая"),
         (1, "Средняя"),
         (2, "Сложная"),
         (3, "Очень сложная")
     )
-    DEFAULT_DIFFICULTY = 0
+
     LANGUAGE_CHOICES = (
         ('C++', "C++"),
         ('C', "C")
     )
+
+    DEFAULT_DIFFICULTY = 0
     DEFAULT_LANGUAGE = 'C++'
     DEFAULT_TIME_LIMIT = 1
     DEFAULT_MEMORY_LIMIT = 64 * 1024
     DEFAULT_NUMBER = 1
+    DEFAULT_SCORE_MAX = 100
 
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
+    sub_problems = models.ManyToManyField('self', through='SubProblem', through_fields=('problem', 'sub_problem'),
+                                          symmetrical=False, verbose_name="Подзадачи")
 
+    type = models.CharField(max_length=8, choices=TYPE_CHOICES, verbose_name="Тип")
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     description = RichTextUploadingField(verbose_name="Описание")
 
     number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер")
+    score_max = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_MAX, verbose_name="Максимальная оценка")
     difficulty = models.PositiveSmallIntegerField(choices=DIFFICULTY_CHOICES, default=DEFAULT_DIFFICULTY, verbose_name="Сложность")
     language = models.CharField(max_length=8, choices=LANGUAGE_CHOICES, default=DEFAULT_LANGUAGE, verbose_name="Язык")
     compile_args = models.CharField(max_length=255, blank=True, verbose_name="Параметры компиляции")
@@ -304,6 +313,40 @@ class Problem(CRUDEntry):
 
     def __str__(self):
         return "#%i. %s" % (self.number, self.title)
+
+
+"""===================================================== Option ====================================================="""
+
+
+class Option(models.Model):
+    problem = models.ForeignKey(Problem, on_delete=models.CASCADE, verbose_name="Задача")
+
+    text = models.CharField(verbose_name="Текст", max_length=250)
+    is_correct = models.BooleanField(verbose_name="Верный?", default=False)
+
+    def __str__(self):
+        return self.text
+
+
+"""=================================================== SubProblem ==================================================="""
+
+
+class SubProblemManager(models.Manager):
+    def get_new_number(self, problem):
+        return (self.filter(problem=problem).aggregate(models.Max('number')).get('number__max') or 0) + 1
+
+
+class SubProblem(models.Model):
+    problem = models.ForeignKey(Problem, on_delete=models.CASCADE, verbose_name="Тест")
+    sub_problem = models.ForeignKey(Problem, on_delete=models.CASCADE, related_name='+', verbose_name="Задача")
+
+    number = models.PositiveSmallIntegerField(default=Problem.DEFAULT_NUMBER, verbose_name="Номер в тесте")
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=('problem', 'sub_problem'), name='unique_sub_problem_in_problem')]
+        ordering = ('number',)
+        verbose_name = "Подзадача теста"
+        verbose_name_plural = "Подзадачи теста"
 
 
 """=============================================== SubmissionPattern ================================================"""
@@ -652,11 +695,17 @@ class Submission(CRDEntry):
         ('UN', "Посылка не проверена")
     )
     DEFAULT_STATUS = 'UN'
+    DEFAULT_SCORE = 0
 
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE, verbose_name="Задача")
     assignment = models.ForeignKey(Assignment, on_delete=models.SET_NULL, null=True, verbose_name="Задание")
+    main_submission = models.ForeignKey('self', on_delete=models.CASCADE, null=True, related_name="sub_submissions",
+                                        verbose_name="Подпосылки")
+    options = models.ManyToManyField(Option, verbose_name="Варианты ответа")
 
     status = models.CharField(max_length=2, choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
+    score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE, verbose_name="Оценка")
+    text = RichTextField(null=True, blank=True, verbose_name="Текст ответа")
     task_id = models.UUIDField(null=True, blank=True, verbose_name="Идентификатор асинхронной задачи")
     moss_to_submissions = models.CharField(max_length=200, null=True, validators=[validate_comma_separated_integer_list],
                                            verbose_name="С посылками MOSS")
@@ -945,22 +994,6 @@ class TestMembership(CRUDEntry):
 
     def __str__(self):
         return "Привязка задачи {} к тесту {}".format(self.question.number, self.test)
-
-
-class Option(CRUDEntry):
-    owner = None
-
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
-
-    text = models.CharField(verbose_name="Текст", max_length=250)
-    is_right = models.BooleanField(verbose_name="Правильный?", default=False)
-
-    class Meta(CRUDEntry.Meta):
-        verbose_name = "Вариант ответа"
-        verbose_name_plural = "Варианты ответов"
-
-    def __str__(self):
-        return self.text
 
 
 class TestSubmission(CRUDEntry):

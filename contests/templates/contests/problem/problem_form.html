@@ -28,8 +28,14 @@
     {{ form.media }}
     {% render_field form.title class+="form-control" %}
     {% render_field form.description class+="form-control" %}
+    {% render_field form.type class+="form-control selectpicker" %}
     {% render_field form.number class+="form-control" %}
+    {% render_field form.score_max class+="form-control" %}
     {% render_field form.difficulty class+="form-control selectpicker" %}
+    {% endwith %}
+
+    {% if type == 'Program' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.language class+="form-control selectpicker" %}
     {% render_field form.compile_args class+="form-control" %}
     {% render_field form.launch_args class+="form-control" %}
@@ -39,6 +45,14 @@
     {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.is_testable class+="custom-control-input" %}
     {% endwith %}
+    {% endif %}
+
+    {% if type == 'Test' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.sub_problems class+="form-control selectpicker" title="..." data-actions-box="true" data-selected-text-format="count > 3" %}
+    {% endwith %}
+    {% endif %}
+
     {% endif %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.files class+="custom-file-input" %}
