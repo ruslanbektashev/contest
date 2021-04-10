@@ -342,11 +342,16 @@ class SubProblem(models.Model):
 
     number = models.PositiveSmallIntegerField(default=Problem.DEFAULT_NUMBER, verbose_name="Номер в тесте")
 
+    objects = SubProblemManager()
+
     class Meta:
         constraints = [models.UniqueConstraint(fields=('problem', 'sub_problem'), name='unique_sub_problem_in_problem')]
         ordering = ('number',)
         verbose_name = "Подзадача теста"
         verbose_name_plural = "Подзадачи теста"
+
+    def __str__(self):
+        return "{} -> {} ({})".format(self.problem, self.sub_problem, self.number)
 
 
 """=============================================== SubmissionPattern ================================================"""

@@ -12,7 +12,7 @@ from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
 from contests.models import (Answer, Assignment, Attachment, Contest, Course, Event, FNTest, Option, Problem, Question,
-                             Submission, SubmissionPattern, Test, TestMembership, UTTest)
+                             SubProblem, Submission, SubmissionPattern, Test, TestMembership, UTTest)
 
 
 class UserChoiceField(forms.ModelChoiceField):
@@ -91,19 +91,19 @@ class AttachmentForm(forms.ModelForm):
         return files
 
     def save(self, commit=True):
-        obj = super().save()
+        instance = super().save(commit)
         if self.files:
             files = self.files.getlist('files')
-            instance_type = ContentType.objects.get_for_model(obj)
+            instance_type = ContentType.objects.get_for_model(instance)
             new_attachments = []
             for file in files:
-                new_attachment = Attachment(owner=obj.owner,
+                new_attachment = Attachment(owner=instance.owner,
                                             object_type=instance_type,
-                                            object_id=obj.id,
+                                            object_id=instance.id,
                                             file=file)
                 new_attachments.append(new_attachment)
             Attachment.objects.bulk_create(new_attachments)
-        return obj
+        return instance
 
 
 """===================================================== Course ====================================================="""
@@ -207,7 +207,31 @@ class ProblemTestForm(ProblemAttachmentForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['type'].disabled = True
-        self.fields['sub_problems'].choices = grouped_problems(None, self.initial['contest'], multiple=True)
+        self.fields['sub_problems'].queryset = Problem.objects.filter(contest=self.initial['contest'],
+                                                                      type__in=['Program', 'Files', 'Text', 'Options'])
+
+    def clean_sub_problems(self):
+        if len(self.cleaned_data['sub_problems']) <= 1:
+            raise ValidationError("Необходимо выбрать как минимум 2 задачи, чтобы сформировать тест",
+                                  code='insufficient_sub_problems')
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.save()
+        first_new_number = SubProblem.objects.get_new_number(instance)
+        old_subproblem_ids = set(SubProblem.objects.filter(problem=instance).values_list('sub_problem', flat=True))
+        new_subproblems = []
+        n = 0
+        for sub_problem_id in self.cleaned_data['sub_problems'].values_list('id', flat=True):
+            if sub_problem_id in old_subproblem_ids:
+                old_subproblem_ids.remove(sub_problem_id)
+            else:
+                new_subproblems.append(SubProblem(problem=instance, sub_problem_id=sub_problem_id,
+                                                  number=first_new_number + n))
+                n += 1
+        instance.sub_problems.remove(*old_subproblem_ids)
+        SubProblem.objects.bulk_create(new_subproblems)
+        return instance
 
 
 class ProblemRollbackResultsForm(forms.Form):

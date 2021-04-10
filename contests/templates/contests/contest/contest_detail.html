@@ -83,13 +83,17 @@
 </div>
 <div class="list-group mb-3">
     {% if perms.contests.add_problem %}
-    <a href="{% url 'contests:problem-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить задачу</a>
-    {% endif %}
-    {% if perms.contests.add_question %}
-    <a href="{% url 'contests:question-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить вопрос</a>
-    {% endif %}
-    {% if perms.contests.add_test %}
-    <a href="{% url 'contests:test-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить тест</a>
+    <a class="list-group-item list-group-item-action dropdown-toggle" href="#" role="button" id="add_problem_menu"
+           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="border-radius: 0.25rem;">
+        <i class="fa fa-plus fa-fw"></i> Добавить задачу
+    </a>
+    <div class="dropdown-menu" aria-labelledby="add_problem_menu">
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Text' %}">С ответом в виде текста</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Files' %}">С ответом в виде файлов</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Program'%}">С ответом в виде программы</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Options' %}">С вариантами ответа</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Test' %}">Тест</a>
+    </div>
     {% endif %}
 </div>
 {% endblock submenu %}

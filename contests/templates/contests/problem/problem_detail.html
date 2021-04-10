@@ -32,7 +32,10 @@
             <div class="card-body">
                 {{ problem.description|markdown|safe }}
                 <table class="table table-sm">
+                    <tr><td class="text-right">Тип</td><td style="width: 20%;">{{ problem.get_type_display }}</td></tr>
+                    <tr><td class="text-right">Максимальная оценка</td><td style="width: 20%;">{{ problem.score_max }}</td></tr>
                     <tr><td class="text-right">Сложность</td><td style="width: 20%;">{{ problem.get_difficulty_display }}</td></tr>
+                    {% if problem.type == 'Program' %}
                     <tr><td class="text-right">Язык</td><td style="width: 20%;">{{ problem.get_language_display }}</td></tr>
                     {% if problem.compile_args %}
                     <tr><td class="text-right">Параметры компиляции</td><td style="width: 20%;"><code>{{ problem.compile_args|default:"-" }}</code></td></tr>
@@ -43,6 +46,7 @@
                     <tr><td class="text-right">Ограничение по времени</td><td style="width: 20%;">{{ problem.time_limit }} с</td></tr>
                     <tr><td class="text-right">Ограничение по памяти</td><td style="width: 20%;">{{ problem.memory_limit|filesizeformat }}</td></tr>
                     <tr><td class="text-right">Доступно для тестирования</td><td style="width: 20%;">{{ problem.is_testable|yesno:'да,нет' }}</td></tr>
+                    {% endif %}
                     {% if latest_submission %}
                     <tr>
                         <td class="text-right">Мой результат</td>
@@ -54,6 +58,7 @@
                     </tr>
                     {% endif %}
                 </table>
+                {% include 'list.html' with lst=problem.sub_problems.all %}
                 {% render_attachment_list problem %}
                 {% if perms.contests.change_problem %}
                 <a href="{% url 'contests:problem-update' problem.id %}?add_files=1" class="btn btn-block btn-light">
@@ -104,7 +109,7 @@
             <h2 class="mb-0">
                 <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
                         data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                    <i class="fa fa-lock fa-fw"></i> Шаблоны посылок
+                    Шаблоны посылок
                 </button>
             </h2>
         </div>
@@ -122,7 +127,7 @@
             <h2 class="mb-0">
                 <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
                         data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
-                    <i class="fa fa-lock fa-fw"></i> Тесты
+                    Тесты
                 </button>
             </h2>
         </div>

@@ -479,7 +479,7 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
-        self.storage['type'] = 'Program'  # request.GET.get('type')
+        self.storage['type'] = kwargs.get('type')
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_class(self):
@@ -528,6 +528,7 @@ class ProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['contest'] = self.object.contest
+        context['type'] = self.object.type
         if self.request.GET.get('add_files') == '1':
             context['add_files'] = True
         return context

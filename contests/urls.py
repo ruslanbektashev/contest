@@ -48,7 +48,7 @@ urlpatterns = [
             path('delete', views.ContestDelete.as_view(), name='contest-delete')
         ]))
     ])),
-    path('contest/<int:contest_id>/problem/create', views.ProblemCreate.as_view(), name='problem-create'),
+    path('contest/<int:contest_id>/problem/create/<str:type>', views.ProblemCreate.as_view(), name='problem-create'),
     path('problem/', include([
         path('<int:pk>/', include([
             path('', views.ProblemDetail.as_view(), name='problem-detail'),
