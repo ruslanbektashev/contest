@@ -538,7 +538,7 @@ class QuestionExtendedForm(forms.ModelForm):
 class OptionForm(forms.ModelForm):
     class Meta:
         model = Option
-        fields = ['text', 'is_right']
+        fields = ['text', 'is_correct']
 
 
 """==================================================== Answer ====================================================="""
