@@ -346,7 +346,7 @@ class SubmissionAttachmentForm(AttachmentForm):
             for submission_pattern in submission_patterns:
                 patterns.extend(submission_pattern.pattern.split())
             if len(patterns) != len(files):
-                raise ValidationError('Количество файлов не соответствует комплекту поставки решения', code='no_match')
+                raise ValidationError("Количество файлов не соответствует комплекту поставки решения", code='no_match')
             label = None
             for f in files:
                 for ptn in patterns:
@@ -356,14 +356,14 @@ class SubmissionAttachmentForm(AttachmentForm):
                         if label is None:
                             label = match.group(1)
                         elif label != match.group(1):
-                            raise ValidationError('Идентификаторы в именах файлов не совпадают',
+                            raise ValidationError("Идентификаторы в именах файлов не совпадают",
                                                   code='label_mismatch')
                         break
                 else:
-                    raise ValidationError('Некорректное имя файла: %(filename)s', code='invalid_filename',
+                    raise ValidationError("Некорректное имя файла: %(filename)s", code='invalid_filename',
                                           params={'filename': f.name})
             if int(label[-2:]) != self.problem.number:
-                raise ValidationError('Идентификатор %(label)s не соответствует комплекту поставки решения',
+                raise ValidationError("Идентификатор %(label)s не соответствует комплекту поставки решения",
                                       code='wrong_label', params={'label': label})
         return files
 
@@ -371,7 +371,7 @@ class SubmissionAttachmentForm(AttachmentForm):
         if self.problem.is_testable:
             last_submission = self.problem.get_latest_submission_by(self.owner)
             if last_submission and last_submission.is_un:
-                raise ValidationError('Последнее присланное решение еще не проверено',
+                raise ValidationError("Последнее присланное решение еще не проверено",
                                       code='last_submission_is_un')
         try:
             assignment = Assignment.objects.get(user=self.owner, problem=self.problem)
@@ -380,7 +380,7 @@ class SubmissionAttachmentForm(AttachmentForm):
         else:
             nsubmissions = Submission.objects.filter(owner=self.owner, problem=self.problem).count()
             if nsubmissions >= assignment.submission_limit:
-                raise ValidationError('Количество попыток исчерпано', code='limit_reached')
+                raise ValidationError("Количество попыток исчерпано", code='limit_reached')
         return super().clean()
 
 
@@ -408,7 +408,7 @@ class SubmissionUpdateForm(forms.ModelForm):
 
     def clean(self):
         if self.instance.problem.is_testable:
-            raise ValidationError('Посылки к этой задаче проверяются автоматически', code='problem_is_testable')
+            raise ValidationError("Посылки к этой задаче проверяются автоматически", code='problem_is_testable')
         return super().clean()
 
 

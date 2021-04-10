@@ -72,10 +72,10 @@ class AccountSetForm(forms.ModelForm):
         for name in names:
             name = name.split()
             if len(name) < 2:
-                raise ValidationError('Неверный формат списка имен', code='wrong_format')
+                raise ValidationError("Неверный формат списка имен", code='wrong_format')
             for i in range(2):
                 if not name[i].isalpha():
-                    raise ValidationError('Фамилия и Имя должны состоять только из букв', code='not_a_letter')
+                    raise ValidationError("Фамилия и Имя должны состоять только из букв", code='not_a_letter')
                 name[i].lower().capitalize()
             cleaned_names.append(name)
         return cleaned_names
@@ -161,7 +161,7 @@ class CommentForm(forms.ModelForm):
     def clean(self):
         parent_id = self.cleaned_data['parent_id']
         if parent_id and not Comment.objects.actual().filter(id=parent_id).exists():
-            raise ValidationError('Нить комментирования отсутствует', code='no_parent')
+            raise ValidationError("Нить комментирования отсутствует", code='no_parent')
         return self.cleaned_data
 
 
