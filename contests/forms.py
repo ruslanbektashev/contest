@@ -208,6 +208,7 @@ class ProblemTestForm(ProblemAttachmentForm):
         if len(self.cleaned_data['sub_problems']) <= 1:
             raise ValidationError("Необходимо выбрать как минимум 2 задачи, чтобы сформировать тест",
                                   code='insufficient_sub_problems')
+        return self.cleaned_data['sub_problems']
 
     def save(self, commit=True):
         instance = super().save(commit=False)
