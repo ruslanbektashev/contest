@@ -24,6 +24,7 @@
     {% render_form_errors form %}
     {% if not add_files %}
     {% render_field form.contest %}
+    {% render_field form.type %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {{ form.media }}
     {% render_field form.title class+="form-control" %}
