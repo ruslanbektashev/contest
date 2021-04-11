@@ -250,6 +250,9 @@ class Problem(CRUDEntry):
     DEFAULT_MEMORY_LIMIT = 64 * 1024
     DEFAULT_NUMBER = 1
     DEFAULT_SCORE_MAX = 100
+    DEFAULT_SCORE_FOR_5 = 90
+    DEFAULT_SCORE_FOR_4 = 75
+    DEFAULT_SCORE_FOR_3 = 50
 
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
     sub_problems = models.ManyToManyField('self', through='SubProblem', through_fields=('problem', 'sub_problem'),
@@ -260,7 +263,10 @@ class Problem(CRUDEntry):
     description = RichTextUploadingField(verbose_name="Описание")
 
     number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер")
-    score_max = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_MAX, verbose_name="Максимальная оценка")
+    score_max = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_MAX, verbose_name="Максимальная оценка в баллах")
+    score_for_5 = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_FOR_5, verbose_name="Баллов для 5")
+    score_for_4 = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_FOR_4, verbose_name="Баллов для 4")
+    score_for_3 = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_FOR_3, verbose_name="Баллов для 3")
     difficulty = models.PositiveSmallIntegerField(choices=DIFFICULTY_CHOICES, default=DEFAULT_DIFFICULTY, verbose_name="Сложность")
     language = models.CharField(max_length=8, choices=LANGUAGE_CHOICES, default=DEFAULT_LANGUAGE, verbose_name="Язык")
     compile_args = models.CharField(max_length=255, blank=True, verbose_name="Параметры компиляции")
@@ -284,6 +290,26 @@ class Problem(CRUDEntry):
     @property
     def files(self):
         return [attachment.file.path for attachment in self.attachment_set.all()]
+
+    def get_assignment_score(self, submission):
+        if self.type == 'Program':
+            score = 2
+            if submission.status == 'OK':
+                score = 4
+            elif submission.status in ['TF', 'TR', 'WA', 'NA']:
+                score = 3
+                if self.contest.course.level in (6, 7):
+                    passed = list(submission.execution_set.values_list('test_is_passed', flat=True).order_by())
+                    if passed.count(True) not in (2, 3, 4):
+                        score = 2
+            return score
+        if submission.score >= self.score_for_5:
+            return 5
+        elif submission.score >= self.score_for_4:
+            return 4
+        elif submission.score >= self.score_for_3:
+            return 3
+        return 2
 
     def get_latest_submission_by(self, user):
         try:
@@ -614,15 +640,9 @@ class Assignment(CRUDEntry):
     def update(self, submission):
         if self.score_is_locked:
             return
-        score = 2
-        if submission.status == 'OK':
-            score = self.score_max - 1
-        elif self.problem.contest.course.level in (6, 7):
-            passed = list(submission.execution_set.values_list('test_is_passed', flat=True).order_by())
-            if passed.count(True) in (2, 3, 4):
-                score = 3
-        if score > self.score:
-            self.score = score
+        score = self.problem.get_assignment_score(submission)
+        if self.score < score:
+            self.score = min(score, self.score_max)
             self.save()
             Activity.objects.on_assignment_updated(self)
 
@@ -709,7 +729,7 @@ class Submission(CRDEntry):
     options = models.ManyToManyField(Option, verbose_name="Варианты ответа")
 
     status = models.CharField(max_length=2, choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
-    score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE, verbose_name="Оценка")
+    score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE, verbose_name="Оценка в баллах")
     text = RichTextField(null=True, blank=True, verbose_name="Текст ответа")
     task_id = models.UUIDField(null=True, blank=True, verbose_name="Идентификатор асинхронной задачи")
     moss_to_submissions = models.CharField(max_length=200, null=True, validators=[validate_comma_separated_integer_list],
@@ -762,7 +782,6 @@ class Submission(CRDEntry):
         self.task_id = None
         self.status = str(state)
         self.save()
-        self.update_assignment()
 
     def evaluate(self, user, observer):
         state = self.inspect(observer)
@@ -785,6 +804,7 @@ class Submission(CRDEntry):
             course_subscribers_ids = self.problem.contest.course.subscription_set.values_list('user_id', flat=True)
             user_ids = list(set(submission_subscribers_ids) & set(course_subscribers_ids))
             Activity.objects.notify_users(user_ids, subject=self.owner, action="отправил посылку", object=self)
+        self.update_assignment()
 
     def __str__(self):
         return "Посылка от %s к задаче %s" % (self.owner.account, self.problem)

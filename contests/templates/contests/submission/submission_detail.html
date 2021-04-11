@@ -22,10 +22,13 @@
     <tr><td class="text-right" style="width: 20%;">По заданию</td><td><a href="{{ submission.assignment.get_absolute_url }}"><span class="numtus status-{{ submission.assignment.score|colorize }}">{{ submission.assignment.score|default:'-' }}</span></a></td></tr>
     {% endif %}
     <tr><td class="text-right" style="width: 20%;">Отправлена</td><td>{{ submission.date_created }}</td></tr>
-    {# <tr><td class="text-right" style="width: 20%;">Проверена</td><td>{{ submission.date_updated|date:'d.m.y, H:i' }}</td></tr> #}
+    <tr><td class="text-right" style="width: 20%;">Проверена</td><td>{{ submission.date_updated }}</td></tr>
+    {% if submission.score > 0 %}
+    <tr><td class="text-right" style="width: 20%;">Оценка в баллах</td><td>{{ submission.score }} из {{ submission.problem.score_max }}</td></tr>
+    {% endif %}
 </table>
 <div class="progress justify-content-center mb-3" style="height: 25px;">
-    <div id="progress-bar" class="progress-bar bg-{{ submission.status|colorize }}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% else %}100{% endif %}%;"></div>
+    <div id="progress-bar" class="progress-bar bg-{% get_submission_style submission %}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% else %}100{% endif %}%;"></div>
     <span class="status-display align-self-center" style="position: absolute;"><strong id="progress-bar-message" style="color: white;">{{ submission.get_status_display }}</strong></span>
 </div>
 {% if not submission.problem.is_testable %}

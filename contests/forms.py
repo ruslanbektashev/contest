@@ -169,12 +169,27 @@ class ProblemAttachmentForm(AttachmentForm):
         fields = []
 
 
-class ProblemProgramForm(ProblemAttachmentForm):
-    class Meta:
-        model = Problem
-        fields = ['contest', 'type', 'title', 'description', 'number', 'score_max', 'difficulty', 'language',
-                  'compile_args', 'launch_args', 'time_limit', 'memory_limit', 'is_testable']
+class ProblemForm(ProblemAttachmentForm):
+    class Meta(ProblemAttachmentForm.Meta):
+        fields = ['contest', 'type', 'title', 'description', 'number', 'score_max', 'score_for_5', 'score_for_4',
+                  'score_for_3', 'difficulty']
         widgets = {'contest': forms.HiddenInput, 'type': forms.HiddenInput}
+
+    def clean(self):
+        if not (self.cleaned_data['score_for_3'] <= self.cleaned_data['score_for_4'] <= self.cleaned_data['score_for_5']):
+            raise ValidationError("Критерии должны быть упорядочены", code='criteria_invalid_order')
+        if self.cleaned_data['score_for_3'] < 1:
+            raise ValidationError("Критерии не могут быть меньше 1", code='criteria_less_than_1')
+        if self.cleaned_data['score_for_5'] > self.cleaned_data['score_max']:
+            raise ValidationError("Критерии не могут быть больше максимального балла",
+                                  code='criteria_exceeds_score_max')
+        return self.cleaned_data
+
+
+class ProblemProgramForm(ProblemForm):
+    class Meta(ProblemForm.Meta):
+        fields = ProblemForm.Meta.fields + ['language', 'compile_args', 'launch_args', 'time_limit', 'memory_limit',
+                                            'is_testable']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -182,22 +197,17 @@ class ProblemProgramForm(ProblemAttachmentForm):
         self.fields['memory_limit'].append_text = "КБайт"
 
 
-class ProblemCommonForm(ProblemAttachmentForm):
-    class Meta:
-        model = Problem
-        fields = ['contest', 'type', 'title', 'description', 'number', 'score_max', 'difficulty']
-        widgets = {'contest': forms.HiddenInput, 'type': forms.HiddenInput}
+class ProblemCommonForm(ProblemForm):
+    pass
 
 
 class OptionsFormSet(BaseInlineFormSet):
     pass
 
 
-class ProblemTestForm(ProblemAttachmentForm):
-    class Meta:
-        model = Problem
-        fields = ['contest', 'sub_problems', 'type', 'title', 'description', 'number', 'score_max', 'difficulty']
-        widgets = {'contest': forms.HiddenInput, 'type': forms.HiddenInput}
+class ProblemTestForm(ProblemForm):
+    class Meta(ProblemForm.Meta):
+        fields = ProblemForm.Meta.fields + ['sub_problems']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -424,6 +434,12 @@ class SubmissionUpdateForm(forms.ModelForm):
     class Meta:
         model = Submission
         fields = ['status', 'score']
+
+    def clean_score(self):
+        if self.cleaned_data['score'] > self.instance.problem.score_max:
+            raise ValidationError("Оценка не может превышать максимальную оценку этой задачи",
+                                  code='score_exceeds_problem_score_max')
+        return self.cleaned_data['score']
 
     def clean(self):
         if self.instance.problem.is_testable:

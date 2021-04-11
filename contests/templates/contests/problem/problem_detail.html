@@ -33,7 +33,10 @@
                 {{ problem.description|markdown|safe }}
                 <table class="table table-sm">
                     <tr><td class="text-right">Тип</td><td style="width: 20%;">{{ problem.get_type_display }}</td></tr>
-                    <tr><td class="text-right">Максимальная оценка</td><td style="width: 20%;">{{ problem.score_max }}</td></tr>
+                    <tr><td class="text-right">Максимальная оценка в баллах</td><td style="width: 20%;">{{ problem.score_max }}</td></tr>
+                    <tr><td class="text-right">Баллов для <span class="numtus status-success">5</span></td><td style="width: 20%;">{{ problem.score_for_5 }}</td></tr>
+                    <tr><td class="text-right">Баллов для <span class="numtus status-success">4</span></td><td style="width: 20%;">{{ problem.score_for_4 }}</td></tr>
+                    <tr><td class="text-right">Баллов для <span class="numtus status-warning">3</span></td><td style="width: 20%;">{{ problem.score_for_3 }}</td></tr>
                     <tr><td class="text-right">Сложность</td><td style="width: 20%;">{{ problem.get_difficulty_display }}</td></tr>
                     {% if problem.type == 'Program' %}
                     <tr><td class="text-right">Язык</td><td style="width: 20%;">{{ problem.get_language_display }}</td></tr>

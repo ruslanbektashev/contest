@@ -31,6 +31,73 @@
     {% render_field form.description class+="form-control" %}
     {% render_field form.number class+="form-control" %}
     {% render_field form.score_max class+="form-control" %}
+    {% endwith %}
+    <div class="form-row">
+        <div class="form-group col-4">
+            <label for="{{ form.score_for_5.id_for_label }}">
+                {{ form.score_for_5.label }}{{ form.score_for_5.label_suffix }}
+            </label>
+            <div class="input-group">
+                {% render_field form.score_for_5 class+="form-control" %}
+                {% if form.score_for_5.field.append_text %}
+                <div class="input-group-append">
+                    <span class="input-group-text">{{ form.score_for_5.field.append_text }}</span>
+                </div>
+                {% endif %}
+                {% if form.score_for_5.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.score_for_5.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% if form.score_for_5.help_text %}
+            <small class="form-text text-muted">{{ form.score_for_5.help_text }}</small>
+            {% endif %}
+        </div>
+        <div class="form-group col-4">
+            <label for="{{ form.score_for_4.id_for_label }}">
+                {{ form.score_for_4.label }}{{ form.score_for_4.label_suffix }}
+            </label>
+            <div class="input-group">
+                {% render_field form.score_for_4 class+="form-control" %}
+                {% if form.score_for_4.field.append_text %}
+                <div class="input-group-append">
+                    <span class="input-group-text">{{ form.score_for_4.field.append_text }}</span>
+                </div>
+                {% endif %}
+                {% if form.score_for_4.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.score_for_4.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% if form.score_for_4.help_text %}
+            <small class="form-text text-muted">{{ form.score_for_4.help_text }}</small>
+            {% endif %}
+        </div>
+        <div class="form-group col-4">
+            <label for="{{ form.score_for_3.id_for_label }}">
+                {{ form.score_for_3.label }}{{ form.score_for_3.label_suffix }}
+            </label>
+            <div class="input-group">
+                {% render_field form.score_for_3 class+="form-control" %}
+                {% if form.score_for_3.field.append_text %}
+                <div class="input-group-append">
+                    <span class="input-group-text">{{ form.score_for_3.field.append_text }}</span>
+                </div>
+                {% endif %}
+                {% if form.score_for_3.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.score_for_3.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% if form.score_for_3.help_text %}
+            <small class="form-text text-muted">{{ form.score_for_3.help_text }}</small>
+            {% endif %}
+        </div>
+    </div>
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.difficulty class+="form-control selectpicker" %}
     {% endwith %}
 
