@@ -174,11 +174,10 @@ class ProblemProgramForm(ProblemAttachmentForm):
         model = Problem
         fields = ['contest', 'type', 'title', 'description', 'number', 'score_max', 'difficulty', 'language',
                   'compile_args', 'launch_args', 'time_limit', 'memory_limit', 'is_testable']
-        widgets = {'contest': forms.HiddenInput}
+        widgets = {'contest': forms.HiddenInput, 'type': forms.HiddenInput}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['type'].disabled = True
         self.fields['time_limit'].append_text = "секунд"
         self.fields['memory_limit'].append_text = "КБайт"
 
@@ -187,11 +186,7 @@ class ProblemCommonForm(ProblemAttachmentForm):
     class Meta:
         model = Problem
         fields = ['contest', 'type', 'title', 'description', 'number', 'score_max', 'difficulty']
-        widgets = {'contest': forms.HiddenInput}
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['type'].disabled = True
+        widgets = {'contest': forms.HiddenInput, 'type': forms.HiddenInput}
 
 
 class OptionsFormSet(BaseInlineFormSet):
@@ -202,11 +197,10 @@ class ProblemTestForm(ProblemAttachmentForm):
     class Meta:
         model = Problem
         fields = ['contest', 'sub_problems', 'type', 'title', 'description', 'number', 'score_max', 'difficulty']
-        widgets = {'contest': forms.HiddenInput}
+        widgets = {'contest': forms.HiddenInput, 'type': forms.HiddenInput}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['type'].disabled = True
         self.fields['sub_problems'].queryset = Problem.objects.filter(contest=self.initial['contest'],
                                                                       type__in=['Program', 'Files', 'Text', 'Options'])
 
