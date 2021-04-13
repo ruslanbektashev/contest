@@ -117,11 +117,12 @@ class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView)
             return AccountPartialForm
 
     def get_initial(self):
+        initial = super().get_initial()
         if self.request.user.has_perm('accounts.change_account'):
-            self.initial['first_name'] = self.object.first_name
-            self.initial['last_name'] = self.object.last_name
-        self.initial['email'] = self.object.email
-        return super().get_initial()
+            initial['first_name'] = self.object.first_name
+            initial['last_name'] = self.object.last_name
+        initial['email'] = self.object.email
+        return initial
 
 
 class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormView):
@@ -273,8 +274,9 @@ class ManageSubscriptions(LoginRequiredMixin, FormView):
     template_name = 'accounts/activity/activity_settings.html'
 
     def get_initial(self):
-        self.initial['object_type'] = list(self.request.user.subscription_set.values_list('object_type', flat=True))
-        return super().get_initial()
+        initial = super().get_initial()
+        initial['object_type'] = list(self.request.user.subscription_set.values_list('object_type', flat=True))
+        return initial
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()

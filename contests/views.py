@@ -348,10 +348,11 @@ class ContestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_initial(self):
-        self.initial['course'] = self.storage['course']
-        self.initial['number'] = Contest.objects.get_new_number(self.storage['course'])
-        self.initial['title'] = "Раздел " + str(self.initial['number'])
-        return super().get_initial()
+        initial = super().get_initial()
+        initial['course'] = self.storage['course']
+        initial['number'] = Contest.objects.get_new_number(self.storage['course'])
+        initial['title'] = "Раздел " + str(initial['number'])
+        return initial
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -502,17 +503,18 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
             return ProblemCommonForm
 
     def get_initial(self):
-        self.initial['contest'] = self.storage['contest']
-        self.initial['type'] = self.storage['type']
-        self.initial['number'] = Problem.objects.get_new_number(self.storage['contest'])
+        initial = super().get_initial()
+        initial['contest'] = self.storage['contest']
+        initial['type'] = self.storage['type']
+        initial['number'] = Problem.objects.get_new_number(self.storage['contest'])
         if self.storage['type'] == 'Program':
-            self.initial['title'] = "Задача "
+            initial['title'] = "Задача "
         elif self.storage['type'] == 'Test':
-            self.initial['title'] = "Тест "
+            initial['title'] = "Тест "
         else:
-            self.initial['title'] = "Вопрос "
-        self.initial['title'] += str(self.initial['number'])
-        return super().get_initial()
+            initial['title'] = "Вопрос "
+        initial['title'] += str(initial['number'])
+        return initial
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
