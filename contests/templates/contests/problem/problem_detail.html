@@ -61,6 +61,13 @@
                     </tr>
                     {% endif %}
                 </table>
+                <ul class="list-group list-group mb-3">
+                    {% for option in problem.option_set.all %}
+                    <li class="list-group-item">
+                        {{ option.text }}
+                    </li>
+                    {% endfor %}
+                </ul>
                 {% include 'list.html' with lst=problem.sub_problems.all %}
                 {% render_attachment_list problem %}
                 {% if perms.contests.change_problem %}
@@ -72,27 +79,6 @@
         </div>
     </div>
     {% if problem.type == 'Options' %}
-    <div class="card">
-        <div class="card-header" id="option_set">
-            <h2 class="mb-0">
-                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
-                        data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
-                    Варианты ответа
-                </button>
-            </h2>
-        </div>
-        <div id="collapseTwo" class="collapse show" aria-labelledby="option_set">
-            <div class="card-body">
-                <ul class="list-group list-group-flush">
-                {% for option in problem.option_set.all %}
-                <li class="list-group-item">
-                    {{ option.text }}
-                </li>
-                {% endfor %}
-                </ul>
-            </div>
-        </div>
-    </div>
     {% endif %}
     <div class="card">
         <div class="card-header" id="contest_description">
