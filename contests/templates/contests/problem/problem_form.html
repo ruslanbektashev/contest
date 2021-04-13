@@ -28,7 +28,23 @@
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {{ form.media }}
     {% render_field form.title class+="form-control" %}
-    {% render_field form.description class+="form-control" %}
+    <div class="form-group">
+        <label for="{{ field.id_for_label }}">
+            {{ form.description.label }}{{ form.description.label_suffix }}
+        </label>
+        {% if form.description.errors %}
+        <div class="form-group">
+            <div class="alert alert-danger">
+                {% for error in form.description.errors %}
+                {{ error }}<br>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        <div class="input-group">
+            {{ form.description }}
+        </div>
+    </div>
     {% render_field form.number class+="form-control" %}
     {% render_field form.score_max class+="form-control" %}
     {% endwith %}
