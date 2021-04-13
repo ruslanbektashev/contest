@@ -201,7 +201,13 @@ class ProblemCommonForm(ProblemForm):
     pass
 
 
-class OptionsFormSet(BaseInlineFormSet):
+class OptionForm(forms.ModelForm):
+    class Meta:
+        model = Option
+        fields = ['text', 'is_correct']
+
+
+class OptionFormSet(BaseInlineFormSet):
     pass
 
 
@@ -565,15 +571,6 @@ class QuestionExtendedForm(forms.ModelForm):
                                       question=instance,
                                       number=self.cleaned_data['number_in_test'])
         return instance
-
-
-"""==================================================== Option ====================================================="""
-
-
-class OptionForm(forms.ModelForm):
-    class Meta:
-        model = Option
-        fields = ['text', 'is_correct']
 
 
 """==================================================== Answer ====================================================="""
