@@ -482,23 +482,14 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     def dispatch(self, request, *args, **kwargs):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
         self.storage['type'] = kwargs.get('type')
-
         if self.storage['type'] == 'Options':
-            OptionFormSet = inlineformset_factory(parent_model=Problem,
-                                                  model=Option,
-                                                  form=OptionForm,
-                                                  fields=('text', 'is_correct'),
-                                                  extra=0,
-                                                  min_num=2,
-                                                  validate_min=True)
-
-            if request.method == 'POST':
-                formset = OptionFormSet(data=request.POST)
-            else:
+            OptionFormSet = inlineformset_factory(parent_model=Problem, model=Option, form=OptionForm,
+                                                  fields=('text', 'is_correct'), extra=0, min_num=2, validate_min=True)
+            if request.method == 'GET':
                 formset = OptionFormSet()
-
+            else:
+                formset = OptionFormSet(data=request.POST, files=request.FILES)
             self.storage['formset'] = formset
-
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_class(self):
@@ -524,9 +515,8 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
-
-        formset = self.storage.get('formset')
-        if formset:
+        if self.storage['type'] == 'Options':
+            formset = self.storage.get('formset')
             if formset.is_valid():
                 self.object = form.save()
                 formset.save()
@@ -534,7 +524,6 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
             else:
                 self.storage['formset'] = formset
                 return self.form_invalid(form)
-
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -559,23 +548,14 @@ class ProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
 
     def dispatch(self, request, *args, **kwargs):
         problem = self.get_object()
-
         if problem.type == 'Options':
-            OptionFormSet = inlineformset_factory(parent_model=Problem,
-                                                  model=Option,
-                                                  form=OptionForm,
-                                                  fields=('text', 'is_correct'),
-                                                  extra=0,
-                                                  min_num=2,
-                                                  validate_min=True)
-
+            OptionFormSet = inlineformset_factory(parent_model=Problem, model=Option, form=OptionForm,
+                                                  fields=('text', 'is_correct'), extra=0, min_num=2, validate_min=True)
             if request.method == 'GET':
                 formset = OptionFormSet(instance=problem)
-            elif request.method in ('POST', 'PUT'):
-                formset = OptionFormSet(request.POST, request.FILES, instance=problem)
-
+            else:
+                formset = OptionFormSet(data=request.POST, files=request.FILES, instance=problem)
             self.storage['formset'] = formset
-
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_class(self):
@@ -589,8 +569,8 @@ class ProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
             return ProblemCommonForm
 
     def form_valid(self, form):
-        formset = self.storage.get('formset')
-        if formset:
+        if self.object.type == 'Options':
+            formset = self.storage.get('formset')
             if formset.is_valid():
                 self.object = form.save()
                 formset.save()
