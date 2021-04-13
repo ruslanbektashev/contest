@@ -483,7 +483,7 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
         self.storage['type'] = kwargs.get('type')
         if self.storage['type'] == 'Options':
-            OptionFormSet = inlineformset_factory(parent_model=Problem, model=Option, form=OptionForm,
+            OptionFormSet = inlineformset_factory(parent_model=Problem, model=Option, form=OptionForm, formset=OptionBaseFormSet,
                                                   fields=('text', 'is_correct'), extra=0, min_num=2, validate_min=True)
             if request.method == 'GET':
                 formset = OptionFormSet()
