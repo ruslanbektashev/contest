@@ -291,6 +291,11 @@ class Problem(CRUDEntry):
     def files(self):
         return [attachment.file.path for attachment in self.attachment_set.all()]
 
+    def save(self, *args, **kwargs):
+        if self.type not in {'Program', 'Options'}:
+            self.is_testable = False
+        return super().save(*args, **kwargs)
+
     def get_assignment_score(self, submission):
         if self.type == 'Program':
             score = 2

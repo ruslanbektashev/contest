@@ -207,8 +207,18 @@ class OptionForm(forms.ModelForm):
         fields = ['text', 'is_correct']
 
 
-class OptionFormSet(BaseInlineFormSet):
-    pass
+class OptionBaseFormSet(BaseInlineFormSet):
+    def clean(self):
+        """Checks that no two articles have the same title."""
+        if any(self.errors):
+            return
+        for form in self.forms:
+            if self.can_delete and self._should_delete_form(form):
+                continue
+            is_correct = form.cleaned_data.get('is_correct')
+            if is_correct:
+                return
+        raise ValidationError("Хотя бы один вариант должен быть отмечен как верный.")
 
 
 class ProblemTestForm(ProblemForm):
@@ -424,6 +434,10 @@ class SubmissionTextForm(forms.ModelForm):
         model = Submission
         fields = ['text']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['text'].required = True
+
 
 class SubmissionOptionsForm(forms.ModelForm):
     class Meta:
@@ -431,9 +445,20 @@ class SubmissionOptionsForm(forms.ModelForm):
         fields = ['options']
 
     def __init__(self, *args, **kwargs):
+        problem = kwargs.pop('problem')
         super().__init__(*args, **kwargs)
-        problem = kwargs.pop('problem', None)
-        self.fields['options'].queryset = problem.option_set.all()
+        options = problem.option_set.all()
+
+        if options.filter(is_correct=True).count() > 1:
+            widget = forms.CheckboxSelectMultiple()
+        else:
+            widget = forms.RadioSelect()
+            widget.allow_multiple_selected = True
+
+        self.fields['options'] = forms.ModelMultipleChoiceField(required=True,
+                                                                label="Варианты",
+                                                                queryset=options,
+                                                                widget=widget)
 
 
 class SubmissionUpdateForm(forms.ModelForm):

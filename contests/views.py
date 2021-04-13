@@ -23,10 +23,10 @@ from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin,
                             PaginatorMixin)
 from contests.forms import (AnswerCheckForm, AnswerForm, AssignmentForm, AssignmentSetForm, AssignmentUpdateForm,
-                            ContestForm, ContestPartialForm, CourseForm, CreditSetForm, EventForm, FNTestForm,
+                            ContestForm, ContestPartialForm, CourseForm, CreditSetForm, EventForm, FNTestForm, OptionBaseFormSet,
                             OptionForm, ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm,
                             ProblemRollbackResultsForm, ProblemTestForm, QuestionExtendedForm, QuestionForm,
-                            QuestionSetForm, SubmissionAttachmentForm, SubmissionMossForm, SubmissionPatternForm,
+                            QuestionSetForm, SubmissionAttachmentForm, SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm,
                             SubmissionUpdateForm, TestForm, TestMembershipForm, UTTestForm)
 from contests.models import (Answer, Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, Filter,
                              IOTest, Lecture, Option, Problem, Question, Submission, SubmissionPattern, Test,
@@ -487,6 +487,7 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
             OptionFormSet = inlineformset_factory(parent_model=Problem,
                                                   model=Option,
                                                   form=OptionForm,
+                                                  formset=OptionBaseFormSet,
                                                   fields=('text', 'is_correct'),
                                                   extra=0,
                                                   min_num=2,
@@ -529,6 +530,7 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         if formset:
             if formset.is_valid():
                 self.object = form.save()
+                formset.instance = self.object
                 formset.save()
                 return HttpResponseRedirect(self.get_success_url())
             else:
@@ -1129,7 +1131,6 @@ class SubmissionAttachment(LoginRedirectPermissionRequiredMixin, AttachmentDetai
 
 class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Submission
-    form_class = SubmissionAttachmentForm
     template_name = 'contests/submission/submission_form.html'
     permission_required = 'contests.add_submission'
 
@@ -1143,9 +1144,20 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['owner'] = self.request.user
-        kwargs['problem'] = self.storage['problem']
+        if self.storage['problem'].type in {'Program', 'Options'}:
+            kwargs['problem'] = self.storage['problem']
+        if self.storage['problem'].type == 'Program':
+            kwargs['owner'] = self.request.user
         return kwargs
+
+    def get_form_class(self):
+        problem = self.storage['problem']
+        if problem.type == 'Text':
+            return SubmissionTextForm
+        elif problem.type == 'Options':
+            return SubmissionOptionsForm
+        else:
+            return SubmissionAttachmentForm
 
     def form_valid(self, form):
         form.instance.owner = self.request.user

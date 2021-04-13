@@ -15,8 +15,15 @@
 
 {% block content %}
 <legend>Отправить решение</legend>
+
+{% if problem.type == 'Text' or problem.type == 'Options' or problem.type == 'Files' %}
+<p>{{ problem.description }}</p>
+{% endif %}
+
 <form action="" id="submission-form" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}
+    {% if problem.type == 'Program' %}
+
     <div class="alert alert-warning" role="alert">
         Решения компилируются средствами gcc под операционной системой семейства Linux.<br>
         Некоторые ошибки компиляции могут быть связаны с различием компиляторов.<br>
@@ -33,6 +40,20 @@
     {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.files class+="custom-file-input"%}
     {% endwith %}
+
+    {% elif problem.type == 'Text' %}
+
+    {{ form.media }}
+    {% render_form_errors form %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+        {% render_field form.text class+="form-control" %}
+    {% endwith %}
+
+    {% elif problem.type == 'Options' %}
+
+    {{ form.options }}
+
+    {% endif %}
     {% render_submit_button value="Отправить" %}
 </form>
 {% endblock content %}
