@@ -127,43 +127,42 @@
 
     {% if type == 'Options' %}
     <h5 class="mb-3">Варианты ответа</h5>
-        {{ formset.management_form }}
-        {% if formset.non_form_errors %}
-        <div class="form-group">
-            <div class="alert alert-danger">
-                {% for error in formset.non_form_errors %}
-                {{ error }}<br>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-        <div id="formset_wrapper">
-            {% for form in formset %}
-            {% for hidden in form.hidden_fields %}
-            {{ hidden }}
+    {{ formset.management_form }}
+    {% if formset.non_form_errors %}
+    <div class="form-group">
+        <div class="alert alert-danger">
+            {% for error in formset.non_form_errors %}
+            {{ error }}<br>
             {% endfor %}
-            <div class="card mb-3">
-                <div class="card-body">
-                    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-                    {% render_field form.text class+="form-control" %}
-                    {% endwith %}
-                    <div class="form-check form-check-inline">
-                        <label>
-                            {{ form.is_correct }}
-                            {{ form.is_correct.label }}
-                        </label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <label>
-                            {{ form.DELETE }}
-                            Не добавлять
-                        </label>
-                    </div>
+        </div>
+    </div>
+    {% endif %}
+    <div id="formset_wrapper">
+        {% for form in formset %}
+        {% for hidden in form.hidden_fields %}
+        {{ hidden }}
+        {% endfor %}
+        <div class="card mb-3">
+            <div class="card-body">
+                {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+                {% render_field form.text class+="form-control" %}
+                {% endwith %}
+                <div class="form-check form-check-inline">
+                    <label>
+                        {{ form.is_correct }}
+                        {{ form.is_correct.label }}
+                    </label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <label>
+                        {{ form.DELETE }}
+                        Не добавлять
+                    </label>
                 </div>
             </div>
-            {% endfor %}
         </div>
-    {% endif %}
+        {% endfor %}
+    </div>
 
     <div id="emptyform_wrapper" style="display: none">
         <div class="card mb-3">
@@ -188,6 +187,7 @@
     </div>
 
     <input type="button" class="btn btn-light border mb-3" value="Добавить ещё вариант" id="add_more">
+    {% endif %}
 
     {% render_submit_button value="Сохранить" %}
 </form>
