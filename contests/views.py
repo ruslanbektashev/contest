@@ -485,7 +485,7 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         if self.storage['type'] == 'Options':
             OptionFormSet = inlineformset_factory(parent_model=Problem, model=Option, form=OptionForm,
                                                   formset=OptionBaseFormSet, fields=('text', 'is_correct'), extra=0,
-                                                  min_num=2, validate_min=True)
+                                                  min_num=2, max_num=20, validate_min=True, validate_max=True)
             if request.method == 'GET':
                 formset = OptionFormSet()
             else:
@@ -553,7 +553,7 @@ class ProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         if problem.type == 'Options':
             OptionFormSet = inlineformset_factory(parent_model=Problem, model=Option, form=OptionForm,
                                                   formset=OptionBaseFormSet, fields=('text', 'is_correct'), extra=0,
-                                                  min_num=2, validate_min=True)
+                                                  min_num=2, max_num=20, validate_min=True, validate_max=True)
             if request.method == 'GET':
                 formset = OptionFormSet(instance=problem)
             else:
