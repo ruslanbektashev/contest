@@ -209,7 +209,6 @@ class OptionForm(forms.ModelForm):
 
 class OptionBaseFormSet(BaseInlineFormSet):
     def clean(self):
-        """Checks that no two articles have the same title."""
         if any(self.errors):
             return
         for form in self.forms:

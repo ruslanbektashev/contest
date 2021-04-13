@@ -31,6 +31,19 @@
         <div id="collapseOne" class="collapse show" aria-labelledby="problem_description">
             <div class="card-body">
                 {{ problem.description|markdown|safe }}
+                {% if problem.type == 'Options' %}
+                <span class="badge badge-light text-muted">Варианты ответа:</span>
+                <ul class="list-group list-group mb-3">
+                    {% for option in problem.option_set.all %}
+                    <li class="list-group-item">
+                        {{ option.text }}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% elif problem.type == 'Test' %}
+                <span class="badge badge-light text-muted">Подзадачи:</span>
+                {% include 'list.html' with lst=problem.sub_problems.all %}
+                {% endif %}
                 <table class="table table-sm">
                     <tr><td class="text-right">Тип</td><td style="width: 20%;">{{ problem.get_type_display }}</td></tr>
                     <tr><td class="text-right">Максимальная оценка в баллах</td><td style="width: 20%;">{{ problem.score_max }}</td></tr>
@@ -61,14 +74,6 @@
                     </tr>
                     {% endif %}
                 </table>
-                <ul class="list-group list-group mb-3">
-                    {% for option in problem.option_set.all %}
-                    <li class="list-group-item">
-                        {{ option.text }}
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% include 'list.html' with lst=problem.sub_problems.all %}
                 {% render_attachment_list problem %}
                 {% if perms.contests.change_problem %}
                 <a href="{% url 'contests:problem-update' problem.id %}?add_files=1" class="btn btn-block btn-light">
@@ -169,11 +174,14 @@
     <a href="{% url 'contests:problem-delete' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить задачу</a>
     {% endif %}
 </div>
+{% if problem.type == 'Program' or problem.type == 'Files' %}
 <div class="list-group mb-3">
     {% if perms.contests.add_submission_pattern %}
     <a href="{% url 'contests:submission-pattern-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить шаблон посылки</a>
     {% endif %}
 </div>
+{% endif %}
+{% if problem.type == 'Program' %}
 <div class="list-group mb-3">
     {% if perms.contests.add_iotest %}
     <a href="{% url 'contests:iotest-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить IO-тест</a>
@@ -185,6 +193,7 @@
     <a href="{% url 'contests:fntest-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить FN-тест</a>
     {% endif %}
 </div>
+{% endif %}
 {% if request.user.account.is_student or request.user.is_superuser %}
 <div class="list-group mb-3">
     {% if perms.contests.add_submission %}
