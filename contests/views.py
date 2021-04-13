@@ -587,7 +587,7 @@ class ProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context['contest'] = self.object.contest
         context['type'] = self.object.type
-        context['formset'] = self.storage['formset']
+        context['formset'] = self.storage.get('formset')
         if self.request.GET.get('add_files') == '1':
             context['add_files'] = True
         return context
