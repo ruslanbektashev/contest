@@ -147,17 +147,13 @@
                 {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
                 {% render_field form.text class+="form-control" %}
                 {% endwith %}
-                <div class="form-check form-check-inline">
-                    <label>
-                        {{ form.is_correct }}
-                        {{ form.is_correct.label }}
-                    </label>
+                <div class="custom-control custom-control-inline custom-checkbox">
+                    {% render_field form.is_correct class+="custom-control-input" %}
+                    <label class="custom-control-label" for="{{ form.is_correct.id_for_label }}">{{ form.is_correct.label }}</label>
                 </div>
-                <div class="form-check form-check-inline">
-                    <label>
-                        {{ form.DELETE }}
-                        Не добавлять
-                    </label>
+                <div class="custom-control custom-control-inline custom-checkbox">
+                    {% render_field form.DELETE class+="custom-control-input" %}
+                    <label class="custom-control-label" for="{{ form.DELETE.id_for_label }}">{{ form.DELETE.label }}</label>
                 </div>
             </div>
         </div>
@@ -170,17 +166,13 @@
                 {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
                 {% render_field formset.empty_form.text class+="form-control" %}
                 {% endwith %}
-                <div class="form-check form-check-inline">
-                    <label>
-                        {{ formset.empty_form.is_correct }}
-                        {{ formset.empty_form.is_correct.label }}
-                    </label>
+                <div class="custom-control custom-control-inline custom-checkbox">
+                    {% render_field formset.empty_form.is_correct class+="custom-control-input" %}
+                    <label class="custom-control-label" for="{{ formset.empty_form.is_correct.id_for_label }}">{{ formset.empty_form.is_correct.label }}</label>
                 </div>
-                <div class="form-check form-check-inline">
-                    <label>
-                        {{ formset.empty_form.DELETE }}
-                        Не добавлять
-                    </label>
+                <div class="custom-control custom-control-inline custom-checkbox">
+                    {% render_field formset.empty_form.DELETE class+="custom-control-input" %}
+                    <label class="custom-control-label" for="{{ formset.empty_form.DELETE.id_for_label }}">{{ formset.empty_form.DELETE.label }}</label>
                 </div>
             </div>
         </div>
@@ -199,14 +191,12 @@
 $(function () {
     bsCustomFileInput.init()
 });
-</script>
-<script>
-    $('#add_more').click(function () {
-      let total_form = $('#id_option_set-TOTAL_FORMS');
-      let form_idx = total_form.val();
+$('#add_more').click(function () {
+    let total_form = $('#id_option_set-TOTAL_FORMS');
+    let form_idx = total_form.val();
 
-      $('#formset_wrapper').append($('#emptyform_wrapper').html().replace(/__prefix__/g, form_idx));
-      total_form.val(parseInt(form_idx)+1);
-    });
+    $('#formset_wrapper').append($('#emptyform_wrapper').html().replace(/__prefix__/g, form_idx));
+    total_form.val(parseInt(form_idx) + 1);
+});
 </script>
 {% endblock javascript %}
