@@ -219,6 +219,14 @@ class OptionBaseFormSet(BaseInlineFormSet):
                 return
         raise ValidationError("Хотя бы один вариант должен быть отмечен как верный.")
 
+    def full_clean(self):
+        super().full_clean()
+        for error in self._non_form_errors.as_data():
+            if error.code == 'too_many_forms':
+                error.message = "Вариантов ответа не может быть больше %d." % self.max_num
+            elif error.code == 'too_few_forms':
+                error.message = "Вариантов ответа должно быть как минимум %d." % self.min_num
+
 
 class ProblemTestForm(ProblemForm):
     class Meta(ProblemForm.Meta):
