@@ -17,7 +17,7 @@
 <legend>Отправить решение</legend>
 
 {% if problem.type == 'Text' or problem.type == 'Options' or problem.type == 'Files' %}
-<p>{{ problem.description }}</p>
+<p>{{ problem.description|safe }}</p>
 {% endif %}
 
 <form action="" id="submission-form" method="post" enctype="multipart/form-data" class="form-horizontal">
@@ -44,10 +44,23 @@
     {% elif problem.type == 'Text' %}
 
     {{ form.media }}
-    {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-        {% render_field form.text class+="form-control" %}
-    {% endwith %}
+    <div class="form-group">
+        <label for="{{ field.id_for_label }}">
+            {{ form.text.label }}{{ form.text.label_suffix }}
+        </label>
+        {% if form.text.errors %}
+        <div class="form-group">
+            <div class="alert alert-danger">
+                {% for error in form.text.errors %}
+                {{ error }}<br>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        <div class="input-group">
+            {{ form.text }}
+        </div>
+    </div>
 
     {% elif problem.type == 'Options' %}
 
