@@ -26,6 +26,9 @@
     {% if submission.score > 0 %}
     <tr><td class="text-right" style="width: 20%;">Оценка в баллах</td><td>{{ submission.score }} из {{ submission.problem.score_max }}</td></tr>
     {% endif %}
+    {% if submission.problem.type == 'Test' %}
+    <tr><td class="text-right" style="width: 20%;">Решено подзадач</td><td>{{ submission.sub_submissions.count }} из {{ submission.problem.sub_problems.count }}</td></tr>
+    {% endif %}
 </table>
 <div class="progress justify-content-center mb-3" style="height: 25px;">
     <div id="progress-bar" class="progress-bar bg-{% get_submission_style submission %}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% else %}100{% endif %}%;"></div>
@@ -84,6 +87,30 @@
     </li>
     {% endfor %}
 </ul>
+{% endif %}
+{% if submission.problem.type == 'Test' %}
+    <div class="table-responsive">
+        <table id="p" class="table table-bordered table-sm mt-0">
+            <thead>
+                <tr>
+                    <th>Задача</th>
+                    <th class="text-center" style="width: 8%;">Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subsubmission in submission.sub_submissions.all %}
+                <tr class="{% if submission.assignment and subsubmission.date_created > submission.assignment.date_updated %}bg-light{% endif %}">
+                    <td><a href="{{ subsubmission.problem.get_absolute_url }}">{{ subsubmission.problem }}</a></td>
+                    <td class="text-center">
+                        <a href="{{ subsubmission.get_absolute_url }}" class="status status-{{ subsubmission.status|colorize }}" title="{{ subsubmission.get_status_display }}">
+                            {{ subsubmission.status }}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endif %}
 <legend>Комментарии</legend>
 {% render_comments submission comments %}
