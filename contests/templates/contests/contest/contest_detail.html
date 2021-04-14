@@ -88,11 +88,11 @@
         <i class="fa fa-plus fa-fw"></i> Добавить задачу
     </a>
     <div class="dropdown-menu" aria-labelledby="add_problem_menu">
-        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Text' %}">С ответом в виде текста</a>
-        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Files' %}">С ответом в виде файлов</a>
-        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Program'%}">С ответом в виде программы</a>
-        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Options' %}">С вариантами ответа</a>
-        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Test' %}">Тест</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Text' %}"><i class="fa fa-keyboard-o fa-fw"></i> С ответом в виде текста</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Files' %}"><i class="fa fa-file-text-o fa-fw"></i> С ответом в виде файлов</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Program'%}"><i class="fa fa-file-code-o fa-fw"></i> С ответом в виде программы</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Options' %}"><i class="fa fa-check-square-o fa-fw"></i> С вариантами ответа</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Test' %}"><i class="fa fa-folder-o fa-fw"></i> Тест</a>
     </div>
     {% endif %}
 </div>
