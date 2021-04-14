@@ -15,8 +15,8 @@ def get_comment_query_string(page):
     return query_string
 
 
-@register.inclusion_tag('accounts/comment/comment_form.html')
-def render_comment_form(obj, parent=None, form=None):
+@register.inclusion_tag('accounts/comment/comment_form.html', takes_context=True)
+def render_comment_form(context, obj, parent=None, form=None):
     if form is None:
         form = CommentForm()
     if obj:
@@ -24,9 +24,7 @@ def render_comment_form(obj, parent=None, form=None):
         form.initial['object_id'] = obj.id
     if parent:
         form.initial['parent_id'] = parent.id
-    context = {
-        'form': form
-    }
+    context['form'] = form
     return context
 
 

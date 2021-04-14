@@ -87,58 +87,55 @@ class ActivityMarkForm(forms.Form):
 
 class MarkdownValidationParser(HTMLParser):
     def error(self, message):
-        raise ValidationError("Разметка временно недоступна. Используйте только текст.")
+        raise ValidationError(message, code='text_markdown_validation_error')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.stack = []
-        self.safe_tags = ['p', 'code', 'pre']
+        self.safe_tags = ['p', 'em', 'strong', 'hr', 'ol', 'ul', 'li', 'a', 'blockquote', 'code', 'br', 'pre']
+        self.safe_attrs = ['href']
 
     def handle_startendtag(self, tag, attrs):
-        self.error('startend tag')
+        if attrs:
+            self.error("Найден недопустимый атрибут {} тэга {}.".format(attrs[0][0], tag))
+        if tag not in self.safe_tags:
+            self.error("Использование тэга {} запрещено.".format(tag))
 
     def handle_starttag(self, tag, attrs):
-        if attrs:
-            self.error('tag attrs')
+        for attr in attrs:
+            if attr[0] not in self.safe_attrs:
+                self.error("Обнаружен недопустимый атрибут {} тэга {}.".format(attrs[0][0], tag))
         if tag not in self.safe_tags:
-            self.error('unsafe tag')
-        self.stack.append(tag)
-        if len(self.stack) > 1:
-            self.error('nested tag: %s' % tag)
+            self.error("Использование тэга {} запрещено.".format(tag))
 
     def handle_endtag(self, tag):
         if tag not in self.safe_tags:
-            self.error('unsafe tag')
-        if not self.stack:
-            self.error('unexpected endtag: %s' % tag)
-        if self.stack.pop() != tag:
-            self.error('unclosed tag')
+            self.error("Использование тэга {} запрещено.".format(tag))
 
     def handle_charref(self, name):
         if name.startswith('x'):
             c = chr(int(name[1:], 16))
         else:
             c = chr(int(name))
-        self.error('char %s' % c)
+        self.error("Обнаружен недопустимый символ {}.".format(c))
 
     def handle_entityref(self, name):
         c = chr(name2codepoint[name])
-        self.error('entity %s' % c)
+        self.error("Обнаружен недопустимый символ {}.".format(c))
 
     def handle_data(self, data):
         pass
 
     def handle_comment(self, data):
-        self.error('comment')
+        self.error("Использование тэга comment запрещено.")
 
     def handle_decl(self, data):
-        self.error('decl %s' % data)
+        self.error("Использование определений запрещено.")
 
     def handle_pi(self, data):
-        self.error('pi %s' % data)
+        self.error("Использование инструкций запрещено.")
 
     def unknown_decl(self, data):
-        self.error('unknown decl %s' % data)
+        self.error("Использование определений запрещено.")
 
 
 class CommentForm(forms.ModelForm):
@@ -147,11 +144,7 @@ class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ('parent_id', 'object_type', 'object_id', 'text')
-        widgets = {
-            'parent_id': forms.HiddenInput,
-            'object_type': forms.HiddenInput,
-            'object_id': forms.HiddenInput
-        }
+        widgets = {'parent_id': forms.HiddenInput, 'object_type': forms.HiddenInput, 'object_id': forms.HiddenInput}
 
     def clean_text(self):
         parser = MarkdownValidationParser()
@@ -161,7 +154,7 @@ class CommentForm(forms.ModelForm):
     def clean(self):
         parent_id = self.cleaned_data['parent_id']
         if parent_id and not Comment.objects.actual().filter(id=parent_id).exists():
-            raise ValidationError("Нить комментирования отсутствует", code='no_parent')
+            raise ValidationError("Нить комментирования отсутствует.", code='no_parent')
         return self.cleaned_data
 
 

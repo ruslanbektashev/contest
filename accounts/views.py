@@ -1,5 +1,6 @@
 import json
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, JsonResponse
@@ -348,16 +349,23 @@ class CommentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         try:
             self.storage['parent'] = Comment.objects.get(id=kwargs.pop('pk', 0))
         except Comment.DoesNotExist:
-            pass
+            self.storage['parent'] = None
         return super().dispatch(*args, **kwargs)
 
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
+    def form_invalid(self, form):
+        if not form.instance.parent_id:
+            messages.warning(self.request, "<br/>".join(form.errors['text']))
+            return HttpResponseRedirect(form.instance.object.get_discussion_url())
+        else:
+            return super().form_invalid(form)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['parent'] = self.storage.get('parent', None)
+        context['parent'] = self.storage['parent']
         return context
 
     def get_success_url(self):
