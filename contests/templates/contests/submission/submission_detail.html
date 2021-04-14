@@ -45,6 +45,7 @@
 <div class="accordion mb-3" id="execution_list">
     {% render_execution_list submission.execution_set.all %}
 </div>
+{% if submission.problem.type == 'Program' or submission.problem.type == 'Files' %}
 <div class="text-right text-muted">
     {% if perms.contests.download_submission %}
     <p class="text-warning text-break" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>директория на сервере: {{ submission.attachment_set.all.0.dirname }}</p>
@@ -69,6 +70,21 @@
     </span>
     {% endfor %}
 </div>
+{% endif %}
+{% if submission.problem.type == 'Text' %}
+<p>
+    {{ submission.text|safe }}
+</p>
+{% endif %}
+{% if submission.problem.type == 'Options' %}
+<ul class="list-group mb-3">
+    {% for option in submission.problem.option_set.all %}
+    <li class="list-group-item {% if option in submission.options.all %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
+        {% if option in submission.options.all %}{% if option.is_correct %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% else %}<i class="fa fa-times-circle-o" aria-hidden="true"></i>{% endif %}{% endif %} {{ option.text }}
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
 <legend>Комментарии</legend>
 {% render_comments submission comments %}
 {% endblock content %}
