@@ -798,6 +798,12 @@ class Submission(CRDEntry):
         if self.assignment is not None:
             self.assignment.update(self)
 
+    def update_options_score(self):
+        correct_option_ids = set(self.problem.option_set.filter(is_correct=True).values_list('id', flat=True))
+        option_ids = set(self.options.values_list('id', flat=True))
+        self.score = len(correct_option_ids & option_ids) * self.problem.score_max // len(correct_option_ids)
+        super().save(update_fields=['score'])
+
     def get_discussion_url(self):
         return self.get_absolute_url()
 
