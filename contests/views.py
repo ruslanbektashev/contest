@@ -1122,7 +1122,21 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['problem'] = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
+        problem = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
+        self.storage['problem'] = problem
+
+        main_submission_id = kwargs.pop('submission_id', None)
+        if main_submission_id:
+            main_submission = get_object_or_404(Submission, id=main_submission_id)
+            self.storage['main_submission'] = main_submission
+            current_problem = problem.sub_problems.exclude(submission__in=main_submission.sub_submissions.all()).first()
+            if not current_problem:
+                return HttpResponseRedirect(reverse('contests:submission-detail', kwargs={'pk': main_submission.id}))
+            self.storage['problem'] = current_problem
+        elif problem.type == 'Test':
+            self.storage['main_problem'] = problem
+            self.storage['problem'] = problem.sub_problems.first()
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -1145,10 +1159,22 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.owner = self.request.user
         form.instance.problem = self.storage['problem']
+
         try:
             form.instance.assignment = Assignment.objects.get(user=self.request.user, problem=self.storage['problem'])
         except Assignment.DoesNotExist:
             pass
+
+        main_problem = self.storage.get('main_problem')
+        if main_problem:
+            self.storage['main_submission'] = Submission.objects.create(
+                problem=main_problem,
+                owner=self.request.user,
+                assignment=Assignment.objects.filter(user=self.request.user, problem=main_problem).first(),
+            )
+
+        form.instance.main_submission = self.storage.get('main_submission')
+
         self.object = form.save()
         if self.storage['problem'].is_testable:
             task = evaluate_submission.delay(self.object.pk, self.request.user.id)
@@ -1161,6 +1187,13 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['problem'] = self.storage['problem']
         return context
+
+    def get_success_url(self):
+        main_submission = self.storage.get('main_submission')
+        if main_submission:
+            return reverse('contests:submission-continue',
+                           kwargs={'problem_id': main_submission.problem.id, 'submission_id': main_submission.id})
+        return super().get_success_url()
 
 
 class SubmissionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
