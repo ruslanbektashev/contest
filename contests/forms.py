@@ -442,8 +442,26 @@ class SubmissionTextForm(forms.ModelForm):
         fields = ['text']
 
     def __init__(self, *args, **kwargs):
+        kwargs.pop('owner', None)
+        kwargs.pop('problem', None)
         super().__init__(*args, **kwargs)
         self.fields['text'].required = True
+
+
+class SubmissionFilesForm(AttachmentForm):
+    FILES_MIN = 1
+    FILES_SIZE_LIMIT = 10 * 1024 * 1024
+    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx',
+                                '.ppt', '.pptx', '.pdf', '.png', '.jpg', '.jpeg', '.bmp']
+
+    class Meta:
+        model = Submission
+        fields = []
+
+    def __init__(self, *args, **kwargs):
+        self.owner = kwargs.pop('owner', None)
+        self.problem = kwargs.pop('problem', None)
+        super().__init__(*args, **kwargs)
 
 
 class SubmissionOptionsForm(forms.ModelForm):
@@ -452,6 +470,7 @@ class SubmissionOptionsForm(forms.ModelForm):
         fields = ['options']
 
     def __init__(self, *args, **kwargs):
+        kwargs.pop('owner', None)
         problem = kwargs.pop('problem')
         super().__init__(*args, **kwargs)
         options = problem.option_set.all()

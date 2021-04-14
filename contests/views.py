@@ -26,8 +26,8 @@ from contests.forms import (AnswerCheckForm, AnswerForm, AssignmentForm, Assignm
                             ContestForm, ContestPartialForm, CourseForm, CreditSetForm, EventForm, FNTestForm, OptionBaseFormSet,
                             OptionForm, ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm,
                             ProblemRollbackResultsForm, ProblemTestForm, QuestionExtendedForm, QuestionForm,
-                            QuestionSetForm, SubmissionAttachmentForm, SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm,
-                            SubmissionUpdateForm, TestForm, TestMembershipForm, UTTestForm)
+                            QuestionSetForm, SubmissionAttachmentForm, SubmissionFilesForm, SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm,
+                            SubmissionTextForm, SubmissionUpdateForm, TestForm, TestMembershipForm, UTTestForm)
 from contests.models import (Answer, Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, Filter,
                              IOTest, Lecture, Option, Problem, Question, Submission, SubmissionPattern, Test,
                              TestMembership, TestSubmission, UTTest)
@@ -1127,10 +1127,8 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        if self.storage['problem'].type in {'Program', 'Options'}:
-            kwargs['problem'] = self.storage['problem']
-        if self.storage['problem'].type == 'Program':
-            kwargs['owner'] = self.request.user
+        kwargs['owner'] = self.request.user
+        kwargs['problem'] = self.storage['problem']
         return kwargs
 
     def get_form_class(self):
@@ -1139,6 +1137,8 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
             return SubmissionTextForm
         elif problem.type == 'Options':
             return SubmissionOptionsForm
+        elif problem.type == 'Files':
+            return SubmissionFilesForm
         else:
             return SubmissionAttachmentForm
 

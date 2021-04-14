@@ -23,12 +23,12 @@
 <form action="" id="submission-form" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}
     {% if problem.type == 'Program' %}
-
     <div class="alert alert-warning" role="alert">
         Решения компилируются средствами gcc под операционной системой семейства Linux.<br>
         Некоторые ошибки компиляции могут быть связаны с различием компиляторов.<br>
         Принимаются файлы только с кодировкой UTF-8.<br>
     </div>
+    {% endif %}
     {% if problem.submission_patterns.exists %}
     <div class="alert alert-info" role="contentinfo">
         {% for submission_pattern in problem.submission_patterns.all %}
@@ -36,12 +36,20 @@
         {% endfor %}
     </div>
     {% endif %}
+    {% if problem.type == 'Files' %}
+    <div class="alert alert-info" role="alert">
+        Прикрепите файл(ы) в качестве ответа.
+    </div>
+    {% endif %}
+
+    {% if problem.type == 'Program' or problem.type == 'Files' %}
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.files class+="custom-file-input"%}
     {% endwith %}
+    {% endif %}
 
-    {% elif problem.type == 'Text' %}
+    {% if problem.type == 'Text' %}
 
     {{ form.media }}
     <div class="form-group">
