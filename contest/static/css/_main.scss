@@ -131,3 +131,8 @@ label {
 .comment-timesince:hover > .comment-naturaltime {
     display: none;
 }
+
+#activity_settings #id_object_type {
+    list-style-type: none;
+    padding: 0;
+}
