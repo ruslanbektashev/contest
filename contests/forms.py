@@ -451,8 +451,7 @@ class SubmissionTextForm(forms.ModelForm):
 class SubmissionFilesForm(AttachmentForm):
     FILES_MIN = 1
     FILES_SIZE_LIMIT = 10 * 1024 * 1024
-    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx',
-                                '.ppt', '.pptx', '.pdf', '.png', '.jpg', '.jpeg', '.bmp']
+    FILES_ALLOWED_EXTENSIONS = ['.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf', '.png', '.jpg', '.jpeg']
 
     class Meta:
         model = Submission

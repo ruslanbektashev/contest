@@ -22,7 +22,9 @@
     <tr><td class="text-right" style="width: 20%;">По заданию</td><td><a href="{{ submission.assignment.get_absolute_url }}"><span class="numtus status-{{ submission.assignment.score|colorize }}">{{ submission.assignment.score|default:'-' }}</span></a></td></tr>
     {% endif %}
     <tr><td class="text-right" style="width: 20%;">Отправлена</td><td>{{ submission.date_created }}</td></tr>
+    {% if submission.date_updated %}
     <tr><td class="text-right" style="width: 20%;">Проверена</td><td>{{ submission.date_updated }}</td></tr>
+    {% endif %}
     {% if submission.score > 0 %}
     <tr><td class="text-right" style="width: 20%;">Оценка в баллах</td><td>{{ submission.score }} из {{ submission.problem.score_max }}</td></tr>
     {% endif %}
@@ -75,9 +77,11 @@
 </div>
 {% endif %}
 {% if submission.problem.type == 'Text' %}
-<p>
-    {{ submission.text|safe }}
-</p>
+<div class="card">
+    <div class="card-body">
+        {{ submission.text|safe }}
+    </div>
+</div>
 {% endif %}
 {% if submission.problem.type == 'Options' %}
 <ul class="list-group mb-3">
@@ -89,28 +93,28 @@
 </ul>
 {% endif %}
 {% if submission.problem.type == 'Test' %}
-    <div class="table-responsive">
-        <table id="p" class="table table-bordered table-sm mt-0">
-            <thead>
-                <tr>
-                    <th>Задача</th>
-                    <th class="text-center" style="width: 8%;">Статус</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for subsubmission in submission.sub_submissions.all %}
-                <tr class="{% if submission.assignment and subsubmission.date_created > submission.assignment.date_updated %}bg-light{% endif %}">
-                    <td><a href="{{ subsubmission.problem.get_absolute_url }}">{{ subsubmission.problem }}</a></td>
-                    <td class="text-center">
-                        <a href="{{ subsubmission.get_absolute_url }}" class="status status-{{ subsubmission.status|colorize }}" title="{{ subsubmission.get_status_display }}">
-                            {{ subsubmission.status }}
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div class="table-responsive">
+    <table id="p" class="table table-sm">
+        <thead>
+            <tr>
+                <th>Подзадача теста</th>
+                <th class="text-center" style="width: 8%;">Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for subsubmission in submission.sub_submissions.all %}
+            <tr class="{% if submission.assignment and subsubmission.date_created > submission.assignment.date_updated %}bg-light{% endif %}">
+                <td><a href="{{ subsubmission.problem.get_absolute_url }}">{{ subsubmission.problem }}</a></td>
+                <td class="text-center">
+                    <a href="{{ subsubmission.get_absolute_url }}" class="status status-{{ subsubmission.status|colorize }}" title="{{ subsubmission.get_status_display }}">
+                        {{ subsubmission.status }}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endif %}
 <legend>Комментарии</legend>
 {% render_comments submission comments %}

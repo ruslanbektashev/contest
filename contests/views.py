@@ -1176,7 +1176,7 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         form.instance.main_submission = self.storage.get('main_submission')
 
         self.object = form.save()
-        if self.storage['problem'].is_testable:
+        if self.object.problem.type == 'Program' and self.object.problem.is_testable:
             task = evaluate_submission.delay(self.object.pk, self.request.user.id)
             self.object.task_id = task.id
             self.object.save()
