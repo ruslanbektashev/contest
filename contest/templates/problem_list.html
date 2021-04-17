@@ -1,0 +1,39 @@
+{% if queryset.exists %}
+<div class="list-group mb-3">
+    {% for problem in queryset.texts %}
+    <a href="{{ problem.get_absolute_url }}" class="list-group-item list-group-item-action" title="{{ problem.get_type_display }}">
+        {{ problem }}<span class="pull-right"><i class="fa fa-keyboard-o"></i></span>
+    </a>
+    {% endfor %}
+</div>
+<div class="list-group mb-3">
+    {% for problem in queryset.files %}
+    <a href="{{ problem.get_absolute_url }}" class="list-group-item list-group-item-action" title="{{ problem.get_type_display }}">
+        {{ problem }}<span class="pull-right"><i class="fa fa-file-text-o"></i></span>
+    </a>
+    {% endfor %}
+</div>
+<div class="list-group mb-3">
+    {% for problem in queryset.options %}
+    <a href="{{ problem.get_absolute_url }}" class="list-group-item list-group-item-action" title="{{ problem.get_type_display }}">
+        {{ problem }}<span class="pull-right"><i class="fa fa-check-square-o"></i></span>
+    </a>
+    {% endfor %}
+</div>
+<div class="list-group mb-3">
+    {% for problem in queryset.programs %}
+    <a href="{{ problem.get_absolute_url }}" class="list-group-item list-group-item-action" title="{{ problem.get_type_display }}">
+        {{ problem }}<span class="pull-right"><i class="fa fa-file-code-o"></i></span>
+    </a>
+    {% endfor %}
+</div>
+<div class="list-group mb-3">
+    {% for problem in queryset.tests %}
+    <a href="{{ problem.get_absolute_url }}" class="list-group-item list-group-item-action" title="{{ problem.get_type_display }}">
+        {{ problem }}<span class="pull-right"><i class="fa fa-folder-o"></i></span>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info mb-0" role="alert">Задачи еще не добавлены</div>
+{% endif %}

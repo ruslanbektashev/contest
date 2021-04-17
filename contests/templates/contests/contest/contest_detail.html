@@ -50,22 +50,7 @@
         </div>
         <div id="collapseTwo" class="collapse show" aria-labelledby="contest_problems">
             <div class="card-body">
-                {% include 'list.html' with lst=contest.problem_set.all mb=0 warn_if_empty="Задачи еще не добавлены" %}
-            </div>
-        </div>
-    </div>
-    <div class="card">
-        <div class="card-header" id="contest_questions">
-            <h2 class="mb-0">
-                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
-                        data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
-                    Вопросы
-                </button>
-            </h2>
-        </div>
-        <div id="collapseThree" class="collapse show" aria-labelledby="contest_questions">
-            <div class="card-body">
-                {% include 'list.html' with lst=contest.question_set.all mb=0 warn_if_empty="Вопросы еще не добавлены" %}
+                {% include 'problem_list.html' with queryset=contest.problem_set %}
             </div>
         </div>
     </div>

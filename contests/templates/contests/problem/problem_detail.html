@@ -32,7 +32,7 @@
             <div class="card-body">
                 {{ problem.description|markdown|safe }}
                 {% if problem.type == 'Options' %}
-                <span class="badge badge-light text-muted">Варианты ответа:</span>
+                <h6 class="text-muted">Варианты ответа:</h6>
                 <ul class="list-group list-group mb-3">
                     {% for option in problem.option_set.all %}
                     <li class="list-group-item">
@@ -41,8 +41,8 @@
                     {% endfor %}
                 </ul>
                 {% elif problem.type == 'Test' %}
-                <span class="badge badge-light text-muted">Подзадачи:</span>
-                {% include 'list.html' with lst=problem.sub_problems.all %}
+                <h6 class="text-muted">Подзадачи:</h6>
+                {% include 'problem_list.html' with queryset=problem.sub_problems %}
                 {% endif %}
                 <table class="table table-sm">
                     <tr><td class="text-right">Тип</td><td style="width: 20%;">{{ problem.get_type_display }}</td></tr>

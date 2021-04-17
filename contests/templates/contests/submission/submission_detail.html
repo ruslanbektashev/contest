@@ -36,7 +36,7 @@
     <div id="progress-bar" class="progress-bar bg-{% get_submission_style submission %}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% else %}100{% endif %}%;"></div>
     <span class="status-display align-self-center" style="position: absolute;"><strong id="progress-bar-message" style="color: white;">{{ submission.get_status_display }}</strong></span>
 </div>
-{% if not submission.problem.is_testable %}
+{% if not submission.problem.type == 'Program' or not submission.problem.is_testable %}
 {% if perms.contests.change_submission %}
 <a href="{% url 'contests:submission-update' submission.id %}{% if from_url %}?from={{ from_url }}{% endif %}" class="btn btn-light btn-block border mb-3">Изменить статус</a>
 {% else %}
@@ -77,6 +77,7 @@
 </div>
 {% endif %}
 {% if submission.problem.type == 'Text' %}
+<h6 class="text-muted">Ответ:</h6>
 <div class="card">
     <div class="card-body">
         {{ submission.text|safe }}
@@ -84,6 +85,7 @@
 </div>
 {% endif %}
 {% if submission.problem.type == 'Options' %}
+<h6 class="text-muted">Ответ:</h6>
 <ul class="list-group mb-3">
     {% for option in submission.problem.option_set.all %}
     <li class="list-group-item {% if option in submission.options.all %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">

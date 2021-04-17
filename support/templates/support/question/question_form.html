@@ -18,7 +18,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if question %}Редактирование{% else %}Задание{% endif %} вопроса</legend>
+<legend>{% if question %}Редактирование вопроса{% else %}Задайте вопрос{% endif %}</legend>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_form_errors form %}

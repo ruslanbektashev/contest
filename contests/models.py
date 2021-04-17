@@ -218,6 +218,23 @@ class Contest(CRUDEntry):
 """==================================================== Problem ====================================================="""
 
 
+class ProblemQuerySet(models.QuerySet):
+    def programs(self):
+        return self.filter(type='Program')
+
+    def texts(self):
+        return self.filter(type='Text')
+
+    def files(self):
+        return self.filter(type='Files')
+
+    def options(self):
+        return self.filter(type='Options')
+
+    def tests(self):
+        return self.filter(type='Test')
+
+
 class ProblemManager(models.Manager):
     def get_new_number(self, contest):
         return (self.filter(contest=contest).aggregate(models.Max('number')).get('number__max') or 0) + 1
@@ -279,7 +296,7 @@ class Problem(CRUDEntry):
     comment_set = GenericRelation(Comment, content_type_field='object_type')
     subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
-    objects = ProblemManager()
+    objects = ProblemManager.from_queryset(ProblemQuerySet)()
 
     class Meta(CRUDEntry.Meta):
         unique_together = ('contest', 'number')

@@ -463,6 +463,16 @@ class SubmissionFilesForm(AttachmentForm):
         super().__init__(*args, **kwargs)
 
 
+class OptionsCheckboxSelect(forms.CheckboxSelectMultiple):
+    template_name = 'forms/widgets/checkbox_select.html'
+    option_template_name = 'forms/widgets/checkbox_option.html'
+
+
+class OptionsRadioSelect(forms.RadioSelect):
+    template_name = 'forms/widgets/radio_select.html'
+    option_template_name = 'forms/widgets/radio_option.html'
+
+
 class SubmissionOptionsForm(forms.ModelForm):
     class Meta:
         model = Submission
@@ -473,16 +483,12 @@ class SubmissionOptionsForm(forms.ModelForm):
         problem = kwargs.pop('problem')
         super().__init__(*args, **kwargs)
         options = problem.option_set.all()
-
         if options.filter(is_correct=True).count() > 1:
-            widget = forms.CheckboxSelectMultiple()
+            widget = OptionsCheckboxSelect()
         else:
-            widget = forms.RadioSelect()
+            widget = OptionsRadioSelect()
             widget.allow_multiple_selected = True
-
-        self.fields['options'] = forms.ModelMultipleChoiceField(required=True,
-                                                                label="Варианты",
-                                                                queryset=options,
+        self.fields['options'] = forms.ModelMultipleChoiceField(required=True, label="Варианты",  queryset=options,
                                                                 widget=widget)
 
 

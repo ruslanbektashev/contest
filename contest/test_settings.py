@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'django.forms',
     'pagedown',
     'accounts',
     'contests',
@@ -64,6 +65,7 @@ TEMPLATES = [
         },
     },
 ]
+FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
 WSGI_APPLICATION = 'contest.wsgi.application'
 

@@ -56,4 +56,9 @@
     <a href="{% url 'contests:filter-table' %}" class="list-group-item list-group-item-action"><i class="fa fa-bookmark fa-fw"></i> Фильтры</a>
     {% endif %}
 </div>
+<div class="list-group mb-3">
+    {% if perms.contests.add_course %}
+    <a href="{% url 'contests:course-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить курс</a>
+    {% endif %}
+</div>
 {% endblock submenu %}

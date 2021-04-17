@@ -1250,7 +1250,7 @@ class SubmissionEvaluate(LoginRedirectOwnershipOrPermissionRequiredMixin, Update
     def get(self, request, *args, **kwargs):
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
             self.object = self.get_object()
-        if self.object.problem.is_testable:
+        if self.object.problem.type == 'Program' and self.object.problem.is_testable:
             task = evaluate_submission.delay(self.object.pk, request.user.id)
             self.object.task_id = task.id
             self.object.save()
