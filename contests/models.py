@@ -646,13 +646,6 @@ class Assignment(CRUDEntry):
         verbose_name = "Задание"
         verbose_name_plural = "Задания"
 
-    @property
-    def test(self):
-        try:
-            return self.problem.test
-        except Test.DoesNotExist:
-            return None
-
     def get_latest_submission(self):
         return self.problem.get_latest_submission_by(self.user)
 
