@@ -18,9 +18,8 @@ class ScheduleForm(forms.ModelForm):
         date_from = self.cleaned_data.get('date_from')
         current_year = timezone.now().year
         if (date_from.year < current_year) or (date_from.year > current_year + 1):
-            raise ValidationError('Расписание можно добавить только для текущего %(valid_year)s года',
-                                  code='invalid_year',
-                                  params={'valid_year': current_year})
+            raise ValidationError("Расписание можно добавить только для текущего %(valid_year)s года",
+                                  code='invalid_year', params={'valid_year': current_year})
         return date_from
 
     def clean_date_to(self):
@@ -34,9 +33,9 @@ class ScheduleForm(forms.ModelForm):
         date_to = cleaned_data.get('date_to')
         if date_from and date_to:
             if date_from >= date_to:
-                self.add_error('date_from', ValidationError('Выбран противоречивый интервал', code='invalid_interval'))
+                self.add_error('date_from', ValidationError("Выбран противоречивый интервал", code='invalid_interval'))
             if date_from + timedelta(days=31) < date_to:
-                self.add_error('date_from', ValidationError('Выбран слишком большой интервал', code='invalid_interval'))
+                self.add_error('date_from', ValidationError("Выбран слишком большой интервал", code='invalid_interval'))
         return self.cleaned_data
 
 
@@ -52,13 +51,12 @@ class ScheduleAttachmentForm(forms.ModelForm):
     def clean_file(self):
         file = self.cleaned_data.get('file')
         if file.size > self.FILE_SIZE_LIMIT:
-            raise ValidationError('Размер файла не должен превышать %(files_size_limit)s',
-                                  code='large_file',
-                                  params={'files_size_limit': filesizeformat(self.FILE_SIZE_LIMIT)})
+            raise ValidationError("Размер файла не должен превышать %(files_size_limit)s",
+                                  code='large_file', params={'files_size_limit': filesizeformat(self.FILE_SIZE_LIMIT)})
         filename = os.path.splitext(file.name)
         if not filename[1].lower() in self.FILE_ALLOWED_EXTENSIONS:
             if not filename[0].startswith(self.FILE_ALLOWED_NAMES):
-                raise ValidationError('Допустимы только файлы с расширениями: %(files_allowed_extensions)s',
+                raise ValidationError("Допустимы только файлы с расширениями: %(files_allowed_extensions)s",
                                       code='invalid_extension',
                                       params={'files_allowed_extensions': ', '.join(self.FILE_ALLOWED_EXTENSIONS)})
         return file

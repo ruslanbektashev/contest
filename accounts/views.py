@@ -1,5 +1,6 @@
 import json
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, JsonResponse
@@ -117,11 +118,12 @@ class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView)
             return AccountPartialForm
 
     def get_initial(self):
+        initial = super().get_initial()
         if self.request.user.has_perm('accounts.change_account'):
-            self.initial['first_name'] = self.object.first_name
-            self.initial['last_name'] = self.object.last_name
-        self.initial['email'] = self.object.email
-        return super().get_initial()
+            initial['first_name'] = self.object.first_name
+            initial['last_name'] = self.object.last_name
+        initial['email'] = self.object.email
+        return initial
 
 
 class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormView):
@@ -273,8 +275,9 @@ class ManageSubscriptions(LoginRequiredMixin, FormView):
     template_name = 'accounts/activity/activity_settings.html'
 
     def get_initial(self):
-        self.initial['object_type'] = list(self.request.user.subscription_set.values_list('object_type', flat=True))
-        return super().get_initial()
+        initial = super().get_initial()
+        initial['object_type'] = list(self.request.user.subscription_set.values_list('object_type', flat=True))
+        return initial
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
@@ -346,16 +349,23 @@ class CommentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         try:
             self.storage['parent'] = Comment.objects.get(id=kwargs.pop('pk', 0))
         except Comment.DoesNotExist:
-            pass
+            self.storage['parent'] = None
         return super().dispatch(*args, **kwargs)
 
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
+    def form_invalid(self, form):
+        if not form.instance.parent_id:
+            messages.warning(self.request, "<br/>".join(form.errors['text']))
+            return HttpResponseRedirect(form.instance.object.get_discussion_url())
+        else:
+            return super().form_invalid(form)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['parent'] = self.storage.get('parent', None)
+        context['parent'] = self.storage['parent']
         return context
 
     def get_success_url(self):

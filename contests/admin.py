@@ -2,8 +2,9 @@ from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericStackedInline
 
 from contests.forms import CourseForm
-from contests.models import (Answer, Attachment, Course, Credit, Lecture, Contest, Option, Problem, SubmissionPattern, IOTest, Question, Test, TestMembership, TestSubmission, UTTest, FNTest,
-                             Assignment, Submission, Execution, Tag, Event)
+from contests.models import (Answer, Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, IOTest,
+                             Lecture, Option, Problem, Question, Submission, SubmissionPattern, Tag, Test,
+                             TestMembership, TestSubmission, UTTest)
 
 
 class AttachmentInline(GenericStackedInline):

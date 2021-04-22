@@ -100,6 +100,12 @@ class Course(CRUDEntry):
     def get_discussion_url(self):
         return reverse('contests:course-discussion', kwargs={'pk': self.pk})
 
+    def save(self, *args, **kwargs):
+        created = self._state.adding
+        super().save(*args, **kwargs)
+        if created:
+            Filter.objects.get_or_create(user=self.owner, course=self)
+
     def __str__(self):
         return "%s" % self.title
 
@@ -179,10 +185,7 @@ class Lecture(CRUDEntry):
 
 class ContestManager(models.Manager):
     def get_new_number(self, course):
-        max_number = self.filter(course=course).aggregate(models.Max('number')).get('number__max', 0)
-        if max_number is None:
-            return 1
-        return max_number + 1
+        return (self.filter(course=course).aggregate(models.Max('number')).get('number__max') or 0) + 1
 
 
 class Contest(CRUDEntry):
@@ -221,37 +224,72 @@ class Contest(CRUDEntry):
 """==================================================== Problem ====================================================="""
 
 
+class ProblemQuerySet(models.QuerySet):
+    def programs(self):
+        return self.filter(type='Program')
+
+    def texts(self):
+        return self.filter(type='Text')
+
+    def files(self):
+        return self.filter(type='Files')
+
+    def options(self):
+        return self.filter(type='Options')
+
+    def tests(self):
+        return self.filter(type='Test')
+
+
 class ProblemManager(models.Manager):
     def get_new_number(self, contest):
-        max_number = self.filter(contest=contest).aggregate(models.Max('number')).get('number__max', 0)
-        if max_number is None:
-            return 1
-        return max_number + 1
+        return (self.filter(contest=contest).aggregate(models.Max('number')).get('number__max') or 0) + 1
 
 
 class Problem(CRUDEntry):
+    TYPE_CHOICES = (
+        ('Program', "Способ ответа: программа"),
+        ('Text', "Способ ответа: текст"),
+        ('Files', "Способ ответа: файлы"),
+        ('Options', "Способ ответа: варианты"),
+        ('Test', "Тест"),
+    )
+
     DIFFICULTY_CHOICES = (
         (0, "Легкая"),
         (1, "Средняя"),
         (2, "Сложная"),
         (3, "Очень сложная")
     )
-    DEFAULT_DIFFICULTY = 0
+
     LANGUAGE_CHOICES = (
         ('C++', "C++"),
         ('C', "C")
     )
+
+    DEFAULT_DIFFICULTY = 0
     DEFAULT_LANGUAGE = 'C++'
     DEFAULT_TIME_LIMIT = 1
     DEFAULT_MEMORY_LIMIT = 64 * 1024
     DEFAULT_NUMBER = 1
+    DEFAULT_SCORE_MAX = 100
+    DEFAULT_SCORE_FOR_5 = 90
+    DEFAULT_SCORE_FOR_4 = 75
+    DEFAULT_SCORE_FOR_3 = 50
 
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, verbose_name="Раздел")
+    sub_problems = models.ManyToManyField('self', through='SubProblem', through_fields=('problem', 'sub_problem'),
+                                          symmetrical=False, verbose_name="Подзадачи")
 
+    type = models.CharField(max_length=8, choices=TYPE_CHOICES, verbose_name="Тип")
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     description = RichTextUploadingField(verbose_name="Описание")
 
     number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер")
+    score_max = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_MAX, verbose_name="Максимальная оценка в баллах")
+    score_for_5 = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_FOR_5, verbose_name="Баллов для 5")
+    score_for_4 = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_FOR_4, verbose_name="Баллов для 4")
+    score_for_3 = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_FOR_3, verbose_name="Баллов для 3")
     difficulty = models.PositiveSmallIntegerField(choices=DIFFICULTY_CHOICES, default=DEFAULT_DIFFICULTY, verbose_name="Сложность")
     language = models.CharField(max_length=8, choices=LANGUAGE_CHOICES, default=DEFAULT_LANGUAGE, verbose_name="Язык")
     compile_args = models.CharField(max_length=255, blank=True, verbose_name="Параметры компиляции")
@@ -264,7 +302,7 @@ class Problem(CRUDEntry):
     comment_set = GenericRelation(Comment, content_type_field='object_type')
     subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
-    objects = ProblemManager()
+    objects = ProblemManager.from_queryset(ProblemQuerySet)()
 
     class Meta(CRUDEntry.Meta):
         unique_together = ('contest', 'number')
@@ -275,6 +313,31 @@ class Problem(CRUDEntry):
     @property
     def files(self):
         return [attachment.file.path for attachment in self.attachment_set.all()]
+
+    def save(self, *args, **kwargs):
+        if self.type not in {'Program', 'Options'}:
+            self.is_testable = False
+        super().save(*args, **kwargs)
+
+    def get_assignment_score(self, submission):
+        if self.type == 'Program':
+            score = 2
+            if submission.status == 'OK':
+                score = 4
+            elif submission.status in ['TF', 'TR', 'WA', 'NA']:
+                score = 3
+                if self.contest.course.level in (6, 7):
+                    passed = list(submission.execution_set.values_list('test_is_passed', flat=True).order_by())
+                    if passed.count(True) not in (2, 3, 4):
+                        score = 2
+            return score
+        if submission.score >= self.score_for_5:
+            return 5
+        elif submission.score >= self.score_for_4:
+            return 4
+        elif submission.score >= self.score_for_3:
+            return 3
+        return 2
 
     def get_latest_submission_by(self, user):
         try:
@@ -304,6 +367,45 @@ class Problem(CRUDEntry):
 
     def __str__(self):
         return "#%i. %s" % (self.number, self.title)
+
+
+"""===================================================== Option ====================================================="""
+
+
+class Option(models.Model):
+    problem = models.ForeignKey(Problem, on_delete=models.CASCADE, verbose_name="Задача")
+
+    text = models.CharField(verbose_name="Текст", max_length=250)
+    is_correct = models.BooleanField(verbose_name="Верный?", default=False)
+
+    def __str__(self):
+        return self.text
+
+
+"""=================================================== SubProblem ==================================================="""
+
+
+class SubProblemManager(models.Manager):
+    def get_new_number(self, problem):
+        return (self.filter(problem=problem).aggregate(models.Max('number')).get('number__max') or 0) + 1
+
+
+class SubProblem(models.Model):
+    problem = models.ForeignKey(Problem, on_delete=models.CASCADE, verbose_name="Тест")
+    sub_problem = models.ForeignKey(Problem, on_delete=models.CASCADE, related_name='+', verbose_name="Задача")
+
+    number = models.PositiveSmallIntegerField(default=Problem.DEFAULT_NUMBER, verbose_name="Номер в тесте")
+
+    objects = SubProblemManager()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=('problem', 'sub_problem'), name='unique_sub_problem_in_problem')]
+        ordering = ('number',)
+        verbose_name = "Подзадача теста"
+        verbose_name_plural = "Подзадачи теста"
+
+    def __str__(self):
+        return "{} -> {} ({})".format(self.problem, self.sub_problem, self.number)
 
 
 """=============================================== SubmissionPattern ================================================"""
@@ -493,10 +595,10 @@ class AssignmentQuerySet(models.QuerySet):
 
 
 class AssignmentManager(models.Manager):
-    def create_random_set(self, owner, contest, limit_per_user, debts=False):
+    def create_random_set(self, owner, contest, type, limit_per_user, debts=False):
         """ create random set of assignments with problems of given contest
             aligning their number to limit_per_user for contest.course.level students """
-        problem_ids = contest.problem_set.order_by('number').values_list('id', flat=True)
+        problem_ids = contest.problem_set.filter(type=type).order_by('number').values_list('id', flat=True)
         if debts:
             user_ids = Account.students.enrolled().debtors(contest.course).values_list('user_id', flat=True)
         else:
@@ -550,13 +652,6 @@ class Assignment(CRUDEntry):
         verbose_name = "Задание"
         verbose_name_plural = "Задания"
 
-    @property
-    def test(self):
-        try:
-            return self.problem.test
-        except Test.DoesNotExist:
-            return None
-
     def get_latest_submission(self):
         return self.problem.get_latest_submission_by(self.user)
 
@@ -566,15 +661,9 @@ class Assignment(CRUDEntry):
     def update(self, submission):
         if self.score_is_locked:
             return
-        score = 2
-        if submission.status == 'OK':
-            score = self.score_max - 1
-        elif self.problem.contest.course.level in (6, 7):
-            passed = list(submission.execution_set.values_list('test_is_passed', flat=True).order_by())
-            if passed.count(True) in (2, 3, 4):
-                score = 3
-        if score > self.score:
-            self.score = score
+        score = self.problem.get_assignment_score(submission)
+        if self.score < score:
+            self.score = min(score, self.score_max)
             self.save()
             Activity.objects.on_assignment_updated(self)
 
@@ -652,11 +741,17 @@ class Submission(CRDEntry):
         ('UN', "Посылка не проверена")
     )
     DEFAULT_STATUS = 'UN'
+    DEFAULT_SCORE = 0
 
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE, verbose_name="Задача")
     assignment = models.ForeignKey(Assignment, on_delete=models.SET_NULL, null=True, verbose_name="Задание")
+    main_submission = models.ForeignKey('self', on_delete=models.CASCADE, null=True, related_name="sub_submissions",
+                                        verbose_name="Подпосылки")
+    options = models.ManyToManyField(Option, verbose_name="Варианты ответа")
 
     status = models.CharField(max_length=2, choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
+    score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE, verbose_name="Оценка в баллах")
+    text = RichTextField(null=True, blank=True, verbose_name="Текст ответа")
     task_id = models.UUIDField(null=True, blank=True, verbose_name="Идентификатор асинхронной задачи")
     moss_to_submissions = models.CharField(max_length=200, null=True, validators=[validate_comma_separated_integer_list],
                                            verbose_name="С посылками MOSS")
@@ -708,7 +803,6 @@ class Submission(CRDEntry):
         self.task_id = None
         self.status = str(state)
         self.save()
-        self.update_assignment()
 
     def evaluate(self, user, observer):
         state = self.inspect(observer)
@@ -719,6 +813,12 @@ class Submission(CRDEntry):
     def update_assignment(self):
         if self.assignment is not None:
             self.assignment.update(self)
+
+    def update_options_score(self):
+        correct_option_ids = set(self.problem.option_set.filter(is_correct=True).values_list('id', flat=True))
+        option_ids = set(self.options.values_list('id', flat=True))
+        self.score = len(correct_option_ids & option_ids) * self.problem.score_max // len(correct_option_ids)
+        super().save(update_fields=['score'])
 
     def get_discussion_url(self):
         return self.get_absolute_url()
@@ -731,6 +831,7 @@ class Submission(CRDEntry):
             course_subscribers_ids = self.problem.contest.course.subscription_set.values_list('user_id', flat=True)
             user_ids = list(set(submission_subscribers_ids) & set(course_subscribers_ids))
             Activity.objects.notify_users(user_ids, subject=self.owner, action="отправил посылку", object=self)
+        self.update_assignment()
 
     def __str__(self):
         return "Посылка от %s к задаче %s" % (self.owner.account, self.problem)
@@ -945,22 +1046,6 @@ class TestMembership(CRUDEntry):
 
     def __str__(self):
         return "Привязка задачи {} к тесту {}".format(self.question.number, self.test)
-
-
-class Option(CRUDEntry):
-    owner = None
-
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Задача")
-
-    text = models.CharField(verbose_name="Текст", max_length=250)
-    is_right = models.BooleanField(verbose_name="Правильный?", default=False)
-
-    class Meta(CRUDEntry.Meta):
-        verbose_name = "Вариант ответа"
-        verbose_name_plural = "Варианты ответов"
-
-    def __str__(self):
-        return self.text
 
 
 class TestSubmission(CRUDEntry):

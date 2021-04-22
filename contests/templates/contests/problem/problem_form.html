@@ -24,12 +24,101 @@
     {% render_form_errors form %}
     {% if not add_files %}
     {% render_field form.contest %}
+    {% render_field form.type %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {{ form.media }}
     {% render_field form.title class+="form-control" %}
-    {% render_field form.description class+="form-control" %}
+    <div class="form-group">
+        <label for="{{ field.id_for_label }}">
+            {{ form.description.label }}{{ form.description.label_suffix }}
+        </label>
+        {% if form.description.errors %}
+        <div class="form-group">
+            <div class="alert alert-danger">
+                {% for error in form.description.errors %}
+                {{ error }}<br>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        <div class="input-group">
+            {{ form.description }}
+        </div>
+    </div>
     {% render_field form.number class+="form-control" %}
+    {% render_field form.score_max class+="form-control" %}
+    {% endwith %}
+    <div class="form-row">
+        <div class="form-group col-4">
+            <label for="{{ form.score_for_5.id_for_label }}">
+                {{ form.score_for_5.label }}{{ form.score_for_5.label_suffix }}
+            </label>
+            <div class="input-group">
+                {% render_field form.score_for_5 class+="form-control" %}
+                {% if form.score_for_5.field.append_text %}
+                <div class="input-group-append">
+                    <span class="input-group-text">{{ form.score_for_5.field.append_text }}</span>
+                </div>
+                {% endif %}
+                {% if form.score_for_5.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.score_for_5.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% if form.score_for_5.help_text %}
+            <small class="form-text text-muted">{{ form.score_for_5.help_text }}</small>
+            {% endif %}
+        </div>
+        <div class="form-group col-4">
+            <label for="{{ form.score_for_4.id_for_label }}">
+                {{ form.score_for_4.label }}{{ form.score_for_4.label_suffix }}
+            </label>
+            <div class="input-group">
+                {% render_field form.score_for_4 class+="form-control" %}
+                {% if form.score_for_4.field.append_text %}
+                <div class="input-group-append">
+                    <span class="input-group-text">{{ form.score_for_4.field.append_text }}</span>
+                </div>
+                {% endif %}
+                {% if form.score_for_4.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.score_for_4.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% if form.score_for_4.help_text %}
+            <small class="form-text text-muted">{{ form.score_for_4.help_text }}</small>
+            {% endif %}
+        </div>
+        <div class="form-group col-4">
+            <label for="{{ form.score_for_3.id_for_label }}">
+                {{ form.score_for_3.label }}{{ form.score_for_3.label_suffix }}
+            </label>
+            <div class="input-group">
+                {% render_field form.score_for_3 class+="form-control" %}
+                {% if form.score_for_3.field.append_text %}
+                <div class="input-group-append">
+                    <span class="input-group-text">{{ form.score_for_3.field.append_text }}</span>
+                </div>
+                {% endif %}
+                {% if form.score_for_3.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.score_for_3.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% if form.score_for_3.help_text %}
+            <small class="form-text text-muted">{{ form.score_for_3.help_text }}</small>
+            {% endif %}
+        </div>
+    </div>
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.difficulty class+="form-control selectpicker" %}
+    {% endwith %}
+
+    {% if type == 'Program' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.language class+="form-control selectpicker" %}
     {% render_field form.compile_args class+="form-control" %}
     {% render_field form.launch_args class+="form-control" %}
@@ -40,9 +129,74 @@
     {% render_field form.is_testable class+="custom-control-input" %}
     {% endwith %}
     {% endif %}
+
+    {% if type == 'Test' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.sub_problems class+="form-control selectpicker" title="..." data-actions-box="true" data-selected-text-format="count > 3" %}
+    {% endwith %}
+    {% endif %}
+
+    {% endif %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.files class+="custom-file-input" %}
     {% endwith %}
+
+    {% if type == 'Options' %}
+    <h5 class="mb-3">Варианты ответа</h5>
+    {{ formset.management_form }}
+    {% if formset.non_form_errors %}
+    <div class="form-group">
+        <div class="alert alert-danger">
+            {% for error in formset.non_form_errors %}
+            {{ error }}<br>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    <div id="formset_wrapper">
+        {% for form in formset %}
+        {% for hidden in form.hidden_fields %}
+        {{ hidden }}
+        {% endfor %}
+        <div class="card mb-3">
+            <div class="card-body">
+                {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+                {% render_field form.text class+="form-control" %}
+                {% endwith %}
+                <div class="custom-control custom-control-inline custom-checkbox">
+                    {% render_field form.is_correct class+="custom-control-input" %}
+                    <label class="custom-control-label" for="{{ form.is_correct.id_for_label }}">{{ form.is_correct.label }}</label>
+                </div>
+                <div class="custom-control custom-control-inline custom-checkbox">
+                    {% render_field form.DELETE class+="custom-control-input" %}
+                    <label class="custom-control-label" for="{{ form.DELETE.id_for_label }}">{{ form.DELETE.label }}</label>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="emptyform_wrapper" class="d-none">
+        <div class="card mb-3">
+            <div class="card-body">
+                {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+                {% render_field formset.empty_form.text class+="form-control" %}
+                {% endwith %}
+                <div class="custom-control custom-control-inline custom-checkbox">
+                    {% render_field formset.empty_form.is_correct class+="custom-control-input" %}
+                    <label class="custom-control-label" for="{{ formset.empty_form.is_correct.id_for_label }}">{{ formset.empty_form.is_correct.label }}</label>
+                </div>
+                <div class="custom-control custom-control-inline custom-checkbox">
+                    {% render_field formset.empty_form.DELETE class+="custom-control-input" %}
+                    <label class="custom-control-label" for="{{ formset.empty_form.DELETE.id_for_label }}">{{ formset.empty_form.DELETE.label }}</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="button" class="btn btn-light border mb-3" value="Добавить ещё вариант" id="add_more">
+    {% endif %}
+
     {% render_submit_button value="Сохранить" %}
 </form>
 {% endblock content %}
@@ -52,6 +206,13 @@
 <script type="text/javascript">
 $(function () {
     bsCustomFileInput.init()
+});
+$('#add_more').click(function () {
+    let total_form = $('#id_option_set-TOTAL_FORMS');
+    let form_idx = total_form.val();
+
+    $('#formset_wrapper').append($('#emptyform_wrapper').html().replace(/__prefix__/g, form_idx));
+    total_form.val(parseInt(form_idx) + 1);
 });
 </script>
 {% endblock javascript %}

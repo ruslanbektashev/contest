@@ -47,6 +47,13 @@ def colorize(value):
 
 
 @register.simple_tag()
+def get_submission_style(submission):
+    if submission.status == 'UN':
+        return 'info'
+    return colorize(submission.status)
+
+
+@register.simple_tag()
 def get_assignment_style(assignment):
     if assignment.latest_submission_status == 'UN' and assignment.latest_submission_date_created > assignment.date_updated:
         return 'info'

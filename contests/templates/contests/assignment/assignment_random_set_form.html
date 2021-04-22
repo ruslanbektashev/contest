@@ -19,6 +19,7 @@
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.contest class+="form-control selectpicker" %}
+    {% render_field form.type class+="form-control selectpicker" %}
     {% render_field form.limit_per_user class+="form-control selectpicker" %}
     {% endwith %}
     {% render_submit_button value="Распределить" %}

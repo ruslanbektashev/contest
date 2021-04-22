@@ -31,8 +31,68 @@
         <div id="collapseOne" class="collapse show" aria-labelledby="problem_description">
             <div class="card-body">
                 {{ problem.description|markdown|safe }}
+                {% if problem.type == 'Options' %}
+                <h6 class="text-muted">Варианты ответа:</h6>
+                <ul class="list-group list-group mb-3">
+                    {% for option in problem.option_set.all %}
+                    <li class="list-group-item">
+                        {{ option.text }}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% elif problem.type == 'Test' %}
+                <h6 class="text-muted">Подзадачи:</h6>
+                {% for subproblem in subproblems %}
+                <div class="card mb-3">
+                    <div class="card-header bg-white d-flex align-items-center">
+                        <small class="mr-3" title="Номер в тесте">{{ subproblem.number }}</small>
+                        {% if subproblem.sub_problem.title %}
+                        <small class="mr-auto" title="Перейти к задаче">
+                            <a href="{% url 'contests:problem-detail' subproblem.sub_problem.id %}" class="card-link">
+                                {{ subproblem.sub_problem.title }}
+                            </a>
+                        </small>
+                        {% endif %}
+                        <small>{{ subproblem.sub_problem.get_type_display }}</small>
+                    </div>
+                    <div class="card-body">
+                        {{ subproblem.sub_problem.description|safe }}
+                        {% if subproblem.sub_problem.option_set.exists %}
+                        <h6 class="text-muted">Варианты ответа:</h6>
+                        <div class="card">
+                            <ul class="list-group list-group-flush">
+                                {% for option in subproblem.sub_problem.option_set.all %}
+                                <li class="list-group-item">{{ option.text }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if perms.contests.change_subproblem or perms.contests.delete_subproblem %}
+                    <div class="card-footer d-flex align-items-center">
+                        {% if perms.contests.change_subproblem %}
+                        <a href="{% url 'contests:subproblem-update' subproblem.id %}" class="card-link mr-auto" title="Изменить номер">
+                            <i class="fa fa-edit fa-fw"></i>
+                        </a>
+                        {% endif %}
+                        {% if perms.contests.delete_subproblem %}
+                        <a href="{% url 'contests:subproblem-delete' subproblem.id %}" class="card-link text-danger" title="Удалить из теста">
+                            <i class="fa fa-remove fa-fw"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% endif %}
                 <table class="table table-sm">
+                    <tr><td class="text-right">Тип</td><td style="width: 20%;">{{ problem.get_type_display }}</td></tr>
+                    <tr><td class="text-right">Максимальная оценка в баллах</td><td style="width: 20%;">{{ problem.score_max }}</td></tr>
+                    <tr><td class="text-right">Баллов для <span class="numtus status-success">5</span></td><td style="width: 20%;">{{ problem.score_for_5 }}</td></tr>
+                    <tr><td class="text-right">Баллов для <span class="numtus status-success">4</span></td><td style="width: 20%;">{{ problem.score_for_4 }}</td></tr>
+                    <tr><td class="text-right">Баллов для <span class="numtus status-warning">3</span></td><td style="width: 20%;">{{ problem.score_for_3 }}</td></tr>
                     <tr><td class="text-right">Сложность</td><td style="width: 20%;">{{ problem.get_difficulty_display }}</td></tr>
+                    {% if problem.type == 'Program' %}
                     <tr><td class="text-right">Язык</td><td style="width: 20%;">{{ problem.get_language_display }}</td></tr>
                     {% if problem.compile_args %}
                     <tr><td class="text-right">Параметры компиляции</td><td style="width: 20%;"><code>{{ problem.compile_args|default:"-" }}</code></td></tr>
@@ -43,6 +103,7 @@
                     <tr><td class="text-right">Ограничение по времени</td><td style="width: 20%;">{{ problem.time_limit }} с</td></tr>
                     <tr><td class="text-right">Ограничение по памяти</td><td style="width: 20%;">{{ problem.memory_limit|filesizeformat }}</td></tr>
                     <tr><td class="text-right">Доступно для тестирования</td><td style="width: 20%;">{{ problem.is_testable|yesno:'да,нет' }}</td></tr>
+                    {% endif %}
                     {% if latest_submission %}
                     <tr>
                         <td class="text-right">Мой результат</td>
@@ -63,16 +124,18 @@
             </div>
         </div>
     </div>
+    {% if problem.type == 'Options' %}
+    {% endif %}
     <div class="card">
         <div class="card-header" id="contest_description">
             <h2 class="mb-0">
                 <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
-                        data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+                        data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
                     Описание раздела
                 </button>
             </h2>
         </div>
-        <div id="collapseTwo" class="collapse show" aria-labelledby="contest_description">
+        <div id="collapseThree" class="collapse show" aria-labelledby="contest_description">
             <div class="card-body">
                 {{ problem.contest.description|markdown|safe }}
                 {% render_attachment_list problem.contest %}
@@ -83,12 +146,12 @@
         <div class="card-header" id="problem_submissions">
             <h2 class="mb-0">
                 <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
-                        data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
+                        data-target="#collapseFour" aria-expanded="true" aria-controls="collapseFour">
                     Посылки
                 </button>
             </h2>
         </div>
-        <div id="collapseThree" class="collapse show" aria-labelledby="problem_submissions">
+        <div id="collapseFour" class="collapse show" aria-labelledby="problem_submissions">
             {% if submissions %}
             {% include 'contests/submission/submission_table.html' with borderless=True %}
             {% else %}
@@ -103,12 +166,12 @@
         <div class="card-header" id="problem_submission_patterns">
             <h2 class="mb-0">
                 <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
-                        data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                    <i class="fa fa-lock fa-fw"></i> Шаблоны посылок
+                        data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                    Шаблоны посылок
                 </button>
             </h2>
         </div>
-        <div id="collapseFour" class="collapse" aria-labelledby="problem_submission_patterns">
+        <div id="collapseFive" class="collapse" aria-labelledby="problem_submission_patterns">
             <div class="card-body">
                 <div class="alert alert-warning">Доступно только преподавателям</div>
                 {% include 'list.html' with lst=problem.submission_patterns.all mb=0 warn_if_empty="Шаблоны посылки еще не добавлены" %}
@@ -121,12 +184,12 @@
         <div class="card-header" id="problem_tests">
             <h2 class="mb-0">
                 <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
-                        data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
-                    <i class="fa fa-lock fa-fw"></i> Тесты
+                        data-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                    Тесты
                 </button>
             </h2>
         </div>
-        <div id="collapseFive" class="collapse" aria-labelledby="problem_tests">
+        <div id="collapseSix" class="collapse" aria-labelledby="problem_tests">
             <div class="card-body">
                 <div class="alert alert-warning">Доступно только преподавателям</div>
                 {% if problem.iotest_set.exists or problem.uttest_set.exists or problem.fntest_set.exists %}
@@ -152,11 +215,14 @@
     <a href="{% url 'contests:problem-delete' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить задачу</a>
     {% endif %}
 </div>
+{% if problem.type == 'Program' or problem.type == 'Files' %}
 <div class="list-group mb-3">
     {% if perms.contests.add_submission_pattern %}
     <a href="{% url 'contests:submission-pattern-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить шаблон посылки</a>
     {% endif %}
 </div>
+{% endif %}
+{% if problem.type == 'Program' %}
 <div class="list-group mb-3">
     {% if perms.contests.add_iotest %}
     <a href="{% url 'contests:iotest-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить IO-тест</a>
@@ -168,6 +234,7 @@
     <a href="{% url 'contests:fntest-create' problem.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить FN-тест</a>
     {% endif %}
 </div>
+{% endif %}
 {% if request.user.account.is_student or request.user.is_superuser %}
 <div class="list-group mb-3">
     {% if perms.contests.add_submission %}

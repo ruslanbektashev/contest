@@ -22,13 +22,21 @@
     <tr><td class="text-right" style="width: 20%;">По заданию</td><td><a href="{{ submission.assignment.get_absolute_url }}"><span class="numtus status-{{ submission.assignment.score|colorize }}">{{ submission.assignment.score|default:'-' }}</span></a></td></tr>
     {% endif %}
     <tr><td class="text-right" style="width: 20%;">Отправлена</td><td>{{ submission.date_created }}</td></tr>
-    {# <tr><td class="text-right" style="width: 20%;">Проверена</td><td>{{ submission.date_updated|date:'d.m.y, H:i' }}</td></tr> #}
+    {% if submission.date_updated %}
+    <tr><td class="text-right" style="width: 20%;">Проверена</td><td>{{ submission.date_updated }}</td></tr>
+    {% endif %}
+    {% if submission.score > 0 %}
+    <tr><td class="text-right" style="width: 20%;">Оценка в баллах</td><td>{{ submission.score }} из {{ submission.problem.score_max }}</td></tr>
+    {% endif %}
+    {% if submission.problem.type == 'Test' %}
+    <tr><td class="text-right" style="width: 20%;">Решено подзадач</td><td>{{ submission.sub_submissions.count }} из {{ submission.problem.sub_problems.count }}</td></tr>
+    {% endif %}
 </table>
 <div class="progress justify-content-center mb-3" style="height: 25px;">
-    <div id="progress-bar" class="progress-bar bg-{{ submission.status|colorize }}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% else %}100{% endif %}%;"></div>
+    <div id="progress-bar" class="progress-bar bg-{% get_submission_style submission %}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% else %}100{% endif %}%;"></div>
     <span class="status-display align-self-center" style="position: absolute;"><strong id="progress-bar-message" style="color: white;">{{ submission.get_status_display }}</strong></span>
 </div>
-{% if not submission.problem.is_testable %}
+{% if not submission.problem.type == 'Program' or not submission.problem.is_testable %}
 {% if perms.contests.change_submission %}
 <a href="{% url 'contests:submission-update' submission.id %}{% if from_url %}?from={{ from_url }}{% endif %}" class="btn btn-light btn-block border mb-3">Изменить статус</a>
 {% else %}
@@ -42,6 +50,7 @@
 <div class="accordion mb-3" id="execution_list">
     {% render_execution_list submission.execution_set.all %}
 </div>
+{% if submission.problem.type == 'Program' or submission.problem.type == 'Files' %}
 <div class="text-right text-muted">
     {% if perms.contests.download_submission %}
     <p class="text-warning text-break" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>директория на сервере: {{ submission.attachment_set.all.0.dirname }}</p>
@@ -66,6 +75,49 @@
     </span>
     {% endfor %}
 </div>
+{% endif %}
+{% if submission.problem.type == 'Text' %}
+<h6 class="text-muted">Ответ:</h6>
+<div class="card">
+    <div class="card-body">
+        {{ submission.text|safe }}
+    </div>
+</div>
+{% endif %}
+{% if submission.problem.type == 'Options' %}
+<h6 class="text-muted">Ответ:</h6>
+<ul class="list-group mb-3">
+    {% for option in submission.problem.option_set.all %}
+    <li class="list-group-item {% if option in submission.options.all %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
+        {% if option in submission.options.all %}{% if option.is_correct %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% else %}<i class="fa fa-times-circle-o" aria-hidden="true"></i>{% endif %}{% endif %} {{ option.text }}
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% if submission.problem.type == 'Test' %}
+<div class="table-responsive">
+    <table id="p" class="table table-sm">
+        <thead>
+            <tr>
+                <th>Подзадача теста</th>
+                <th class="text-center" style="width: 8%;">Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for subsubmission in submission.sub_submissions.all %}
+            <tr class="{% if submission.assignment and subsubmission.date_created > submission.assignment.date_updated %}bg-light{% endif %}">
+                <td><a href="{{ subsubmission.problem.get_absolute_url }}">{{ subsubmission.problem }}</a></td>
+                <td class="text-center">
+                    <a href="{{ subsubmission.get_absolute_url }}" class="status status-{{ subsubmission.status|colorize }}" title="{{ subsubmission.get_status_display }}">
+                        {{ subsubmission.status }}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
 <legend>Комментарии</legend>
 {% render_comments submission comments %}
 {% endblock content %}

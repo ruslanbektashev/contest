@@ -4,6 +4,14 @@
     {{ form.parent_id }}
     {{ form.object_type }}
     {{ form.object_id }}
+    {% for message in messages %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    {% endfor %}
     {% render_form_errors form %}
     <div class="form-group">
         {% render_field_errors form.text %}

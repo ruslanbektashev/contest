@@ -48,7 +48,7 @@ urlpatterns = [
             path('delete', views.ContestDelete.as_view(), name='contest-delete')
         ]))
     ])),
-    path('contest/<int:contest_id>/problem/create', views.ProblemCreate.as_view(), name='problem-create'),
+    path('contest/<int:contest_id>/problem/create/<str:type>', views.ProblemCreate.as_view(), name='problem-create'),
     path('problem/', include([
         path('<int:pk>/', include([
             path('', views.ProblemDetail.as_view(), name='problem-detail'),
@@ -57,6 +57,12 @@ urlpatterns = [
             path('attachment/<int:attachment_id>', views.ProblemAttachment.as_view(), name='problem-attachment'),
             path('update', views.ProblemUpdate.as_view(), name='problem-update'),
             path('delete', views.ProblemDelete.as_view(), name='problem-delete')
+        ]))
+    ])),
+    path('subproblem/', include([
+        path('<int:pk>/', include([
+            path('update', views.SubProblemUpdate.as_view(), name='subproblem-update'),
+            path('delete', views.SubProblemDelete.as_view(), name='subproblem-delete')
         ]))
     ])),
     path('problem/<int:problem_id>/submission/pattern/create', views.SubmissionPatternCreate.as_view(), name='submission-pattern-create'),
@@ -109,6 +115,7 @@ urlpatterns = [
     path('course/<int:course_id>/submission/list', views.SubmissionList.as_view(), name='submission-list'),
     path('course/<int:course_id>/submission/backup', views.SubmissionBackup.as_view(), name='submission-backup'),
     path('problem/<int:problem_id>/submission/create', views.SubmissionCreate.as_view(), name='submission-create'),
+    path('problem/<int:problem_id>/submission/<int:submission_id>/continue', views.SubmissionCreate.as_view(), name='submission-continue'),
     path('submission/', include([
         path('<int:pk>/', include([
             path('', views.SubmissionDetail.as_view(), name='submission-detail'),

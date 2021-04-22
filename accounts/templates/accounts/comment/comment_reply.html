@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views comments markdown humanize static %}
 
 {% block title %}
@@ -19,7 +19,7 @@
 <div class="comment-list">
     <div id="comment_{{ parent.id }}" class="d-flex comment-list-item mb-4">
         <div class="comment-avatar mr-3">
-            <img src="{% static 'comment-avatar.png' %}">
+            <img src="{% static 'comment-avatar.png' %}" alt="Изображение профиля">
         </div>
         <div class="comment-main">
             <div class="comment-header mb-1 d-flex">

@@ -10,7 +10,7 @@
         <div class="comment-avatar mr-3">
             <img src="{% static 'comment-avatar.png' %}" alt="Изображение профиля">
         </div>
-        <div class="comment-main">
+        <div class="comment-main w-100">
             <div class="comment-header mb-1 d-flex lake">
                 <div class="comment-user text-nowrap mr-2">
                     <a href="{{ comment.author.account.get_absolute_url }}" class="{% if comment.author.is_staff %}text-success{% endif %}">

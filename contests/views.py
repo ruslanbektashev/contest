@@ -1,4 +1,6 @@
 from datetime import date, datetime
+from django.forms.models import inlineformset_factory
+
 from markdown import markdown
 from mimetypes import guess_type
 from pygments import highlight
@@ -21,14 +23,14 @@ from accounts.models import Account, Activity
 from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin,
                             PaginatorMixin)
 from contests.forms import (AnswerCheckForm, AnswerForm, AssignmentForm, AssignmentSetForm, AssignmentUpdateForm,
-                            ContestForm, ContestPartialForm, CourseForm, CreditSetForm, EventForm, FNTestForm,
-                            OptionForm, ProblemForm, ProblemPartialForm, ProblemRollbackResultsForm,
-                            QuestionExtendedForm, QuestionForm, QuestionSetForm, SubmissionForm, SubmissionMossForm,
-                            SubmissionPatternForm, SubmissionUpdateForm, TestForm, TestMembershipForm, UTTestForm)
+                            ContestForm, ContestPartialForm, CourseForm, CreditSetForm, EventForm, FNTestForm, OptionBaseFormSet,
+                            OptionForm, ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm,
+                            ProblemRollbackResultsForm, ProblemTestForm, QuestionExtendedForm, QuestionForm,
+                            QuestionSetForm, SubmissionAttachmentForm, SubmissionFilesForm, SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm,
+                            SubmissionTextForm, SubmissionUpdateForm, TestForm, TestMembershipForm, UTTestForm)
 from contests.models import (Answer, Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, Filter,
-                             IOTest,
-                             Lecture, Option, Problem, Question, Submission, SubmissionPattern, Test, TestMembership,
-                             TestSubmission, UTTest)
+                             IOTest, Lecture, Option, Problem, Question, SubProblem, Submission, SubmissionPattern,
+                             Test, TestMembership, TestSubmission, UTTest)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 
@@ -92,10 +94,8 @@ class CourseDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
-        context['paginator'], \
-        context['page_obj'], \
-        context['comments'], \
-        context['is_paginated'] = self.paginate_queryset(comments)
+        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
+            self.paginate_queryset(comments)
         context['subscribers_ids'] = self.object.subscription_set.all().values_list('user', flat=True)
         if self.request.user.id in context['subscribers_ids']:
             context['subscription_id'] = self.object.subscription_set.get(user=self.request.user).id
@@ -310,6 +310,22 @@ class ContestDetail(LoginRequiredMixin, DetailView):
     model = Contest
     template_name = 'contests/contest/contest_detail.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        problem_groups = []
+        contest = self.object
+        problem_types = [('texts', "fa-keyboard-o"),
+                         ('files', "fa-file-text-o"),
+                         ('options', "fa-check-square-o"),
+                         ('programs', "fa-file-code-o"),
+                         ('tests', "fa-folder-o"), ]
+        for meth, icon in problem_types:
+            problem_group = getattr(contest.problem_set, meth)()
+            if problem_group.exists():
+                problem_groups.append(dict(problems=problem_group, icon=icon))
+        context['problem_groups'] = problem_groups
+        return context
+
 
 class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
     model = Contest
@@ -319,10 +335,8 @@ class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
-        context['paginator'], \
-        context['page_obj'], \
-        context['comments'], \
-        context['is_paginated'] = self.paginate_queryset(comments)
+        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
+            self.paginate_queryset(comments)
         return context
 
 
@@ -346,9 +360,11 @@ class ContestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_initial(self):
-        self.initial['course'] = self.storage['course']
-        self.initial['number'] = Contest.objects.get_new_number(self.storage['course'])
-        return super().get_initial()
+        initial = super().get_initial()
+        initial['course'] = self.storage['course']
+        initial['number'] = Contest.objects.get_new_number(self.storage['course'])
+        initial['title'] = "Раздел " + str(initial['number'])
+        return initial
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -395,14 +411,6 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
     template_name = 'contests/problem/problem_detail.html'
     paginate_by = 10
 
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        # TODO: temp
-        if hasattr(self.object, 'test') and self.object.test:
-            return HttpResponseRedirect(reverse('contests:test-detail', kwargs={'pk': self.object.test.id}))
-        context = self.get_context_data(object=self.object)
-        return self.render_to_response(context)
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['latest_submission'] = self.object.get_latest_submission_by(self.request.user)
@@ -410,10 +418,10 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
             submissions = self.object.submission_set.all()
         else:
             submissions = self.object.submission_set.filter(owner_id=self.request.user.id)
-        context['paginator'], \
-        context['page_obj'], \
-        context['submissions'], \
-        context['is_paginated'] = self.paginate_queryset(submissions)
+        context['paginator'], context['page_obj'], context['submissions'], context['is_paginated'] = \
+            self.paginate_queryset(submissions)
+        if self.object.type == 'Test':
+            context['subproblems'] = SubProblem.objects.filter(problem=self.object).select_related('sub_problem')
         return context
 
 
@@ -425,10 +433,8 @@ class ProblemDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
-        context['paginator'], \
-        context['page_obj'], \
-        context['comments'], \
-        context['is_paginated'] = self.paginate_queryset(comments)
+        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
+            self.paginate_queryset(comments)
         return context
 
 
@@ -469,7 +475,6 @@ class ProblemRollbackResults(LoginRedirectPermissionRequiredMixin, FormView):
 
 class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Problem
-    form_class = ProblemForm
     template_name = 'contests/problem/problem_form.html'
     permission_required = 'contests.add_problem'
 
@@ -479,20 +484,59 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
+        self.storage['type'] = kwargs.get('type')
+        if self.storage['type'] == 'Options':
+            OptionFormSet = inlineformset_factory(parent_model=Problem, model=Option, form=OptionForm,
+                                                  formset=OptionBaseFormSet, fields=('text', 'is_correct'), extra=0,
+                                                  min_num=2, max_num=20, validate_min=True, validate_max=True)
+            if request.method == 'GET':
+                formset = OptionFormSet()
+            else:
+                formset = OptionFormSet(data=request.POST, files=request.FILES)
+            self.storage['formset'] = formset
         return super().dispatch(request, *args, **kwargs)
 
+    def get_form_class(self):
+        if self.storage['type'] == 'Program':
+            return ProblemProgramForm
+        elif self.storage['type'] == 'Test':
+            return ProblemTestForm
+        else:
+            return ProblemCommonForm
+
     def get_initial(self):
-        self.initial['contest'] = self.storage['contest']
-        self.initial['number'] = Problem.objects.get_new_number(self.storage['contest'])
-        return super().get_initial()
+        initial = super().get_initial()
+        initial['contest'] = self.storage['contest']
+        initial['type'] = self.storage['type']
+        initial['number'] = Problem.objects.get_new_number(self.storage['contest'])
+        if self.storage['type'] == 'Program':
+            initial['title'] = "Задача "
+        elif self.storage['type'] == 'Test':
+            initial['title'] = "Тест "
+        else:
+            initial['title'] = "Вопрос "
+        initial['title'] += str(initial['number'])
+        return initial
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
+        if self.storage['type'] == 'Options':
+            formset = self.storage.get('formset')
+            if formset.is_valid():
+                self.object = form.save()
+                formset.instance = self.object
+                formset.save()
+                return HttpResponseRedirect(self.get_success_url())
+            else:
+                self.storage['formset'] = formset
+                return self.form_invalid(form)
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['contest'] = self.storage['contest']
+        context['type'] = self.storage['type']
+        context['formset'] = self.storage.get('formset')
         return context
 
     def get_success_url(self):
@@ -504,14 +548,50 @@ class ProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     template_name = 'contests/problem/problem_form.html'
     permission_required = 'contests.change_problem'
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        problem = self.get_object()
+        if problem.type == 'Options':
+            OptionFormSet = inlineformset_factory(parent_model=Problem, model=Option, form=OptionForm,
+                                                  formset=OptionBaseFormSet, fields=('text', 'is_correct'), extra=0,
+                                                  min_num=2, max_num=20, validate_min=True, validate_max=True)
+            if request.method == 'GET':
+                formset = OptionFormSet(instance=problem)
+            else:
+                formset = OptionFormSet(data=request.POST, files=request.FILES, instance=problem)
+            self.storage['formset'] = formset
+        return super().dispatch(request, *args, **kwargs)
+
     def get_form_class(self):
         if self.request.GET.get('add_files') == '1':
-            return ProblemPartialForm
-        return ProblemForm
+            return ProblemAttachmentForm
+        elif self.object.type == 'Program':
+            return ProblemProgramForm
+        elif self.object.type == 'Test':
+            return ProblemTestForm
+        else:
+            return ProblemCommonForm
+
+    def form_valid(self, form):
+        if self.object.type == 'Options':
+            formset = self.storage.get('formset')
+            if formset.is_valid():
+                self.object = form.save()
+                formset.save()
+                return HttpResponseRedirect(self.get_success_url())
+            else:
+                self.storage['formset'] = formset
+                return self.form_invalid(form)
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['contest'] = self.object.contest
+        context['type'] = self.object.type
+        context['formset'] = self.storage.get('formset')
         if self.request.GET.get('add_files') == '1':
             context['add_files'] = True
         return context
@@ -524,6 +604,28 @@ class ProblemDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 
     def get_success_url(self):
         return reverse('contests:contest-detail', kwargs={'pk': self.object.contest_id})
+
+
+"""=================================================== SubProblem ==================================================="""
+
+
+class SubProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+    model = SubProblem
+    fields = ['number']
+    template_name = 'contests/subproblem/subproblem_form.html'
+    permission_required = 'contests.change_subproblem'
+
+    def get_success_url(self):
+        return reverse('contests:problem-detail', kwargs={'pk': self.object.problem_id})
+
+
+class SubProblemDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+    model = SubProblem
+    template_name = 'contests/subproblem/subproblem_delete.html'
+    permission_required = 'contests.delete_subproblem'
+
+    def get_success_url(self):
+        return reverse('contests:problem-detail', kwargs={'pk': self.object.problem_id})
 
 
 """=============================================== SubmissionPattern ================================================"""
@@ -801,10 +903,8 @@ class AssignmentDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         submissions = self.object.get_submissions()
-        context['paginator'], \
-        context['page_obj'], \
-        context['submissions'], \
-        context['is_paginated'] = self.paginate_queryset(submissions)
+        context['paginator'], context['page_obj'], context['submissions'], context['is_paginated'] = \
+            self.paginate_queryset(submissions)
         return context
 
 
@@ -816,10 +916,8 @@ class AssignmentDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
-        context['paginator'], \
-        context['page_obj'], \
-        context['comments'], \
-        context['is_paginated'] = self.paginate_queryset(comments)
+        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
+            self.paginate_queryset(comments)
         return context
 
 
@@ -888,7 +986,7 @@ class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
     def post(self, request, *args, **kwargs):
         form = self.get_form()
         if form.is_valid():
-            Assignment.objects.create_random_set(request.user, form.cleaned_data['contest'],
+            Assignment.objects.create_random_set(request.user, form.cleaned_data['contest'], form.cleaned_data['type'],
                                                  form.cleaned_data['limit_per_user'], self.storage['debts'])
             return self.form_valid(form)
         return self.form_invalid(form)
@@ -1010,10 +1108,8 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
         context = super().get_context_data(**kwargs)
         context['from_url'] = self.storage['from_url']
         comments = self.object.comment_set.actual()
-        context['paginator'], \
-        context['page_obj'], \
-        context['comments'], \
-        context['is_paginated'] = self.paginate_queryset(comments)
+        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
+            self.paginate_queryset(comments)
         return context
 
 
@@ -1036,7 +1132,6 @@ class SubmissionAttachment(LoginRedirectPermissionRequiredMixin, AttachmentDetai
 
 class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Submission
-    form_class = SubmissionForm
     template_name = 'contests/submission/submission_form.html'
     permission_required = 'contests.add_submission'
 
@@ -1045,7 +1140,21 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['problem'] = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
+        problem = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
+        self.storage['problem'] = problem
+
+        main_submission_id = kwargs.pop('submission_id', None)
+        if main_submission_id:
+            main_submission = get_object_or_404(Submission, id=main_submission_id)
+            self.storage['main_submission'] = main_submission
+            current_problem = problem.sub_problems.exclude(submission__in=main_submission.sub_submissions.all()).first()
+            if not current_problem:
+                return HttpResponseRedirect(reverse('contests:submission-detail', kwargs={'pk': main_submission.id}))
+            self.storage['problem'] = current_problem
+        elif problem.type == 'Test':
+            self.storage['main_problem'] = problem
+            self.storage['problem'] = problem.sub_problems.first()
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -1054,15 +1163,38 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         kwargs['problem'] = self.storage['problem']
         return kwargs
 
+    def get_form_class(self):
+        problem = self.storage['problem']
+        if problem.type == 'Text':
+            return SubmissionTextForm
+        elif problem.type == 'Options':
+            return SubmissionOptionsForm
+        elif problem.type == 'Files':
+            return SubmissionFilesForm
+        else:
+            return SubmissionAttachmentForm
+
     def form_valid(self, form):
         form.instance.owner = self.request.user
         form.instance.problem = self.storage['problem']
+
         try:
             form.instance.assignment = Assignment.objects.get(user=self.request.user, problem=self.storage['problem'])
         except Assignment.DoesNotExist:
             pass
+
+        main_problem = self.storage.get('main_problem')
+        if main_problem:
+            self.storage['main_submission'] = Submission.objects.create(
+                problem=main_problem,
+                owner=self.request.user,
+                assignment=Assignment.objects.filter(user=self.request.user, problem=main_problem).first(),
+            )
+
+        form.instance.main_submission = self.storage.get('main_submission')
+
         self.object = form.save()
-        if self.storage['problem'].is_testable:
+        if self.object.problem.type == 'Program' and self.object.problem.is_testable:
             task = evaluate_submission.delay(self.object.pk, self.request.user.id)
             self.object.task_id = task.id
             self.object.save()
@@ -1073,6 +1205,13 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['problem'] = self.storage['problem']
         return context
+
+    def get_success_url(self):
+        main_submission = self.storage.get('main_submission')
+        if main_submission:
+            return reverse('contests:submission-continue',
+                           kwargs={'problem_id': main_submission.problem.id, 'submission_id': main_submission.id})
+        return super().get_success_url()
 
 
 class SubmissionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
@@ -1129,7 +1268,7 @@ class SubmissionEvaluate(LoginRedirectOwnershipOrPermissionRequiredMixin, Update
     def get(self, request, *args, **kwargs):
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
             self.object = self.get_object()
-        if self.object.problem.is_testable:
+        if self.object.problem.type == 'Program' and self.object.problem.is_testable:
             task = evaluate_submission.delay(self.object.pk, request.user.id)
             self.object.task_id = task.id
             self.object.save()

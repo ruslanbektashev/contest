@@ -50,22 +50,7 @@
         </div>
         <div id="collapseTwo" class="collapse show" aria-labelledby="contest_problems">
             <div class="card-body">
-                {% include 'list.html' with lst=contest.problem_set.all mb=0 warn_if_empty="Задачи еще не добавлены" %}
-            </div>
-        </div>
-    </div>
-    <div class="card">
-        <div class="card-header" id="contest_questions">
-            <h2 class="mb-0">
-                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
-                        data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
-                    Вопросы
-                </button>
-            </h2>
-        </div>
-        <div id="collapseThree" class="collapse show" aria-labelledby="contest_questions">
-            <div class="card-body">
-                {% include 'list.html' with lst=contest.question_set.all mb=0 warn_if_empty="Вопросы еще не добавлены" %}
+                {% include 'problem_list.html' %}
             </div>
         </div>
     </div>
@@ -83,13 +68,17 @@
 </div>
 <div class="list-group mb-3">
     {% if perms.contests.add_problem %}
-    <a href="{% url 'contests:problem-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить задачу</a>
-    {% endif %}
-    {% if perms.contests.add_question %}
-    <a href="{% url 'contests:question-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить вопрос</a>
-    {% endif %}
-    {% if perms.contests.add_test %}
-    <a href="{% url 'contests:test-create' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить тест</a>
+    <a class="list-group-item list-group-item-action dropdown-toggle" href="#" role="button" id="add_problem_menu"
+           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="border-radius: 0.25rem;">
+        <i class="fa fa-plus fa-fw"></i> Добавить задачу
+    </a>
+    <div class="dropdown-menu" aria-labelledby="add_problem_menu">
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Text' %}"><i class="fa fa-keyboard-o fa-fw"></i> С ответом в виде текста</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Files' %}"><i class="fa fa-file-text-o fa-fw"></i> С ответом в виде файлов</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Program'%}"><i class="fa fa-file-code-o fa-fw"></i> С ответом в виде программы</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Options' %}"><i class="fa fa-check-square-o fa-fw"></i> С вариантами ответа</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Test' %}"><i class="fa fa-folder-o fa-fw"></i> Тест</a>
+    </div>
     {% endif %}
 </div>
 {% endblock submenu %}
