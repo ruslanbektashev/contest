@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views %}
+{% load views humanize %}
 
 {% block title %}
 Помощь
@@ -12,7 +12,22 @@
 
 {% block content %}
 <legend>Помощь</legend>
-
+{% if questions_reports %}
+<div class="list-group mb-3">
+    {% for item in questions_reports %}
+    <li class="list-group-item d-flex text-nowrap {% if item.addressee == request.user %} bg-light {% endif %}">
+        <a href="{{ item.get_absolute_url }}" class="mr-auto text-truncate">{{ item }}{% if request.user.is_superuser %} ({{ item.owner.account }}){% endif %}</a>
+        <span class="text-muted text-right"  style="width: 20%;">
+            {{ item.date_created|naturaltime }}
+        </span>
+    </li>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info mb-3" role="alert">
+    Вопросов и сообщений нет
+</div>
+{% endif %}
 {% endblock content %}
 
 {% block submenu %}

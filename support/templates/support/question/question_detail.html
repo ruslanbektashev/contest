@@ -15,6 +15,16 @@
 {% block content %}
 <legend>{{ question.question }}</legend>
 <p>{{ answer|safe }}</p>
+<p>
+    От: <a href="{{ question.owner.account.get_absolute_url }}">{{ question.owner.account }}</a><br>
+    {% if question.addressee %}
+    Кому: <a href="{{ question.addressee.account.get_absolute_url }}">{{ question.addressee.account }}</a><br>
+    {% endif %}
+    Отправлен: {{ question.date_created|date }}<br>
+    {% if question.redirect_comment %}
+    Комментарий к переадресации: {{ question.redirect_comment|safe }}
+    {% endif %}
+</p>
 <div class="pull-right text-right">
     {% if perms.support.change_question %}
     <p>{{ question.is_published|yesno:'опубликован,скрыт' }}</p>

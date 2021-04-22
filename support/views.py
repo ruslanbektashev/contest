@@ -1,4 +1,9 @@
+from itertools import chain
+from operator import attrgetter
+
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User, Permission
+from django.db.models import Q
 from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, TemplateView
 from markdown import markdown
@@ -7,8 +12,20 @@ from contest.mixins import LoginRedirectOwnershipOrPermissionRequiredMixin, Logi
 from support.models import Question, Report
 
 
-class Support(LoginRequiredMixin, TemplateView):
+class Support(LoginRequiredMixin, ListView):
+    model = Question
     template_name = 'support/index.html'
+    context_object_name = 'questions'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'questions_reports': sorted(chain(Report.objects.all(), Question.objects.filter(is_published=True)), key=attrgetter('date_created'), reverse=True)
+        })
+        return context
+
+    def get_queryset(self):
+        return Question.objects.filter(is_published=True)
 
 
 """==================================================== Question ===================================================="""
@@ -26,9 +43,15 @@ class QuestionDetail(LoginRequiredMixin, DetailView):
 
 class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     model = Question
-    fields = ['question', 'answer', 'is_published']
+    fields = ['question', 'addressee', 'answer', 'is_published', 'redirect_comment']
     template_name = 'support/question/question_form.html'
     permission_required = 'support.add_question'
+
+    def get_form(self):
+        form = super().get_form()
+        perm = Permission.objects.get(content_type__app_label='support', codename='change_question')
+        form.fields['addressee'].queryset = User.objects.filter(Q(user_permissions=perm))
+        return form
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -37,7 +60,7 @@ class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
 class QuestionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Question
-    fields = ['question', 'answer', 'is_published']
+    fields = ['question', 'addressee', 'answer', 'is_published', 'redirect_comment']
     template_name = 'support/question/question_form.html'
     permission_required = 'support.change_question'
 

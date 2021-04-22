@@ -8,11 +8,11 @@ class QuestionAdmin(admin.ModelAdmin):
     list_display = ('owner', 'question', 'is_published')
     list_editable = ('is_published',)
     fieldsets = (
-        ('Пользователь', {
-            'fields': ('owner',)
+        ('Пользователи', {
+            'fields': ('owner', 'addressee')
         }),
         ('Детали', {
-            'fields': ('question', 'answer', 'is_published')
+            'fields': ('question', 'answer', 'is_published', 'redirect_comment')
         }),
         ('Даты', {
             'fields': ('date_created', 'date_updated')
