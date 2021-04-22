@@ -10,7 +10,7 @@ from contest.abstract import CRUDEntry
 
 class Question(CRUDEntry):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+", verbose_name="Владелец")
-    addressee = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name="+", verbose_name="Адресат")
+    addressee = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+", verbose_name="Адресат")
 
     question = models.CharField(max_length=255, verbose_name="Вопрос")
     answer = models.TextField(blank=True, verbose_name="Ответ")
