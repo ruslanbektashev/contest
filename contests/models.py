@@ -100,6 +100,12 @@ class Course(CRUDEntry):
     def get_discussion_url(self):
         return reverse('contests:course-discussion', kwargs={'pk': self.pk})
 
+    def save(self, *args, **kwargs):
+        created = self._state.adding
+        super().save(*args, **kwargs)
+        if created:
+            Filter.objects.get_or_create(user=self.owner, course=self)
+
     def __str__(self):
         return "%s" % self.title
 
@@ -311,7 +317,7 @@ class Problem(CRUDEntry):
     def save(self, *args, **kwargs):
         if self.type not in {'Program', 'Options'}:
             self.is_testable = False
-        return super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def get_assignment_score(self, submission):
         if self.type == 'Program':
