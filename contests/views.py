@@ -29,8 +29,8 @@ from contests.forms import (AnswerCheckForm, AnswerForm, AssignmentForm, Assignm
                             QuestionSetForm, SubmissionAttachmentForm, SubmissionFilesForm, SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm,
                             SubmissionTextForm, SubmissionUpdateForm, TestForm, TestMembershipForm, UTTestForm)
 from contests.models import (Answer, Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, Filter,
-                             IOTest, Lecture, Option, Problem, Question, Submission, SubmissionPattern, Test,
-                             TestMembership, TestSubmission, UTTest)
+                             IOTest, Lecture, Option, Problem, Question, SubProblem, Submission, SubmissionPattern,
+                             Test, TestMembership, TestSubmission, UTTest)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 
@@ -94,10 +94,8 @@ class CourseDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
-        context['paginator'], \
-        context['page_obj'], \
-        context['comments'], \
-        context['is_paginated'] = self.paginate_queryset(comments)
+        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
+            self.paginate_queryset(comments)
         context['subscribers_ids'] = self.object.subscription_set.all().values_list('user', flat=True)
         if self.request.user.id in context['subscribers_ids']:
             context['subscription_id'] = self.object.subscription_set.get(user=self.request.user).id
@@ -312,6 +310,22 @@ class ContestDetail(LoginRequiredMixin, DetailView):
     model = Contest
     template_name = 'contests/contest/contest_detail.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        problem_groups = []
+        contest = self.object
+        problem_types = [('texts', "fa-keyboard-o"),
+                         ('files', "fa-file-text-o"),
+                         ('options', "fa-check-square-o"),
+                         ('programs', "fa-file-code-o"),
+                         ('tests', "fa-folder-o"), ]
+        for meth, icon in problem_types:
+            problem_group = getattr(contest.problem_set, meth)()
+            if problem_group.exists():
+                problem_groups.append(dict(problems=problem_group, icon=icon))
+        context['problem_groups'] = problem_groups
+        return context
+
 
 class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
     model = Contest
@@ -321,10 +335,8 @@ class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
-        context['paginator'], \
-        context['page_obj'], \
-        context['comments'], \
-        context['is_paginated'] = self.paginate_queryset(comments)
+        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
+            self.paginate_queryset(comments)
         return context
 
 
@@ -406,10 +418,10 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
             submissions = self.object.submission_set.all()
         else:
             submissions = self.object.submission_set.filter(owner_id=self.request.user.id)
-        context['paginator'], \
-        context['page_obj'], \
-        context['submissions'], \
-        context['is_paginated'] = self.paginate_queryset(submissions)
+        context['paginator'], context['page_obj'], context['submissions'], context['is_paginated'] = \
+            self.paginate_queryset(submissions)
+        if self.object.type == 'Test':
+            context['subproblems'] = SubProblem.objects.filter(problem=self.object).select_related('sub_problem')
         return context
 
 
@@ -421,10 +433,8 @@ class ProblemDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
-        context['paginator'], \
-        context['page_obj'], \
-        context['comments'], \
-        context['is_paginated'] = self.paginate_queryset(comments)
+        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
+            self.paginate_queryset(comments)
         return context
 
 
@@ -594,6 +604,28 @@ class ProblemDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 
     def get_success_url(self):
         return reverse('contests:contest-detail', kwargs={'pk': self.object.contest_id})
+
+
+"""=================================================== SubProblem ==================================================="""
+
+
+class SubProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+    model = SubProblem
+    fields = ['number']
+    template_name = 'contests/subproblem/subproblem_form.html'
+    permission_required = 'contests.change_subproblem'
+
+    def get_success_url(self):
+        return reverse('contests:problem-detail', kwargs={'pk': self.object.problem_id})
+
+
+class SubProblemDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+    model = SubProblem
+    template_name = 'contests/subproblem/subproblem_delete.html'
+    permission_required = 'contests.delete_subproblem'
+
+    def get_success_url(self):
+        return reverse('contests:problem-detail', kwargs={'pk': self.object.problem_id})
 
 
 """=============================================== SubmissionPattern ================================================"""
@@ -871,10 +903,8 @@ class AssignmentDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         submissions = self.object.get_submissions()
-        context['paginator'], \
-        context['page_obj'], \
-        context['submissions'], \
-        context['is_paginated'] = self.paginate_queryset(submissions)
+        context['paginator'], context['page_obj'], context['submissions'], context['is_paginated'] = \
+            self.paginate_queryset(submissions)
         return context
 
 
@@ -886,10 +916,8 @@ class AssignmentDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         comments = self.object.comment_set.actual()
-        context['paginator'], \
-        context['page_obj'], \
-        context['comments'], \
-        context['is_paginated'] = self.paginate_queryset(comments)
+        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
+            self.paginate_queryset(comments)
         return context
 
 
@@ -1080,10 +1108,8 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
         context = super().get_context_data(**kwargs)
         context['from_url'] = self.storage['from_url']
         comments = self.object.comment_set.actual()
-        context['paginator'], \
-        context['page_obj'], \
-        context['comments'], \
-        context['is_paginated'] = self.paginate_queryset(comments)
+        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
+            self.paginate_queryset(comments)
         return context
 
 

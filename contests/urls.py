@@ -59,6 +59,12 @@ urlpatterns = [
             path('delete', views.ProblemDelete.as_view(), name='problem-delete')
         ]))
     ])),
+    path('subproblem/', include([
+        path('<int:pk>/', include([
+            path('update', views.SubProblemUpdate.as_view(), name='subproblem-update'),
+            path('delete', views.SubProblemDelete.as_view(), name='subproblem-delete')
+        ]))
+    ])),
     path('problem/<int:problem_id>/submission/pattern/create', views.SubmissionPatternCreate.as_view(), name='submission-pattern-create'),
     path('submission/pattern/', include([
         path('<int:pk>/', include([

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load views forms static %}
+
+{% block title %}
+Подзадача
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb subproblem.problem.contest.course subproblem.problem.contest.course %}
+{% breadcrumb subproblem.problem.contest subproblem.problem.contest %}
+{% if subproblem %}
+{% breadcrumb subproblem.problem subproblem.problem %}
+{% breadcrumb subproblem.sub_problem %}
+{% breadcrumb "Редактирование" %}
+{% else %}
+{% breadcrumb "Новая подзадача" %}
+{% endif %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Изменение номера подзадачи в тесте</legend>
+<div class="card mb-3">
+    <div class="card-header bg-white d-flex align-items-center">
+        <small class="mr-3" title="Номер в тесте">{{ subproblem.number }}</small>
+        {% if subproblem.sub_problem.title %}
+            <small class="mr-auto" title="Перейти к задаче">
+                <a href="{% url 'contests:problem-detail' subproblem.sub_problem.id %}" class="card-link">
+                    {{ subproblem.sub_problem.title }}
+                </a>
+            </small>
+        {% endif %}
+        <small>{{ subproblem.sub_problem.get_type_display }}</small>
+    </div>
+    <div class="card-body">
+        {{ subproblem.sub_problem.description|safe }}
+        {% if subproblem.sub_problem.option_set.exists %}
+            <h6 class="text-muted">Варианты ответа:</h6>
+            <div class="card">
+                <ul class="list-group list-group-flush">
+                    {% for option in subproblem.sub_problem.option_set.all %}
+                        <li class="list-group-item">{{ option.text }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+</div>
+<form action="" method="post" class="form-horizontal">
+    {% csrf_token %}
+    {% render_form_errors form %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.number class+="form-control" %}
+    {% endwith %}
+    {% render_submit_button value="Сохранить" %}
+</form>
+{% endblock content %}

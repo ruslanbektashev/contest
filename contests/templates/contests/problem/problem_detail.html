@@ -42,7 +42,48 @@
                 </ul>
                 {% elif problem.type == 'Test' %}
                 <h6 class="text-muted">Подзадачи:</h6>
-                {% include 'problem_list.html' with queryset=problem.sub_problems %}
+                {% for subproblem in subproblems %}
+                <div class="card mb-3">
+                    <div class="card-header bg-white d-flex align-items-center">
+                        <small class="mr-3" title="Номер в тесте">{{ subproblem.number }}</small>
+                        {% if subproblem.sub_problem.title %}
+                        <small class="mr-auto" title="Перейти к задаче">
+                            <a href="{% url 'contests:problem-detail' subproblem.sub_problem.id %}" class="card-link">
+                                {{ subproblem.sub_problem.title }}
+                            </a>
+                        </small>
+                        {% endif %}
+                        <small>{{ subproblem.sub_problem.get_type_display }}</small>
+                    </div>
+                    <div class="card-body">
+                        {{ subproblem.sub_problem.description|safe }}
+                        {% if subproblem.sub_problem.option_set.exists %}
+                        <h6 class="text-muted">Варианты ответа:</h6>
+                        <div class="card">
+                            <ul class="list-group list-group-flush">
+                                {% for option in subproblem.sub_problem.option_set.all %}
+                                <li class="list-group-item">{{ option.text }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if perms.contests.change_subproblem or perms.contests.delete_subproblem %}
+                    <div class="card-footer d-flex align-items-center">
+                        {% if perms.contests.change_subproblem %}
+                        <a href="{% url 'contests:subproblem-update' subproblem.id %}" class="card-link mr-auto" title="Изменить номер">
+                            <i class="fa fa-edit fa-fw"></i>
+                        </a>
+                        {% endif %}
+                        {% if perms.contests.delete_subproblem %}
+                        <a href="{% url 'contests:subproblem-delete' subproblem.id %}" class="card-link text-danger" title="Удалить из теста">
+                            <i class="fa fa-remove fa-fw"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
                 {% endif %}
                 <table class="table table-sm">
                     <tr><td class="text-right">Тип</td><td style="width: 20%;">{{ problem.get_type_display }}</td></tr>
