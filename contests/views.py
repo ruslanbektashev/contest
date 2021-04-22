@@ -958,7 +958,7 @@ class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
     def post(self, request, *args, **kwargs):
         form = self.get_form()
         if form.is_valid():
-            Assignment.objects.create_random_set(request.user, form.cleaned_data['contest'],
+            Assignment.objects.create_random_set(request.user, form.cleaned_data['contest'], form.cleaned_data['type'],
                                                  form.cleaned_data['limit_per_user'], self.storage['debts'])
             return self.form_valid(form)
         return self.form_invalid(form)

@@ -349,6 +349,7 @@ class AssignmentUpdateForm(AssignmentForm):
 
 class AssignmentSetForm(forms.Form):
     contest = forms.ModelChoiceField(queryset=Contest.objects.none(), label="Раздел")
+    type = forms.ChoiceField(choices=Problem.TYPE_CHOICES, initial='Program', label="Тип задач")
     limit_per_user = forms.IntegerField(min_value=1, max_value=5, initial=1, label="Дополнить до")
 
     def __init__(self, course, *args, **kwargs):
