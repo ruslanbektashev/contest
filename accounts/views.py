@@ -460,6 +460,11 @@ class AnnouncementDetail(LoginRedirectPermissionRequiredMixin, DetailView):
     template_name = 'accounts/announcement/announcement_detail.html'
     permission_required = 'accounts.view_announcement'
 
+    def get(self, request, *args, **kwargs):
+        object = self.get_object()
+        Activity.objects.filter(recipient=request.user, object_type=ContentType.objects.get_for_model(object), object_id=object.id).mark_as_read()
+        return super().get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['text'] = markdown(self.object.text)

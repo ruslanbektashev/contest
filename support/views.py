@@ -3,13 +3,15 @@ from operator import attrgetter
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.urls import reverse, reverse_lazy
-from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, TemplateView
+from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView
 from markdown import markdown
 
 from contest.mixins import LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin
 from support.models import Question, Report
+from accounts.models import Activity
 
 
 class Support(LoginRequiredMixin, ListView):
@@ -34,6 +36,12 @@ class Support(LoginRequiredMixin, ListView):
 class QuestionDetail(LoginRequiredMixin, DetailView):
     model = Question
     template_name = 'support/question/question_detail.html'
+
+    def get(self, request, *args, **kwargs):
+        object = self.get_object()
+        Activity.objects.filter(recipient=request.user, object_type=ContentType.objects.get_for_model(object), object_id=object.id).mark_as_read()
+        Activity.objects.filter(recipient=request.user, subject_type=ContentType.objects.get_for_model(object), subject_id=object.id).mark_as_read()
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -88,6 +96,12 @@ class ReportDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
     model = Report
     template_name = 'support/report/report_detail.html'
     permission_required = 'support.view_report'
+
+    def get(self, request, *args, **kwargs):
+        object = self.get_object()
+        Activity.objects.filter(recipient=request.user, object_type=ContentType.objects.get_for_model(object), object_id=object.id).mark_as_read()
+        Activity.objects.filter(recipient=request.user, subject_type=ContentType.objects.get_for_model(object), subject_id=object.id).mark_as_read()
+        return super().get(request, *args, **kwargs)
 
 
 class ReportCreate(LoginRequiredMixin, CreateView):
