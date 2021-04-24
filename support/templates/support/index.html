@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views humanize %}
 
 {% block title %}
@@ -12,33 +12,78 @@
 
 {% block content %}
 <legend>Помощь</legend>
-{% if questions_reports %}
-<div class="list-group mb-3">
-    {% for item in questions_reports %}
-    <li class="list-group-item d-flex text-nowrap {% if item.addressee == request.user %} bg-light {% endif %}">
-        <a href="{{ item.get_absolute_url }}" class="mr-auto text-truncate">{{ item }}{% if request.user.is_superuser %} ({{ item.owner.account }}){% endif %}</a>
-        <span class="text-muted text-right"  style="width: 20%;">
-            {{ item.date_created|naturaltime }}
-        </span>
-    </li>
-    {% endfor %}
-</div>
-{% else %}
-<div class="alert alert-info mb-3" role="alert">
-    Вопросов и сообщений нет
-</div>
-{% endif %}
-{% endblock content %}
 
-{% block submenu %}
-<div class="list-group mb-3">
-    <a href="{% url 'support:question-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-question fa-fw"></i> Вопросы</a>
-    <a href="{% url 'support:report-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-bug fa-fw"></i> Сообщения об ошибках</a>
-</div>
-<div class="list-group mb-3">
-    {% if perms.support.add_question %}
-    <a href="{% url 'support:question-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Задать вопрос</a>
-    {% endif %}
-    <a href="{% url 'support:report-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Сообщить об ошибке</a>
-</div>
-{% endblock submenu %}
+<div class="row">
+    <div class="col-12 col-md-6 mb-3">
+        <div class="card mb-3">
+            <div class="card-header d-flex align-items-center">
+                <span class="mr-auto"><a href="{% url 'support:question-list' %}" class="btn btn-block btn-light"><i class="fa fa-question fa-fw"></i> Вопросы</a></span>
+                {% if perms.support.add_question %}
+                <span>
+                    <a href="{% url 'support:question-create' %}" class="btn btn-block btn-light" title="Задать вопрос"><i class="fa fa-plus fa-fw"></i></a>
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        {% if questions %}
+        {% for question in questions %}
+        <div class="card mt-3">
+            <div class="card-header d-flex align-items-center bg-white">
+                <span class="text-primary mr-auto"><a href="{{ question.get_absolute_url }}">{{ question }}</a></span>
+                {% if question.addressee == request.user %}
+                <span class="text-warning">
+                    <i class="fa fa-star fa-fw" title="Вопрос адресован вам"></i>
+                </span>
+                {% endif %}
+            </div>
+            <div class="card-footer d-flex align-items-center">
+                {% if request.user.is_superuser %}
+                <span class="text-muted mr-auto">{{ question.owner.account }}</span>
+                {% endif %}
+                <span class="text-muted ml-auto">{{ question.date_created|naturaltime }}</span>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="alert alert-info mb-3" role="alert">
+            Вопросов нет
+        </div>
+        {% endif %}
+    </div>
+    <div class="col-12 col-md-6 mb-3">
+        <div class="card mb-3">
+            <div class="card-header d-flex align-items-center">
+                <span class="mr-auto"><a href="{% url 'support:report-list' %}" class="btn btn-block btn-light"><i class="fa fa-bug fa-fw"></i> Сообщения об ошибках</a></span>
+                {% if perms.support.add_question %}
+                <span>
+                    <a href="{% url 'support:report-create' %}" class="btn btn-block btn-light" title="Сообщить об ошибке"><i class="fa fa-plus fa-fw"></i></a>
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        {% if reports %}
+        {% for report in reports %}
+        <div class="card mt-3">
+            <div class="card-header d-flex align-items-center bg-white">
+                <span class="text-primary mr-auto"><a href="{{ report.get_absolute_url }}">{{ report }}</a></span>
+                {% if report.closed %}
+                <span class="numtus status-success">Закрыто</span>
+                {% else %}
+                <span class="numtus status-warning">Открыто</span>
+                {% endif %}
+            </div>
+            <div class="card-footer d-flex align-items-center">
+                {% if request.user.is_superuser %}
+                <span class="text-muted mr-auto">{{ report.owner.account }}</span>
+                {% endif %}
+                <span class="text-muted ml-auto">{{ report.date_created|naturaltime }}</span>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="alert alert-info mb-3" role="alert">
+            Сообщений об ошибках нет
+        </div>
+        {% endif %}
+    </div>
+{% endblock content %}

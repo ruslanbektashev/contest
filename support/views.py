@@ -1,4 +1,3 @@
-from itertools import chain
 from operator import attrgetter
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -22,14 +21,14 @@ class Support(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         reports = Report.objects.all() if self.request.user.is_superuser else Report.objects.filter(owner=self.request.user)
-        questions = Question.objects.filter(is_published=True)
         context.update({
-            'questions_reports': sorted(chain(questions, reports), key=attrgetter('date_created'), reverse=True)
+            'reports': sorted(reports, key=attrgetter('date_created'), reverse=True)
         })
         return context
 
     def get_queryset(self):
-        return Question.objects.filter(is_published=True)
+        questions = Question.objects.all() if self.request.user.has_perm('support.change_question') else Question.objects.filter(owner=self.request.user)
+        return questions
 
 
 """==================================================== Question ===================================================="""
