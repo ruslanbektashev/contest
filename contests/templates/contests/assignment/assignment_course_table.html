@@ -16,7 +16,7 @@
         <tbody>
             {% for row in table %}
             <tr>
-                <td class="text-right">{{ forloop.counter|stringformat:"02d" }}</td>
+                <td class="text-right text-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
                 <td><a href="{{ row.student.get_absolute_url }}">{{ row.student }}</a></td>
                 {% for col in row.columns %}
                 <td class="msu-problem-set lake">

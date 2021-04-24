@@ -47,6 +47,28 @@ def colorize(value):
 
 
 @register.simple_tag()
+def get_problem_icon(problem):
+    if problem.type == 'Text':
+        return "fa-keyboard-o"
+    elif problem.type == 'Files':
+        return "fa-file-text-o"
+    elif problem.type == 'Options':
+        return "fa-check-square-o"
+    elif problem.type == 'Program':
+        return "fa-file-code-o"
+    elif problem.type == 'Test':
+        return "fa-folder-o"
+    else:
+        return "fa-ban"
+
+
+@register.simple_tag()
+def get_problem_subproblems(problem):
+    subproblem_numbers = list(map(lambda x: "#" + str(x), problem.sub_problems.values_list('number', flat=True)))
+    return ", ".join(subproblem_numbers)
+
+
+@register.simple_tag()
 def get_submission_style(submission):
     if submission.status == 'UN':
         return 'info'

@@ -10,6 +10,7 @@ from django.forms.widgets import SelectMultiple
 from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
+from contest.widgets import BootstrapCheckboxSelect, BootstrapRadioSelect
 from contests.models import (Answer, Assignment, Attachment, Contest, Course, Event, FNTest, Option, Problem, Question,
                              SubProblem, Submission, SubmissionPattern, Test, TestMembership, UTTest)
 
@@ -463,16 +464,6 @@ class SubmissionFilesForm(AttachmentForm):
         super().__init__(*args, **kwargs)
 
 
-class OptionsCheckboxSelect(forms.CheckboxSelectMultiple):
-    template_name = 'forms/widgets/checkbox_select.html'
-    option_template_name = 'forms/widgets/checkbox_option.html'
-
-
-class OptionsRadioSelect(forms.RadioSelect):
-    template_name = 'forms/widgets/radio_select.html'
-    option_template_name = 'forms/widgets/radio_option.html'
-
-
 class SubmissionOptionsForm(forms.ModelForm):
     class Meta:
         model = Submission
@@ -484,9 +475,9 @@ class SubmissionOptionsForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         options = problem.option_set.all()
         if options.filter(is_correct=True).count() > 1:
-            widget = OptionsCheckboxSelect()
+            widget = BootstrapCheckboxSelect()
         else:
-            widget = OptionsRadioSelect()
+            widget = BootstrapRadioSelect()
             widget.allow_multiple_selected = True
         self.fields['options'] = forms.ModelMultipleChoiceField(required=True, label="Варианты",  queryset=options,
                                                                 widget=widget)

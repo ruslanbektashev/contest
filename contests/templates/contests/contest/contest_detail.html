@@ -50,7 +50,7 @@
         </div>
         <div id="collapseTwo" class="collapse show" aria-labelledby="contest_problems">
             <div class="card-body">
-                {% include 'problem_list.html' %}
+                {% include 'problem_list.html' with problems=contest.problem_set.all %}
             </div>
         </div>
     </div>

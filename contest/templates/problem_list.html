@@ -1,11 +1,17 @@
-{% for problem_group in problem_groups %}
-<div class="list-group {% if forloop.counter > 1 %}mt-3{% endif %} mb-0">
-    {% for problem in problem_group.problems %}
-    <a href="{{ problem.get_absolute_url }}" class="list-group-item list-group-item-action" title="{{ problem.get_type_display }}">
-        {{ problem }}<span class="pull-right"><i class="fa {{ problem_group.icon }} fa-fw"></i></span>
+{% load contests %}
+
+{% if problems.exists %}
+<div class="list-group mb-0">
+    {% for problem in problems %}
+    <a href="{{ problem.get_absolute_url }}" class="list-group-item list-group-item-action d-flex" title="{{ problem.get_type_display }}">
+        {{ problem }}
+        {% if problem.type == 'Test' %}
+        <span class="ml-auto mr-2 text-muted">[{% get_problem_subproblems problem %}]</span>
+        {% endif %}
+        <span class="{% if problem.type != 'Test' %}ml-auto{% endif %}"><i class="fa {% get_problem_icon problem %} fa-fw"></i></span>
     </a>
     {% endfor %}
 </div>
-{% empty %}
+{% else %}
 <div class="alert alert-info mb-0" role="alert">Задачи еще не добавлены</div>
-{% endfor %}
+{% endif %}

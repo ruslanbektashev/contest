@@ -311,22 +311,6 @@ class ContestDetail(LoginRequiredMixin, DetailView):
     model = Contest
     template_name = 'contests/contest/contest_detail.html'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        problem_groups = []
-        contest = self.object
-        problem_types = [('texts', "fa-keyboard-o"),
-                         ('files', "fa-file-text-o"),
-                         ('options', "fa-check-square-o"),
-                         ('programs', "fa-file-code-o"),
-                         ('tests', "fa-folder-o"), ]
-        for meth, icon in problem_types:
-            problem_group = getattr(contest.problem_set, meth)()
-            if problem_group.exists():
-                problem_groups.append(dict(problems=problem_group, icon=icon))
-        context['problem_groups'] = problem_groups
-        return context
-
 
 class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
     model = Contest

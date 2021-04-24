@@ -9,6 +9,7 @@ from django.utils import timezone
 from accounts.models import Account, Activity, Comment
 from accounts.templatetags.markdown import markdown
 from accounts.widgets import CommentWidget
+from contest.widgets import BootstrapCheckboxSelect
 
 
 class AccountPartialForm(forms.ModelForm):
@@ -173,4 +174,4 @@ class ManageSubscriptionsForm(forms.Form):
         (SUBMISSION_TYPE_ID, "Посылки"),
     )
 
-    object_type = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple(), choices=OBJECT_TYPE_CHOICES, required=False)
+    object_type = forms.MultipleChoiceField(widget=BootstrapCheckboxSelect(), choices=OBJECT_TYPE_CHOICES, required=False)
