@@ -15,14 +15,12 @@
 
 <div class="row">
     <div class="col-12 col-md-6 mb-3">
-        <div class="card mb-3">
-            <div class="card-header d-flex align-items-center">
-                <span class="mr-auto"><a href="{% url 'support:question-list' %}" class="btn btn-block btn-light"><i class="fa fa-question fa-fw"></i> Вопросы</a></span>
-                {% if perms.support.add_question %}
-                <span>
-                    <a href="{% url 'support:question-create' %}" class="btn btn-block btn-light" title="Задать вопрос"><i class="fa fa-plus fa-fw"></i></a>
-                </span>
-                {% endif %}
+        <div class="row">
+            <div class="col-6 col-md-6">
+                <a href="{% url 'support:question-list' %}" class="btn btn-block btn-light"><i class="fa fa-question fa-fw"></i> Вопросы</a>
+            </div>
+            <div class="col-6 col-md-6">
+                <a href="{% url 'support:question-create' %}" class="btn btn-block btn-light"><i class="fa fa-plus fa-fw"></i> Задать вопрос</a>
             </div>
         </div>
         {% if questions %}
@@ -51,14 +49,12 @@
         {% endif %}
     </div>
     <div class="col-12 col-md-6 mb-3">
-        <div class="card mb-3">
-            <div class="card-header d-flex align-items-center">
-                <span class="mr-auto"><a href="{% url 'support:report-list' %}" class="btn btn-block btn-light"><i class="fa fa-bug fa-fw"></i> Сообщения об ошибках</a></span>
-                {% if perms.support.add_question %}
-                <span>
-                    <a href="{% url 'support:report-create' %}" class="btn btn-block btn-light" title="Сообщить об ошибке"><i class="fa fa-plus fa-fw"></i></a>
-                </span>
-                {% endif %}
+        <div class="row">
+            <div class="col-6 col-md-6">
+                <a href="{% url 'support:report-list' %}" class="btn btn-block btn-light"><i class="fa fa-bug fa-fw"></i> Сообщения об ошибках</a>
+            </div>
+            <div class="col-6 col-md-6">
+                <a href="{% url 'support:report-create' %}" class="btn btn-block btn-light"><i class="fa fa-plus fa-fw"></i> Сообщить об ошибке</a>
             </div>
         </div>
         {% if reports %}
