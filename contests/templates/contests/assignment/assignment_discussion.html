@@ -13,7 +13,8 @@
 {% else %}
 {% breadcrumb "Мои задания" 'contests:assignment-list' %}
 {% endif %}
-{% breadcrumb assignment %}
+{% breadcrumb assignment assignment %}
+{% breadcrumb "Обсуждение" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
