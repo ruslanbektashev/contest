@@ -1,5 +1,5 @@
 {% load forms %}
-<form action="{% url 'accounts:comment-create' %}" class="mb-4" method="post">
+<form action="{% url 'accounts:comment-create' %}" class="mb-3" method="post">
     {% csrf_token %}
     {{ form.parent_id }}
     {{ form.object_type }}

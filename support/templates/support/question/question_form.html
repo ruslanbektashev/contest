@@ -24,11 +24,9 @@
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.question class+="form-control" %}
-    {% if not question or perms.support.change_question %}
-    {% render_field form.addressee class+="form-control" %}
-    {% endif %}
     {% if perms.support.change_question %}
     {% render_field form.answer class+="form-control" %}
+    {% render_field form.addressee class+="form-control selectpicker" %}
     {% render_field form.redirect_comment class+="form-control" %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" %}
     {% render_field form.is_published class+="custom-control-input" %}
