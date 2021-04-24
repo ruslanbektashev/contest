@@ -1,6 +1,4 @@
 from django import template
-from django.contrib.contenttypes.models import ContentType
-from accounts.models import Activity
 
 register = template.Library()
 

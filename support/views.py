@@ -21,8 +21,10 @@ class Support(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        reports = Report.objects.all() if self.request.user.is_superuser else Report.objects.filter(owner=self.request.user)
+        questions = Question.objects.filter(is_published=True)
         context.update({
-            'questions_reports': sorted(chain(Report.objects.all(), Question.objects.filter(is_published=True)), key=attrgetter('date_created'), reverse=True)
+            'questions_reports': sorted(chain(questions, reports), key=attrgetter('date_created'), reverse=True)
         })
         return context
 
