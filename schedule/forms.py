@@ -60,3 +60,11 @@ class ScheduleAttachmentForm(forms.ModelForm):
                                       code='invalid_extension',
                                       params={'files_allowed_extensions': ', '.join(self.FILE_ALLOWED_EXTENSIONS)})
         return file
+
+
+class ScheduleAttachmentBaseFormSet(forms.BaseInlineFormSet):
+    def full_clean(self):
+        super().full_clean()
+        for error in self._non_form_errors.as_data():
+            if error.code in ('too_many_forms', 'too_few_forms'):
+                error.message = "Необходимо выбрать файлы с расписанием для всех %d групп." % self.max_num
