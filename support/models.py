@@ -10,7 +10,7 @@ from contest.abstract import CRUDEntry
 
 class Question(CRUDEntry):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+", verbose_name="Владелец")
-    addressee = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+", verbose_name="Адресат")
+    addressee = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True, related_name="+", verbose_name="Адресат")
 
     question = models.CharField(max_length=255, verbose_name="Вопрос")
     answer = models.TextField(blank=True, verbose_name="Ответ")
@@ -26,7 +26,7 @@ class Question(CRUDEntry):
     def save(self, *args, **kwargs):
         created = self._state.adding
         super().save(*args, **kwargs)
-        if created:
+        if created and self.addressee:
             Activity.objects.notify_user(self.addressee, subject=self.owner, action="задал вопрос", object=self)
         if not created:
             Activity.objects.notify_user(self.owner, subject=self, action="обновлен вопрос")

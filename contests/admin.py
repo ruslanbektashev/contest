@@ -2,9 +2,8 @@ from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericStackedInline
 
 from contests.forms import CourseForm
-from contests.models import (Answer, Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, IOTest,
-                             Lecture, Option, Problem, Question, Submission, SubmissionPattern, Tag, Test,
-                             TestMembership, TestSubmission, UTTest)
+from contests.models import (Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, IOTest,
+                             Lecture, Option, Problem, Submission, SubmissionPattern, Tag, UTTest)
 
 
 class AttachmentInline(GenericStackedInline):
@@ -286,9 +285,4 @@ class EventAdmin(admin.ModelAdmin):
     readonly_fields = ('date_updated', 'date_created')
 
 
-admin.site.register(Test)
-admin.site.register(Question)
-admin.site.register(Answer)
 admin.site.register(Option)
-admin.site.register(TestSubmission)
-admin.site.register(TestMembership)
