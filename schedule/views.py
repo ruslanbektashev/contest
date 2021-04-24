@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, DeleteView
 
 from contest.mixins import LoginRedirectMixin, LoginRedirectPermissionRequiredMixin
-from schedule.forms import ScheduleForm, ScheduleAttachmentForm
+from schedule.forms import ScheduleForm, ScheduleAttachmentForm, ScheduleAttachmentBaseFormSet
 from schedule.models import Schedule, ScheduleAttachment
 from accounts.models import Activity
 
@@ -33,8 +33,9 @@ class ScheduleCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     def dispatch(self, request, *args, **kwargs):
         forms_num = 12
         ScheduleAttachmentInlineFormSet = inlineformset_factory(Schedule, ScheduleAttachment,
-                                                                form=ScheduleAttachmentForm, fields=('name', 'file'),
-                                                                extra=forms_num,
+                                                                form=ScheduleAttachmentForm,
+                                                                formset=ScheduleAttachmentBaseFormSet,
+                                                                fields=('name', 'file'), extra=forms_num,
                                                                 min_num=forms_num, validate_min=True,
                                                                 max_num=forms_num, validate_max=True)
         inlineformset_kwargs = {'initial': [
@@ -51,7 +52,7 @@ class ScheduleCreate(LoginRedirectPermissionRequiredMixin, CreateView):
             {'name': "Психология Магистратура 1"},
             {'name': "Психология Магистратура 2"},
         ]}
-        if self.request.method in ('POST', 'PUT'):
+        if self.request.method == 'POST':
             inlineformset_kwargs.update({'data': self.request.POST, 'files': self.request.FILES})
         self.storage['attachment_formset'] = ScheduleAttachmentInlineFormSet(**inlineformset_kwargs)
         return super().dispatch(request, *args, **kwargs)

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views forms static %}
 
 {% block title %}
@@ -21,7 +21,7 @@
 {% block content %}
 <legend>Изменение номера подзадачи в тесте</legend>
 <div class="card mb-3">
-    <div class="card-header bg-white d-flex align-items-center">
+    <div class="card-header d-flex align-items-center">
         <small class="mr-3" title="Номер в тесте">{{ subproblem.number }}</small>
         {% if subproblem.sub_problem.title %}
             <small class="mr-auto" title="Перейти к задаче">

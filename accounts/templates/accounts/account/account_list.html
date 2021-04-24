@@ -19,7 +19,12 @@
     <table class="table table-bordered table-sm table-hover">
         <thead>
             <tr>
-                <th class="text-center" style="width: 4%;"><input id="check_all" type="checkbox"></th>
+                <th class="text-center" style="width: 4%;">
+                    <div class="custom-control custom-checkbox">
+                        <input id="check_all" type="checkbox" class="custom-control-input">
+                        <label for="check_all" class="custom-control-label ml-2"></label>
+                    </div>
+                </th>
                 <th class="text-center">Фамилия, Имя</th>
                 <th class="text-center" style="width: 17%;">Уровень</th>
             </tr>
@@ -27,7 +32,12 @@
         <tbody>
             {% for account in accounts %}
             <tr>
-                <td class="text-center"><input type="checkbox" class="check" name="accounts" value="{{ account.user_id }}"></td>
+                <td class="text-center">
+                    <div class="custom-control custom-checkbox">
+                        <input id="check_{{ account.user_id }}" type="checkbox" class="custom-control-input check" name="accounts" value="{{ account.user_id }}">
+                        <label for="check_{{ account.user_id }}" class="custom-control-label ml-2"></label>
+                    </div>
+                </td>
                 <td class="text-nowrap"><a href="{{ account.get_absolute_url }}">{{ account }}</a></td>
                 <td class="text-center text-nowrap">{{ account.get_level_display }}</td>
             </tr>

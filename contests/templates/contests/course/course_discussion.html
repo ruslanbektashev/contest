@@ -7,7 +7,8 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
-{% breadcrumb course %}
+{% breadcrumb course course %}
+{% breadcrumb "Обсуждение" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
