@@ -10,6 +10,7 @@ from pygments.lexers import CppLexer, TextLexer
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -1101,6 +1102,7 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
     def get(self, request, *args, **kwargs):
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
             self.object = self.get_object()
+        Activity.objects.filter(recipient=request.user, object_type=ContentType.objects.get_for_model(self.object), object_id=self.object.id).mark_as_read()
         context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
 
