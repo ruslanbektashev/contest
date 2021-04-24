@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views %}
 
 {% block title %}
@@ -20,11 +20,3 @@
 </div>
 {% endfor %}
 {% endblock content %}
-
-{% block submenu %}
-<div class="list-group mb-3">
-    {% if perms.accounts.add_announcement %}
-    <a href="{% url 'accounts:announcement-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить объявление</a>
-    {% endif %}
-</div>
-{% endblock submenu %}
