@@ -44,7 +44,7 @@
                 <h6 class="text-muted">Подзадачи:</h6>
                 {% for subproblem in subproblems %}
                 <div class="card mb-3">
-                    <div class="card-header bg-white d-flex align-items-center">
+                    <div class="card-header d-flex align-items-center">
                         <small class="mr-3" title="Номер в тесте">{{ subproblem.number }}</small>
                         {% if subproblem.sub_problem.title %}
                         <small class="mr-auto" title="Перейти к задаче">
@@ -54,6 +54,14 @@
                         </small>
                         {% endif %}
                         <small>{{ subproblem.sub_problem.get_type_display }}</small>
+                        {% if perms.contests.change_subproblem and perms.contests.delete_subproblem %}
+                        <a href="{% url 'contests:subproblem-update' subproblem.id %}" class="card-link ml-3" title="Изменить номер">
+                            <i class="fa fa-edit fa-fw fa-lg"></i>
+                        </a>
+                        <a href="{% url 'contests:subproblem-delete' subproblem.id %}" class="card-link text-danger ml-3" title="Удалить из теста" style="position: relative; top: -0.08rem;">
+                            <i class="fa fa-remove fa-fw fa-lg"></i>
+                        </a>
+                        {% endif %}
                     </div>
                     <div class="card-body">
                         {{ subproblem.sub_problem.description|safe }}
@@ -68,20 +76,6 @@
                         </div>
                         {% endif %}
                     </div>
-                    {% if perms.contests.change_subproblem or perms.contests.delete_subproblem %}
-                    <div class="card-footer d-flex align-items-center">
-                        {% if perms.contests.change_subproblem %}
-                        <a href="{% url 'contests:subproblem-update' subproblem.id %}" class="card-link mr-auto" title="Изменить номер">
-                            <i class="fa fa-edit fa-fw"></i>
-                        </a>
-                        {% endif %}
-                        {% if perms.contests.delete_subproblem %}
-                        <a href="{% url 'contests:subproblem-delete' subproblem.id %}" class="card-link text-danger" title="Удалить из теста">
-                            <i class="fa fa-remove fa-fw"></i>
-                        </a>
-                        {% endif %}
-                    </div>
-                    {% endif %}
                 </div>
                 {% endfor %}
                 {% endif %}

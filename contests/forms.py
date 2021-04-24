@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.forms import BaseInlineFormSet
 from django.forms.widgets import SelectMultiple
 from django.template.defaultfilters import filesizeformat
 
@@ -207,7 +206,7 @@ class OptionForm(forms.ModelForm):
         fields = ['text', 'is_correct']
 
 
-class OptionBaseFormSet(BaseInlineFormSet):
+class OptionBaseFormSet(forms.BaseInlineFormSet):
     def clean(self):
         if any(self.errors):
             return
