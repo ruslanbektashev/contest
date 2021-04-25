@@ -20,14 +20,15 @@ class Support(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        reports = Report.objects.all() if self.request.user.is_superuser else Report.objects.filter(owner=self.request.user)
+        updated_report_ids = Activity.objects.filter(recipient=self.request.user, subject_type=ContentType.objects.get_for_model(Report), is_read=False).values_list('subject_id', flat=True)
+        reports = Report.objects.filter(closed=False) if self.request.user.has_perm('support.change_report') else Report.objects.filter(Q(owner=self.request.user) & Q(id__in=updated_report_ids))
         context.update({
             'reports': sorted(reports, key=attrgetter('date_created'), reverse=True)
         })
         return context
 
     def get_queryset(self):
-        questions = Question.objects.all() if self.request.user.has_perm('support.change_question') else Question.objects.filter(Q(is_published=True) | Q(owner=self.request.user))
+        questions = Question.objects.filter(answer='') if self.request.user.has_perm('support.change_question') else Question.objects.filter(Q(is_published=True) | Q(owner=self.request.user))[:5]
         return questions
 
 
@@ -149,6 +150,6 @@ class ReportList(LoginRequiredMixin, ListView):
     context_object_name = 'reports'
 
     def get_queryset(self):
-        if not self.request.user.is_superuser:
+        if not self.request.user.has_perm('support.change_report'):
             return Report.objects.filter(owner=self.request.user)
         return super().get_queryset()
