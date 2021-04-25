@@ -53,7 +53,7 @@ class Report(CRUDEntry):
         created = self._state.adding
         super().save(*args, **kwargs)
         if created:
-            user_ids = Subscription.objects.filter(object_type=ContentType.objects.get(model='report')).values_list('user', flat=True)
+            user_ids = User.objects.filter(is_superuser=True).values_list('id', flat=True)
             Activity.objects.notify_users(user_ids, subject=self.owner, action="отправил сообщение об ошибке", object=self)
         if not created:
             Activity.objects.notify_user(self.owner, subject=self, action="обновлен статус сообщения")

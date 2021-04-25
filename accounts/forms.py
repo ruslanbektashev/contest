@@ -162,14 +162,12 @@ class CommentForm(forms.ModelForm):
 class ManageSubscriptionsForm(forms.Form):
     ANNOUNCEMENT_TYPE_ID = ContentType.objects.get(model='announcement').id
     SCHEDULE_TYPE_ID = ContentType.objects.get(model='schedule').id
-    REPORT_TYPE_ID = ContentType.objects.get(model='report').id
     COMMENT_TYPE_ID = ContentType.objects.get(model='comment').id
     SUBMISSION_TYPE_ID = ContentType.objects.get(model='submission').id
 
     OBJECT_TYPE_CHOICES = (
         (ANNOUNCEMENT_TYPE_ID, "Объявления"),
         (SCHEDULE_TYPE_ID, "Расписание"),
-        (REPORT_TYPE_ID, "Сообщения об ошибках"),
         (COMMENT_TYPE_ID, "Комментарии"),
         (SUBMISSION_TYPE_ID, "Посылки"),
     )
