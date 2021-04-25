@@ -18,7 +18,7 @@
     {{ report.text }}
 </p>
 <p>
-    {% if perms.support.change_report %}
+    {% if perms.support.change_report or report.owner == request.user %}
     От: <a href="{{ report.owner.account.get_absolute_url }}">{{ report.owner.account }}</a><br>
     {% endif %}
     Со страницы: <a href="{{ report.page_url }}">{{ report.page_url }}</a><br>
