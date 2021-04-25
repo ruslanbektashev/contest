@@ -28,7 +28,7 @@
         {% if questions %}
         {% for question in questions %}
         <div class="card mb-3">
-            <div class="card-header d-flex align-items-center bg-white">
+            <div class="card-body d-flex align-items-center">
                 <span class="text-primary mr-auto"><a href="{{ question.get_absolute_url }}">{{ question }}</a></span>
                 {% if question.addressee == request.user %}
                 <span class="text-warning">
@@ -62,7 +62,7 @@
         {% if reports %}
         {% for report in reports %}
         <div class="card mb-3">
-            <div class="card-header d-flex align-items-center bg-white">
+            <div class="card-body d-flex align-items-center">
                 <span class="text-primary mr-auto"><a href="{{ report.get_absolute_url }}">{{ report }}</a></span>
                 {% if report.closed %}
                 <span class="numtus status-success">Закрыто</span>
