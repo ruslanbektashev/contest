@@ -27,7 +27,7 @@ class Support(LoginRequiredMixin, ListView):
         return context
 
     def get_queryset(self):
-        questions = Question.objects.all() if self.request.user.has_perm('support.change_question') else Question.objects.filter(owner=self.request.user)
+        questions = Question.objects.all() if self.request.user.has_perm('support.change_question') else Question.objects.filter(Q(is_published=True) | Q(owner=self.request.user))
         return questions
 
 
@@ -87,7 +87,8 @@ class QuestionList(LoginRequiredMixin, ListView):
     context_object_name = 'questions'
 
     def get_queryset(self):
-        return Question.objects.filter(is_published=True)
+        questions = Question.objects.all() if self.request.user.has_perm('support.change_question') else Question.objects.filter(Q(is_published=True) | Q(owner=self.request.user))
+        return questions
 
 
 """===================================================== Report ====================================================="""
