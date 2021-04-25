@@ -279,11 +279,16 @@ class ManageSubscriptions(LoginRequiredMixin, FormView):
         initial['object_type'] = list(self.request.user.subscription_set.values_list('object_type', flat=True))
         return initial
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def post(self, request, *args, **kwargs):
         form = self.get_form()
         if form.is_valid():
             user = self.request.user
-            choices = ManageSubscriptionsForm.OBJECT_TYPE_CHOICES
+            choices = form.fields['object_type'].choices
             data = form.cleaned_data['object_type']
             
             user.subscription_set.filter(object_type__in=choices).exclude(object_type__in=data).delete()

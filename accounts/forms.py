@@ -160,16 +160,24 @@ class CommentForm(forms.ModelForm):
 
 
 class ManageSubscriptionsForm(forms.Form):
-    ANNOUNCEMENT_TYPE_ID = ContentType.objects.get(model='announcement').id
-    SCHEDULE_TYPE_ID = ContentType.objects.get(model='schedule').id
-    COMMENT_TYPE_ID = ContentType.objects.get(model='comment').id
-    SUBMISSION_TYPE_ID = ContentType.objects.get(model='submission').id
+    object_type = forms.MultipleChoiceField(widget=BootstrapCheckboxSelect(), required=False)
 
-    OBJECT_TYPE_CHOICES = (
-        (ANNOUNCEMENT_TYPE_ID, "Объявления"),
-        (SCHEDULE_TYPE_ID, "Расписание"),
-        (COMMENT_TYPE_ID, "Комментарии"),
-        (SUBMISSION_TYPE_ID, "Посылки"),
-    )
+    def __init__(self, *args, **kwargs):
+        ANNOUNCEMENT_TYPE_ID = ContentType.objects.get(model='announcement').id
+        SCHEDULE_TYPE_ID = ContentType.objects.get(model='schedule').id
+        COMMENT_TYPE_ID = ContentType.objects.get(model='comment').id
+        SUBMISSION_TYPE_ID = ContentType.objects.get(model='submission').id
 
-    object_type = forms.MultipleChoiceField(widget=BootstrapCheckboxSelect(), choices=OBJECT_TYPE_CHOICES, required=False)
+        OBJECT_TYPE_CHOICES = (
+            (ANNOUNCEMENT_TYPE_ID, "Объявления"),
+            (SCHEDULE_TYPE_ID, "Расписание"),
+            (COMMENT_TYPE_ID, "Комментарии"),
+            (SUBMISSION_TYPE_ID, "Посылки"),
+        )
+        OBJECT_TYPE_CHOICES_LIMITED = OBJECT_TYPE_CHOICES[:2]
+
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        choices = OBJECT_TYPE_CHOICES if self.user.has_perm('accounts.add_subscription') else OBJECT_TYPE_CHOICES_LIMITED
+        self.fields['object_type'].choices = choices
