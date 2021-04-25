@@ -56,7 +56,7 @@
                 <a href="{% url 'support:report-list' %}" class="btn btn-block btn-light"><i class="fa fa-bug fa-fw"></i> Сообщения об ошибках</a>
             </div>
             <div class="col-6 col-md-6">
-                <a href="{% url 'support:report-create' %}" class="btn btn-block btn-light"><i class="fa fa-plus fa-fw"></i> Сообщить об ошибке</a>
+                <a href="{% url 'support:report-create' %}?from={{ request.path }}" class="btn btn-block btn-light"><i class="fa fa-plus fa-fw"></i> Сообщить об ошибке</a>
             </div>
         </div>
         {% if reports %}

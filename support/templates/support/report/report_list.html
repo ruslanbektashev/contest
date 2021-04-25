@@ -37,6 +37,6 @@
 
 {% block submenu %}
 <div class="list-group mb-3">
-    <a href="{% url 'support:report-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Сообщить об ошибке</a>
+    <a href="{% url 'support:report-create' %}?from={{ request.path }}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Сообщить об ошибке</a>
 </div>
 {% endblock submenu %}
