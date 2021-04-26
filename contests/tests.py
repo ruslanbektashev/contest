@@ -347,17 +347,18 @@ class ProblemViewsTest(TestCase):
 
     def test_create_view_requires_permission(self):
         self.client.login(username=self.student, password=self.student)
-        resp = self.client.get('/contest/{}/problem/create'.format(self.contests[0].id))
+        resp = self.client.get('/contest/{}/problem/create/Program'.format(self.contests[0].id))
         self.assertEqual(resp.status_code, 403)
 
     def test_create_view_accessible_by_url(self):
         self.client.login(username=self.admin, password=self.admin)
-        resp = self.client.get('/contest/{}/problem/create'.format(self.contests[0].id))
+        resp = self.client.get('/contest/{}/problem/create/Program'.format(self.contests[0].id))
         self.assertEqual(resp.status_code, 200)
 
     def test_create_view_accessible_by_name(self):
         self.client.login(username=self.admin, password=self.admin)
-        resp = self.client.get(reverse('contests:problem-create', kwargs={'contest_id': self.contests[0].id}))
+        resp = self.client.get(reverse('contests:problem-create', kwargs={'contest_id': self.contests[0].id,
+                                                                          'type': 'Program'}))
         self.assertEqual(resp.status_code, 200)
 
     """=================================================== Update ==================================================="""
