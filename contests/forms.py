@@ -481,6 +481,11 @@ class SubmissionOptionsForm(forms.ModelForm):
         self.fields['options'] = forms.ModelMultipleChoiceField(required=True, label="Варианты",  queryset=options,
                                                                 widget=widget)
 
+    def save(self, commit=True):
+        instance = super().save(commit=commit)
+        instance.update_options_score()
+        return instance
+
 
 class SubmissionUpdateForm(forms.ModelForm):
     class Meta:

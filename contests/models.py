@@ -816,9 +816,14 @@ class Submission(CRDEntry):
 
     def update_options_score(self):
         correct_option_ids = set(self.problem.option_set.filter(is_correct=True).values_list('id', flat=True))
-        option_ids = set(self.options.values_list('id', flat=True))
-        self.score = len(correct_option_ids & option_ids) * self.problem.score_max // len(correct_option_ids)
-        super().save(update_fields=['score'])
+        chosen_option_ids = set(self.options.values_list('id', flat=True))
+        if chosen_option_ids == correct_option_ids:
+            self.score = self.problem.score_max
+            self.status = 'OK'
+        else:
+            self.score = 0
+            self.status = 'WA'
+        super().save(update_fields=['score', 'status'])
 
     def get_discussion_url(self):
         return self.get_absolute_url()
