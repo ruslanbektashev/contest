@@ -48,7 +48,9 @@
 
 {% block submenu %}
 <div class="list-group mb-3">
+    {% if perms.contests.view_submission %}
     <a href="{% url 'contests:submission-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
+    {% endif %}
     {% if perms.accounts.change_account %}
     <a href="{% url 'accounts:account-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-users fa-fw"></i> Пользователи</a>
     {% endif %}
