@@ -341,7 +341,7 @@ class ProblemViewsTest(TestCase):
     """=================================================== Create ==================================================="""
 
     def test_create_view_requires_login(self):
-        url = '/contest/{}/problem/create'.format(self.contests[0].id)
+        url = '/contest/{}/problem/create/Program'.format(self.contests[0].id)
         resp = self.client.get(url)
         self.assertRedirects(resp, settings.LOGIN_URL + '?next=' + url)
 
