@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views forms humanize %}
+{% load accounts views forms humanize %}
 
 {% block title %}
 Настройки оповещений
@@ -20,6 +20,22 @@
     {% render_form_errors form %}
     <div id="activity_settings">
         {{ form.object_type }}
+        {% if courses %}
+        <div class="mb-3">
+            <p>Вы подписаны на курс{% if courses.count > 1 %}ы{% endif %}:</p>
+            {% for course in courses %}
+            <div class="card mb-3">
+                <div class="card-body d-flex align-items-center">
+                    <span class="text-primary mr-auto"><a href="{% url 'contests:course-detail' course.id %}">{{ course.title }}</a></span>
+                    {% subscription_id_for_course_id request.user course.id as subscription_id %}
+                    <a href="{% url 'accounts:subscription-delete' subscription_id %}?previous_url={{ request.path }}" class="card-link text-danger ml-3" title="Отписаться" style="position: relative; top: -0.08rem;">
+                        <i class="fa fa-times fa-lg"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
 
     {% render_submit_button value="Сохранить" %}

@@ -19,6 +19,7 @@ from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectO
 from accounts.forms import (AccountPartialForm, AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm,
                             CommentForm, ManageSubscriptionsForm)
 from accounts.models import Account, Activity, Comment, Message, Chat, Announcement, Subscription
+from contests.models import Course
 
 """==================================================== Account ====================================================="""
 
@@ -226,6 +227,14 @@ class SubscriptionCreate(CreateView):
     model = Subscription
     permission_required = 'account.add_subscription'
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['previous_url'] = self.request.GET.get('previous_url', '')
+        return super().dispatch(request, *args, **kwargs)
+
     def get(self, request, *args, **kwargs):
         self.object = Subscription(
             object=ContentType.objects.get(
@@ -235,39 +244,31 @@ class SubscriptionCreate(CreateView):
             user=self.request.user
         )
         self.object.save()
-        self.open_discussion = kwargs.pop('open_discussion')
-        success_url = self.get_success_url()
-        return HttpResponseRedirect(success_url)
+        return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse(
-            'contests:{object_type}-{view_name}'.format(
-                object_type=self.object.object._meta.model_name,
-                view_name='discussion' if self.open_discussion else 'detail'
-            ),
-            kwargs={'pk': self.object.object_id}
-        )
+        return self.storage['previous_url']
 
 
 class SubscriptionDelete(DeleteView):
     model = Subscription
     permission_required = 'account.delete_subscription'
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['previous_url'] = self.request.GET.get('previous_url', '')
+        return super().dispatch(request, *args, **kwargs)
+
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        self.open_discussion = kwargs.pop('open_discussion')
-        success_url = self.get_success_url()
         self.object.delete()
-        return HttpResponseRedirect(success_url)
+        return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse(
-            'contests:{object_type}-{view_name}'.format(
-                object_type=self.object.object._meta.model_name,
-                view_name='discussion' if self.open_discussion else 'detail'
-            ),
-            kwargs={'pk': self.object.object_id}
-        )
+        return self.storage['previous_url']
 
 
 class ManageSubscriptions(LoginRequiredMixin, FormView):
@@ -283,6 +284,12 @@ class ManageSubscriptions(LoginRequiredMixin, FormView):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        course_ids = self.request.user.subscription_set.filter(object_type=ContentType.objects.get(model='course')).values_list('object_id', flat=True)
+        context['courses'] = Course.objects.filter(id__in=course_ids)
+        return context
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
