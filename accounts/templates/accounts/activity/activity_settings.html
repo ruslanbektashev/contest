@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views forms humanize %}
+{% load accounts views forms humanize %}
 
 {% block title %}
 Настройки оповещений
@@ -23,6 +23,16 @@
     </div>
 
     {% render_submit_button value="Сохранить" %}
+
+    {% if courses %}
+    <div class="mb-3">
+        <p>Вы подписаны на курс{% if courses.count > 1 %}ы{% endif %}:</p>
+        {% for course in courses %}
+        {% subscription_id_for_course_id request.user course.id as subscription_id %}
+        <a class="btn btn-primary mb-2 mr-1" href="{% url 'accounts:subscription-delete' subscription_id %}?previous_url={{ request.path }}" title="Отписаться" style="border-radius:23px;">{{ course.title }}<i class="fa fa-times fa-lg ml-2"></i></a>
+        {% endfor %}
+    </div>
+    {% endif %}
 </form>
 
 {% endblock content %}

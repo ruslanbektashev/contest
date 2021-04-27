@@ -16,9 +16,9 @@ urlpatterns = [
         path('credentials', views.AccountCredentials.as_view(), name='account-credentials'),
     ])),
     path('subscription/', include([
-        path('create/<str:object_model>/<int:object_id>/<int:open_discussion>', views.SubscriptionCreate.as_view(), name='subscription-create'),
+        path('create/<str:object_model>/<int:object_id>', views.SubscriptionCreate.as_view(), name='subscription-create'),
         path('<int:pk>/', include([
-            path('delete/<int:open_discussion>', views.SubscriptionDelete.as_view(), name='subscription-delete'),
+            path('delete', views.SubscriptionDelete.as_view(), name='subscription-delete'),
         ])),
     ])),
     path('activity/', include([
