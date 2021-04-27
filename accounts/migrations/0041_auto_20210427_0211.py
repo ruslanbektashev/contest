@@ -9,8 +9,6 @@ def create_faculties(apps, schema_editor):
     f2 = Faculty.objects.create(name="Психология")
     Account = apps.get_model('accounts', 'Account')
     Account.objects.update(faculty=f1)
-    Course = apps.get_model('contests', 'Course')
-    Course.objects.update(faculty=f1)
 
 
 class Migration(migrations.Migration):
