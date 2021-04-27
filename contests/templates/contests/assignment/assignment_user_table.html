@@ -45,6 +45,8 @@
             </tr>
             {% endfor %}
             {% endfor %}
+            {% empty %}
+            <tr><td colspan="5"><div class="alert alert-info mb-0">Заданий нет</div></td></tr>
             {% endfor %}
         </tbody>
     </table>

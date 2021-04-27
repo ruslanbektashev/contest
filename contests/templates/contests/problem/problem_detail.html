@@ -13,7 +13,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ problem.title }} <small class="text-muted">№{{ problem.number }}</small></legend>
+<legend>{{ problem.title }} <span class="text-muted pull-right">№{{ problem.number }}</span></legend>
 <a class="btn btn-light btn-block border mb-3" href="{% url 'contests:problem-discussion' problem.id %}">
     {% unread_comments_count request.user.account problem as ucc %}
     <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}

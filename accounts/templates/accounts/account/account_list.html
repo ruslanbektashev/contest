@@ -11,7 +11,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if type == 1 %}Студенты{% else %}Сотрудники{% endif %} {% if graduated %}выпускники{% elif enrolled == False %}отчисленные{% endif %}</legend>
+<legend>{% if type == 1 %}Студенты{% else %}Сотрудники{% endif %} {% if graduated %}выпускники{% elif enrolled == False %}отчисленные{% endif %} <span class="text-muted pull-right">{{ faculty }}</span></legend>
 <form id="account_list_form" action="{{ request.get_full_path }}" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
@@ -43,7 +43,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td class="text-center" colspan="3">здесь никого нет</td>
+                <td class="text-center" colspan="3"><div class="alert alert-info mb-0">Здесь никого нет</div></td>
             </tr>
             {% endfor %}
         </tbody>
@@ -54,20 +54,20 @@
 {% block submenu %}
 <div class="list-group mb-3">
     {% for lvl, lvl_display in levels %}
-    <a href="{% url 'accounts:account-list' %}?level={{ lvl }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled is None and lvl != level or type != 1 %}-o{% endif %} fa-fw"></i> {{ lvl_display }}</a>
+    <a href="{% url 'accounts:account-list' %}?level={{ lvl }}&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled is None and lvl != level or type != 1 %}-o{% endif %} fa-fw"></i> {{ lvl_display }}</a>
     {% endfor %}
 </div>
 <div class="list-group mb-3">
-    <a href="{% url 'accounts:account-list' %}?enrolled=0&graduated=1" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != True %}-o{% endif %} fa-fw"></i> Выпускники</a>
-    <a href="{% url 'accounts:account-list' %}?enrolled=0" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != False %}-o{% endif %} fa-fw"></i> Отчисленные</a>
+    <a href="{% url 'accounts:account-list' %}?enrolled=0&graduated=1&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != True %}-o{% endif %} fa-fw"></i> Выпускники</a>
+    <a href="{% url 'accounts:account-list' %}?enrolled=0&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != False %}-o{% endif %} fa-fw"></i> Отчисленные</a>
 </div>
 <div class="list-group mb-3">
-    <a href="{% url 'accounts:account-list' %}?type=2" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if type != 2 %}-o{% endif %} fa-fw"></i> Модераторы</a>
-    <a href="{% url 'accounts:account-list' %}?type=3" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if type != 3 %}-o{% endif %} fa-fw"></i> Преподаватели</a>
+    <a href="{% url 'accounts:account-list' %}?type=2&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if type != 2 %}-o{% endif %} fa-fw"></i> Модераторы</a>
+    <a href="{% url 'accounts:account-list' %}?type=3&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if type != 3 %}-o{% endif %} fa-fw"></i> Преподаватели</a>
 </div>
 <div class="list-group mb-3">
     {% if perms.accounts.add_account %}
-    <a href="{% url 'accounts:account-create-set' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить пользователей</a>
+    <a href="{% url 'accounts:account-create-set' %}?faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить пользователей</a>
     {% endif %}
 </div>
 <legend>Действия</legend>

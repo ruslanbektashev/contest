@@ -16,7 +16,7 @@ from django.dispatch import receiver
 from django.urls import reverse
 
 from contest.abstract import CDEntry, CRDEntry, CRUDEntry
-from accounts.models import Account, Comment, Activity, Subscription
+from accounts.models import Account, Comment, Activity, Faculty, Subscription
 
 try:
     from tools.sandbox import Sandbox
@@ -80,6 +80,7 @@ class Course(CRUDEntry):
         (8, "4 курс, 2 семестр"),
     )
 
+    faculty = models.ForeignKey(Faculty, null=True, on_delete=models.DO_NOTHING, verbose_name="Факультет")
     leaders = models.ManyToManyField(User, related_name="courses_leading", verbose_name="Ведущие преподаватели")
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")

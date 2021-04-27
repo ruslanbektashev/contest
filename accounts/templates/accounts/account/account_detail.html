@@ -20,6 +20,7 @@
     <div class="col-8">
         <table class="table table-borderless table-sm">
             <tr><td class="text-right" style="width: 30%;">e-mail</td><td>{% if account.email %}<a href="mailto:{{ account.email }}">{{ account.email }}</a>{% elif perms.auth.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}<a href="{% url 'accounts:account-update' account.user_id %}" class="text-danger" >укажите e-mail</a>{% else %}-{% endif %}</td></tr>
+            <tr><td class="text-right" style="width: 30%;">Факультет</td><td>{{ account.faculty }}</td></tr>
             <tr><td class="text-right" style="width: 30%;">Группа</td><td>{% for group in account.user.groups.all %} <span class="badge badge-secondary">{{ group }}</span>{% endfor %}</td></tr>
             <tr><td class="text-right" style="width: 30%;">Тип учетной записи</td><td>{{ account.get_type_display }}</td></tr>
             {% if account.is_student %}

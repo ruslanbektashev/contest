@@ -15,22 +15,22 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonRespons
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, FormView, ListView, UpdateView
-from django.views.generic.base import RedirectView, TemplateView
+from django.views.generic.base import TemplateView
 from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from django.views.generic.edit import BaseCreateView, BaseDeleteView, BaseUpdateView
 from django.views.generic.list import BaseListView
 
-from accounts.models import Account, Activity
+from accounts.models import Account, Activity, Faculty
 from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm,
-                            ContestForm, ContestPartialForm, CourseForm, CreditSetForm, EventForm, FNTestForm, OptionBaseFormSet,
-                            OptionForm, ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm,
-                            ProblemRollbackResultsForm, ProblemTestForm,
-                            SubmissionAttachmentForm, SubmissionFilesForm, SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm,
-                            SubmissionTextForm, SubmissionUpdateForm, UTTestForm)
-from contests.models import (Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, Filter,
-                             IOTest, Lecture, Option, Problem, SubProblem, Submission, SubmissionPattern, UTTest)
+from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, ContestForm, ContestPartialForm,
+                            CourseForm, CreditSetForm, EventForm, FNTestForm, OptionBaseFormSet, OptionForm,
+                            ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm, ProblemRollbackResultsForm,
+                            ProblemTestForm, SubmissionAttachmentForm, SubmissionFilesForm, SubmissionMossForm,
+                            SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm, SubmissionUpdateForm,
+                            UTTestForm)
+from contests.models import (Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, Filter, IOTest,
+                             Lecture, Option, Problem, SubProblem, Submission, SubmissionPattern, UTTest)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 
@@ -131,6 +131,18 @@ class CourseList(LoginRequiredMixin, ListView):
     model = Course
     template_name = 'contests/course/course_list.html'
     context_object_name = 'courses'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
+        self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Course.objects.filter(faculty=self.storage['faculty'])
 
 
 """===================================================== Credit ====================================================="""
@@ -1488,6 +1500,9 @@ class EventSchedule(LoginRequiredMixin, ListView):
 def index(request):
     if request.user.has_perm('contests.view_assignment_table'):
         course_ids = request.user.filter_set.values_list('course_id')
-        return render(request, 'contests/index.html', {'courses': Course.objects.filter(id__in=course_ids)})
+        faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
+        courses = Course.objects.filter(faculty_id=faculty_id, id__in=course_ids)
+        faculties = Faculty.objects.all()
+        return render(request, 'contests/index.html', {'courses': courses, 'faculties': faculties})
     else:
         return redirect(reverse('contests:assignment-list'))

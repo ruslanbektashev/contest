@@ -1,12 +1,18 @@
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 
-from accounts.models import Account, Activity, Comment, Message, Chat, Announcement, Subscription
+from accounts.models import Account, Activity, Comment, Faculty, Message, Chat, Announcement, Subscription
 
 
 @admin.register(Permission)
 class PermissionAdmin(admin.ModelAdmin):
     exclude = []
+
+
+@admin.register(Faculty)
+class FacultyAdmin(admin.ModelAdmin):
+    list_display = ('__str__',)
+    fields = ('name',)
 
 
 @admin.register(Account)

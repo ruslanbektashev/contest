@@ -1,5 +1,7 @@
 import json
 
+from markdown import markdown
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
@@ -11,14 +13,13 @@ from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.contenttypes.models import ContentType
-from markdown import markdown
 
 from accounts.templatetags.comments import get_comment_query_string
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
 from accounts.forms import (AccountPartialForm, AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm,
                             CommentForm, ManageSubscriptionsForm)
-from accounts.models import Account, Activity, Comment, Message, Chat, Announcement, Subscription
+from accounts.models import Account, Activity, Comment, Faculty, Message, Chat, Announcement, Subscription
 
 """==================================================== Account ====================================================="""
 
@@ -67,12 +68,15 @@ class AccountCreateSet(LoginRedirectPermissionRequiredMixin, FormView):
         super().__init__(**kwargs)
         self.storage = {}
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
+        faculty_id = int(self.request.GET.get('faculty_id') or request.user.account.faculty_id)
+        self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
         self.storage['level'] = int(self.request.GET.get('level') or 1)
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+        kwargs['faculty'] = self.storage['faculty']
         kwargs['level'] = self.storage['level']
         return kwargs
 
@@ -80,19 +84,26 @@ class AccountCreateSet(LoginRedirectPermissionRequiredMixin, FormView):
         form = self.get_form()
         if form.is_valid():
             if form.cleaned_data['type'] == 1:
-                _, self.request.session['credentials'] = Account.students.create_set(form.cleaned_data['level'],
+                _, self.request.session['credentials'] = Account.students.create_set(form.cleaned_data['faculty'],
+                                                                                     form.cleaned_data['level'],
                                                                                      form.cleaned_data['admission_year'],
                                                                                      form.cleaned_data['names'])
             else:
-                _, self.request.session['credentials'] = Account.staff.create_set(form.cleaned_data['level'],
+                _, self.request.session['credentials'] = Account.staff.create_set(form.cleaned_data['faculty'],
+                                                                                  form.cleaned_data['level'],
                                                                                   form.cleaned_data['type'],
                                                                                   form.cleaned_data['admission_year'],
                                                                                   form.cleaned_data['names'])
             return self.form_valid(form)
         return self.form_invalid(form)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['faculty'] = self.storage['faculty']
+        return context
+
     def get_success_url(self):
-        return reverse('accounts:account-credentials')
+        return reverse('accounts:account-credentials') + "?faculty_id={}".format(self.storage['faculty'].id)
 
 
 class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView):
@@ -137,7 +148,9 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
         super().__init__(**kwargs)
         self.storage = {}
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
+        faculty_id = int(self.request.GET.get('faculty_id') or request.user.account.faculty_id)
+        self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
         self.storage['level'] = int(self.request.GET.get('level') or 1)
         self.storage['type'] = int(self.request.GET.get('type') or 1)
         enrolled, graduated = self.request.GET.get('enrolled'), self.request.GET.get('graduated')
@@ -147,7 +160,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
         if graduated is not None and graduated == '1':
             self.storage['enrolled'] = False
             self.storage['graduated'] = True
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
@@ -169,7 +182,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
                 elif action == 'graduate':
                     accounts.graduate()
             else:
-                form.add_error(None, "Недопустимое действие для данного типа пользователей")
+                form.add_error(None, "Недопустимое действие для данного типа пользователей.")
                 return self.form_invalid(form)
             return self.form_valid(form)
         else:
@@ -181,15 +194,19 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['type'] = self.storage['type']
+        kwargs['queryset'] = self.get_queryset()
         return kwargs
 
     def get_queryset(self):
         if self.storage['type'] > 1:
-            return Account.staff.filter(type=self.storage['type'])
-        if 'enrolled' in self.storage and 'graduated' in self.storage:
-            return Account.students.filter(enrolled=self.storage['enrolled'], graduated=self.storage['graduated'])
-        return Account.students.enrolled().filter(level=self.storage['level'])
+            queryset = Account.staff.filter(type=self.storage['type'])
+        else:
+            queryset = Account.students.all()
+            if 'enrolled' in self.storage and 'graduated' in self.storage:
+                queryset = queryset.filter(enrolled=self.storage['enrolled'], graduated=self.storage['graduated'])
+            else:
+                queryset = queryset.enrolled().filter(level=self.storage['level'])
+        return queryset.filter(faculty=self.storage['faculty'])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -209,13 +226,16 @@ class AccountCredentials(LoginRedirectPermissionRequiredMixin, TemplateView):
         super().__init__(**kwargs)
         self.storage = {}
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['credentials'] = self.request.session.pop('credentials', None)
-        return super().dispatch(*args, **kwargs)
+        faculty_id = int(self.request.GET.get('faculty_id') or request.user.account.faculty_id)
+        self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['credentials'] = self.storage.pop('credentials')
+        context['faculty'] = self.storage['faculty']
         return context
 
 
@@ -350,12 +370,12 @@ class CommentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         super().__init__(**kwargs)
         self.storage = {}
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         try:
             self.storage['parent'] = Comment.objects.get(id=kwargs.pop('pk', 0))
         except Comment.DoesNotExist:
             self.storage['parent'] = None
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -419,9 +439,9 @@ class MessageCreate(LoginRedirectPermissionRequiredMixin, PaginatorMixin, Create
         super().__init__(**kwargs)
         self.storage = {}
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.storage['recipient'] = get_object_or_404(User, id=kwargs.pop('user_id'))
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.sender = self.request.user

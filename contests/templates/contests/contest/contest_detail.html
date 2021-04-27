@@ -12,7 +12,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ contest.title }} <small class="text-muted">№{{ contest.number }}</small></legend>
+<legend>{{ contest.title }} <span class="text-muted pull-right">№{{ contest.number }}</span></legend>
 <a class="btn btn-light btn-block border mb-3" href="{% url 'contests:contest-discussion' contest.id %}">
     {% unread_comments_count request.user.account contest as ucc %}
     <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}

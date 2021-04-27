@@ -13,7 +13,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Обсуждение раздела {{ contest.title }} <small class="text-muted">№{{ contest.number }}</small></legend>
+<legend>Обсуждение раздела {{ contest.title }} <span class="text-muted pull-right">№{{ contest.number }}</span></legend>
 <div class="btn-group btn-block mb-3">
     <a class="btn btn-light border col-6" href="{% url 'contests:contest-detail' contest.id %}">
         <i class="fa fa-chevron-left fa-fw"></i> Вернуться к разделу

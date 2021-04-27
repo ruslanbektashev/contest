@@ -52,7 +52,19 @@
     <a href="{% url 'contests:submission-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
     {% endif %}
     {% if perms.accounts.change_account %}
+    {% if request.user.is_superuser or request.user.account.is_moderator %}
+    <a class="list-group-item list-group-item-action dropdown-toggle border-bottom-0" href="#" role="button" id="account_list_menu"
+           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
+        <i class="fa fa-users fa-fw"></i> Пользователи
+    </a>
+    <div class="dropdown-menu" aria-labelledby="account_list_menu">
+    {% for faculty in faculties %}
+        <a class="dropdown-item" href="{% url 'accounts:account-list' %}?faculty_id={{ faculty.id }}">{{ faculty }}</a>
+    {% endfor %}
+    </div>
+    {% else %}
     <a href="{% url 'accounts:account-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-users fa-fw"></i> Пользователи</a>
+    {% endif %}
     {% endif %}
     {% if perms.accounts.view_filter %}
     <a href="{% url 'contests:filter-table' %}" class="list-group-item list-group-item-action"><i class="fa fa-bookmark fa-fw"></i> Фильтры</a>

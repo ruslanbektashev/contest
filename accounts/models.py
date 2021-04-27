@@ -10,6 +10,21 @@ from django.core.exceptions import ValidationError
 
 from contest.abstract import CRUDEntry
 
+
+"""==================================================== Faculty ====================================================="""
+
+
+class Faculty(models.Model):
+    name = models.CharField(max_length=50, verbose_name="Наименование")
+
+    class Meta:
+        verbose_name = "Факультет"
+        verbose_name_plural = "Факультеты"
+
+    def __str__(self):
+        return self.name
+
+
 """==================================================== Account ====================================================="""
 
 
@@ -63,7 +78,7 @@ class StaffManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(type__gt=1).select_related('user')
 
-    def create_set(self, level, type, admission_year, names):
+    def create_set(self, faculty, level, type, admission_year, names):
         alphabet_ru_a = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
         alphabet_ru_s = 'жйхцчшщыюя'
         translit_en_a = 'abvgdee_zi_klmnoprstuf________e__'
@@ -83,7 +98,8 @@ class StaffManager(models.Manager):
             group_name = "Преподаватель" if type > 2 else "Модератор"
             group, _ = Group.objects.get_or_create(name=group_name)
             user.groups.add(group)
-            new_account = Account(user_id=user.id, level=level, type=type, admission_year=admission_year, enrolled=False)
+            new_account = Account(user_id=user.id, faculty=faculty, level=level, type=type,
+                                  admission_year=admission_year, enrolled=False)
             new_accounts.append(new_account)
             credentials.append([name[0], name[1], username, password])
         return self.bulk_create(new_accounts), credentials
@@ -93,7 +109,7 @@ class StudentManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(type=1).select_related('user')
 
-    def create_set(self, level, admission_year, names):
+    def create_set(self, faculty, level, admission_year, names):
         new_accounts, credentials = [], []
         i = 1
         for name in names:
@@ -110,7 +126,7 @@ class StudentManager(models.Manager):
             for group_name in ('Студент', 'M' + str(admission_year)[2:]):
                 group, _ = Group.objects.get_or_create(name=group_name)
                 user.groups.add(group)
-            new_account = Account(user_id=user.id, level=level, admission_year=admission_year)
+            new_account = Account(user_id=user.id, faculty=faculty, level=level, admission_year=admission_year)
             new_accounts.append(new_account)
             credentials.append([name[0], name[1], username, password])
             i += 1
@@ -148,6 +164,7 @@ class Account(models.Model):
     ADMISSION_YEAR_DEFAULT = timezone.now().year
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    faculty = models.ForeignKey(Faculty, null=True, on_delete=models.DO_NOTHING, verbose_name="Факультет")
 
     patronymic = models.CharField(max_length=30, blank=True, verbose_name="Отчество")
     department = models.CharField(max_length=150, blank=True, verbose_name="Кафедра")
@@ -177,6 +194,14 @@ class Account(models.Model):
     @property
     def is_student(self):
         return self.type == 1
+
+    @property
+    def is_moderator(self):
+        return self.type == 2
+
+    @property
+    def is_teacher(self):
+        return self.type == 3
 
     @property
     def owner(self):

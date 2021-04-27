@@ -11,7 +11,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ course }} <small class="text-muted">{{ course.get_level_display }}</small></legend>
+<legend>{{ course }} <span class="text-muted pull-right">{{ course.get_level_display }}</span></legend>
 <a class="btn btn-light btn-block border mb-3" href="{% url 'contests:course-discussion' course.id %}">
     {% unread_comments_count request.user.account course as ucc %}
     <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}

@@ -32,8 +32,8 @@ class AccountForm(AccountPartialForm):
 
     class Meta:
         model = Account
-        fields = ['patronymic', 'department', 'position', 'degree', 'image', 'level', 'type', 'admission_year',
-                  'enrolled', 'graduated']
+        fields = ['patronymic', 'faculty', 'department', 'position', 'degree', 'image', 'level', 'type',
+                  'admission_year', 'enrolled', 'graduated']
 
     def save(self, commit=True):
         super(AccountPartialForm, self).save(commit)
@@ -45,14 +45,12 @@ class AccountForm(AccountPartialForm):
 
 
 class AccountListForm(forms.Form):
-    accounts = forms.ModelMultipleChoiceField(queryset=Account.students.all(),
+    accounts = forms.ModelMultipleChoiceField(queryset=Account.students.none(),
                                               widget=forms.CheckboxSelectMultiple)
 
-    def __init__(self, *args, **kwargs):
-        account_type = kwargs.pop('type', None)
+    def __init__(self, *args, queryset, **kwargs):
         super().__init__(*args, **kwargs)
-        if account_type is not None and account_type > 1:
-            self.fields['accounts'].queryset = Account.staff.filter(type=account_type)
+        self.fields['accounts'].queryset = queryset
 
 
 class AccountSetForm(forms.ModelForm):
@@ -60,10 +58,11 @@ class AccountSetForm(forms.ModelForm):
 
     class Meta:
         model = Account
-        fields = ['level', 'type', 'admission_year']
+        fields = ['faculty', 'level', 'type', 'admission_year']
 
-    def __init__(self, level, *args, **kwargs):
+    def __init__(self, faculty, level, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['faculty'].initial = faculty
         self.fields['level'].initial = level
         self.fields['admission_year'].initial = timezone.now().year - (level // 2)
 

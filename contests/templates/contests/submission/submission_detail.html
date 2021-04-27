@@ -128,11 +128,13 @@
     <a href="{{ from_url }}" class="list-group-item list-group-item-action"><i class="fa fa-chevron-left fa-fw"></i> Вернуться к посылкам</a>
 </div>
 {% endif %}
+{% if submission.problem.type == 'Program' %}
 <div class="list-group mb-3">
     {% if perms.contests.moss_submission %}
     <a href="{% url 'contests:submission-moss' submission.id %}" class="list-group-item list-group-item-action"><i class="fa fa-maxcdn fa-fw"></i> MOSS</a>
     {% endif %}
 </div>
+{% endif %}
 <div class="list-group mb-3">
     {% if perms.contests.delete_submission %}
     <a href="{% url 'contests:submission-delete' submission.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить посылку</a>
