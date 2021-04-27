@@ -19,7 +19,7 @@ from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectO
 from accounts.forms import (AccountPartialForm, AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm,
                             CommentForm, ManageSubscriptionsForm)
 from accounts.models import Account, Activity, Comment, Message, Chat, Announcement, Subscription
-from contests.models import Course
+from contests.models import Course, Submission
 
 """==================================================== Account ====================================================="""
 
@@ -244,6 +244,16 @@ class SubscriptionCreate(CreateView):
             user=self.request.user
         )
         self.object.save()
+
+        comment_type = ContentType.objects.get(model='comment')
+        if not self.request.user.subscription_set.filter(object_type=comment_type).exists():
+            comment_subscription = Subscription(object_type=comment_type, user=self.request.user)
+            comment_subscription.save()
+        submission_type = ContentType.objects.get(model='submission')
+        if not self.request.user.subscription_set.filter(object_type=submission_type).exists():
+            submission_subscription = Subscription(object_type=submission_type, user=self.request.user)
+            submission_subscription.save()
+
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
@@ -264,6 +274,9 @@ class SubscriptionDelete(DeleteView):
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
+        if self.request.user.subscription_set.filter(object_type=ContentType.objects.get(model='course')).count() == 1:
+            comment_submission_types = ContentType.objects.filter(model__in=['comment', 'submission'])
+            self.request.user.subscription_set.filter(object_type__in=comment_submission_types).delete()
         self.object.delete()
         return HttpResponseRedirect(self.get_success_url())
 
@@ -304,11 +317,19 @@ class ManageSubscriptions(LoginRequiredMixin, FormView):
             new_subscriptions = (Subscription(object_type=ContentType.objects.get(id=i), user=user) for i in new_object_type_ids)
             Subscription.objects.bulk_create(new_subscriptions)
 
+            comment_submission_types = ContentType.objects.filter(model__in=['comment', 'submission'])
+            if not user.subscription_set.filter(object_type__in=comment_submission_types).exists():
+                user.subscription_set.filter(object_type=ContentType.objects.get(model='course')).delete()
+            if user.subscription_set.filter(object_type__in=comment_submission_types).exists() and not user.subscription_set.filter(object_type=ContentType.objects.get(model='course')).exists():
+                course_ids = Course.objects.all().values_list('id', flat=True)
+                course_subscriptions = (Subscription(object_type=ContentType.objects.get(model='course'), object_id=course_id, user=user) for course_id in course_ids)
+                Subscription.objects.bulk_create(course_subscriptions)
+
             return self.form_valid(form)
         return self.form_invalid(form)
     
     def get_success_url(self):
-        return reverse('accounts:activity-list')
+        return reverse('accounts:activity-settings')
 
 
 """==================================================== Activity ===================================================="""
