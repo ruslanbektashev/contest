@@ -379,6 +379,10 @@ class Option(models.Model):
     text = models.CharField(verbose_name="Текст", max_length=250)
     is_correct = models.BooleanField(verbose_name="Верный?", default=False)
 
+    class Meta:
+        verbose_name = "Вариант ответа"
+        verbose_name_plural = "Варианты ответа"
+
     def __str__(self):
         return self.text
 
