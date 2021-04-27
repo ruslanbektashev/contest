@@ -355,14 +355,17 @@ class ManageSubscriptions(LoginRequiredMixin, FormView):
 """==================================================== Activity ===================================================="""
 
 
-class ActivityList(LoginRequiredMixin, ListView):
+class ActivityList(LoginRequiredMixin, PaginatorMixin, ListView):
     model = Activity
     template_name = 'accounts/activity/activity_list.html'
-    context_object_name = 'activities'
-    paginate_by = 10
+    paginate_by = 30
 
-    def get_queryset(self):
-        return super().get_queryset().filter(recipient=self.request.user).actual()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        activities = super().get_queryset().filter(recipient=self.request.user).actual()
+        context['paginator'], context['page_obj'], context['activities'], context['is_paginated'] = \
+            self.paginate_queryset(activities)
+        return context
 
 
 class ActivityMark(LoginRequiredMixin, FormView):
