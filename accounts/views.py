@@ -40,6 +40,19 @@ def mark_comments_as_read(request):
     return JsonResponse({'status': 'ok'})
 
 
+@csrf_exempt
+def mark_activities_as_read(request):
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except:
+        return JsonResponse({'status': 'bad_request'})
+    unread_activities_ids = data.get('unread_activities_ids', None)
+    if unread_activities_ids:
+        unread_activities = Activity.objects.filter(id__in=unread_activities_ids, recipient=request.user)
+        unread_activities.mark_as_read()
+    return JsonResponse({'status': 'ok'})
+
+
 class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
     model = Account
     template_name = 'accounts/account/account_detail.html'

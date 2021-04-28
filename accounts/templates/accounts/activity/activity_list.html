@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views humanize static %}
+{% load views accounts humanize static %}
 
 {% block title %}
 Оповещения
@@ -16,8 +16,8 @@
 <div id="activities" class="activity-list list-group mb-3">
     {% if activities %}
     {% for activity in activities %}
-    <li class="activity-list-item list-group-item d-flex {% if not activity.is_read %}bg-light{% endif %}">
-    <span class="mr-auto ">
+    <li class="activity-list-item list-group-item d-flex {% if not activity.is_read %}bg-light" data-unread=true{% else %}"{% endif %} data-id={{ activity.id }}>
+    <span class="activity-body mr-auto">
         {% if activity.subject.username %}
         <a href="{{ activity.subject.account.get_absolute_url }}">{{ activity.subject.account }}</a>
         {% else %}
@@ -65,4 +65,14 @@
         more: '.activity-list-more'
     });
 </script>
+<script type="text/javascript" src="{% static 'js/activities.js' %}"></script>
+<script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function(event) {
+        let watcher = new ReadWatcher("{% url 'accounts:mark-activities-as-read' %}");
+        if(parseInt('{% unread_activities_count request.user %}') > 0) {
+            window.addEventListener('scroll', watcher, false);
+        }
+        setTimeout(watcher.markActivitiesAsRead.bind(watcher), 1000);
+    });
+    </script>
 {% endblock javascript %}

@@ -1,3 +1,4 @@
+from accounts.models import Activity
 from django import template
 from django.contrib.contenttypes.models import ContentType
 
@@ -7,6 +8,11 @@ register = template.Library()
 @register.simple_tag()
 def unread_comments_count(account, obj):
     return account.unread_comments_count(obj) if hasattr(obj, 'comment_set') else 0
+
+
+@register.simple_tag()
+def unread_activities_count(user):
+    return Activity.objects.filter(recipient=user, is_read=False).count()
 
 
 @register.simple_tag()
