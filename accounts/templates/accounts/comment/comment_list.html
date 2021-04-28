@@ -13,7 +13,7 @@
         <div class="comment-main w-100">
             <div class="comment-header mb-1 d-flex lake">
                 <div class="comment-user text-nowrap mr-2">
-                    <a href="{{ comment.author.account.get_absolute_url }}" class="{% if comment.author.is_staff %}text-success{% endif %}">
+                    <a href="{{ comment.author.account.get_absolute_url }}" class="{% if comment.author.account.is_teacher %}text-success{% endif %}">
                         {{ comment.author.account }}
                     </a>
                 </div>
