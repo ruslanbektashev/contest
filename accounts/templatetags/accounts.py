@@ -1,6 +1,10 @@
-from accounts.models import Activity
 from django import template
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.humanize.templatetags.humanize import naturaltime
+from django.template.defaultfilters import date
+from django.utils import timezone
+
+from accounts.models import Activity
 
 register = template.Library()
 
@@ -13,6 +17,15 @@ def unread_comments_count(account, obj):
 @register.simple_tag()
 def unread_activities_count(user):
     return Activity.objects.filter(recipient=user, is_read=False).count()
+
+
+@register.filter()
+def naturaltime_if_lt_week_ago(value, arg=None):
+    timediff = timezone.now() - value
+    if timediff.days < 7:
+        return naturaltime(value)
+    else:
+        return date(value, arg)
 
 
 @register.simple_tag()

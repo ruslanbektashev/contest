@@ -121,6 +121,15 @@
             style: 'form-control'
         });
     });
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip({
+            trigger: "hover",
+            delay: {"show": 500, "hide": 100}
+        });
+    })
+    function closeTooltips() {
+        $('[data-toggle="tooltip"]').tooltip('hide');
+    }
 </script>
 {% block javascript %}
 {% endblock javascript %}

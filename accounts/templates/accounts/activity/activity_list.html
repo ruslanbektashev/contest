@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views accounts humanize static %}
 
 {% block title %}
@@ -11,10 +11,11 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Оповещения</legend>
+<legend>Оповещения <a href="{% url 'accounts:activity-settings' %}" onclick="closeTooltips()" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="Настроить оповещения"><i class="fa fa-cog fa-fw"></i></a></legend>
 
-<div id="activities" class="activity-list list-group mb-3">
+<div id="activities" class="activity-list list-group list-group-flush mb-3">
     {% if activities %}
+    {% now 'Y' as current_year %}
     {% for activity in activities %}
     <li class="activity-list-item list-group-item d-flex {% if not activity.is_read %}bg-light" data-unread=true{% else %}"{% endif %} data-id={{ activity.id }}>
     <span class="activity-body mr-auto">
@@ -31,8 +32,12 @@
         / <a href="{{ activity.reference.get_absolute_url }}"> {{ activity.reference }}</a>
         {% endif %}
     </span>
-    <span class="text-muted text-right"  style="width: 20%;">
-        {{ activity.date_created|naturaltime }}
+    <span class="text-muted text-right" style="width: 25%;">
+        {% if activity.date_created|date:'Y' == current_year %}
+        {{ activity.date_created|naturaltime_if_lt_week_ago:'j E в H:i' }}
+        {% else %}
+        {{ activity.date_created|naturaltime_if_lt_week_ago:'j E Y г. в H:i' }}
+        {% endif %}
     </span>
     </li>
     {% endfor %}
@@ -47,12 +52,6 @@
 {% endif %}
 
 {% endblock content %}
-
-{% block submenu %}
-<div class="list-group mb-3">
-    <a href="{% url 'accounts:activity-settings' %}" class="list-group-item list-group-item-action"><i class="fa fa-cog fa-fw"></i> Настройки оповещений</a>
-</div>
-{% endblock submenu %}
 
 {% block javascript %}
 <script src="{% static 'MathJax/es5/tex-chtml.js' %}" type="text/javascript"></script>

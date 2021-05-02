@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views %}
 
 {% block title %}
@@ -11,7 +11,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Расписание</legend>
+<legend>Расписание{% if perms.schedule.add_schedule %}<a href="{% url 'schedule:schedule-create' %}" onclick="closeTooltips()" class="text-success text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="Добавить расписание"><i class="fa fa-plus fa-fw"></i></a>{% endif %}</legend>
 {% now 'Y-m-d' as current_date %}
 <div class="list-group mb-3">
     {% for obj in schedules %}
@@ -19,11 +19,3 @@
     {% endfor %}
 </div>
 {% endblock content %}
-
-{% block submenu %}
-<div class="list-group mb-3">
-    {% if perms.schedule.add_schedule %}
-    <a href="{% url 'schedule:schedule-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить расписание</a>
-    {% endif %}
-</div>
-{% endblock submenu %}
