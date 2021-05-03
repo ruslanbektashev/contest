@@ -16,6 +16,8 @@ from contest.abstract import CRUDEntry
 
 class Faculty(models.Model):
     name = models.CharField(max_length=50, verbose_name="Наименование")
+    group_name = models.CharField(max_length=50, verbose_name="Наименование группы")
+    group_prefix = models.CharField(max_length=5, verbose_name="Префикс группы")
 
     class Meta:
         verbose_name = "Факультет"
@@ -110,10 +112,17 @@ class StudentManager(models.Manager):
         return super().get_queryset().filter(type=1).select_related('user')
 
     def create_set(self, faculty, level, admission_year, names):
+        alphabet_ru_a = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
+        alphabet_ru_s = 'жйхцчшщыюя'
+        translit_en_a = 'abvgdee_zi_klmnoprstuf________e__'
+        translit_en_s = ['zh', 'y', 'kh', 'ts', 'ch', 'sh', 'sh', 'y', 'yu', 'ya']
+        transtable = {ord(c): p for c, p in zip(alphabet_ru_a, translit_en_a)}
+        transtable.update({ord(c): p for c, p in zip(alphabet_ru_s, translit_en_s)})
+        group_prefix = faculty.group_prefix.lower().translate(transtable)
         new_accounts, credentials = [], []
         i = 1
         for name in names:
-            prefix = 'msu_' + str(admission_year) + '_'
+            prefix = 'msu_' + group_prefix + str(admission_year)[2:] + '_'
             suffix = str(i).zfill(2)
             while User.objects.filter(username=prefix + suffix).exists():
                 i += 1
@@ -123,7 +132,10 @@ class StudentManager(models.Manager):
             first_name = name[1].lower().capitalize()
             last_name = name[0].lower().capitalize()
             user = User.objects.create_user(username, password=password, first_name=first_name, last_name=last_name)
-            for group_name in ('Студент', 'M' + str(admission_year)[2:]):
+            groups = ["Студент"]
+            if faculty.group_prefix:
+                groups.append(faculty.group_prefix + str(admission_year)[2:])
+            for group_name in groups:
                 group, _ = Group.objects.get_or_create(name=group_name)
                 user.groups.add(group)
             new_account = Account(user_id=user.id, faculty=faculty, level=level, admission_year=admission_year)

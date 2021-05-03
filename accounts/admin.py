@@ -12,7 +12,7 @@ class PermissionAdmin(admin.ModelAdmin):
 @admin.register(Faculty)
 class FacultyAdmin(admin.ModelAdmin):
     list_display = ('__str__',)
-    fields = ('name',)
+    fields = ('name', 'group_name', 'group_prefix')
 
 
 @admin.register(Account)
