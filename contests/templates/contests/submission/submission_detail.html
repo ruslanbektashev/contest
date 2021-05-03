@@ -95,28 +95,73 @@
 </ul>
 {% endif %}
 {% if submission.problem.type == 'Test' %}
-<div class="table-responsive">
-    <table id="p" class="table table-sm">
-        <thead>
-            <tr>
-                <th>Подзадача теста</th>
-                <th class="text-center" style="width: 8%;">Статус</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for subsubmission in submission.sub_submissions.all %}
-            <tr class="{% if submission.assignment and subsubmission.date_created > submission.assignment.date_updated %}bg-light{% endif %}">
-                <td><a href="{{ subsubmission.problem.get_absolute_url }}">{{ subsubmission.problem }}</a></td>
-                <td class="text-center">
-                    <a href="{{ subsubmission.get_absolute_url }}" class="status status-{{ subsubmission.status|colorize }}" title="{{ subsubmission.get_status_display }}">
-                        {{ subsubmission.status }}
-                    </a>
-                </td>
-            </tr>
+<h6 class="text-muted">Подпосылки:</h6>
+{% for sub_submission in submission.sub_submissions.all %}
+<div class="card mb-3">
+    <div class="card-header d-flex align-items-center">
+        <small class="mr-3" title="Номер в тесте">{{ sub_submission.problem.number }}</small>
+        {% if sub_submission.problem.title %}
+        <small class="mr-auto" title="Перейти к задаче">
+            <a href="{% url 'contests:problem-detail' sub_submission.problem.id %}" class="card-link">
+                {{ sub_submission.problem.title }}
+            </a>
+        </small>
+        {% endif %}
+        <small>{{ sub_submission.problem.get_type_display }}</small>
+        {% if perms.contests.change_subproblem and perms.contests.delete_subproblem %}
+        <a href="{% url 'contests:submission-update' sub_submission.id %}" class="card-link ml-3" title="Изменить статус">
+            <i class="fa fa-edit fa-fw fa-lg"></i>
+        </a>
+        {% endif %}
+        <a href="{{ sub_submission.get_absolute_url }}" class="status status-{{ sub_submission.status|colorize }} ml-3" title="{{ sub_submission.get_status_display }}">
+            {{ sub_submission.status }}
+        </a>
+    </div>
+    <div class="card-body">
+        {{ sub_submission.problem.description|safe }}
+        <h6 class="text-muted">Ответ:</h6>
+        {% if sub_submission.problem.type == 'Program' or sub_submission.problem.type == 'Files' %}
+        <div class="text-right text-muted">
+            {% if perms.contests.moss_submission %}
+                {% if sub_submission.moss_to_submissions %}
+            <p class="text-warning text-wrap" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>с посылками MOSS: {% for to_submission_id in sub_submission.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+            <p class="text-warning text-wrap" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>ссылка на отчет MOSS: {% if sub_submission.moss_report_url %}<a href="{{ sub_submission.moss_report_url }}" target="_blank">{{ sub_submission.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
+                {% endif %}
+            {% endif %}
+        </div>
+        <legend>Файлы {% if perms.contests.download_submission %}<a href="{% url 'contests:submission-download' sub_submission.id %}" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>{% endif %}</legend>
+        <div class="list-group">
+            {% for attachment in sub_submission.attachment_set.all %}
+            <span class="list-group-item d-flex">
+                {% if perms.contests.download_submission %}
+                <a class="mr-auto" href="{% url 'contests:submission-attachment' sub_submission.id attachment.id %}"><samp>{{ attachment.filename }}</samp></a>
+                <a href="{{ attachment.file.url }}" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
+                {% else %}
+                <samp>{{ attachment.filename }}</samp>
+                {% endif %}
+            </span>
             {% endfor %}
-        </tbody>
-    </table>
+        </div>
+        {% endif %}
+        {% if sub_submission.problem.type == 'Text' %}
+        <div class="card">
+            <div class="card-body">
+                {{ sub_submission.text|safe }}
+            </div>
+        </div>
+        {% endif %}
+        {% if sub_submission.problem.type == 'Options' %}
+        <ul class="list-group mb-3">
+            {% for option in sub_submission.problem.option_set.all %}
+            <li class="list-group-item {% if option in sub_submission.options.all %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
+                {% if option in sub_submission.options.all %}{% if option.is_correct %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% else %}<i class="fa fa-times-circle-o" aria-hidden="true"></i>{% endif %}{% endif %} {{ option.text }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
 </div>
+{% endfor %}
 {% endif %}
 <legend>Комментарии</legend>
 {% render_comments submission comments %}
