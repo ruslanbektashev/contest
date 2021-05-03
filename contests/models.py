@@ -819,6 +819,22 @@ class Submission(CRDEntry):
         if self.assignment is not None:
             self.assignment.update(self)
 
+    def update_test_score(self):
+        max_score = sum(self.problem.sub_problems.values_list('problem__score_max', flat=True))
+        scores_sum = sum(self.sub_submissions.values_list('score', flat=True))
+        percentage = scores_sum * 100 // max_score
+        self.status = 'OK'
+        if percentage >= self.problem.score_for_5:
+            self.score = 5
+        elif percentage >= self.problem.score_for_4:
+            self.score = self.problem.score_for_4
+        elif percentage >= self.problem.score_for_3:
+            self.score = self.problem.score_for_3
+        else:
+            self.score = 2
+            self.status = 'TF'
+        super().save(update_fields=['score', 'status'])
+
     def update_options_score(self):
         correct_option_ids = set(self.problem.option_set.filter(is_correct=True).values_list('id', flat=True))
         chosen_option_ids = set(self.options.values_list('id', flat=True))

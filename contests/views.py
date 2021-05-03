@@ -1217,6 +1217,12 @@ class SubmissionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     template_name = 'contests/submission/submission_update_form.html'
     permission_required = 'contests.change_submission'
 
+    def form_valid(self, form):
+        self.object = form.save()
+        if self.object.main_submission is not None:
+            self.object.main_submission.update_test_score()
+        return HttpResponseRedirect(self.get_success_url())
+
 
 class SubmissionMoss(LoginRedirectPermissionRequiredMixin, SingleObjectMixin, FormView):
     model = Submission
