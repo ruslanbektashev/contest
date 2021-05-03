@@ -48,12 +48,12 @@
 
 {% block submenu %}
 <div class="list-group mb-3">
-    {% if perms.contests.view_submission %}
+    {% if perms.contests.view_submission_list %}
     <a href="{% url 'contests:submission-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
     {% endif %}
     {% if perms.accounts.change_account %}
-    {% if request.user.is_superuser or request.user.account.is_moderator %}
-    <a class="list-group-item list-group-item-action dropdown-toggle border-bottom-0" href="#" role="button" id="account_list_menu"
+    {% if perms.accounts.add_faculty %}
+    <a class="list-group-item list-group-item-action dropdown-toggle {% if perms.accounts.view_filter %}border-bottom-0{% endif %}" href="#" role="button" id="account_list_menu"
            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
         <i class="fa fa-users fa-fw"></i> Пользователи
     </a>

@@ -124,7 +124,7 @@ class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView)
     model = Account
     form_class = AccountForm
     template_name = 'accounts/account/account_form.html'
-    permission_required = 'account.change_account'
+    permission_required = 'accounts.change_account'
 
     def get(self, request, *args, **kwargs):
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
@@ -258,7 +258,7 @@ class AccountCredentials(LoginRedirectPermissionRequiredMixin, TemplateView):
 
 class SubscriptionCreate(CreateView):
     model = Subscription
-    permission_required = 'account.add_subscription'
+    permission_required = 'accounts.add_subscription'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -295,7 +295,7 @@ class SubscriptionCreate(CreateView):
 
 class SubscriptionDelete(DeleteView):
     model = Subscription
-    permission_required = 'account.delete_subscription'
+    permission_required = 'accounts.delete_subscription'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -571,7 +571,7 @@ class AnnouncementList(LoginRequiredMixin, ListView):
     context_object_name = 'announcements'
 
     def get_queryset(self):
-        if self.request.user.has_perm('contests.change_announcement'):
+        if self.request.user.has_perm('accounts.change_announcement'):
             return super().get_queryset().all()
         else:
             return super().get_queryset().filter(group__in=self.request.user.groups.all())

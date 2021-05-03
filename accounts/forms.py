@@ -73,9 +73,10 @@ class AccountSetForm(forms.ModelForm):
             name = name.split()
             if len(name) < 2:
                 raise ValidationError("Неверный формат списка имен", code='wrong_format')
-            for i in range(2):
+            l = min(len(name), 3)
+            for i in range(l):
                 if not name[i].isalpha():
-                    raise ValidationError("Фамилия и Имя должны состоять только из букв", code='not_a_letter')
+                    raise ValidationError("Фамилия, Имя и Отчество должны состоять только из букв", code='not_a_letter')
                 name[i].lower().capitalize()
             cleaned_names.append(name)
         return cleaned_names

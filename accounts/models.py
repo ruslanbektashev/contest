@@ -91,6 +91,7 @@ class StaffManager(models.Manager):
         for name in names:
             first_name = name[1].lower()
             last_name = name[0].lower()
+            patronymic = name[2].lower().capitalize() if len(name) > 2 else ""
             username = last_name.translate(transtable)
             if User.objects.filter(username=username).exists():
                 username = first_name[0].translate(transtable) + username
@@ -100,7 +101,7 @@ class StaffManager(models.Manager):
             group_name = "Преподаватель" if type > 2 else "Модератор"
             group, _ = Group.objects.get_or_create(name=group_name)
             user.groups.add(group)
-            new_account = Account(user_id=user.id, faculty=faculty, level=level, type=type,
+            new_account = Account(user_id=user.id, faculty=faculty, patronymic=patronymic, level=level, type=type,
                                   admission_year=admission_year, enrolled=False)
             new_accounts.append(new_account)
             credentials.append([name[0], name[1], username, password])
@@ -131,6 +132,7 @@ class StudentManager(models.Manager):
             password = User.objects.make_random_password()
             first_name = name[1].lower().capitalize()
             last_name = name[0].lower().capitalize()
+            patronymic = name[2].lower().capitalize() if len(name) > 2 else ""
             user = User.objects.create_user(username, password=password, first_name=first_name, last_name=last_name)
             groups = ["Студент"]
             if faculty.group_prefix:
@@ -138,9 +140,10 @@ class StudentManager(models.Manager):
             for group_name in groups:
                 group, _ = Group.objects.get_or_create(name=group_name)
                 user.groups.add(group)
-            new_account = Account(user_id=user.id, faculty=faculty, level=level, admission_year=admission_year)
+            new_account = Account(user_id=user.id, faculty=faculty, patronymic=patronymic, level=level,
+                                  admission_year=admission_year)
             new_accounts.append(new_account)
-            credentials.append([name[0], name[1], username, password])
+            credentials.append([last_name, first_name, username, password])
             i += 1
         return self.bulk_create(new_accounts), credentials
 
