@@ -235,6 +235,10 @@ class ProblemTestForm(ProblemForm):
         super().__init__(*args, **kwargs)
         self.fields['sub_problems'].queryset = Problem.objects.filter(contest=self.initial['contest'],
                                                                       type__in=['Program', 'Files', 'Text', 'Options'])
+        self.fields['score_for_5'].label = "Процентов для 5"
+        self.fields['score_for_4'].label = "Процентов для 4"
+        self.fields['score_for_3'].label = "Процентов для 3"
+        del self.fields['score_max']
 
     def clean_sub_problems(self):
         if len(self.cleaned_data['sub_problems']) <= 1:

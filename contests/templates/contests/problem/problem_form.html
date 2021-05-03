@@ -46,7 +46,9 @@
         </div>
     </div>
     {% render_field form.number class+="form-control" %}
+    {% if type != 'Test' %}
     {% render_field form.score_max class+="form-control" %}
+    {% endif %}
     {% endwith %}
     <div class="form-row">
         <div class="form-group col-4">
