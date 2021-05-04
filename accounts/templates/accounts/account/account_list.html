@@ -39,7 +39,7 @@
                     </div>
                 </td>
                 <td class="text-nowrap"><a href="{{ account.get_absolute_url }}">{{ account }}</a></td>
-                <td class="text-center text-nowrap">{{ account.get_level_display }}</td>
+                <td class="text-center text-nowrap">{% if account.is_student %}{{ account.get_level_display }}{% else %}{{ account.get_type_display }}{% endif %}</td>
             </tr>
             {% empty %}
             <tr>
