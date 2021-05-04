@@ -18,6 +18,7 @@ class ReadWatcher {
     markActivitiesAsRead() {
         if (this.unread_activities_ids.length > 0) {
             this.options['body'] = JSON.stringify({ unread_activities_ids: this.unread_activities_ids });
+            this.updateUnreadCounterBadge();
             this.unread_activities_ids = [];
             fetch(this.mark_activities_as_read_url, this.options).then(response => {});
         }
