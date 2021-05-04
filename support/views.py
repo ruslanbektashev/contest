@@ -59,8 +59,7 @@ class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def get_form(self):
         form = super().get_form()
-        perm = Permission.objects.get(content_type__app_label='support', codename='change_question')
-        form.fields['addressee'].queryset = User.objects.filter(Q(user_permissions=perm))
+        form.fields['addressee'].queryset = User.objects.filter(account__type=3)
         return form
 
     def form_valid(self, form):

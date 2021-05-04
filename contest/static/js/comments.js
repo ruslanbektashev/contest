@@ -8,11 +8,13 @@ class ReadWatcher {
 
     updateUnreadCounterBadge() {
         let unread_comments_count_element = document.getElementById('unread_comments_count');
-        let updated_count = parseInt(unread_comments_count_element.innerText) - this.unread_comments_ids.length;
-        if (updated_count > 0)
-            unread_comments_count_element.innerText = updated_count.toString();
-        else
-            unread_comments_count_element.remove();
+        if(unread_comments_count_element !== null) {
+            let updated_count = parseInt(unread_comments_count_element.innerText) - this.unread_comments_ids.length;
+            if (updated_count > 0)
+                unread_comments_count_element.innerText = updated_count.toString();
+            else
+                unread_comments_count_element.remove();
+        }
     }
 
     markCommentsAsRead() {
