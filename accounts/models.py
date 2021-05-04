@@ -522,6 +522,11 @@ class Comment(models.Model):
             user_ids_set.add(self.object.owner_id)
             user_ids = list(user_ids_set)
         action = "оставил комментарий" if created else "изменил комментарий"
+        if self.id != self.parent_id:
+            user = Comment.objects.get(id=self.parent_id).author
+            Activity.objects.notify_user(user, subject=self.author, action="ответил на ваш комментарий", object=self, reference=self.object)
+            if user.id in user_ids:
+                user_ids.remove(user.id)
         Activity.objects.notify_users(user_ids, subject=self.author, action=action, object=self, reference=self.object)
 
     def _set_thread(self):
