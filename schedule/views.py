@@ -36,7 +36,7 @@ class ScheduleCreate(LoginRedirectPermissionRequiredMixin, CreateView):
                                                                 form=ScheduleAttachmentForm,
                                                                 formset=ScheduleAttachmentBaseFormSet,
                                                                 fields=('name', 'file'), extra=forms_num,
-                                                                min_num=forms_num, validate_min=True,
+                                                                min_num=1, validate_min=True,
                                                                 max_num=forms_num, validate_max=True)
         inlineformset_kwargs = {'initial': [
             {'name': "ПМиИ 1"},
