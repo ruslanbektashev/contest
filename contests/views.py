@@ -346,6 +346,13 @@ class ContestDetail(LoginRequiredMixin, DetailView):
     model = Contest
     template_name = 'contests/contest/contest_detail.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['subscribers_ids'] = self.object.subscription_set.all().values_list('user', flat=True)
+        if self.request.user.id in context['subscribers_ids']:
+            context['subscription_id'] = self.object.subscription_set.get(user=self.request.user).id
+        return context
+
 
 class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
     model = Contest
