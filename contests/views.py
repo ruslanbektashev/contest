@@ -108,6 +108,25 @@ class CourseCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     template_name = 'contests/course/course_form.html'
     permission_required = 'contests.add_course'
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
+        self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['faculty'] = self.storage['faculty']
+        return initial
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['faculty'] = self.storage['faculty']
+        return kwargs
+
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
@@ -118,6 +137,11 @@ class CourseUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     form_class = CourseForm
     template_name = 'contests/course/course_form.html'
     permission_required = 'contests.change_course'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['faculty'] = self.object.faculty
+        return kwargs
 
 
 class CourseDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
@@ -234,7 +258,7 @@ class FilterTable(LoginRedirectPermissionRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        users = User.objects.filter(account__type=3)
+        users = User.objects.filter(groups__name__in=["Преподаватель", "Модератор"])
         courses = Course.objects.all()
         table = []
         for i in range(len(users)):

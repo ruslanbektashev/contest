@@ -80,7 +80,7 @@ class Course(CRUDEntry):
         (8, "4 курс, 2 семестр"),
     )
 
-    faculty = models.ForeignKey(Faculty, null=True, on_delete=models.DO_NOTHING, verbose_name="Факультет")
+    faculty = models.ForeignKey(Faculty, on_delete=models.DO_NOTHING, verbose_name="Факультет")
     leaders = models.ManyToManyField(User, related_name="courses_leading", verbose_name="Ведущие преподаватели")
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
@@ -103,12 +103,9 @@ class Course(CRUDEntry):
 
     def save(self, *args, **kwargs):
         created = self._state.adding
-        self.faculty_id = 1
         super().save(*args, **kwargs)
         if created:
             Filter.objects.get_or_create(user=self.owner, course=self)
-        for leader in self.leaders.all():
-            Filter.objects.get_or_create(user=leader, course=self)
 
     def __str__(self):
         return "%s" % self.title
