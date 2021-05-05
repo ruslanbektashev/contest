@@ -106,6 +106,8 @@ class Course(CRUDEntry):
         super().save(*args, **kwargs)
         if created:
             Filter.objects.get_or_create(user=self.owner, course=self)
+        for leader in self.leaders.all():
+            Filter.objects.get_or_create(user=leader, course=self)
 
     def __str__(self):
         return "%s" % self.title

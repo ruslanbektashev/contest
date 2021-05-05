@@ -24,7 +24,7 @@
         <div class="comment-main">
             <div class="comment-header mb-1 d-flex">
                 <div class="comment-user mr-2">
-                    <a href="{{ parent.author.account.get_absolute_url }}" class="{% if parent.author.account.is_teacher %}text-success{% endif %}">
+                    <a href="{{ parent.author.account.get_absolute_url }}" class="{% if not parent.author.account.is_student %}text-success{% endif %}">
                         {{ parent.author.account }}
                     </a>
                 </div>
