@@ -25,6 +25,9 @@
     {% if not add_files %}
     {% render_field form.contest %}
     {% render_field form.type %}
+    {% if type == 'Test' %}
+    {% render_field form.score_max %}
+    {% endif %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {{ form.media }}
     {% render_field form.title class+="form-control" %}

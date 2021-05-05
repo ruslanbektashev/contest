@@ -40,6 +40,7 @@
             {{ form.description }}
         </div>
     </div>
+    {% render_field form.faculty class+="form-control selectpicker" %}
     {% render_field form.level class+="form-control selectpicker" %}
     {% render_field form.leaders class+="form-control selectpicker" %}
     {% endwith %}

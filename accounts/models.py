@@ -110,7 +110,7 @@ class StaffManager(models.Manager):
 
 class StudentManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(type=1).select_related('user')
+        return super().get_queryset().filter(user__groups__name="Студент").select_related('user')
 
     def create_set(self, faculty, level, admission_year, names):
         alphabet_ru_a = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
@@ -208,15 +208,15 @@ class Account(models.Model):
 
     @property
     def is_student(self):
-        return self.type == 1
+        return self.user.groups.filter(name="Студент").exists()
 
     @property
     def is_moderator(self):
-        return self.type == 2
+        return self.user.groups.filter(name="Модератор").exists()
 
     @property
-    def is_teacher(self):
-        return self.type == 3
+    def is_instructor(self):
+        return self.user.groups.filter(name="Преподаватель").exists()
 
     @property
     def owner(self):

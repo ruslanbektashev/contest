@@ -10,7 +10,7 @@ from django.template.defaultfilters import filesizeformat
 
 from accounts.models import Account
 from contest.widgets import BootstrapCheckboxSelect, BootstrapRadioSelect
-from contests.models import (Assignment, Attachment, Contest, Course, Event, FNTest, Option, Problem,
+from contests.models import (Assignment, Attachment, Contest, Course, Event, FNTest, Filter, Option, Problem,
                              SubProblem, Submission, SubmissionPattern, UTTest)
 
 
@@ -109,15 +109,21 @@ class AttachmentForm(forms.ModelForm):
 
 
 class CourseForm(forms.ModelForm):
-    leaders = UserMultipleChoiceField(queryset=User.objects.none(), label="Ведущие преподаватели")
+    leaders = UserMultipleChoiceField(queryset=User.objects.none(), required=False, label="Ведущие преподаватели")
 
     class Meta:
         model = Course
-        fields = ['leaders', 'title', 'description', 'level']
+        fields = ['leaders', 'faculty', 'title', 'description', 'level']
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, faculty=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['leaders'].queryset = User.objects.filter(account__type=3)
+        self.fields['leaders'].queryset = User.objects.filter(groups__name="Преподаватель", account__faculty=faculty)
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        for leader in instance.leaders.all():
+            Filter.objects.get_or_create(user=leader, course=instance)
+        return instance
 
 
 """===================================================== Credit ====================================================="""
@@ -238,7 +244,7 @@ class ProblemTestForm(ProblemForm):
         self.fields['score_for_5'].label = "Процентов для 5"
         self.fields['score_for_4'].label = "Процентов для 4"
         self.fields['score_for_3'].label = "Процентов для 3"
-        del self.fields['score_max']
+        self.fields['score_max'].widget = forms.HiddenInput()
 
     def clean_sub_problems(self):
         if len(self.cleaned_data['sub_problems']) <= 1:

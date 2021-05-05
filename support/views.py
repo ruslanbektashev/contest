@@ -57,9 +57,9 @@ class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     template_name = 'support/question/question_form.html'
     permission_required = 'support.add_question'
 
-    def get_form(self):
-        form = super().get_form()
-        form.fields['addressee'].queryset = User.objects.filter(account__type=3)
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['addressee'].queryset = User.objects.filter(groups__name__in=["Преподаватель", "Модератор"])
         return form
 
     def form_valid(self, form):
