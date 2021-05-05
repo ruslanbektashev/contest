@@ -103,6 +103,7 @@ class Course(CRUDEntry):
 
     def save(self, *args, **kwargs):
         created = self._state.adding
+        self.faculty_id = 1
         super().save(*args, **kwargs)
         if created:
             Filter.objects.get_or_create(user=self.owner, course=self)
