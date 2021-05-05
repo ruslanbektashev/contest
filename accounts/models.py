@@ -278,12 +278,87 @@ class Account(models.Model):
 """================================================== Subscription =================================================="""
 
 
+class SubscriptionManager(models.Manager):
+    def make_subscription(self, user, object_type=None, object_id=None, object=None, cascade=False):
+        Course = apps.get_model('contests', 'Course')
+        Contest = apps.get_model('contests', 'Contest')
+        Submission = apps.get_model('contests', 'Submission')
+        if object_type and object_id:
+            object = object_type.get_object_for_this_type(id=object_id)
+        if object:
+            Subscription(object=object, user=user).save()
+            if isinstance(object, Course) and cascade:
+                subscribed_contest_ids = Subscription.objects.for_user_model(user, Contest).values_list('object_id', flat=True)
+                new_contest_ids = Contest.objects.filter(course=object).exclude(id__in=subscribed_contest_ids).values_list('id', flat=True)
+                contest_subscriptions = (Subscription(object_type=ContentType.objects.get_for_model(Contest), object_id=contest_id, user=user) for contest_id in new_contest_ids)
+                Subscription.objects.bulk_create(contest_subscriptions)
+            if isinstance(object, (Course, Contest)):
+                if not Subscription.objects.for_user_model(user, Comment).exists():
+                    Subscription(object_type=ContentType.objects.get_for_model(model=Comment), user=user).save()
+                if not Subscription.objects.for_user_model(user, Submission).exists():
+                    Subscription(object_type=ContentType.objects.get_for_model(model=Submission), user=user).save()
+
+    def delete_subscription(self, user, object_type=None, object_id=None, object=None, cascade=False):
+        Course = apps.get_model('contests', 'Course')
+        Contest = apps.get_model('contests', 'Contest')
+        Submission = apps.get_model('contests', 'Submission')
+        if object_type and object_id:
+            object = object_type.get_object_for_this_type(id=object_id)
+        if object:
+            Subscription.objects.for_user_object(user, object).delete()
+            if isinstance(object, Course) and cascade:
+                course_contest_ids = Contest.objects.filter(course=object).values_list('id', flat=True)
+                Subscription.objects.for_user_model(user, Contest).filter(object_id__in=course_contest_ids).delete()
+            if not Subscription.objects.for_user_models(user, Course, Contest).exists():
+                Subscription.objects.for_user_models(user, Comment, Submission).delete()
+
+
+class SubscriptionQuerySet(models.QuerySet):
+    def for_user(self, user):
+        return self.filter(user=user)
+    
+    def for_model(self, model):
+        return self.filter(object_type=ContentType.objects.get_for_model(model))
+
+    def for_model_id(self, model, id):
+        return self.filter(object_type=ContentType.objects.get_for_model(model), object_id=id)
+    
+    def for_user_model(self, user, model):
+        return self.filter(user=user, object_type=ContentType.objects.get_for_model(model))
+
+    def for_user_models(self, user, *models):
+        return self.filter(user=user, object_type__in=ContentType.objects.get_for_models(*models).values())
+    
+    def for_user_model_id(self, user, model, id):
+        return self.filter(user=user, object_type=ContentType.objects.get_for_model(model), object_id=id)
+
+    def for_object(self, object):
+        return self.filter(object_type=ContentType.objects.get_for_model(object._meta.model), object_id=object.id)
+
+    def for_user_object(self, user, object):
+        return self.filter(user=user, object_type=ContentType.objects.get_for_model(object._meta.model), object_id=object.id)
+
+    def for_type(self, type):
+        return self.filter(object_type=type)
+    
+    def for_type_id(self, type, id):
+        return self.filter(object_type=type, object_id=id)
+
+    def for_user_type(self, user, type):
+        return self.filter(user=user, object_type=type)
+
+    def for_user_type_id(self, user, type, id):
+        return self.filter(user=user, object_type=type, object_id=id)
+
+
 class Subscription(models.Model):
     object_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField(null=True, blank=True)
     object = GenericForeignKey(ct_field='object_type')
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    objects = SubscriptionManager.from_queryset(SubscriptionQuerySet)()
 
     class Meta:
         verbose_name = "Подписка"
@@ -500,23 +575,23 @@ class Comment(models.Model):
         self._notify_users(created)
 
     @property
-    def course(self):
+    def parent_object(self):
         model = self.object_type.model
         if model == 'course':
             return self.object
         elif model == 'contest':
-            return self.object.course
+            return self.object
         elif model == 'problem':
-            return self.object.contest.course
+            return self.object.contest
         elif model == 'assignment' or 'submission':
-            return self.object.problem.contest.course
+            return self.object.problem.contest
         else:
             return None
 
     def _notify_users(self, created=False):
         comment_subscribers_ids = Subscription.objects.filter(object_type=ContentType.objects.get(model='comment')).values_list('user', flat=True)
-        course_subscribers_ids = self.course.subscription_set.values_list('user_id', flat=True)
-        user_ids = list(set(comment_subscribers_ids) & set(course_subscribers_ids))
+        parent_object_subscribers_ids = self.parent_object.subscription_set.values_list('user_id', flat=True)
+        user_ids = list(set(comment_subscribers_ids) & set(parent_object_subscribers_ids))
         if self.object.owner_id not in user_ids:
             user_ids_set = set(user_ids)
             user_ids_set.add(self.object.owner_id)

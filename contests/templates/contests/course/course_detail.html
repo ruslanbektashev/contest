@@ -62,11 +62,29 @@
 <div class="list-group mb-3">
     {% if perms.account.add_subscription %}
         {% if request.user.id in subscribers_ids %}
-            <a href="{% url 'accounts:subscription-delete' subscription_id %}?previous_url={{ request.path }}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комментариях и посылках к курсу и всем вложенным сущностям"><i class="fa fa-bell-slash fa-fw"></i> Отписаться</a>
+            <div class="dropdown show">
+                <a class="list-group-item list-group-item-action rounded dropdown-toggle" href="#" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span><i class="fa fa-bell-slash fa-fw"></i> Отписаться</span>
+                </a>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                    <a class="dropdown-item" href="{% url 'accounts:subscription-delete' subscription_id %}?previous_url={{ request.path }}">от курса</a>
+                    <a class="dropdown-item" href="{% url 'accounts:subscription-delete' subscription_id %}?previous_url={{ request.path }}&cascade=1">от курса и разделов</a>
+                </div>
+            </div>
         {% else %}
-            <a href="{% url 'accounts:subscription-create' 'course' course.id %}?previous_url={{ request.path }}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комментариях и посылках к курсу и всем вложенным сущностям"><i class="fa fa-bell fa-fw"></i> Подписаться</a>
+            <div class="dropdown show">
+                <a class="list-group-item list-group-item-action rounded dropdown-toggle" href="#" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span><i class="fa fa-bell fa-fw"></i> Подписаться</span>
+                </a>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                    <a class="dropdown-item" href="{% url 'accounts:subscription-create' 'course' course.id %}?previous_url={{ request.path }}">на курс</a>
+                    <a class="dropdown-item" href="{% url 'accounts:subscription-create' 'course' course.id %}?previous_url={{ request.path }}&cascade=1">на курс и разделы</a>
+                </div>
+            </div>
         {% endif %}
     {% endif %}
+</div>
+<div class="list-group mb-3">
     {% if perms.contests.change_course %}
     <a href="{% url 'contests:course-update' course.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать курс</a>
     {% endif %}

@@ -59,6 +59,15 @@
 
 {% block submenu %}
 <div class="list-group mb-3">
+    {% if perms.account.add_subscription %}
+    {% if request.user.id in subscribers_ids %}
+        <a href="{% url 'accounts:subscription-delete' subscription_id %}?previous_url={{ request.path }}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комментариях и посылках к разделу и задачам"><i class="fa fa-bell-slash fa-fw"></i> Отписаться</a>
+    {% else %}
+        <a href="{% url 'accounts:subscription-create' 'contest' contest.id %}?previous_url={{ request.path }}" class="list-group-item list-group-item-action" title="Подписка на оповещения о комментариях и посылках к разделу и задачам"><i class="fa fa-bell fa-fw"></i> Подписаться</a>
+    {% endif %}
+{% endif %}
+</div>
+<div class="list-group mb-3">
     {% if perms.contests.change_contest %}
     <a href="{% url 'contests:contest-update' contest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать раздел</a>
     {% endif %}
@@ -69,8 +78,8 @@
 <div class="list-group mb-3">
     {% if perms.contests.add_problem %}
     <a class="list-group-item list-group-item-action dropdown-toggle" href="#" role="button" id="add_problem_menu"
-           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="border-radius: 0.25rem;">
-        <i class="fa fa-plus fa-fw"></i> Добавить задачу
+           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="border-radius: 0.25rem; display: flex; justify-content: space-between; align-items: center;">
+        <span><i class="fa fa-plus fa-fw"></i> Добавить задачу</span>
     </a>
     <div class="dropdown-menu" aria-labelledby="add_problem_menu">
         <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Text' %}"><i class="fa fa-keyboard-o fa-fw"></i> С ответом в виде текста</a>
