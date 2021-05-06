@@ -317,6 +317,7 @@ class ManageSubscriptions(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         course_ids = self.request.user.subscription_set.filter(object_type=ContentType.objects.get_for_model(Course)).values_list('object_id', flat=True)
+        context['all_courses'] = Course.objects.all()
         context['courses'] = Course.objects.filter(id__in=course_ids)
         contest_ids = self.request.user.subscription_set.filter(object_type=ContentType.objects.get_for_model(Contest)).values_list('object_id', flat=True)
         context['contests'] = Contest.objects.filter(id__in=contest_ids)

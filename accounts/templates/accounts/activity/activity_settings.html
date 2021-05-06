@@ -23,26 +23,38 @@
     </div>
 
     {% render_submit_button value="Сохранить" %}
-
-    {% if courses %}
-    <div class="mb-3">
-        <p>Вы подписаны на курс{% if courses.count > 1 %}ы{% endif %}:</p>
-        {% for course in courses %}
-        {% subscription_id_for_course_id request.user course.id as subscription_id %}
-        <a class="btn btn-primary mb-2 mr-1" href="{% url 'accounts:subscription-delete' subscription_id %}?previous_url={{ request.path }}" title="Отписаться" style="border-radius:23px;">{{ course.title }}<i class="fa fa-times fa-lg ml-2"></i></a>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    {% if contests %}
-    <div class="mb-3">
-        <p>Вы подписаны на раздел{% if contests.count > 1 %}ы{% endif %}:</p>
-        {% for contest in contests %}
-        {% subscription_id_for_contest_id request.user contest.id as subscription_id %}
-        <a class="btn btn-primary mb-2 mr-1" href="{% url 'accounts:subscription-delete' subscription_id %}?previous_url={{ request.path }}" title="Отписаться" style="border-radius:23px;">{{ contest.title }}<i class="fa fa-times fa-lg ml-2"></i></a>
-        {% endfor %}
-    </div>
-    {% endif %}
 </form>
 
+{% if contests %}
+<div class="accordion mb-3">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mb-0">
+                <button class="btn btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    Курсы и разделы
+                </button>
+            </h2>
+        </div>
+        <div id="collapseOne" class="collapse show">
+            <div class="card-body">
+                {% for course in all_courses %}
+                    {% course_contests course contests as cc %}
+                    {% if cc %}
+                        {% if course in courses %}
+                            {% subscription_id_for_course_id request.user course.id as course_subscription_id %}
+                            <a class="btn btn-primary mb-2 mr-1" href="{% url 'accounts:subscription-delete' course_subscription_id %}?previous_url={{ request.path }}" title="Отписаться от курса" style="border-radius:23px;">{{ course.title }}<i class="fa fa-times fa-lg ml-2"></i></a>
+                        {% else %}
+                            <a class="btn btn-light mb-2 mr-1" href="{% url 'contests:course-detail' course.id %}" title="Перейти к курсу" style="border-radius:23px;">{{ course.title }}</a>
+                        {% endif %}
+                        {% for contest in cc %}
+                            {% subscription_id_for_contest_id request.user contest.id as contest_subscription_id %}
+                            <a class="btn btn-secondary mb-2 mr-1" href="{% url 'accounts:subscription-delete' contest_subscription_id %}?previous_url={{ request.path }}" title="Отписаться от раздела" style="border-radius:23px;">{{ contest.title }}<i class="fa fa-times fa-lg ml-2"></i></a>
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock content %}

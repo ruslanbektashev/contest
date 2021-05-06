@@ -36,3 +36,8 @@ def subscription_id_for_course_id(user, course_id):
 @register.simple_tag()
 def subscription_id_for_contest_id(user, contest_id):
     return user.subscription_set.get(object_type=ContentType.objects.get(model='contest'), object_id=contest_id).id
+
+
+@register.simple_tag()
+def course_contests(course, contests):
+    return contests.filter(course=course.id)

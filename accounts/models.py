@@ -290,9 +290,8 @@ class SubscriptionManager(models.Manager):
             contest_subscriptions = (Subscription(object_type=ContentType.objects.get_for_model(Contest), object_id=contest_id, user=user) for contest_id in new_contest_ids)
             Subscription.objects.bulk_create(contest_subscriptions)
         if isinstance(object, (Course, Contest)):
-            if not Subscription.objects.for_user_model(user, Comment).exists():
+            if not Subscription.objects.for_user_models(user, Comment, Submission).exists():
                 Subscription(object_type=ContentType.objects.get_for_model(model=Comment), user=user).save()
-            if not Subscription.objects.for_user_model(user, Submission).exists():
                 Subscription(object_type=ContentType.objects.get_for_model(model=Submission), user=user).save()
 
     def delete_subscription(self, user, object, cascade=False):
