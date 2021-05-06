@@ -279,76 +279,43 @@ class Account(models.Model):
 
 
 class SubscriptionManager(models.Manager):
-    def make_subscription(self, user, object_type=None, object_id=None, object=None, cascade=False):
+    def make_subscription(self, user, object, cascade=False):
         Course = apps.get_model('contests', 'Course')
         Contest = apps.get_model('contests', 'Contest')
         Submission = apps.get_model('contests', 'Submission')
-        if object_type and object_id:
-            object = object_type.get_object_for_this_type(id=object_id)
-        if object:
-            Subscription(object=object, user=user).save()
-            if isinstance(object, Course) and cascade:
-                subscribed_contest_ids = Subscription.objects.for_user_model(user, Contest).values_list('object_id', flat=True)
-                new_contest_ids = Contest.objects.filter(course=object).exclude(id__in=subscribed_contest_ids).values_list('id', flat=True)
-                contest_subscriptions = (Subscription(object_type=ContentType.objects.get_for_model(Contest), object_id=contest_id, user=user) for contest_id in new_contest_ids)
-                Subscription.objects.bulk_create(contest_subscriptions)
-            if isinstance(object, (Course, Contest)):
-                if not Subscription.objects.for_user_model(user, Comment).exists():
-                    Subscription(object_type=ContentType.objects.get_for_model(model=Comment), user=user).save()
-                if not Subscription.objects.for_user_model(user, Submission).exists():
-                    Subscription(object_type=ContentType.objects.get_for_model(model=Submission), user=user).save()
+        Subscription(object=object, user=user).save()
+        if isinstance(object, Course) and cascade:
+            subscribed_contest_ids = Subscription.objects.for_user_model(user, Contest).values_list('object_id', flat=True)
+            new_contest_ids = Contest.objects.filter(course=object).exclude(id__in=subscribed_contest_ids).values_list('id', flat=True)
+            contest_subscriptions = (Subscription(object_type=ContentType.objects.get_for_model(Contest), object_id=contest_id, user=user) for contest_id in new_contest_ids)
+            Subscription.objects.bulk_create(contest_subscriptions)
+        if isinstance(object, (Course, Contest)):
+            if not Subscription.objects.for_user_model(user, Comment).exists():
+                Subscription(object_type=ContentType.objects.get_for_model(model=Comment), user=user).save()
+            if not Subscription.objects.for_user_model(user, Submission).exists():
+                Subscription(object_type=ContentType.objects.get_for_model(model=Submission), user=user).save()
 
-    def delete_subscription(self, user, object_type=None, object_id=None, object=None, cascade=False):
+    def delete_subscription(self, user, object, cascade=False):
         Course = apps.get_model('contests', 'Course')
         Contest = apps.get_model('contests', 'Contest')
         Submission = apps.get_model('contests', 'Submission')
-        if object_type and object_id:
-            object = object_type.get_object_for_this_type(id=object_id)
-        if object:
-            Subscription.objects.for_user_object(user, object).delete()
-            if isinstance(object, Course) and cascade:
-                course_contest_ids = Contest.objects.filter(course=object).values_list('id', flat=True)
-                Subscription.objects.for_user_model(user, Contest).filter(object_id__in=course_contest_ids).delete()
-            if not Subscription.objects.for_user_models(user, Course, Contest).exists():
-                Subscription.objects.for_user_models(user, Comment, Submission).delete()
+        Subscription.objects.for_user_object(user, object).delete()
+        if isinstance(object, Course) and cascade:
+            course_contest_ids = Contest.objects.filter(course=object).values_list('id', flat=True)
+            Subscription.objects.for_user_model(user, Contest).filter(object_id__in=course_contest_ids).delete()
+        if not Subscription.objects.for_user_models(user, Course, Contest).exists():
+            Subscription.objects.for_user_models(user, Comment, Submission).delete()
 
 
 class SubscriptionQuerySet(models.QuerySet):
-    def for_user(self, user):
-        return self.filter(user=user)
-    
-    def for_model(self, model):
-        return self.filter(object_type=ContentType.objects.get_for_model(model))
-
-    def for_model_id(self, model, id):
-        return self.filter(object_type=ContentType.objects.get_for_model(model), object_id=id)
-    
     def for_user_model(self, user, model):
         return self.filter(user=user, object_type=ContentType.objects.get_for_model(model))
 
     def for_user_models(self, user, *models):
         return self.filter(user=user, object_type__in=ContentType.objects.get_for_models(*models).values())
     
-    def for_user_model_id(self, user, model, id):
-        return self.filter(user=user, object_type=ContentType.objects.get_for_model(model), object_id=id)
-
-    def for_object(self, object):
-        return self.filter(object_type=ContentType.objects.get_for_model(object._meta.model), object_id=object.id)
-
     def for_user_object(self, user, object):
         return self.filter(user=user, object_type=ContentType.objects.get_for_model(object._meta.model), object_id=object.id)
-
-    def for_type(self, type):
-        return self.filter(object_type=type)
-    
-    def for_type_id(self, type, id):
-        return self.filter(object_type=type, object_id=id)
-
-    def for_user_type(self, user, type):
-        return self.filter(user=user, object_type=type)
-
-    def for_user_type_id(self, user, type, id):
-        return self.filter(user=user, object_type=type, object_id=id)
 
 
 class Subscription(models.Model):
