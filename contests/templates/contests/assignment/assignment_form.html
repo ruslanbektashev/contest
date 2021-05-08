@@ -23,8 +23,10 @@
     {% csrf_token %}
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% if not partial %}
     {% render_field form.user class+="form-control selectpicker" %}
     {% render_field form.problem class+="form-control selectpicker" %}
+    {% endif %}
     {% render_field form.score class+="form-control" %}
     {% render_field form.score_max class+="form-control" %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" %}

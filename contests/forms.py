@@ -321,39 +321,49 @@ class FNTestForm(forms.ModelForm):
 """=================================================== Assignment ==================================================="""
 
 
-class AssignmentForm(forms.ModelForm):
-    user = UserChoiceField(queryset=User.objects.none(), label="Студент")
-
+class AssignmentUpdatePartialForm(forms.ModelForm):
     class Meta:
         model = Assignment
-        fields = ['user', 'problem', 'score', 'score_max', 'score_is_locked', 'submission_limit', 'remark']
+        fields = ['score', 'score_max', 'score_is_locked', 'submission_limit', 'remark']
 
-    def __init__(self, course, *args, contest=None, user=None, debts=False, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.fields['score'].widget.attrs['max'] = 5
+        self.fields['score_max'].widget.attrs['max'] = 5
+
+    def clean(self):
+        super().clean()
+        if self.cleaned_data['score'] > self.cleaned_data['score_max']:
+            raise ValidationError("Оценка не может превышать максимальную оценку", code='score_gt_score_max')
+        return self.cleaned_data
+
+
+class AssignmentUpdateForm(AssignmentUpdatePartialForm):
+    user = UserChoiceField(queryset=User.objects.none(), label="Студент", disabled=True)
+
+    class Meta(AssignmentUpdatePartialForm.Meta):
+        fields = AssignmentUpdatePartialForm.Meta.fields + ['user', 'problem']
+
+    def __init__(self, course, contest=None, **kwargs):
+        super().__init__(**kwargs)
+        user_ids = Account.students.enrolled().current(course).values_list('user_id')
+        self.fields['user'].queryset = User.objects.filter(id__in=user_ids)
+        self.fields['problem'].choices = grouped_problems(course, contest)
+
+
+class AssignmentForm(AssignmentUpdateForm):
+    user = UserChoiceField(queryset=User.objects.none(), label="Студент")
+
+    class Meta(AssignmentUpdateForm.Meta):
+        pass
+
+    def __init__(self, course, contest=None, user=None, debts=False, **kwargs):
+        super().__init__(course, contest, **kwargs)
         if debts:
             user_ids = Account.students.enrolled().debtors(course).values_list('user_id')
             self.fields['user'].queryset = User.objects.filter(id__in=user_ids)
-        else:
-            user_ids = Account.students.enrolled().current(course).values_list('user_id')
-            self.fields['user'].queryset = User.objects.filter(id__in=user_ids)
         if user:
             self.fields['user'].initial = user
-        self.fields['problem'].choices = grouped_problems(course, contest)
-        self.fields['score'].widget.attrs['max'] = 5
-        self.fields['score_max'].widget.attrs['max'] = 5
-
-
-class AssignmentUpdateForm(AssignmentForm):
-    user = UserChoiceField(queryset=User.objects.all(), label="Студент", disabled=True)
-
-    class Meta(AssignmentForm.Meta):
-        pass
-
-    def __init__(self, course, *args, contest=None, **kwargs):
-        super(AssignmentForm, self).__init__(*args, **kwargs)
-        self.fields['problem'].choices = grouped_problems(course, contest)
-        self.fields['score'].widget.attrs['max'] = 5
-        self.fields['score_max'].widget.attrs['max'] = 5
 
 
 class AssignmentSetForm(forms.Form):

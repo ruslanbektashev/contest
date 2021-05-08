@@ -14,6 +14,13 @@ def breadcrumb(title, *args, **kwargs):
 
 
 @register.simple_tag()
+def get_updated_query_string(request, **kwargs):
+    _GET = request.GET.copy()
+    _GET.update(kwargs)
+    return '?' + '&'.join(['{}={}'.format(key, value) for key, value in _GET.items()])
+
+
+@register.simple_tag()
 def get_full_path_with_updated_query_string(request, **kwargs):
     _GET = request.GET.copy()
     _GET.update(kwargs)

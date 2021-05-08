@@ -23,12 +23,12 @@ from django.views.generic.list import BaseListView
 from accounts.models import Account, Activity, Faculty
 from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, ContestForm, ContestPartialForm,
-                            CourseForm, CreditSetForm, EventForm, FNTestForm, OptionBaseFormSet, OptionForm,
-                            ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm, ProblemRollbackResultsForm,
-                            ProblemTestForm, SubmissionAttachmentForm, SubmissionFilesForm, SubmissionMossForm,
-                            SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm, SubmissionUpdateForm,
-                            UTTestForm)
+from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, AssignmentUpdatePartialForm,
+                            ContestForm, ContestPartialForm, CourseForm, CreditSetForm, EventForm, FNTestForm,
+                            OptionBaseFormSet, OptionForm, ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm,
+                            ProblemRollbackResultsForm, ProblemTestForm, SubmissionAttachmentForm, SubmissionFilesForm,
+                            SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm,
+                            SubmissionUpdateForm, UTTestForm)
 from contests.models import (Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, Filter, IOTest,
                              Lecture, Option, Problem, SubProblem, Submission, SubmissionPattern, UTTest)
 from contests.results import TaskProgress
@@ -1032,18 +1032,33 @@ class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
 
 class AssignmentUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Assignment
-    form_class = AssignmentUpdateForm
     template_name = 'contests/assignment/assignment_form.html'
     permission_required = 'contests.change_assignment'
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['partial'] = int(request.GET.get('partial') or 0)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_class(self):
+        if self.storage['partial']:
+            return AssignmentUpdatePartialForm
+        else:
+            return AssignmentUpdateForm
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['course'] = self.object.problem.contest.course
+        if not self.storage['partial']:
+            kwargs['course'] = self.object.problem.contest.course
         return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['course'] = self.object.problem.contest.course
+        context['partial'] = self.storage['partial']
         return context
 
 

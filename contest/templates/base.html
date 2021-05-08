@@ -122,9 +122,13 @@
         });
     });
     $(function () {
-        $('[data-toggle="tooltip"]').tooltip({
+        let tooltips = $('[data-toggle="tooltip"]');
+        tooltips.tooltip({
             trigger: "hover",
             delay: {"show": 500, "hide": 100}
+        });
+        tooltips.each(function (){
+            $(this).attr("onclick", "closeTooltips()");
         });
     });
     function closeTooltips() {

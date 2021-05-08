@@ -11,7 +11,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if type == 1 %}Студенты{% else %}Сотрудники{% endif %} {% if graduated %}выпускники{% elif enrolled == False %}отчисленные{% endif %} <span class="text-muted pull-right">{{ faculty }}</span></legend>
+<legend>{% if type == 1 %}Студенты{% else %}Сотрудники{% endif %}{% if graduated %}: выпускники{% elif enrolled == False %}: отчисленные{% endif %}{% if not perms.accounts.add_faculty %}<span class="text-muted pull-right d-none d-md-block">{{ faculty }}</span>{% endif %}</legend>
 <form id="account_list_form" action="{{ request.get_full_path }}" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
@@ -52,10 +52,22 @@
 {% endblock content %}
 
 {% block submenu %}
-<div class="list-group mb-3">
-    {% for lvl, lvl_display in levels %}
-    <a href="{% url 'accounts:account-list' %}?level={{ lvl }}&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled is None and lvl != level or type != 1 %}-o{% endif %} fa-fw"></i> {{ lvl_display }}</a>
-    {% endfor %}
+
+<div class="list-group">
+    {% if perms.accounts.add_faculty %}
+    <select id="faculty_select" name="faculty" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+        {% for f in faculties %}
+        <option value="{% get_full_path_with_updated_query_string request faculty_id=f.id %}" {% if faculty.id == f.id %}selected{% endif %}>{{ f.name }}</option>
+        {% endfor %}
+    </select>
+    <label for="faculty_select"></label>
+    {% endif %}
+    <select id="level_select" name="level" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+        {% for lvl, lvl_display in levels %}
+        <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id level=lvl enrolled=1 graduated=0 type=1 %}" {% if level == lvl %}selected{% endif %}>{{ lvl_display }}</option>
+        {% endfor %}
+    </select>
+    <label for="level_select"></label>
 </div>
 <div class="list-group mb-3">
     <a href="{% url 'accounts:account-list' %}?enrolled=0&graduated=1&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != True %}-o{% endif %} fa-fw"></i> Выпускники</a>

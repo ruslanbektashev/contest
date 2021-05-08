@@ -11,7 +11,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Объявления{% if perms.accounts.add_announcement %}<a href="{% url 'accounts:announcement-create' %}" class="text-success text-decoration-none pull-right" onclick="closeTooltips()" data-toggle="tooltip" data-placement="left" title="Добавить объявление"><i class="fa fa-plus fa-fw"></i></a>{% endif %}</legend>
+<legend>Объявления{% if perms.accounts.add_announcement %}<a href="{% url 'accounts:announcement-create' %}" class="text-success text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="Добавить объявление"><i class="fa fa-plus fa-fw"></i></a>{% endif %}</legend>
 {% for announcement in announcements %}
 <div class="card{% if forloop.counter > 1 %} mt-3{% endif %}">
     <div class="card-header d-flex align-items-center">

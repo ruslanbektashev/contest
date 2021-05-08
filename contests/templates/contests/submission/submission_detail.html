@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views accounts contests comments static %}
 
 {% block title %}
@@ -14,7 +14,15 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Посылка {{ submission.id }}</legend>
+<legend>
+    Посылка {{ submission.id }}
+    {% if perms.contests.delete_submission %}
+    <a href="{% url 'contests:submission-delete' submission.id %}" class="text-danger text-decoration-none pull-right" data-toggle="tooltip" data-placement="top" title="Удалить посылку" style="position: relative; top: -0.08rem;"><i class="fa fa-times fa-fw"></i></a>
+    {% endif %}
+    {% if perms.contests.moss_submission and submission.problem.type == 'Program' %}
+    <a href="{% url 'contests:submission-moss' submission.id %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="MOSS"><i class="fa fa-maxcdn fa-fw"></i></a>
+    {% endif %}
+</legend>
 <table class="table table-sm">
     <tr><td class="text-right" style="width: 20%;">Автор</td><td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td></tr>
     <tr><td class="text-right" style="width: 20%;">К задаче</td><td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td></tr>
@@ -166,26 +174,6 @@
 <legend>Комментарии</legend>
 {% render_comments submission comments %}
 {% endblock content %}
-
-{% block submenu %}
-{% if from_url %}
-<div class="list-group mb-3">
-    <a href="{{ from_url }}" class="list-group-item list-group-item-action"><i class="fa fa-chevron-left fa-fw"></i> Вернуться к посылкам</a>
-</div>
-{% endif %}
-{% if submission.problem.type == 'Program' %}
-<div class="list-group mb-3">
-    {% if perms.contests.moss_submission %}
-    <a href="{% url 'contests:submission-moss' submission.id %}" class="list-group-item list-group-item-action"><i class="fa fa-maxcdn fa-fw"></i> MOSS</a>
-    {% endif %}
-</div>
-{% endif %}
-<div class="list-group mb-3">
-    {% if perms.contests.delete_submission %}
-    <a href="{% url 'contests:submission-delete' submission.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить посылку</a>
-    {% endif %}
-</div>
-{% endblock submenu %}
 
 {% block javascript %}
 <script type="text/javascript" src="{% static 'js/submissions.js' %}"></script>

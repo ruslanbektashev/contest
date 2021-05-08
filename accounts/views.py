@@ -15,11 +15,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.contenttypes.models import ContentType
 
 from accounts.templatetags.comments import get_comment_query_string
-from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
-                            PaginatorMixin)
 from accounts.forms import (AccountPartialForm, AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm,
                             CommentForm, ManageSubscriptionsForm)
 from accounts.models import Account, Activity, Comment, Faculty, Message, Chat, Announcement, Subscription
+from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
+                            PaginatorMixin)
+from contest.templatetags.views import get_updated_query_string
 from contests.models import Contest, Course, Submission
 
 """==================================================== Account ====================================================="""
@@ -183,7 +184,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
             accounts = form.cleaned_data['accounts']
             if action == 'reset_password':
                 self.request.session['credentials'] = accounts.reset_password()
-                return HttpResponseRedirect(reverse('accounts:account-credentials'))
+                return HttpResponseRedirect(reverse('accounts:account-credentials') + get_updated_query_string(request))
             elif self.storage['type'] == 1:
                 if action == 'level_up':
                     accounts.level_up()
@@ -225,6 +226,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['levels'] = Account.LEVEL_CHOICES
+        context['faculties'] = Faculty.objects.all()
         context.update(self.storage)
         return context
 
