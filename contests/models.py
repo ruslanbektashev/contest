@@ -833,7 +833,7 @@ class Submission(CRDEntry):
         else:
             self.score = 2
             self.status = 'TF'
-        super().save(update_fields=['score', 'status'])
+        self.save()
 
     def update_options_score(self):
         correct_option_ids = set(self.problem.option_set.filter(is_correct=True).values_list('id', flat=True))
@@ -844,7 +844,7 @@ class Submission(CRDEntry):
         else:
             self.score = 0
             self.status = 'WA'
-        super().save(update_fields=['score', 'status'])
+        self.save()
 
     def get_discussion_url(self):
         return self.get_absolute_url()
@@ -857,7 +857,9 @@ class Submission(CRDEntry):
             contest_subscribers_ids = self.problem.contest.subscription_set.values_list('user_id', flat=True)
             user_ids = list(set(submission_subscribers_ids) & set(contest_subscribers_ids))
             Activity.objects.notify_users(user_ids, subject=self.owner, action="отправил посылку", object=self)
-        self.update_assignment()
+
+        if created and self.problem.type in ['Program'] or not created:
+            self.update_assignment()
 
     def __str__(self):
         return "Посылка от %s к задаче %s" % (self.owner.account, self.problem)

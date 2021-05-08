@@ -1241,6 +1241,8 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
             task = evaluate_submission.delay(self.object.pk, self.request.user.id)
             self.object.task_id = task.id
             self.object.save()
+        if self.object.problem.type == 'Options':
+            self.object.update_options_score()
         Activity.objects.on_submission_created(self.object)
         return HttpResponseRedirect(self.get_success_url())
 
