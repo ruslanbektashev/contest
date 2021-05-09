@@ -15,7 +15,7 @@
 <legend>
     {{ account }}
     {% if account.user_id == request.user.id %}
-    <a href="{% url 'password-change' %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="top" title="Изменить пароль" style="position: relative; top: -0.08rem;"><i class="fa fa-lock fa-fw"></i></a>
+    <a href="{% url 'password-change' %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="top" title="Изменить пароль" style="position: relative; top: -0.03rem;"><i class="fa fa-lock fa-fw"></i></a>
     {% else %}
     <a href="{% url 'accounts:message-create' account.user.id %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="top" title="Написать сообщение" style="position: relative; top: -0.1rem;"><i class="fa fa-envelope-o fa-fw"></i></a>
     {% endif %}
