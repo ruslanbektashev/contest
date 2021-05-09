@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views contests %}
 
 {% block title %}
@@ -12,8 +12,18 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Учетная запись пользователя {{ account }}</legend>
-<div class="row">
+<legend>
+    {{ account }}
+    {% if account.user_id == request.user.id %}
+    <a href="{% url 'password-change' %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="top" title="Изменить пароль" style="position: relative; top: -0.08rem;"><i class="fa fa-lock fa-fw"></i></a>
+    {% else %}
+    <a href="{% url 'accounts:message-create' account.user.id %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="top" title="Написать сообщение" style="position: relative; top: -0.1rem;"><i class="fa fa-envelope-o fa-fw"></i></a>
+    {% endif %}
+    {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
+    <a href="{% url 'accounts:account-update' account.user.id %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="Редактировать профиль"><i class="fa fa-edit fa-fw"></i></a>
+    {% endif %}
+</legend>
+<div class="row mb-3">
     <div class="col-4">
         {% include 'accounts/account/account_card.html' with image=True %}
     </div>
@@ -37,10 +47,12 @@
         </table>
     </div>
 </div>
-{% if perms.contests.view_assignment_table and account.is_student %}
+{% if account.is_student %}
+{% if perms.contests.view_assignment_table or account.user_id == request.user.id %}
 <legend>Задания</legend>
 {% render_assignment_user_table assignments credits %}
 {% render_assignment_progress assignments %}
+{% endif %}
 {% endif %}
 {% endblock content %}
 
