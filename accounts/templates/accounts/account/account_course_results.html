@@ -1,0 +1,95 @@
+{% extends 'base_wide.html' %}
+{% load views contests %}
+
+{% block title %}
+Результаты курса
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Пользователи" 'accounts:account-list' %}
+{% breadcrumb account account.get_absolute_url %}
+{% breadcrumb course course.get_absolute_url %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>{{ account }}, {{ course }} <span class="text-muted pull-right">{{ course.get_level_display }}</span></legend>
+
+<div class="table-responsive my-3">
+    <table class="table table-sm">
+        <thead>
+            <th>Раздел</th>
+            <th>Задача</th>
+            <th class="text-center">Количество посылок</th>
+            <th class="text-center">Оценка</th>
+        </thead>
+        <tbody>
+            {% regroup assignments by problem.contest as contest_group %}
+            {% for contest, contest_assignments in contest_group %}
+                {% for assignment in contest_assignments %}
+                    {% if forloop.first %}
+                    <td rowspan="{{ contest_assignments|length }}" style="vertical-align: middle; width: 28%;"><a href="{{ contest.get_absolute_url }}">{{ contest }}</a></td>
+                    {% endif %}
+                    <td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td>
+                    <td class="text-center" style="vertical-align: middle; width: 20%;">
+                        <span class="numtus status-{{ assignment.submission_set.count|colorize_submission_count }}">
+                            {{ assignment.submission_set.count }}
+                        </span>
+                    </td>
+                    <td class="text-center" style="vertical-align: middle; width: 6%;">
+                        <a href="{% url 'contests:assignment-detail' assignment.id %}" class="numtus status-{{ assignment.score|colorize }}">
+                            {{ assignment.score|default:'-' }}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if additional_submissions %}
+<legend>Необязательные задачи</legend>
+<div class="table-responsive my-3">
+    <table class="table table-sm">
+        <thead>
+            <th>Раздел</th>
+            <th>Задача</th>
+            <th class="text-center">Количество посылок</th>
+            <th class="text-center">Решено</th>
+        </thead>
+        <tbody>
+            {% regroup additional_submissions by problem.contest as contest_group %}
+            {% for contest, contest_submissions in contest_group %}
+                {% regroup contest_submissions by problem as problem_group %}
+                {% for problem, problem_submissions in problem_group %}
+                    {% for submission in problem_submissions %}
+                        <tr>
+                            {% if forloop.parentloop.first and forloop.first %}
+                            <td rowspan="{{ contest_submissions|length }}" style="vertical-align: middle; width: 28%;"><a href="{{ contest.get_absolute_url }}">{{ contest }}</a></td>
+                            {% endif %}
+                            {% if forloop.first %}
+                            <td><a href="{{ problem.get_absolute_url }}">{{ submission.problem }}</a></td>
+                            <td class="text-center" style="vertical-align: middle; width: 20%;">
+                                {% submissions_count additional_submissions problem as sc %}
+                                <span class="numtus status-{{ sc|colorize_submission_count }}">
+                                    {{ sc }}
+                                </span>
+                            </td>
+                            <td class="text-center" style="vertical-align: middle; width: 6%;">
+                                {% solved additional_submissions problem as is_solved %}
+                                <span class="numtus status-{{ is_solved|colorize_solved_flag }}">
+                                    {% if is_solved %}+{% else %}-{% endif %}
+                                </span>
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% endblock content %}

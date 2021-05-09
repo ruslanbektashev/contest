@@ -70,7 +70,7 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
         context['assignments'] = (self.object.user.assignment_set
                                   .select_related('problem', 'problem__contest', 'problem__contest__course')
                                   .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
-        context['credits'] = self.object.user.credit_set.select_related('course')
+        context['credits'] = self.object.user.credit_set.select_related('course').order_by('course')
         return context
 
 
@@ -252,6 +252,26 @@ class AccountCredentials(LoginRedirectPermissionRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['credentials'] = self.storage.pop('credentials')
         context['faculty'] = self.storage['faculty']
+        return context
+
+
+class AccountCourseResults(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
+    model = Account
+    template_name = 'accounts/account/account_course_results.html'
+    permission_required = 'accounts.view_account'
+
+    def get(self, request, *args, **kwargs):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        context = self.get_context_data(object=self.object, **kwargs)
+        return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['course'] = Course.objects.get(id=kwargs.pop('course_id'))
+        context['assignments'] = (self.object.user.assignment_set.filter(problem__contest__course=context['course']).select_related('problem', 'problem__contest').order_by('problem__contest__course', 'problem__contest', 'date_created'))
+        context['credit'] = self.object.user.credit_set.get(course=context['course'])
+        context['additional_submissions'] = self.object.user.submission_set.filter(problem__contest__course=context['course'], assignment__isnull=True).select_related('problem', 'problem__contest').order_by('problem__contest', 'problem')
         return context
 
 

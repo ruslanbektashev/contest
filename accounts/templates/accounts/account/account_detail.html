@@ -23,7 +23,7 @@
     <a href="{% url 'accounts:account-update' account.user.id %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="Редактировать профиль"><i class="fa fa-edit fa-fw"></i></a>
     {% endif %}
 </legend>
-<div class="row mb-3">
+<div class="row my-3">
     <div class="col-3">
         <div class="card border-0">
             <img src="https://ui-avatars.com/api/?name={{ account.last_name }}+{{ account.first_name }}&color=999999&format=svg&rounded=true" alt="Изображение профиля">
@@ -51,24 +51,9 @@
 </div>
 {% if account.is_student %}
 {% if perms.contests.view_assignment_table or account.user_id == request.user.id %}
-<legend>Задания</legend>
-{% render_assignment_user_table assignments credits %}
+<legend>Результаты</legend>
+{% include 'accounts/account/account_results.html' %}
 {% render_assignment_progress assignments %}
 {% endif %}
 {% endif %}
 {% endblock content %}
-
-{% block submenu %}
-<div class="list-group mb-3">
-    {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
-    <a href="{% url 'accounts:account-update' account.user.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать профиль</a>
-    {% endif %}
-</div>
-<div class="list-group mb-3">
-    {% if account.user_id == request.user.id %}
-    <a href="{% url 'password-change' %}" class="list-group-item list-group-item-action"><i class="fa fa-lock fa-fw"></i> Изменить пароль</a>
-    {% else %}
-    <a href="{% url 'accounts:message-create' account.user.id %}" class="list-group-item list-group-item-action"><i class="fa fa-envelope-o fa-fw"></i> Написать сообщение</a>
-    {% endif %}
-</div>
-{% endblock submenu %}

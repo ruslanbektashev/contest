@@ -46,6 +46,33 @@ def colorize(value):
     return STATE_COLORS.get(value, 'info')
 
 
+@register.filter
+def colorize_submission_count(value):
+    if value < 1:
+        return 'default'
+    elif value <= 5:
+        return 'success'
+    elif value <= 9:
+        return 'warning'
+    else:
+        return 'danger'
+
+
+@register.filter
+def colorize_solved_flag(value):
+    return 'success' if value else 'danger'
+
+
+@register.simple_tag()
+def submissions_count(submissions, problem):
+    return submissions.filter(problem=problem).count()
+
+
+@register.simple_tag()
+def solved(submissions, problem):
+    return submissions.filter(problem=problem, status='OK').exists()
+
+
 @register.simple_tag()
 def get_problem_icon(problem):
     if problem.type == 'Text':
