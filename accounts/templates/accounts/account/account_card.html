@@ -1,8 +1,8 @@
 {% load static %}
 {% if account %}
-<div class="card shadow-sm mb-2">
+<div class="card mb-2">
     {% if image %}
-    <img src="{% static 'profile-placeholder-1.svg' %}" class="card-img-top mt-3" alt="Изображение профиля">
+    <img src="https://ui-avatars.com/api/?name={{ account.last_name }}+{{ account.first_name }}&color=999999&format=svg" alt="Изображение профиля">
     {% endif %}
     <div class="card-body">
         <h5 class="card-title">{% if link %}<a href="{{ account.get_absolute_url }}">{% endif %}<strong>{{ account.get_full_name }}</strong>{% if link %}</a>{% endif %}</h5>
