@@ -14,8 +14,10 @@
 {% block content %}
 <legend>
     {{ account }}
-    {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
-    <a href="{% if account.user_id == request.user.id %} {% url 'contests:assignment-list' %} {% else %} {% url 'accounts:account-assignment-list' account.user_id %} {% endif %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="top" title="Задания" style="position: relative; top: -0.08rem;"><i class="fa fa-list-ol fa-fw"></i></a>
+    {% if account.is_student %}
+        {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
+        <a href="{% if account.user_id == request.user.id %} {% url 'contests:assignment-list' %} {% else %} {% url 'accounts:account-assignment-list' account.user_id %} {% endif %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="top" title="Задания" style="position: relative; top: -0.08rem;"><i class="fa fa-list-ol fa-fw"></i></a>
+        {% endif %}
     {% endif %}
     {% if account.user_id == request.user.id %}
     <a href="{% url 'password-change' %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="top" title="Изменить пароль" style="position: relative; top: -0.03rem;"><i class="fa fa-lock fa-fw"></i></a>
