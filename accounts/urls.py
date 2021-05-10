@@ -12,6 +12,7 @@ urlpatterns = [
             path('', views.AccountDetail.as_view(), name='account-detail'),
             path('update', views.AccountUpdate.as_view(), name='account-update'),
             path('results/course/<int:course_id>', views.AccountCourseResults.as_view(), name='account-course-results'),
+            path('assignments', views.AccountAssignmentList.as_view(), name='account-assignment-list'),
         ])),
         path('list', views.AccountFormList.as_view(), name='account-list'),
         path('credentials', views.AccountCredentials.as_view(), name='account-credentials'),

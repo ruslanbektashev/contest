@@ -1,6 +1,6 @@
 {% load contests %}
 <div class="table-responsive">
-    <table class="table table-bordered table-sm">
+    <table class="table table-sm">
         <thead>
             <tr>
                 <th>Курс</th>
@@ -23,7 +23,7 @@
                 {% if forloop.first %}
                 <td rowspan="{{ contest_assignments|length }}" style="vertical-align: middle;"><a href="{{ contest.get_absolute_url }}">{{ contest }}</a></td>
                 {% endif %}
-                <td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td>
+                <td style="vertical-align: middle;"><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td>
                 <td class="text-center" style="vertical-align: middle;">
                     <a href="{% url 'contests:assignment-detail' assignment.id %}" class="numtus status-{{ assignment.score|colorize }}">
                         {{ assignment.score|default:'-' }}
