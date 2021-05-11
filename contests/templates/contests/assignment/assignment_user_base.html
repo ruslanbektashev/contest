@@ -13,7 +13,7 @@
 {% block content %}
 <legend>
 Мои задания
-<a href="{% url 'contests:course-list' %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="top" title="Курсы"><i class="fa fa-book fa-fw"></i></a>
+<a href="{% url 'contests:course-list' %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="Курсы"><i class="fa fa-book fa-fw"></i></a>
 </legend>
 {% render_assignment_user_table assignments credits %}
 {% render_assignment_progress assignments %}
