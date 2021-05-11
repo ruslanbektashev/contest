@@ -1,5 +1,4 @@
 import json
-import operator
 
 from markdown import markdown
 from statistics import mean
@@ -7,7 +6,6 @@ from statistics import mean
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.db.models import Count
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
@@ -70,15 +68,20 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
         return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
+        solved_problem_ids = Submission.objects.filter(owner=self.object.user, status='OK').values_list('problem', flat=True).distinct().order_by()
+        submissions_to_success_counts = []
+        for problem_id in solved_problem_ids:
+            problem_submissions = Submission.objects.filter(owner=self.object.user, problem=problem_id)
+            first_success_submission = problem_submissions.filter(status='OK').order_by('date_created')[0]
+            submissions_to_success_count = problem_submissions.filter(date_created__lte=first_success_submission.date_created).count()
+            submissions_to_success_counts.append(submissions_to_success_count)
         context = super().get_context_data(**kwargs)
         context['assignments'] = (self.object.user.assignment_set
                                   .select_related('problem', 'problem__contest', 'problem__contest__course')
                                   .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
         context['credits'] = self.object.user.credit_set.select_related('course').order_by('course')
-        solved_problem_ids = Submission.objects.filter(owner=self.object.user, status='OK').values_list('problem', flat=True).distinct().order_by()
-        submissions_counts = list(map(operator.itemgetter('submissions_count'), Submission.objects.filter(owner=self.object.user).values('problem').annotate(submissions_count=Count('problem')).order_by()))
         context['problems_count'] = solved_problem_ids.count()
-        context['avg_submissions_count'] = round(mean(submissions_counts)) if submissions_counts else 0
+        context['avg_submissions_to_success_count'] = round(mean(submissions_to_success_counts)) if submissions_to_success_counts else 0
         context['comments_count'] = Comment.objects.filter(author=self.object.user).count()
         context['comments_count'] = Comment.objects.filter(author=self.object.user).count()
         context['questions_count'] = Question.objects.filter(owner=self.object.user).count()
