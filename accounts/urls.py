@@ -11,7 +11,8 @@ urlpatterns = [
         path('<int:pk>/', include([
             path('', views.AccountDetail.as_view(), name='account-detail'),
             path('update', views.AccountUpdate.as_view(), name='account-update'),
-            path('results/course/<int:course_id>', views.AccountCourseResults.as_view(), name='account-course-results'),
+            path('course/<int:course_id>/results', views.AccountCourseResults.as_view(), name='account-course-results'),
+            path('problem/<int:problem_id>/submissions', views.AccountProblemSubmissionList.as_view(), name='account-problem-submissions'),
             path('assignments', views.AccountAssignmentList.as_view(), name='account-assignment-list'),
         ])),
         path('list', views.AccountFormList.as_view(), name='account-list'),

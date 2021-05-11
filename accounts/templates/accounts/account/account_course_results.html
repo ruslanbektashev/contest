@@ -10,6 +10,7 @@
 {% breadcrumb "Пользователи" 'accounts:account-list' %}
 {% breadcrumb account account.get_absolute_url %}
 {% breadcrumb course course.get_absolute_url %}
+{% breadcrumb "Результаты" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
@@ -78,9 +79,9 @@
                             </td>
                             <td class="text-center" style="vertical-align: middle; width: 6%;">
                                 {% solved additional_submissions problem as is_solved %}
-                                <span class="numtus status-{{ is_solved|colorize_solved_flag }}">
+                                <a href="{% url 'accounts:account-problem-submissions' account.user_id submission.problem.id %}" class="numtus status-{{ is_solved|colorize_solved_flag }}">
                                     {% if is_solved %}+{% else %}-{% endif %}
-                                </span>
+                                </a>
                             </td>
                             {% endif %}
                         </tr>

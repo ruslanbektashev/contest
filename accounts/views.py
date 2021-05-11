@@ -307,6 +307,24 @@ class AccountAssignmentList(LoginRedirectOwnershipOrPermissionRequiredMixin, Det
         return context
 
 
+class AccountProblemSubmissionList(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
+    model = Account
+    template_name = 'accounts/account/account_problem_submissions.html'
+    permission_required = 'accounts.view_account'
+
+    def get(self, request, *args, **kwargs):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        context = self.get_context_data(object=self.object, **kwargs)
+        return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['problem'] = Problem.objects.get(id=kwargs.pop('problem_id'))
+        context['submissions'] = (self.object.user.submission_set.filter(problem=context['problem']).order_by('date_created'))
+        return context
+
+
 """================================================== Subscription =================================================="""
 
 
