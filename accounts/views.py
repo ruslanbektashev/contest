@@ -1,10 +1,13 @@
 import json
+import operator
 
 from markdown import markdown
+from statistics import mean
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
+from django.db.models import Count
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
@@ -21,7 +24,8 @@ from accounts.models import Account, Activity, Comment, Faculty, Message, Chat, 
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
 from contest.templatetags.views import get_updated_query_string
-from contests.models import Contest, Course, Submission
+from contests.models import Contest, Course, Problem, Submission
+from support.models import Question, Report
 
 """==================================================== Account ====================================================="""
 
@@ -71,6 +75,14 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
                                   .select_related('problem', 'problem__contest', 'problem__contest__course')
                                   .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
         context['credits'] = self.object.user.credit_set.select_related('course').order_by('course')
+        solved_problem_ids = Submission.objects.filter(owner=self.object.user, status='OK').values_list('problem', flat=True).distinct().order_by()
+        submissions_counts = list(map(operator.itemgetter('submissions_count'), Submission.objects.filter(owner=self.object.user).values('problem').annotate(submissions_count=Count('problem')).order_by()))
+        context['problems_count'] = solved_problem_ids.count()
+        context['avg_submissions_count'] = round(mean(submissions_counts)) if submissions_counts else 0
+        context['comments_count'] = Comment.objects.filter(author=self.object.user).count()
+        context['comments_count'] = Comment.objects.filter(author=self.object.user).count()
+        context['questions_count'] = Question.objects.filter(owner=self.object.user).count()
+        context['reports_count'] = Report.objects.filter(owner=self.object.user).count()
         return context
 
 

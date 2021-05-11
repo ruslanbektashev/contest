@@ -63,6 +63,11 @@ def colorize_solved_flag(value):
     return 'success' if value else 'danger'
 
 
+@register.filter
+def colorize_activity_count(value):
+    return 'success' if value else 'default'
+
+
 @register.simple_tag()
 def submissions_count(submissions, problem):
     return submissions.filter(problem=problem).count()

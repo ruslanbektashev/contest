@@ -14,15 +14,8 @@
 {% block content %}
 <legend>
     {{ account }}
-    {% if account.is_student %}
-        {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
-        <a href="{% if account.user_id == request.user.id %} {% url 'contests:assignment-list' %} {% else %} {% url 'accounts:account-assignment-list' account.user_id %} {% endif %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="top" title="Задания" style="position: relative; top: -0.08rem;"><i class="fa fa-list-ol fa-fw"></i></a>
-        {% endif %}
-    {% endif %}
     {% if account.user_id == request.user.id %}
     <a href="{% url 'password-change' %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="top" title="Изменить пароль" style="position: relative; top: -0.03rem;"><i class="fa fa-lock fa-fw"></i></a>
-    {% else %}
-    <a href="{% url 'accounts:message-create' account.user.id %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="top" title="Написать сообщение" style="position: relative; top: -0.1rem;"><i class="fa fa-envelope-o fa-fw"></i></a>
     {% endif %}
     {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
     <a href="{% url 'accounts:account-update' account.user.id %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="Редактировать профиль"><i class="fa fa-edit fa-fw"></i></a>
@@ -53,10 +46,57 @@
     </div>
 </div>
 {% if account.is_student %}
+<legend>Активность</legend>
+<div class="table-responsive my-3">
+    <table class="table table-sm table-hover">
+        <tbody>
+            <tr>
+                <td style="vertical-align: middle;">Количество решенных задач</td>
+                <td class="text-center" style="vertical-align: middle; width: 4%;">
+                    <span class="numtus status-{{ problems_count|colorize_activity_count }}">{{ problems_count }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: middle;">Среднее количество посылок к задаче</td>
+                <td class="text-center" style="vertical-align: middle; width: 4%;">
+                    <span class="numtus status-{{ avg_submissions_count|colorize_submission_count }}">{{ avg_submissions_count }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: middle;">Количество комментариев</td>
+                <td class="text-center" style="vertical-align: middle; width: 4%;">
+                    <span class="numtus status-{{ comments_count|colorize_activity_count }}">{{ comments_count }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: middle;">Количество вопросов</td>
+                <td class="text-center" style="vertical-align: middle; width: 4%;">
+                    <span class="numtus status-{{ questions_count|colorize_activity_count }}">{{ questions_count }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: middle;">Количество сообщений об ошибках</td>
+                <td class="text-center" style="vertical-align: middle; width: 4%;">
+                    <span class="numtus status-{{ reports_count|colorize_activity_count }}">{{ reports_count }}</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
 {% if perms.contests.view_assignment_table or account.user_id == request.user.id %}
-<legend>Результаты</legend>
+{% if credits %}
+<legend>
+    Результаты
+    {% if account.is_student %}
+        {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
+        <a href="{% if account.user_id == request.user.id %} {% url 'contests:assignment-list' %} {% else %} {% url 'accounts:account-assignment-list' account.user_id %} {% endif %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="Задания" style="position: relative; top: -0.08rem;"><i class="fa fa-list-ol fa-fw"></i></a>
+        {% endif %}
+    {% endif %}
+</legend>
 {% include 'accounts/account/account_results.html' %}
 {% render_assignment_progress assignments %}
+{% endif %}
 {% endif %}
 {% endif %}
 {% endblock content %}

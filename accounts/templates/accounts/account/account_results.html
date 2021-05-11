@@ -5,7 +5,7 @@
         <tbody>
             {% for credit in credits %}
             <tr>
-                <td class="text-muted" style="width: 20%;"><span>{{ credit.course.get_level_display }}</span></td>
+                <td class="text-muted" style="width: 26%;"><span>{{ credit.course.get_level_display }}</span></td>
                 <td style="vertical-align: middle;"><a href="{% url 'accounts:account-course-results' account.user_id credit.course.id %}">{{ credit.course }}</a></td>
                 <td class="text-center" style="vertical-align: middle; width: 4%;">
                     {% if perms.contests.change_credit %}
