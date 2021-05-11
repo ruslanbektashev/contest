@@ -18,7 +18,7 @@
     <a href="{% url 'password-change' %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="top" title="Изменить пароль" style="position: relative; top: -0.03rem;"><i class="fa fa-lock fa-fw"></i></a>
     {% endif %}
     {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
-    <a href="{% url 'accounts:account-update' account.user.id %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="Редактировать профиль"><i class="fa fa-edit fa-fw"></i></a>
+    <a href="{% url 'accounts:account-update' account.user.id %}" class="text-primary text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="Редактировать профиль"><i class="fa fa-edit fa-fw"></i></a>
     {% endif %}
 </legend>
 <div class="row my-3">

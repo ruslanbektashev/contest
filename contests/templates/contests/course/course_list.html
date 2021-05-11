@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views %}
 
 {% block title %}
@@ -11,14 +11,11 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Курсы</legend>
+<legend>
+    Курсы
+    {% if perms.contests.add_course %}
+    <a href="{% url 'contests:course-create' %}" class="text-success text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
+    {% endif %}
+</legend>
 {% include 'list.html' with lst=courses warn_if_empty="Курсы еще не добавлены" %}
 {% endblock content %}
-
-{% block submenu %}
-<div class="list-group mb-3">
-    {% if perms.contests.add_course %}
-    <a href="{% url 'contests:course-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить курс</a>
-    {% endif %}
-</div>
-{% endblock submenu %}
