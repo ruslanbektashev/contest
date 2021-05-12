@@ -202,6 +202,7 @@ class Account(models.Model):
     students = StudentManager.from_queryset(StudentQuerySet)()
 
     comments_read = models.ManyToManyField('Comment', blank=True)
+    score = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="Баллы")
 
     class Meta:
         ordering = ('user__last_name', 'user__first_name', 'user_id')
@@ -282,12 +283,11 @@ class Account(models.Model):
             submissions_to_success_counts.append(submissions_to_success_count)
         return round(mean(submissions_to_success_counts)) if submissions_to_success_counts else 0
 
-    @property
-    def score(self):
+    def update_score(self):
         credits_score = round(self.avg_credit_score / 5, 1) if 2 < self.avg_credit_score < 6 else 0
-        # problems_score = round(self.solved_problems_count / max([account.solved_problems_count for account in Account.objects.filter(type=1)]), 1)
         submissions_score = round(1 - (self.avg_submissions_to_success_count - 1) / 10, 1) if 0 < self.avg_submissions_to_success_count < 11 else 0
-        return round((credits_score + submissions_score) / 2 * 100)
+        self.score = round((credits_score + submissions_score) / 2 * 100)
+        self.save()
 
     def get_absolute_url(self):
         return reverse('accounts:account-detail', kwargs={'pk': self.pk})

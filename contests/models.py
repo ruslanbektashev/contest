@@ -148,6 +148,10 @@ class Credit(CRUDEntry):
         verbose_name = "Зачет"
         verbose_name_plural = "Зачеты"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.user.account.update_score()
+
     def __str__(self):
         return "Зачет по курсу: %s" % self.course.title
 

@@ -1244,6 +1244,8 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         if self.object.problem.type == 'Options':
             self.object.update_options_score()
         Activity.objects.on_submission_created(self.object)
+        if self.object.status == 'OK':
+            self.object.owner.account.update_score()
         return HttpResponseRedirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):

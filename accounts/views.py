@@ -73,6 +73,7 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
                                   .select_related('problem', 'problem__contest', 'problem__contest__course')
                                   .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
         context['credits'] = self.object.user.credit_set.select_related('course').order_by('course')
+        self.object.update_score()
         context['score'] = self.object.score
         context['problems_count'] = self.object.solved_problems_count
         context['avg_submissions_to_success_count'] = self.object.avg_submissions_to_success_count
@@ -232,7 +233,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
                 queryset = queryset.enrolled().filter(level=self.storage['level'])
         queryset = queryset.filter(faculty=self.storage['faculty'])
         if self.storage['sort'] == 2 and queryset.exists():
-            queryset = sorted(queryset, key=lambda account: account.score, reverse=True)
+            queryset = queryset.order_by('-score', 'user__last_name')
         return queryset
 
     def get_context_data(self, **kwargs):
