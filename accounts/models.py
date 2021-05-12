@@ -1,3 +1,5 @@
+from statistics import mean
+
 from django.apps import apps
 from django.contrib.auth.models import User, Group
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -257,6 +259,28 @@ class Account(models.Model):
     @property
     def date_joined(self):
         return self.user.date_joined
+
+    @property
+    def avg_credit_score(self):
+        credit_scores = self.user.credit_set.exclude(score=0).values_list('score', flat=True)
+        return round(mean(credit_scores)) if credit_scores else 0
+
+    @property
+    def solved_problems_count(self):
+        Submission = apps.get_model('contests', 'Submission')
+        return Submission.objects.filter(owner=self.user, status='OK').values_list('problem', flat=True).distinct().order_by().count()
+
+    @property
+    def avg_submissions_to_success_count(self):
+        Submission = apps.get_model('contests', 'Submission')
+        solved_problem_ids = Submission.objects.filter(owner=self.user, status='OK').values_list('problem', flat=True).distinct().order_by()
+        submissions_to_success_counts = []
+        for problem_id in solved_problem_ids:
+            problem_submissions = Submission.objects.filter(owner=self.user, problem=problem_id)
+            first_success_submission = problem_submissions.filter(status='OK').order_by('date_created')[0]
+            submissions_to_success_count = problem_submissions.filter(date_created__lte=first_success_submission.date_created).count()
+            submissions_to_success_counts.append(submissions_to_success_count)
+        return round(mean(submissions_to_success_counts)) if submissions_to_success_counts else 0
 
     def get_absolute_url(self):
         return reverse('accounts:account-detail', kwargs={'pk': self.pk})

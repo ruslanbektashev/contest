@@ -48,6 +48,9 @@
 
 {% block submenu %}
 <div class="list-group mb-3">
+    <a class="list-group-item list-group-item-action" href="{% url 'contests:course-list' %}">
+        <i class="fa fa-book fa-fw"></i> Все курсы
+    </a>
     {% if perms.contests.view_submission_list %}
     <a href="{% url 'contests:submission-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
     {% endif %}
