@@ -73,6 +73,7 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
                                   .select_related('problem', 'problem__contest', 'problem__contest__course')
                                   .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
         context['credits'] = self.object.user.credit_set.select_related('course').order_by('course')
+        context['score'] = self.object.score
         context['problems_count'] = self.object.solved_problems_count
         context['avg_submissions_to_success_count'] = self.object.avg_submissions_to_success_count
         context['comments_count'] = Comment.objects.filter(author=self.object.user).count()
@@ -175,6 +176,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
         self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
         self.storage['level'] = int(self.request.GET.get('level') or 1)
         self.storage['type'] = int(self.request.GET.get('type') or 1)
+        self.storage['sort'] = int(self.request.GET.get('sort') or 1)
         enrolled, graduated = self.request.GET.get('enrolled'), self.request.GET.get('graduated')
         if enrolled is not None and enrolled == '0':
             self.storage['enrolled'] = False
@@ -228,10 +230,18 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
                 queryset = queryset.filter(enrolled=self.storage['enrolled'], graduated=self.storage['graduated'])
             else:
                 queryset = queryset.enrolled().filter(level=self.storage['level'])
-        return queryset.filter(faculty=self.storage['faculty'])
+        queryset = queryset.filter(faculty=self.storage['faculty'])
+        if self.storage['sort'] == 2 and queryset.exists():
+            queryset = sorted(queryset, key=lambda account: account.score, reverse=True)
+        return queryset
 
     def get_context_data(self, **kwargs):
+        SORT_TYPE_CHOICES = (
+            (1, 'В алфавитном порядке'),
+            (2, 'Рейтинг'),
+        )
         context = super().get_context_data(**kwargs)
+        context['sortings'] = SORT_TYPE_CHOICES
         context['levels'] = Account.LEVEL_CHOICES
         context['faculties'] = Faculty.objects.all()
         context.update(self.storage)

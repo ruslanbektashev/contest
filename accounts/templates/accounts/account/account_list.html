@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load views forms %}
+{% load views forms contests %}
 
 {% block title %}
 Пользователи
@@ -25,7 +25,13 @@
                         <label for="check_all" class="custom-control-label ml-2"></label>
                     </div>
                 </th>
+                {% if sort == 2 %}
+                    <th class="text-center" style="width: 4%;">#</th>
+                {% endif %}
                 <th class="text-center">Фамилия, Имя</th>
+                {% if sort == 2 %}
+                    <th class="text-center" style="width: 10%;">Баллы</th>
+                {% endif %}
                 <th class="text-center" style="width: 17%;">Уровень</th>
             </tr>
         </thead>
@@ -38,12 +44,18 @@
                         <label for="check_{{ account.user_id }}" class="custom-control-label ml-2"></label>
                     </div>
                 </td>
+                {% if sort == 2 %}
+                    <td class="text-center text-nowrap"><span>{{ forloop.counter }}</span></td>
+                {% endif %}
                 <td class="text-nowrap"><a href="{{ account.get_absolute_url }}">{{ account }}</a></td>
+                {% if sort == 2 %}
+                <td class="text-center text-nowrap"><span class="numtus status-{{ account.score|colorize_activity_count }}">{{ account.score }}</span></td>
+                {% endif %}
                 <td class="text-center text-nowrap">{% if account.is_student %}{{ account.get_level_display }}{% else %}{{ account.get_type_display }}{% endif %}</td>
             </tr>
             {% empty %}
             <tr>
-                <td class="text-center" colspan="3"><div class="alert alert-info mb-0">Здесь никого нет</div></td>
+                <td class="text-center" colspan="{% if sort == 2 %} 5 {% else %} 3 {% endif %}"><div class="alert alert-info mb-0">Здесь никого нет</div></td>
             </tr>
             {% endfor %}
         </tbody>
@@ -68,6 +80,14 @@
         {% endfor %}
     </select>
     <label for="level_select"></label>
+    {% if type == 1 %}
+        <select id="sort_select" name="sort" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+            {% for srt, srt_display in sortings %}
+            <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id level=level type=1 sort=srt %}" {% if sort == srt %}selected{% endif %}>{{ srt_display }}</option>
+            {% endfor %}
+        </select>
+        <label for="sort_select"></label>
+    {% endif %}
 </div>
 <div class="list-group mb-3">
     <a href="{% url 'accounts:account-list' %}?enrolled=0&graduated=1&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != True %}-o{% endif %} fa-fw"></i> Выпускники</a>

@@ -50,7 +50,10 @@ class AccountListForm(forms.Form):
 
     def __init__(self, *args, queryset, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['accounts'].queryset = queryset
+        if isinstance(queryset, list):
+            self.fields['accounts'] = queryset
+        else:
+            self.fields['accounts'].queryset = queryset
 
 
 class AccountSetForm(forms.ModelForm):
