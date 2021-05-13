@@ -90,8 +90,8 @@
     {% endif %}
 </div>
 <div class="list-group mb-3">
-    <a href="{% url 'accounts:account-list' %}?enrolled=0&graduated=1&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != True %}-o{% endif %} fa-fw"></i> Выпускники</a>
-    <a href="{% url 'accounts:account-list' %}?enrolled=0&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != False %}-o{% endif %} fa-fw"></i> Отчисленные</a>
+    <a href="{% url 'accounts:account-list' %}?enrolled=0&graduated=1&faculty_id={{ faculty.id }}&sort={{ sort }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != True %}-o{% endif %} fa-fw"></i> Выпускники</a>
+    <a href="{% url 'accounts:account-list' %}?enrolled=0&faculty_id={{ faculty.id }}&sort={{ sort }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != False %}-o{% endif %} fa-fw"></i> Отчисленные</a>
 </div>
 <div class="list-group mb-3">
     <a href="{% url 'accounts:account-list' %}?type=2&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if type != 2 %}-o{% endif %} fa-fw"></i> Модераторы</a>
