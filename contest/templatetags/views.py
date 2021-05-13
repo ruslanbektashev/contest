@@ -14,6 +14,11 @@ def breadcrumb(title, *args, **kwargs):
 
 
 @register.inclusion_tag('progress.html')
+def render_progress(value, title):
+    return {'progress': value, 'title': title}
+
+
+@register.inclusion_tag('progress.html')
 def render_assignment_progress(assignments, title):
     return {'progress': assignments.progress(), 'title': title}
 

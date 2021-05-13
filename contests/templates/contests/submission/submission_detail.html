@@ -39,7 +39,7 @@
 </table>
 {% if submission.score > 0 %}
     {% with score=submission.score|stringformat:"i" score_max=submission.problem.score_max|stringformat:"i" %}
-    {% with score|add:" из "|add:score_max as title %}
+    {% with score|add:" из "|add:score_max|add:" баллов" as title %}
     {% render_submission_progress submission title %}
     {% endwith %}
     {% endwith %}
