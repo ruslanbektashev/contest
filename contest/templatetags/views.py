@@ -13,6 +13,16 @@ def breadcrumb(title, *args, **kwargs):
     return context
 
 
+@register.inclusion_tag('progress.html')
+def render_assignment_progress(assignments):
+    return {'progress': assignments.progress()}
+
+
+@register.inclusion_tag('progress.html')
+def render_submission_progress(submission):
+    return {'progress': submission.score}
+
+
 @register.simple_tag()
 def get_updated_query_string(request, **kwargs):
     _GET = request.GET.copy()
