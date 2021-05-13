@@ -149,11 +149,6 @@ def render_assignment_course_table(course, students, assignments, debts=False):
     return context
 
 
-@register.inclusion_tag('contests/assignment/assignment_progress.html')
-def render_assignment_progress(assignments):
-    return {'progress': assignments.progress()}
-
-
 @register.inclusion_tag('contests/execution/execution_list.html', takes_context=True)
 def render_execution_list(context, executions):
     context['executions'] = executions

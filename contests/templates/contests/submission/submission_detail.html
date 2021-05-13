@@ -33,13 +33,13 @@
     {% if submission.date_updated %}
     <tr><td class="text-right" style="width: 20%;">Проверена</td><td>{{ submission.date_updated }}</td></tr>
     {% endif %}
-    {% if submission.score > 0 %}
-    <tr><td class="text-right" style="width: 20%;">Оценка в баллах</td><td>{{ submission.score }} из {{ submission.problem.score_max }}</td></tr>
-    {% endif %}
     {% if submission.problem.type == 'Test' %}
     <tr><td class="text-right" style="width: 20%;">Решено подзадач</td><td>{{ submission.sub_submissions.count }} из {{ submission.problem.sub_problems.count }}</td></tr>
     {% endif %}
 </table>
+{% if submission.score > 0 %}
+    {% render_submission_progress submission %}
+{% endif %}
 <div class="progress justify-content-center mb-3" style="height: 25px;">
     <div id="progress-bar" class="progress-bar bg-{% get_submission_style submission %}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% else %}100{% endif %}%;"></div>
     <span class="status-display align-self-center" style="position: absolute;"><strong id="progress-bar-message" style="color: white;">{{ submission.get_status_display }}</strong></span>
