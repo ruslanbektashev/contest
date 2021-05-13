@@ -14,13 +14,14 @@ def breadcrumb(title, *args, **kwargs):
 
 
 @register.inclusion_tag('progress.html')
-def render_assignment_progress(assignments):
-    return {'progress': assignments.progress()}
+def render_assignment_progress(assignments, title):
+    return {'progress': assignments.progress(), 'title': title}
 
 
 @register.inclusion_tag('progress.html')
-def render_submission_progress(submission):
-    return {'progress': submission.score}
+def render_submission_progress(submission, title):
+    score = round(submission.score * 100 / submission.problem.score_max)
+    return {'progress': score, 'title': title}
 
 
 @register.simple_tag()

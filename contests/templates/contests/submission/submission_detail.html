@@ -38,7 +38,11 @@
     {% endif %}
 </table>
 {% if submission.score > 0 %}
-    {% render_submission_progress submission %}
+    {% with score=submission.score|stringformat:"i" score_max=submission.problem.score_max|stringformat:"i" %}
+    {% with score|add:" из "|add:score_max as title %}
+    {% render_submission_progress submission title %}
+    {% endwith %}
+    {% endwith %}
 {% endif %}
 <div class="progress justify-content-center mb-3" style="height: 25px;">
     <div id="progress-bar" class="progress-bar bg-{% get_submission_style submission %}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% else %}100{% endif %}%;"></div>
