@@ -262,31 +262,33 @@ class Account(models.Model):
         return self.user.date_joined
 
     @property
-    def avg_credit_score(self):
-        credit_scores = self.user.credit_set.exclude(score=0).values_list('score', flat=True)
-        return round(mean(credit_scores)) if credit_scores else 0
-
-    @property
     def solved_problems_count(self):
         Submission = apps.get_model('contests', 'Submission')
         return Submission.objects.filter(owner=self.user, status='OK').values_list('problem', flat=True).distinct().order_by().count()
 
     @property
-    def avg_submissions_to_success_count(self):
+    def credits_score(self):
+        credit_scores = self.user.credit_set.exclude(score=0).values_list('score', flat=True)
+        avg_credit_score = mean(credit_scores) if credit_scores else 0
+        return avg_credit_score * 20 if 2 < avg_credit_score < 6 else 0
+
+    @property
+    def submissions_score(self):
         Submission = apps.get_model('contests', 'Submission')
+        Assignment = apps.get_model('contests', 'Assignment')
         solved_problem_ids = Submission.objects.filter(owner=self.user, status='OK').values_list('problem', flat=True).distinct().order_by()
-        submissions_to_success_counts = []
+        submissions_scores = []
         for problem_id in solved_problem_ids:
             problem_submissions = Submission.objects.filter(owner=self.user, problem=problem_id)
             first_success_submission = problem_submissions.filter(status='OK').order_by('date_created')[0]
             submissions_to_success_count = problem_submissions.filter(date_created__lte=first_success_submission.date_created).count()
-            submissions_to_success_counts.append(submissions_to_success_count)
-        return round(mean(submissions_to_success_counts)) if submissions_to_success_counts else 0
+            submission_limit = first_success_submission.assignment.submission_limit if first_success_submission.assignment else Assignment.DEFAULT_SUBMISSION_LIMIT
+            submissions_score = ((submission_limit + 1 - submissions_to_success_count) * 100 / submission_limit) if submissions_to_success_count <= submission_limit else (100 / submissions_to_success_count)
+            submissions_scores.append(submissions_score)
+        return round(mean(submissions_scores)) if submissions_scores else 0
 
     def update_score(self):
-        credits_score = round(self.avg_credit_score / 5, 1) if 2 < self.avg_credit_score < 6 else 0
-        submissions_score = round(1 - (self.avg_submissions_to_success_count - 1) / 10, 1) if 0 < self.avg_submissions_to_success_count < 11 else 0
-        self.score = round((credits_score + submissions_score) / 2 * 100)
+        self.score = round(mean([self.credits_score, self.submissions_score]))
         self.save()
 
     def get_absolute_url(self):

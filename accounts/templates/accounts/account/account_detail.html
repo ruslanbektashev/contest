@@ -53,13 +53,13 @@
             <tr>
                 <td style="vertical-align: middle;">Количество решенных задач</td>
                 <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    <span class="numtus status-{{ problems_count|colorize_activity_count }}">{{ problems_count }}</span>
+                    <span class="numtus status-{{ account.solved_problems_count|colorize_activity_count }}">{{ account.solved_problems_count }}</span>
                 </td>
             </tr>
-            <tr>
-                <td style="vertical-align: middle;">Среднее количество посылок для решения задачи</td>
+            <tr title="Учитывает количество посылок для решения задачи">
+                <td style="vertical-align: middle;">Точность</td>
                 <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    <span class="numtus status-{{ avg_submissions_to_success_count|colorize_submission_count }}">{{ avg_submissions_to_success_count }}</span>
+                    <span class="numtus status-{{ account.submissions_score|colorize_submissions_score }}">{{ account.submissions_score }}%</span>
                 </td>
             </tr>
             <tr>

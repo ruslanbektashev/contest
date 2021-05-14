@@ -75,8 +75,6 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
                                   .select_related('problem', 'problem__contest', 'problem__contest__course')
                                   .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
         context['credits'] = self.object.user.credit_set.select_related('course').order_by('course')
-        context['problems_count'] = self.object.solved_problems_count
-        context['avg_submissions_to_success_count'] = self.object.avg_submissions_to_success_count
         context['comments_count'] = Comment.objects.filter(author=self.object.user).count()
         context['questions_count'] = Question.objects.filter(owner=self.object.user).count()
         context['reports_count'] = Report.objects.filter(owner=self.object.user).count()

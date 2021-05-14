@@ -47,15 +47,15 @@ def colorize(value):
 
 
 @register.filter
-def colorize_submission_count(value):
+def colorize_submissions_score(value):
     if value < 1:
         return 'default'
-    elif value <= 5:
-        return 'success'
-    elif value <= 9:
+    elif value < 50:
+        return 'danger'
+    elif value < 75:
         return 'warning'
     else:
-        return 'danger'
+        return 'success'
 
 
 @register.filter
