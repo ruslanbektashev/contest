@@ -64,6 +64,8 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
     def get(self, request, *args, **kwargs):
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
             self.object = self.get_object()
+        if self.object.score is None:
+            self.object.update_score()
         context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
 
@@ -73,7 +75,6 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
                                   .select_related('problem', 'problem__contest', 'problem__contest__course')
                                   .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
         context['credits'] = self.object.user.credit_set.select_related('course').order_by('course')
-        self.object.update_score()
         context['problems_count'] = self.object.solved_problems_count
         context['avg_submissions_to_success_count'] = self.object.avg_submissions_to_success_count
         context['comments_count'] = Comment.objects.filter(author=self.object.user).count()
@@ -232,6 +233,10 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
                 queryset = queryset.enrolled().filter(level=self.storage['level'])
         queryset = queryset.filter(faculty=self.storage['faculty'])
         if self.storage['sort'] == 2 and queryset.exists():
+            empty_score_students = queryset.filter(score__isnull=True)
+            if empty_score_students.exists():
+                for student in empty_score_students:
+                    student.update_score()
             queryset = queryset.order_by('-score', 'user__last_name')
         return queryset
 
