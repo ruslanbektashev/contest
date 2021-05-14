@@ -56,12 +56,6 @@
                     <span class="numtus status-{{ account.solved_problems_count|colorize_activity_count }}">{{ account.solved_problems_count }}</span>
                 </td>
             </tr>
-            <tr title="Учитывает количество посылок для решения задачи">
-                <td style="vertical-align: middle;">Точность</td>
-                <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    <span class="numtus status-{{ account.submissions_score|colorize_submissions_score }}">{{ account.submissions_score }}%</span>
-                </td>
-            </tr>
             <tr>
                 <td style="vertical-align: middle;">Количество комментариев</td>
                 <td class="text-center" style="vertical-align: middle; width: 4%;">
@@ -95,7 +89,24 @@
     {% endif %}
 </legend>
 {% include 'accounts/account/account_results.html' %}
-{% render_progress account.score "Общая успеваемость" %}
+<div class="table-responsive my-3">
+    <table class="table table-sm table-borderless">
+        <tbody>
+            <tr title="Учитывает количество посылок для решения задачи">
+                <td style="vertical-align: middle;">Точность</td>
+                <td class="text-center" style="vertical-align: middle; width: 74%;">
+                    {% render_progress account.submissions_score "" %}
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: middle;">Общая успеваемость</td>
+                <td class="text-center" style="vertical-align: middle; width: 74%;">
+                    {% render_progress account.score "" %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 {% endif %}
 {% endif %}
 {% endif %}

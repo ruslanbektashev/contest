@@ -47,18 +47,6 @@ def colorize(value):
 
 
 @register.filter
-def colorize_submissions_score(value):
-    if value < 1:
-        return 'default'
-    elif value < 50:
-        return 'danger'
-    elif value < 75:
-        return 'warning'
-    else:
-        return 'success'
-
-
-@register.filter
 def colorize_solved_flag(value):
     return 'success' if value else 'danger'
 
