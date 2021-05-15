@@ -253,7 +253,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
         LEVEL_CHOICES = list(Account.LEVEL_CHOICES)
         if self.request.user.is_superuser:
             LEVEL_CHOICES.append((0, 'Все уровни'))
-            COURSE_CHOICES = list(Course.objects.values_list('id', 'title'))
+            COURSE_CHOICES = list(Course.objects.filter(faculty=self.storage['faculty']).values_list('id', 'title'))
             COURSE_CHOICES.insert(0, (0, 'Все курсы'))
             context['courses'] = COURSE_CHOICES
         context['sortings'] = SORT_TYPE_CHOICES
