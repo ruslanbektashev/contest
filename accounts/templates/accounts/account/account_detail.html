@@ -92,18 +92,22 @@
 <div class="table-responsive mb-3">
     <table class="table table-sm table-borderless">
         <tbody>
+            {% if account.submissions_score %}
             <tr title="Учитывает количество посылок для решения задачи">
                 <td style="vertical-align: middle;">Точность</td>
                 <td class="text-center" style="vertical-align: middle; width: 74%;">
                     {% render_progress account.submissions_score "" %}
                 </td>
             </tr>
+            {% endif %}
+            {% if account.score %}
             <tr>
                 <td style="vertical-align: middle;">Общая успеваемость</td>
                 <td class="text-center" style="vertical-align: middle; width: 74%;">
                     {% render_progress account.score "" %}
                 </td>
             </tr>
+            {% endif %}
         </tbody>
     </table>
 </div>
