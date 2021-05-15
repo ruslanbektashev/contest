@@ -53,25 +53,25 @@
             <tr>
                 <td style="vertical-align: middle;">Количество решенных задач</td>
                 <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    <span class="numtus status-{{ account.solved_problems_count|colorize_activity_count }}">{{ account.solved_problems_count }}</span>
+                    {{ account.solved_problems_count }}
                 </td>
             </tr>
             <tr>
                 <td style="vertical-align: middle;">Количество комментариев</td>
                 <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    <span class="numtus status-{{ comments_count|colorize_activity_count }}">{{ comments_count }}</span>
+                    {{ comments_count }}
                 </td>
             </tr>
             <tr>
                 <td style="vertical-align: middle;">Количество вопросов</td>
                 <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    <span class="numtus status-{{ questions_count|colorize_activity_count }}">{{ questions_count }}</span>
+                    {{ questions_count }}
                 </td>
             </tr>
             <tr>
                 <td style="vertical-align: middle;">Количество сообщений об ошибках</td>
                 <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    <span class="numtus status-{{ reports_count|colorize_activity_count }}">{{ reports_count }}</span>
+                    {{ reports_count }}
                 </td>
             </tr>
         </tbody>
@@ -93,18 +93,24 @@
     <table class="table table-sm table-borderless">
         <tbody>
             {% if account.submissions_score %}
-            <tr title="Учитывает количество посылок для решения задачи">
+            <tr>
                 <td style="vertical-align: middle;">Точность</td>
-                <td class="text-center" style="vertical-align: middle; width: 74%;">
+                <td class="text-center" style="vertical-align: middle; width: 70%;">
                     {% render_progress account.submissions_score "" %}
+                </td>
+                <td class="text-center" style="vertical-align: middle; width: 4%;">
+                    <i class="text-muted fa fa-question-circle fa-fw" data-toggle="tooltip" data-placement="left" title="Учитывает количество посылок для решения задачи" style="position: relative; top: -0.08rem;"></i>
                 </td>
             </tr>
             {% endif %}
             {% if account.score %}
             <tr>
                 <td style="vertical-align: middle;">Общая успеваемость</td>
-                <td class="text-center" style="vertical-align: middle; width: 74%;">
+                <td class="text-center" style="vertical-align: middle; width: 70%;">
                     {% render_progress account.score "" %}
+                </td>
+                <td class="text-center" style="vertical-align: middle; width: 4%;">
+                    <i class="text-muted fa fa-question-circle fa-fw" data-toggle="tooltip" data-placement="left" title="Учитывает оценки по курсам и количество посылок для решения задачи" style="position: relative; top: -0.08rem;"></i>
                 </td>
             </tr>
             {% endif %}

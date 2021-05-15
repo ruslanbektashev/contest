@@ -52,8 +52,15 @@ def colorize_solved_flag(value):
 
 
 @register.filter
-def colorize_activity_count(value):
-    return 'success' if value else 'default'
+def colorize_progress(value):
+    if value > 80:
+        return 'success'
+    elif value > 60:
+        return 'warning'
+    elif value > 40:
+        return 'danger'
+    else:
+        return 'default'
 
 
 @register.simple_tag()
