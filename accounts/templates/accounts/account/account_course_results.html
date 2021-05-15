@@ -16,7 +16,7 @@
 {% block content %}
 <legend>{{ account }}, {{ course }} <span class="text-muted pull-right">{{ course.get_level_display }}</span></legend>
 
-<div class="table-responsive my-3">
+<div class="table-responsive mt-3">
     <table class="table table-sm">
         <thead>
             <th>Раздел</th>
@@ -53,7 +53,7 @@
 
 {% if additional_submissions %}
 <legend>Необязательные задачи</legend>
-<div class="table-responsive my-3">
+<div class="table-responsive mt-3">
     <table class="table table-sm">
         <thead>
             <th>Раздел</th>
@@ -90,6 +90,24 @@
                     {% endfor %}
                 {% endfor %}
             {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if course_submissions_score %}
+<div class="table-responsive mb-3">
+    <table class="table table-sm table-borderless">
+        <tbody>
+            <tr>
+                <td style="vertical-align: middle;">Точность</td>
+                <td class="text-center" style="vertical-align: middle; width: 66%;">
+                    {% render_progress course_submissions_score "" %}
+                </td>
+                <td class="text-center" style="vertical-align: middle; width: 6%;">
+                    <i class="text-muted fa fa-question-circle fa-fw" data-toggle="tooltip" data-placement="left" title="Учитывает количество посылок для решения задачи" style="position: relative; top: -0.08rem;"></i>
+                </td>
+            </tr>
         </tbody>
     </table>
 </div>

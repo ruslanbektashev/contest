@@ -304,6 +304,7 @@ class AccountCourseResults(LoginRedirectOwnershipOrPermissionRequiredMixin, Deta
         context['assignments'] = (self.object.user.assignment_set.filter(problem__contest__course=context['course']).select_related('problem', 'problem__contest').order_by('problem__contest__course', 'problem__contest', 'date_created'))
         context['credit'] = self.object.user.credit_set.get(course=context['course'])
         context['additional_submissions'] = self.object.user.submission_set.filter(problem__contest__course=context['course'], assignment__isnull=True).select_related('problem', 'problem__contest').order_by('problem__contest', 'problem')
+        context['course_submissions_score'] = self.object.course_submissions_score(context['course'])
         return context
 
 
