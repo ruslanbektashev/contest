@@ -19,12 +19,14 @@
     <table class="table table-bordered table-sm table-hover">
         <thead>
             <tr>
+                {% if sort != 2 %}
                 <th class="text-center" style="width: 4%;">
                     <div class="custom-control custom-checkbox" data-toggle="tooltip" data-placement="top" title="Выбрать всех пользователей">
                         <input id="check_all" type="checkbox" class="custom-control-input">
                         <label for="check_all" class="custom-control-label ml-2"></label>
                     </div>
                 </th>
+                {% endif %}
                 <th class="text-right" style="width: 4%;">№</th>
                 <th class="text-center">Фамилия, Имя</th>
                 {% if sort == 2 %}
@@ -36,12 +38,14 @@
         <tbody>
             {% for account in accounts %}
             <tr>
+                {% if sort != 2 %}
                 <td class="text-center">
                     <div class="custom-control custom-checkbox">
                         <input id="check_{{ account.user_id }}" type="checkbox" class="custom-control-input check" name="accounts" value="{{ account.user_id }}">
                         <label for="check_{{ account.user_id }}" class="custom-control-label ml-2"></label>
                     </div>
                 </td>
+                {% endif %}
                 <td class="text-right text-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
                 <td class="text-nowrap"><a href="{{ account.get_absolute_url }}">{{ account }}</a></td>
                 {% if sort == 2 %}
@@ -56,7 +60,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td class="text-center" colspan="{% if sort == 2 %} 5 {% else %} 4 {% endif %}"><div class="alert alert-info mb-0">Здесь никого нет</div></td>
+                <td class="text-center" colspan="4"><div class="alert alert-info mb-0">Здесь никого нет</div></td>
             </tr>
             {% endfor %}
         </tbody>
@@ -102,12 +106,10 @@
     <a href="{% url 'accounts:account-list' %}?enrolled=0&graduated=1&faculty_id={{ faculty.id }}&sort={{ sort }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != True %}-o{% endif %} fa-fw"></i> Выпускники</a>
     <a href="{% url 'accounts:account-list' %}?enrolled=0&faculty_id={{ faculty.id }}&sort={{ sort }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != False %}-o{% endif %} fa-fw"></i> Отчисленные</a>
 </div>
-{% if sort != 2 %}
 <div class="list-group mb-3">
     <a href="{% url 'accounts:account-list' %}?type=2&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if type != 2 %}-o{% endif %} fa-fw"></i> Модераторы</a>
     <a href="{% url 'accounts:account-list' %}?type=3&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if type != 3 %}-o{% endif %} fa-fw"></i> Преподаватели</a>
 </div>
-{% endif %}
 <div class="list-group mb-3">
     {% if perms.accounts.add_account %}
     <a href="{% url 'accounts:account-create-set' %}?faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить пользователей</a>
