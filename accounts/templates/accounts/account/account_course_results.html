@@ -33,8 +33,8 @@
                     {% endif %}
                     <td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td>
                     <td class="text-center" style="vertical-align: middle; width: 20%;">
-                        <span class="numtus status-{{ assignment.submission_set.count|colorize_submission_count }}">
-                            {{ assignment.submission_set.count }}
+                        <span class="text-{{ assignment.submission_set.count|colorize_submission_count:assignment.submission_limit }}">
+                            <strong>{{ assignment.submission_set.count }}</strong>
                         </span>
                     </td>
                     <td class="text-center" style="vertical-align: middle; width: 6%;">
@@ -75,8 +75,8 @@
                             <td><a href="{{ problem.get_absolute_url }}">{{ submission.problem }}</a></td>
                             <td class="text-center" style="vertical-align: middle; width: 20%;">
                                 {% submissions_count additional_submissions problem as sc %}
-                                <span class="numtus status-{{ sc|colorize_submission_count }}">
-                                    {{ sc }}
+                                <span class="text-{{ sc|colorize_submission_count }}">
+                                    <strong>{{ sc }}</strong>
                                 </span>
                             </td>
                             <td class="text-center" style="vertical-align: middle; width: 6%;">

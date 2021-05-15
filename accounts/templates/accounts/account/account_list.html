@@ -45,13 +45,18 @@
                 <td class="text-right text-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
                 <td class="text-nowrap"><a href="{{ account.get_absolute_url }}">{{ account }}</a></td>
                 {% if sort == 2 %}
+                {% if course %}
+                {% account_course_score account course as acs %}
+                <td class="text-center text-nowrap"><span class="text-{{ acs|colorize_progress }}"><strong>{{ acs }}</strong></span></td>
+                {% else %}
                 <td class="text-center text-nowrap"><span class="text-{{ account.score|colorize_progress }}"><strong>{{ account.score }}</strong></span></td>
+                {% endif %}
                 {% endif %}
                 <td class="text-center text-nowrap">{% if account.is_student %}{{ account.get_level_display }}{% else %}{{ account.get_type_display }}{% endif %}</td>
             </tr>
             {% empty %}
             <tr>
-                <td class="text-center" colspan="{% if sort == 2 %} 5 {% else %} 3 {% endif %}"><div class="alert alert-info mb-0">Здесь никого нет</div></td>
+                <td class="text-center" colspan="{% if sort == 2 %} 5 {% else %} 4 {% endif %}"><div class="alert alert-info mb-0">Здесь никого нет</div></td>
             </tr>
             {% endfor %}
         </tbody>
@@ -83,6 +88,14 @@
             {% endfor %}
         </select>
         <label for="sort_select"></label>
+    {% endif %}
+    {% if sort == 2 and request.user.is_superuser %}
+        <select id="course_select" name="course" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+            {% for crs, crs_display in courses %}
+            <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id level=level type=1 sort=sort course=crs %}" {% if course == crs %}selected{% endif %}>{{ crs_display }}</option>
+            {% endfor %}
+        </select>
+        <label for="course_select"></label>
     {% endif %}
 </div>
 <div class="list-group mb-3">

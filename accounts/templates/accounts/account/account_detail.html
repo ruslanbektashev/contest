@@ -52,26 +52,26 @@
         <tbody>
             <tr>
                 <td style="vertical-align: middle;">Количество решенных задач</td>
-                <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    {{ account.solved_problems_count }}
+                <td class="text-center text-{{ account.solved_problems_count|colorize_activity_count }}" style="vertical-align: middle; width: 4%;">
+                    <strong>{{ account.solved_problems_count }}</strong>
                 </td>
             </tr>
             <tr>
                 <td style="vertical-align: middle;">Количество комментариев</td>
-                <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    {{ comments_count }}
+                <td class="text-center text-{{ comments_count|colorize_activity_count }}" style="vertical-align: middle; width: 4%;">
+                    <strong>{{ comments_count }}</strong>
                 </td>
             </tr>
             <tr>
                 <td style="vertical-align: middle;">Количество вопросов</td>
-                <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    {{ questions_count }}
+                <td class="text-center text-{{ questions_count|colorize_activity_count }}" style="vertical-align: middle; width: 4%;">
+                    <strong>{{ questions_count }}</strong>
                 </td>
             </tr>
             <tr>
                 <td style="vertical-align: middle;">Количество сообщений об ошибках</td>
-                <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    {{ reports_count }}
+                <td class="text-center text-{{ reports_count|colorize_activity_count }}" style="vertical-align: middle; width: 4%;">
+                    <strong>{{ reports_count }}</strong>
                 </td>
             </tr>
         </tbody>

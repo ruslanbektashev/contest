@@ -1,8 +1,10 @@
 import re
 
 from django import template
+from django.apps import apps
 
 register = template.Library()
+Assignment = apps.get_model('contests', 'Assignment')
 
 STATE_COLORS = {
     'OK': 'success',
@@ -61,6 +63,28 @@ def colorize_progress(value):
         return 'danger'
     else:
         return 'default'
+
+
+@register.filter
+def colorize_submission_count(submission_count, submission_limit=Assignment.DEFAULT_SUBMISSION_LIMIT):
+    if submission_count == 0:
+        return 'default'
+    elif submission_count <= submission_limit / 2:
+        return 'success'
+    elif submission_count <= submission_limit:
+        return 'warning'
+    else:
+        return 'danger'
+
+
+@register.filter
+def colorize_activity_count(value):
+    return 'success' if value else 'default'
+
+
+@register.simple_tag()
+def account_course_score(account, course_id):
+    return account.course_score(course_id=course_id)
 
 
 @register.simple_tag()

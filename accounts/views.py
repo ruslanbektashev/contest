@@ -176,6 +176,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
         self.storage['level'] = int(self.request.GET.get('level') or 1)
         self.storage['type'] = int(self.request.GET.get('type') or 1)
         self.storage['sort'] = int(self.request.GET.get('sort') or 1)
+        self.storage['course'] = int(self.request.GET.get('course') or 0)
         enrolled, graduated = self.request.GET.get('enrolled'), self.request.GET.get('graduated')
         if enrolled is not None and enrolled == '0':
             self.storage['enrolled'] = False
@@ -233,14 +234,18 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
                 queryset = queryset.enrolled()
         queryset = queryset.filter(faculty=self.storage['faculty'])
         if self.storage['sort'] == 2 and queryset.exists():
-            empty_score_students = queryset.filter(score__isnull=True)
-            if empty_score_students.exists():
-                for student in empty_score_students:
-                    student.update_score()
-            queryset = queryset.order_by('-score', 'user__last_name')
+            if self.storage['course']:
+                queryset = sorted(queryset, key=lambda account: account.course_score(course_id=self.storage['course']), reverse=True)
+            else:
+                empty_score_students = queryset.filter(score__isnull=True)
+                if empty_score_students.exists():
+                    for student in empty_score_students:
+                        student.update_score()
+                queryset = queryset.order_by('-score', 'user__last_name')
         return queryset
 
     def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         SORT_TYPE_CHOICES = (
             (1, 'В алфавитном порядке'),
             (2, 'Рейтинг'),
@@ -248,7 +253,9 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
         LEVEL_CHOICES = list(Account.LEVEL_CHOICES)
         if self.request.user.is_superuser:
             LEVEL_CHOICES.append((0, 'Все уровни'))
-        context = super().get_context_data(**kwargs)
+            COURSE_CHOICES = list(Course.objects.values_list('id', 'title'))
+            COURSE_CHOICES.insert(0, (0, 'Все курсы'))
+            context['courses'] = COURSE_CHOICES
         context['sortings'] = SORT_TYPE_CHOICES
         context['levels'] = LEVEL_CHOICES
         context['faculties'] = Faculty.objects.all()
