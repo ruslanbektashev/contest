@@ -84,7 +84,7 @@
     {% if type == 1 %}
         <select id="sort_select" name="sort" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
             {% for srt, srt_display in sortings %}
-            <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id level=level type=1 sort=srt %}" {% if sort == srt %}selected{% endif %}>{{ srt_display }}</option>
+            <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id level=level type=1 sort=srt course=0 %}" {% if sort == srt %}selected{% endif %}>{{ srt_display }}</option>
             {% endfor %}
         </select>
         <label for="sort_select"></label>
