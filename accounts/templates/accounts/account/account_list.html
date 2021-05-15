@@ -45,7 +45,7 @@
                 <td class="text-right text-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
                 <td class="text-nowrap"><a href="{{ account.get_absolute_url }}">{{ account }}</a></td>
                 {% if sort == 2 %}
-                <td class="text-center text-nowrap"><span class="numtus status-{{ account.score|colorize_activity_count }}">{{ account.score }}</span></td>
+                <td class="text-center text-nowrap"><span class="text-{{ account.score|colorize_progress }}"><strong>{{ account.score }}</strong></span></td>
                 {% endif %}
                 <td class="text-center text-nowrap">{% if account.is_student %}{{ account.get_level_display }}{% else %}{{ account.get_type_display }}{% endif %}</td>
             </tr>

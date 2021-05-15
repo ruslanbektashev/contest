@@ -53,11 +53,11 @@ def colorize_solved_flag(value):
 
 @register.filter
 def colorize_progress(value):
-    if value > 80:
+    if value >= 80:
         return 'success'
-    elif value > 60:
+    elif value >= 60:
         return 'warning'
-    elif value > 40:
+    elif value >= 40:
         return 'danger'
     else:
         return 'default'
