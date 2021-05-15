@@ -266,26 +266,33 @@ class Account(models.Model):
         Submission = apps.get_model('contests', 'Submission')
         return Submission.objects.filter(owner=self.user, status='OK').values_list('problem', flat=True).distinct().order_by().count()
 
-    @property
-    def credits_score(self):
-        credit_scores = self.user.credit_set.exclude(score=0).values_list('score', flat=True)
+    def course_credit_score(self, course_id=None):
+        credits = self.user.credit_set.exclude(score=0)
+        if course_id:
+            credits = credits.filter(course=course_id)
+        credit_scores = credits.values_list('score', flat=True)
         avg_credit_score = mean(credit_scores) if credit_scores else 0
-        return avg_credit_score * 20 if 2 < avg_credit_score < 6 else 0
+        return avg_credit_score * 20 if 0 < avg_credit_score < 6 else 0
 
     def course_submissions_score(self, course_id=None):
         Submission = apps.get_model('contests', 'Submission')
         Assignment = apps.get_model('contests', 'Assignment')
-        submissions = Submission.objects.filter(owner=self.user, status='OK')
+        submissions = Submission.objects.filter(owner=self.user)
         if course_id:
             submissions = submissions.filter(problem__contest__course=course_id)
-        solved_problem_ids = submissions.values_list('problem', flat=True).distinct().order_by()
+        problem_ids = submissions.values_list('problem', flat=True).distinct().order_by()
         submissions_scores = []
-        for problem_id in solved_problem_ids:
+        for problem_id in problem_ids:
             problem_submissions = Submission.objects.filter(owner=self.user, problem=problem_id)
-            first_success_submission = problem_submissions.filter(status='OK').order_by('date_created')[0]
-            submissions_to_success_count = problem_submissions.filter(date_created__lte=first_success_submission.date_created).count()
-            submission_limit = first_success_submission.assignment.submission_limit if first_success_submission.assignment else Assignment.DEFAULT_SUBMISSION_LIMIT
-            submissions_score = ((submission_limit + 1 - submissions_to_success_count) * 100 / submission_limit) if submissions_to_success_count <= submission_limit else (100 / submissions_to_success_count)
+            success_submissions = problem_submissions.filter(status='OK')
+            if success_submissions.exists():
+                first_success_submission = success_submissions.order_by('date_created')[0]
+                submissions_count = problem_submissions.filter(date_created__lte=first_success_submission.date_created).count()
+            else:
+                submissions_count = problem_submissions.count() + 1
+            assignment = problem_submissions.first().assignment
+            submission_limit = assignment.submission_limit if assignment else Assignment.DEFAULT_SUBMISSION_LIMIT
+            submissions_score = ((submission_limit + 1 - submissions_count) * 100 / submission_limit) if submissions_count <= submission_limit else (100 / submissions_count)
             submissions_scores.append(submissions_score)
         return round(mean(submissions_scores)) if submissions_scores else 0
 
@@ -293,15 +300,19 @@ class Account(models.Model):
     def submissions_score(self):
         return self.course_submissions_score()
 
-    def update_score(self):
-        self.score = round(mean([self.credits_score, self.submissions_score]))
-        self.save()
-
-    def course_score(self, course_id):
-        credit = self.user.credit_set.filter(course=course_id).first()
-        credit_score = credit.score * 20 if credit else 0
+    def course_score(self, course_id=None):
+        scores = []
+        credit_score = self.course_credit_score(course_id)
         submissions_score = self.course_submissions_score(course_id)
-        return round(mean([credit_score, submissions_score]))
+        if credit_score:
+            scores.append(credit_score)
+        if submissions_score:
+            scores.append(submissions_score)
+        return round(mean(scores)) if scores else 0
+
+    def update_score(self):
+        self.score = self.course_score()
+        self.save()
 
     def get_absolute_url(self):
         return reverse('accounts:account-detail', kwargs={'pk': self.pk})
