@@ -272,11 +272,13 @@ class Account(models.Model):
         avg_credit_score = mean(credit_scores) if credit_scores else 0
         return avg_credit_score * 20 if 2 < avg_credit_score < 6 else 0
 
-    @property
-    def submissions_score(self):
+    def course_submissions_score(self, course_id=None):
         Submission = apps.get_model('contests', 'Submission')
         Assignment = apps.get_model('contests', 'Assignment')
-        solved_problem_ids = Submission.objects.filter(owner=self.user, status='OK').values_list('problem', flat=True).distinct().order_by()
+        submissions = Submission.objects.filter(owner=self.user, status='OK')
+        if course_id:
+            submissions = submissions.filter(problem__contest__course=course_id)
+        solved_problem_ids = submissions.values_list('problem', flat=True).distinct().order_by()
         submissions_scores = []
         for problem_id in solved_problem_ids:
             problem_submissions = Submission.objects.filter(owner=self.user, problem=problem_id)
@@ -287,25 +289,18 @@ class Account(models.Model):
             submissions_scores.append(submissions_score)
         return round(mean(submissions_scores)) if submissions_scores else 0
 
+    @property
+    def submissions_score(self):
+        return self.course_submissions_score()
+
     def update_score(self):
         self.score = round(mean([self.credits_score, self.submissions_score]))
         self.save()
 
     def course_score(self, course_id):
-        Submission = apps.get_model('contests', 'Submission')
-        Assignment = apps.get_model('contests', 'Assignment')
         credit = self.user.credit_set.filter(course=course_id).first()
         credit_score = credit.score * 20 if credit else 0
-        solved_problem_ids = Submission.objects.filter(owner=self.user, status='OK', problem__contest__course=course_id).values_list('problem', flat=True).distinct().order_by()
-        submissions_scores = []
-        for problem_id in solved_problem_ids:
-            problem_submissions = Submission.objects.filter(owner=self.user, problem=problem_id)
-            first_success_submission = problem_submissions.filter(status='OK').order_by('date_created')[0]
-            submissions_to_success_count = problem_submissions.filter(date_created__lte=first_success_submission.date_created).count()
-            submission_limit = first_success_submission.assignment.submission_limit if first_success_submission.assignment else Assignment.DEFAULT_SUBMISSION_LIMIT
-            submissions_score = ((submission_limit + 1 - submissions_to_success_count) * 100 / submission_limit) if submissions_to_success_count <= submission_limit else (100 / submissions_to_success_count)
-            submissions_scores.append(submissions_score)
-        submissions_score = round(mean(submissions_scores)) if submissions_scores else 0
+        submissions_score = self.course_submissions_score(course_id)
         return round(mean([credit_score, submissions_score]))
 
     def get_absolute_url(self):
