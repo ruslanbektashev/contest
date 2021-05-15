@@ -172,9 +172,8 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
 
     def dispatch(self, request, *args, **kwargs):
         faculty_id = int(self.request.GET.get('faculty_id') or request.user.account.faculty_id)
-        default_level = 0 if request.user.is_superuser else 1
         self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
-        self.storage['level'] = int(self.request.GET.get('level') or default_level)
+        self.storage['level'] = int(self.request.GET.get('level') or 1)
         self.storage['type'] = int(self.request.GET.get('type') or 1)
         self.storage['sort'] = int(self.request.GET.get('sort') or 1)
         enrolled, graduated = self.request.GET.get('enrolled'), self.request.GET.get('graduated')
@@ -248,7 +247,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
         )
         LEVEL_CHOICES = list(Account.LEVEL_CHOICES)
         if self.request.user.is_superuser:
-            LEVEL_CHOICES.insert(0, (0, 'Все уровни'))
+            LEVEL_CHOICES.append((0, 'Все уровни'))
         context = super().get_context_data(**kwargs)
         context['sortings'] = SORT_TYPE_CHOICES
         context['levels'] = LEVEL_CHOICES

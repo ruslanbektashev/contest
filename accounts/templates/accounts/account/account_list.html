@@ -25,9 +25,7 @@
                         <label for="check_all" class="custom-control-label ml-2"></label>
                     </div>
                 </th>
-                {% if sort == 2 %}
-                    <th class="text-center" style="width: 4%;">#</th>
-                {% endif %}
+                <th class="text-right" style="width: 4%;">№</th>
                 <th class="text-center">Фамилия, Имя</th>
                 {% if sort == 2 %}
                     <th class="text-center" style="width: 10%;">Баллы</th>
@@ -44,9 +42,7 @@
                         <label for="check_{{ account.user_id }}" class="custom-control-label ml-2"></label>
                     </div>
                 </td>
-                {% if sort == 2 %}
-                    <td class="text-center text-nowrap"><span>{{ forloop.counter }}</span></td>
-                {% endif %}
+                <td class="text-right text-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
                 <td class="text-nowrap"><a href="{{ account.get_absolute_url }}">{{ account }}</a></td>
                 {% if sort == 2 %}
                 <td class="text-center text-nowrap"><span class="numtus status-{{ account.score|colorize_activity_count }}">{{ account.score }}</span></td>
@@ -93,15 +89,18 @@
     <a href="{% url 'accounts:account-list' %}?enrolled=0&graduated=1&faculty_id={{ faculty.id }}&sort={{ sort }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != True %}-o{% endif %} fa-fw"></i> Выпускники</a>
     <a href="{% url 'accounts:account-list' %}?enrolled=0&faculty_id={{ faculty.id }}&sort={{ sort }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != False %}-o{% endif %} fa-fw"></i> Отчисленные</a>
 </div>
+{% if sort != 2 %}
 <div class="list-group mb-3">
     <a href="{% url 'accounts:account-list' %}?type=2&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if type != 2 %}-o{% endif %} fa-fw"></i> Модераторы</a>
     <a href="{% url 'accounts:account-list' %}?type=3&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if type != 3 %}-o{% endif %} fa-fw"></i> Преподаватели</a>
 </div>
+{% endif %}
 <div class="list-group mb-3">
     {% if perms.accounts.add_account %}
     <a href="{% url 'accounts:account-create-set' %}?faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить пользователей</a>
     {% endif %}
 </div>
+{% if sort != 2 %}
 <legend>Действия</legend>
 <div class="list-group mb-3">
     {% if perms.accounts.change_account %}
@@ -115,6 +114,7 @@
     {% endif %}
     {% endif %}
 </div>
+{% endif %}
 {% endblock submenu %}
 
 {% block javascript %}
