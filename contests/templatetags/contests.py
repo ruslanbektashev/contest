@@ -38,6 +38,14 @@ STATE_COLORS = {
 }
 
 
+COURSE_DIFFICULTY_CHOICES = {
+    0: 'Нет сведений',
+    1: 'Легкий',
+    2: 'Средний',
+    3: 'Сложный',
+}
+
+
 @register.filter
 def remove_pwd(string):
     return re.sub(r'/?[\w\-./]+/', '', string)
@@ -80,6 +88,35 @@ def colorize_submission_count(submission_count, submission_limit=Assignment.DEFA
 @register.filter
 def colorize_activity_count(value):
     return 'success' if value else 'default'
+
+
+@register.filter
+def colorize_course_difficulty(value):
+    if value == 1:
+        return 'success'
+    elif value == 2:
+        return 'warning'
+    elif value == 3:
+        return 'danger'
+    else:
+        return 'default'
+
+
+@register.filter
+def colorize_course_avg_score(value):
+    if value >= 4.5:
+        return 'success'
+    elif value >= 3.5:
+        return 'warning'
+    elif value >= 2:
+        return 'danger'
+    else:
+        return 'default'
+
+
+@register.filter
+def course_difficulty(value):
+    return COURSE_DIFFICULTY_CHOICES.get(value, 'Нет сведений')
 
 
 @register.simple_tag()

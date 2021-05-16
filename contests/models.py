@@ -4,6 +4,7 @@ import os
 import random
 import zipfile
 
+from statistics import mean
 from ckeditor.fields import RichTextField
 from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth.models import User
@@ -94,6 +95,23 @@ class Course(CRUDEntry):
         ordering = ('level', 'id')
         verbose_name = "Курс"
         verbose_name_plural = "Курсы"
+
+    @property
+    def avg_credit_score(self):
+        credit_scores = Credit.objects.filter(course=self).exclude(score=0).values_list('score', flat=True)
+        return round(mean(credit_scores), 1) if credit_scores else 0
+
+    @property
+    def difficulty(self):
+        avg_credit_score = self.avg_credit_score
+        difficulty = 0
+        if avg_credit_score >= 4.5:
+            difficulty = 1
+        elif avg_credit_score >= 3.5:
+            difficulty = 2
+        elif avg_credit_score >= 2:
+            difficulty = 3
+        return difficulty
 
     def get_latest_submissions(self):
         return Submission.objects.filter(assignment__isnull=False, problem__contest__course=self)
