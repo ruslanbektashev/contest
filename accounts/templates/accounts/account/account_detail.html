@@ -99,7 +99,9 @@
                     {% render_progress account.submissions_score "" %}
                 </td>
                 <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    <i class="text-muted fa fa-question-circle fa-fw" data-toggle="tooltip" data-placement="left" title="Учитывает количество посылок для решения задачи" style="position: relative; top: -0.08rem;"></i>
+                    <span class="d-inline-block" data-toggle="popover" data-placement="left" data-trigger="hover" data-content="Учитывает количество посылок для решения задачи">
+                        <i class="text-muted fa fa-question-circle fa-fw" style="position: relative; top: -0.08rem;"></i>
+                    </span>
                 </td>
             </tr>
             {% endif %}
@@ -110,7 +112,9 @@
                     {% render_progress account.score "" %}
                 </td>
                 <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    <i class="text-muted fa fa-question-circle fa-fw" data-toggle="tooltip" data-placement="left" title="Учитывает оценки по курсам и количество посылок для решения задачи" style="position: relative; top: -0.08rem;"></i>
+                    <span class="d-inline-block" data-toggle="popover" data-placement="left" data-trigger="hover" data-content="Учитывает оценки по курсам и количество посылок для решения задачи">
+                        <i class="text-muted fa fa-question-circle fa-fw" style="position: relative; top: -0.08rem;"></i>
+                    </span>
                 </td>
             </tr>
             {% endif %}

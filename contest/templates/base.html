@@ -134,6 +134,9 @@
     function closeTooltips() {
         $('[data-toggle="tooltip"]').tooltip('hide');
     }
+    $(function () {
+        $('[data-toggle="popover"]').popover()
+    })
 </script>
 {% block javascript %}
 {% endblock javascript %}
