@@ -1,8 +1,12 @@
 import json
+import locale
+import datetime
+import pytz
 
 from markdown import markdown
 from statistics import mean
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
@@ -26,6 +30,33 @@ from contests.models import Contest, Course, Problem, Submission
 from support.models import Question, Report
 
 """==================================================== Account ====================================================="""
+
+
+def get_current_year_month_submissions_solutions_comments_questions_reports_count_list(user):
+    locale.setlocale(locale.LC_ALL, "ru_RU")
+    settings.USE_TZ = False
+    academic_year_start_month = 9
+    now = datetime.datetime.now()
+    submissions = user.submission_set.filter(date_created__year=now.year, date_created__month=now.month)
+    solved_problems_count = submissions.filter(status='OK').values_list('problem', flat=True).distinct().order_by().count()
+    comments_count = Comment.objects.filter(author=user, date_created__year=now.year, date_created__month=now.month).count()
+    questions_count = Question.objects.filter(owner=user, date_created__year=now.year, date_created__month=now.month).count()
+    reports_count = Report.objects.filter(owner=user, date_created__year=now.year, date_created__month=now.month).count()
+    result = [(now.strftime("%B"), submissions.count(), solved_problems_count, comments_count, questions_count, reports_count)]
+    while now.month != academic_year_start_month:
+        now = now.replace(day=1) - datetime.timedelta(days=1)
+        year = now.year
+        month = now.month
+        submissions = user.submission_set.filter(date_created__year=year, date_created__month=month)
+        solved_problems_count = submissions.filter(status='OK').values_list('problem', flat=True).distinct().order_by().count()
+        comments_count = Comment.objects.filter(author=user, date_created__year=now.year, date_created__month=now.month).count()
+        questions_count = Question.objects.filter(owner=user, date_created__year=now.year, date_created__month=now.month).count()
+        reports_count = Report.objects.filter(owner=user, date_created__year=now.year, date_created__month=now.month).count()
+        result.append((now.strftime("%B"), submissions.count(), solved_problems_count, comments_count, questions_count, reports_count))
+    result.reverse()
+    settings.USE_TZ = True
+    locale.setlocale(locale.LC_ALL, "en_US")
+    return result
 
 
 @csrf_exempt
@@ -78,6 +109,8 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
         context['comments_count'] = Comment.objects.filter(author=self.object.user).count()
         context['questions_count'] = Question.objects.filter(owner=self.object.user).count()
         context['reports_count'] = Report.objects.filter(owner=self.object.user).count()
+        context['submissions_count'] = Submission.objects.filter(owner=self.object.user).count()
+        context['month_submissions_solutions_comments_questions_reports'] = get_current_year_month_submissions_solutions_comments_questions_reports_count_list(self.object.user)
         return context
 
 

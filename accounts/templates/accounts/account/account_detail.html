@@ -47,35 +47,28 @@
 </div>
 {% if account.is_student %}
 <legend>Активность</legend>
-<div class="table-responsive my-3">
-    <table class="table table-sm table-hover">
-        <tbody>
-            <tr>
-                <td style="vertical-align: middle;">Количество решенных задач</td>
-                <td class="text-center text-{{ account.solved_problems_count|colorize_activity_count }}" style="vertical-align: middle; width: 4%;">
-                    <strong>{{ account.solved_problems_count }}</strong>
-                </td>
-            </tr>
-            <tr>
-                <td style="vertical-align: middle;">Количество комментариев</td>
-                <td class="text-center text-{{ comments_count|colorize_activity_count }}" style="vertical-align: middle; width: 4%;">
-                    <strong>{{ comments_count }}</strong>
-                </td>
-            </tr>
-            <tr>
-                <td style="vertical-align: middle;">Количество вопросов</td>
-                <td class="text-center text-{{ questions_count|colorize_activity_count }}" style="vertical-align: middle; width: 4%;">
-                    <strong>{{ questions_count }}</strong>
-                </td>
-            </tr>
-            <tr>
-                <td style="vertical-align: middle;">Количество сообщений об ошибках</td>
-                <td class="text-center text-{{ reports_count|colorize_activity_count }}" style="vertical-align: middle; width: 4%;">
-                    <strong>{{ reports_count }}</strong>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+
+<div class="row my-3">
+    <div class="col-8">
+        <div class="card mb-2">
+            <div class="card-header">
+                Текущий учебный год
+            </div>
+            <div class="card-body">
+                <canvas id="submissionsChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 d-flex align-items-stretch">
+        <div class="card mb-2">
+            <div class="card-header">
+                Все время
+            </div>
+            <div class="card-body">
+                <canvas id="activityOverviewChart"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% if perms.contests.view_assignment_table or account.user_id == request.user.id %}
@@ -125,3 +118,102 @@
 {% endif %}
 {% endif %}
 {% endblock content %}
+
+{% block javascript %}
+<script>
+    const submissionsChartData = {
+        labels: [{% for item in month_submissions_solutions_comments_questions_reports %} '{{ item.0 }}', {% endfor %}],
+        datasets: [{
+            label: 'Посылки',
+            backgroundColor: 'rgb(54, 162, 235)',
+            borderColor: 'rgb(54, 162, 235)',
+            data: [{% for item in month_submissions_solutions_comments_questions_reports %} {{ item.1 }}, {% endfor %}],
+        }, {
+            label: 'Решения',
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: [{% for item in month_submissions_solutions_comments_questions_reports %} {{ item.2 }}, {% endfor %}],
+        }, {
+            label: 'Комментарии',
+            backgroundColor: 'rgb(255, 206, 86)',
+            borderColor: 'rgb(255, 206, 86)',
+            data: [{% for item in month_submissions_solutions_comments_questions_reports %} {{ item.3 }}, {% endfor %}],
+        }, {
+            label: 'Вопросы',
+            backgroundColor: 'rgb(75, 192, 192)',
+            borderColor: 'rgb(75, 192, 192)',
+            data: [{% for item in month_submissions_solutions_comments_questions_reports %} {{ item.4 }}, {% endfor %}],
+        }, {
+            label: 'Сообщения об ошибках',
+            backgroundColor: 'rgb(153, 102, 255)',
+            borderColor: 'rgb(153, 102, 255)',
+            data: [{% for item in month_submissions_solutions_comments_questions_reports %} {{ item.5 }}, {% endfor %}],
+        }]
+    };
+
+    const submissionsChartConfig = {
+        type: 'bar',
+        data: submissionsChartData,
+        options: {
+            scales: {
+                y: {
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    };
+
+    var submissionsChart = new Chart(
+        document.getElementById('submissionsChart'),
+        submissionsChartConfig
+    );
+
+    const activityOverviewChartData = {
+        labels: [
+            'Комментарии',
+            'Вопросы',
+            'Сообщения об ошибках',
+            'Решения',
+        ],
+        datasets: [{
+            data: [
+                {{ comments_count }},
+                {{ questions_count }},
+                {{ reports_count }},
+                {{ account.solved_problems_count }},
+            ],
+            fill: true,
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgb(54, 162, 235)',
+            pointBackgroundColor: 'rgb(54, 162, 235)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgb(54, 162, 235)'
+        }]
+    };
+
+    const activityOverviewChartConfig = {
+        type: 'radar',
+        data: activityOverviewChartData,
+        options: {
+            elements: {
+                line: {
+                    borderWidth: 3
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false,
+                }
+            }
+        },
+    };
+
+    var activityOverviewChart = new Chart(
+        document.getElementById('activityOverviewChart'),
+        activityOverviewChartConfig
+    );
+</script>
+{% endblock javascript %}
