@@ -1,7 +1,6 @@
 import json
 import locale
 import datetime
-import calendar
 
 from markdown import markdown
 from statistics import mean
@@ -32,6 +31,13 @@ from support.models import Question, Report
 """==================================================== Account ====================================================="""
 
 
+def nextmonth(year, month):
+    if month == 12:
+        return year + 1, 1
+    else:
+        return year, month + 1
+
+
 def get_study_years_list(account):
     today = datetime.datetime.today()
     current_year = today.year if today.month >= 9 else today.year - 1
@@ -55,7 +61,7 @@ def get_month_submissions_solutions_comments_questions_reports_count_list(user, 
         Report.objects.filter(owner=user, date_created__year=day.year, date_created__month=day.month).count()
     )]
     while day.year != today.year and day.month != academic_year_start_month - 1 or day.year == today.year and day.month != today.month:
-        day = datetime.datetime(*calendar._nextmonth(year=day.year, month=day.month), 1)
+        day = datetime.datetime(*nextmonth(year=day.year, month=day.month), 1)
         submissions = user.submission_set.filter(date_created__year=day.year, date_created__month=day.month)  
         result.append((
             day.strftime("%B"),
