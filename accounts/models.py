@@ -301,7 +301,16 @@ class Account(models.Model):
         return self.course_submissions_score()
 
     def course_score(self, course_id=None):
-        return self.course_credit_score(course_id)
+        credit_score = self.course_credit_score(course_id)
+        if course_id:
+            return credit_score
+        scores = []
+        submissions_score = self.course_submissions_score(course_id)
+        if credit_score:
+            scores.append(credit_score)
+        if submissions_score:
+            scores.append(submissions_score)
+        return round(mean(scores)) if scores else 0
 
     def update_score(self):
         self.score = self.course_score()
