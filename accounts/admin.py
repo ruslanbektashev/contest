@@ -17,8 +17,8 @@ class FacultyAdmin(admin.ModelAdmin):
 
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'user', 'level', 'admission_year')
-    list_filter = ('department', 'level', 'type', 'admission_year', 'enrolled', 'graduated')
+    list_display = ('__str__', 'user', 'faculty', 'level', 'admission_year')
+    list_filter = ('department', 'faculty', 'level', 'type', 'admission_year', 'enrolled', 'graduated')
     filter_horizontal = ('comments_read',)
     search_fields = ('user__last_name', 'user__first_name')
     fieldsets = (
@@ -26,8 +26,7 @@ class AccountAdmin(admin.ModelAdmin):
             'fields': ('user',)
         }),
         ('Детали', {
-            'fields': ('patronymic', 'department', 'position', 'degree', 'image', 'level', 'type', 'admission_year',
-                       'enrolled', 'graduated')
+            'fields': ('patronymic', 'department', 'position', 'degree', 'image', 'faculty', 'level', 'type', 'admission_year', 'enrolled', 'graduated')
         }),
         ('Даты', {
             'fields': ('date_updated',)
