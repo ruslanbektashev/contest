@@ -46,6 +46,7 @@
     </div>
 </div>
 {% if account.is_student %}
+<a id="activity" class="activity-anchor">&nbsp</a>
 <legend>Активность</legend>
 
 <div class="row my-3">
@@ -55,7 +56,7 @@
                 <span class="col-10 mr-auto">Учебный год</span>
                 <select id="year_select" name="year" class="col-2 form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;" style="width:20%;">
                     {% for yr, yr_display in years %}
-                    <option value="{% get_full_path_with_updated_query_string request year=yr %}" {% if year == yr %}selected{% endif %}>{{ yr_display }}</option>
+                    <option value="{% get_full_path_with_updated_query_string request year=yr %}#activity" {% if year == yr %}selected{% endif %}>{{ yr_display }}</option>
                     {% endfor %}
                 </select>
                 <label for="year_select"></label>
