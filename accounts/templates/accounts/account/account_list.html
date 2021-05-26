@@ -49,12 +49,8 @@
                 <td class="text-right text-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
                 <td class="text-nowrap"><a href="{{ account.get_absolute_url }}">{{ account }}</a></td>
                 {% if sort == 2 %}
-                {% if course %}
-                {% account_course_score account course as acs %}
-                <td class="text-center text-nowrap"><span class="text-{{ acs|colorize_progress }}"><strong>{{ acs }}</strong></span></td>
-                {% else %}
-                <td class="text-center text-nowrap"><span class="text-{{ account.score|colorize_progress }}"><strong>{{ account.score }}</strong></span></td>
-                {% endif %}
+                {% account_course_credit_score account course as accs %}
+                <td class="text-center text-nowrap"><span class="text-{{ accs|colorize_progress }}"><strong>{{ accs }}</strong></span></td>
                 {% endif %}
                 <td class="text-center text-nowrap">{% if account.is_student %}{{ account.get_level_display }}{% else %}{{ account.get_type_display }}{% endif %}</td>
             </tr>

@@ -120,8 +120,8 @@ def course_difficulty(value):
 
 
 @register.simple_tag()
-def account_course_score(account, course_id):
-    return account.course_score(course_id=course_id)
+def account_course_credit_score(account, course_id=None):
+    return account.course_credit_score(course_id=course_id)
 
 
 @register.simple_tag()

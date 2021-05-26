@@ -297,14 +297,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
                 queryset = queryset.enrolled()
         queryset = queryset.filter(faculty=self.storage['faculty'])
         if self.storage['sort'] == 2 and queryset.exists():
-            if self.storage['course']:
-                queryset = sorted(queryset, key=lambda account: account.course_score(course_id=self.storage['course']), reverse=True)
-            else:
-                empty_score_students = queryset.filter(score__isnull=True)
-                if empty_score_students.exists():
-                    for student in empty_score_students:
-                        student.update_score()
-                queryset = queryset.order_by('-score', 'user__last_name')
+            queryset = sorted(queryset, key=lambda account: account.course_credit_score(course_id=self.storage['course']), reverse=True)
         return queryset
 
     def get_context_data(self, **kwargs):

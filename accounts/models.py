@@ -272,7 +272,7 @@ class Account(models.Model):
             credits = credits.filter(course=course_id)
         credit_scores = credits.values_list('score', flat=True)
         avg_credit_score = mean(credit_scores) if credit_scores else 0
-        return avg_credit_score * 20 if 0 < avg_credit_score < 6 else 0
+        return round(avg_credit_score * 20 if 0 < avg_credit_score < 6 else 0)
 
     def course_submissions_score(self, course_id=None):
         Submission = apps.get_model('contests', 'Submission')
@@ -299,18 +299,6 @@ class Account(models.Model):
     @property
     def submissions_score(self):
         return self.course_submissions_score()
-
-    def course_score(self, course_id=None):
-        credit_score = self.course_credit_score(course_id)
-        if course_id:
-            return credit_score
-        scores = []
-        submissions_score = self.course_submissions_score(course_id)
-        if credit_score:
-            scores.append(credit_score)
-        if submissions_score:
-            scores.append(submissions_score)
-        return round(mean(scores)) if scores else 0
 
     def update_score(self):
         self.score = self.course_score()
