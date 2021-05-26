@@ -265,7 +265,13 @@ class Account(models.Model):
     @property
     def solved_problems_count(self):
         Submission = apps.get_model('contests', 'Submission')
-        return Submission.objects.filter(owner=self.user, status='OK').values_list('problem', flat=True).distinct().order_by().count()
+        Assignment = apps.get_model('contests', 'Assignment')
+        problem_ids = Submission.objects.filter(owner=self.user).values_list('problem', flat=True).distinct().order_by()
+        count = 0
+        for problem_id in problem_ids:
+            if Submission.objects.filter(owner=self.user, problem_id=problem_id, status='OK').exists() or Assignment.objects.filter(user=self.user, problem_id=problem_id, score__gte=3).exists():
+                count += 1
+        return count
 
     def course_credit_score(self, course_id=None):
         credits = self.user.credit_set.exclude(score=0)

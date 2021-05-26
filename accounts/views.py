@@ -5,6 +5,7 @@ import datetime
 from markdown import markdown
 from statistics import mean
 
+from django.apps import apps
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -46,6 +47,7 @@ def get_study_years_list(account):
 
 
 def get_year_month_submissions_solutions_comments_count_list(user, year):
+    Assignment = apps.get_model('contests', 'Assignment')
     locale.setlocale(locale.LC_ALL, "ru_RU")
     settings.USE_TZ = False
     academic_year_start_month = 9
@@ -54,22 +56,35 @@ def get_year_month_submissions_solutions_comments_count_list(user, year):
     if all_time:
         year = user.account.admission_year
     day = datetime.datetime(year, academic_year_start_month, 1)
-    submissions = user.submission_set.filter(date_created__year=day.year, date_created__month=day.month)    
+    submissions = user.submission_set.filter(date_created__year=day.year, date_created__month=day.month)
+    problem_ids = submissions.values_list('problem', flat=True).distinct().order_by()
+    problems_count = 0
+    counted_problem_ids = []
+    for problem_id in problem_ids:
+        if problem_id not in counted_problem_ids and (submissions.filter(problem_id=problem_id, status='OK').exists() or Assignment.objects.filter(user=user, problem_id=problem_id, score__gte=3).exists()):
+            problems_count += 1
+            counted_problem_ids.append(problem_id)
     result = [(
         day.year,
         day.strftime("%B"),
         submissions.count(),
-        submissions.filter(status='OK').values_list('problem', flat=True).distinct().order_by().count(),
+        problems_count,
         Comment.objects.filter(author=user, date_created__year=day.year, date_created__month=day.month).count(),
     )]
     while (not all_time and (day.year != today.year and day.month != academic_year_start_month - 1 or day.year == today.year and day.month != today.month)) or (all_time and day < datetime.datetime(today.year, today.month, 1)):
         day = datetime.datetime(*nextmonth(year=day.year, month=day.month), 1)
-        submissions = user.submission_set.filter(date_created__year=day.year, date_created__month=day.month)  
+        submissions = user.submission_set.filter(date_created__year=day.year, date_created__month=day.month)
+        problem_ids = submissions.values_list('problem', flat=True).distinct().order_by()
+        problems_count = 0
+        for problem_id in problem_ids:
+            if problem_id not in counted_problem_ids and (submissions.filter(problem_id=problem_id, status='OK').exists() or Assignment.objects.filter(user=user, problem_id=problem_id, score__gte=3).exists()):
+                problems_count += 1
+                counted_problem_ids.append(problem_id)
         result.append((
             day.year,
             day.strftime("%B"),
             submissions.count(),
-            submissions.filter(status='OK').values_list('problem', flat=True).distinct().order_by().count(),
+            problems_count,
             Comment.objects.filter(author=user, date_created__year=day.year, date_created__month=day.month).count(),
         ))
     settings.USE_TZ = True
@@ -138,6 +153,7 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
         context['questions_count'] = Question.objects.filter(owner=self.object.user).count()
         context['reports_count'] = Report.objects.filter(owner=self.object.user).count()
         context['submissions_count'] = Submission.objects.filter(owner=self.object.user).count()
+        context['problems_count'] = self.object.solved_problems_count
         context['year_month_submissions_solutions_comments'] = get_year_month_submissions_solutions_comments_count_list(self.object.user, self.storage['year'])
         context['years'] = years_list
         context.update(self.storage)
