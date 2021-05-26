@@ -132,18 +132,18 @@
         labels: [{% for item in month_submissions_solutions_comments_questions_reports %} '{{ item.0 }}', {% endfor %}],
         datasets: [{
             label: 'Посылки',
-            backgroundColor: 'rgb(54, 162, 235)',
-            borderColor: 'rgb(54, 162, 235)',
+            backgroundColor: 'rgb(0, 123, 255)',
+            borderColor: 'rgb(0, 123, 255)',
             data: [{% for item in month_submissions_solutions_comments_questions_reports %} {{ item.1 }}, {% endfor %}],
         }, {
             label: 'Решения',
-            backgroundColor: 'rgb(255, 99, 132)',
-            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgb(40, 167, 69)',
+            borderColor: 'rgb(40, 167, 69)',
             data: [{% for item in month_submissions_solutions_comments_questions_reports %} {{ item.2 }}, {% endfor %}],
         }, {
             label: 'Комментарии',
-            backgroundColor: 'rgb(255, 206, 86)',
-            borderColor: 'rgb(255, 206, 86)',
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)',
             data: [{% for item in month_submissions_solutions_comments_questions_reports %} {{ item.3 }}, {% endfor %}],
         }, {
             label: 'Вопросы',
