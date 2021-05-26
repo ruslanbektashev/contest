@@ -311,10 +311,13 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
             (2, 'Рейтинг'),
         )
         LEVEL_CHOICES = list(Account.LEVEL_CHOICES)
-        if self.request.user.is_superuser:
-            LEVEL_CHOICES.append((0, 'Все уровни'))
-            COURSE_CHOICES = list(Course.objects.filter(faculty=self.storage['faculty']).values_list('id', 'title'))
-            COURSE_CHOICES.insert(0, (0, 'Все курсы'))
+        if self.request.user.account.type == 3:
+            course_ids = self.request.user.filter_set.values_list('course', flat=True)
+            COURSE_CHOICES = list(Course.objects.filter(id__in=course_ids).values_list('id', 'title'))
+            if self.request.user.has_perm('contests.add_faculty'):
+                LEVEL_CHOICES.append((0, 'Все уровни'))
+                COURSE_CHOICES = list(Course.objects.filter(faculty=self.storage['faculty']).values_list('id', 'title'))
+                COURSE_CHOICES.insert(0, (0, 'Все курсы'))
             context['courses'] = COURSE_CHOICES
         context['sortings'] = SORT_TYPE_CHOICES
         context['levels'] = LEVEL_CHOICES

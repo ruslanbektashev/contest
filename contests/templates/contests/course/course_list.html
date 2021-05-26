@@ -17,7 +17,7 @@
     <a href="{% url 'contests:course-create' %}" class="text-success text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
     {% endif %}
 </legend>
-{% if request.user.is_superuser %}
+{% if request.user.account.type == 3 %}
 {% if courses %}
 <div class="table-responsive mb-3">
     <table class="table">

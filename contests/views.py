@@ -166,7 +166,12 @@ class CourseList(LoginRequiredMixin, ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        return Course.objects.filter(faculty=self.storage['faculty'])
+        if self.request.user.account.type == 3 and not self.request.user.has_perm('contests.add_faculty'):
+            course_ids = self.request.user.filter_set.values_list('course', flat=True)
+            courses = Course.objects.filter(id__in=course_ids)
+        else:
+            courses = Course.objects.filter(faculty=self.storage['faculty'])
+        return courses
 
 
 """===================================================== Credit ====================================================="""
