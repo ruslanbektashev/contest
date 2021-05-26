@@ -129,32 +129,22 @@
 {% block javascript %}
 <script>
     const submissionsChartData = {
-        labels: [{% for item in month_submissions_solutions_comments_questions_reports %} '{{ item.0 }}', {% endfor %}],
+        labels: [{% for item in month_submissions_solutions_comments %} '{{ item.0 }}', {% endfor %}],
         datasets: [{
             label: 'Посылки',
             backgroundColor: 'rgb(0, 123, 255)',
             borderColor: 'rgb(0, 123, 255)',
-            data: [{% for item in month_submissions_solutions_comments_questions_reports %} {{ item.1 }}, {% endfor %}],
+            data: [{% for item in month_submissions_solutions_comments %} {{ item.1 }}, {% endfor %}],
         }, {
             label: 'Решения',
             backgroundColor: 'rgb(40, 167, 69)',
             borderColor: 'rgb(40, 167, 69)',
-            data: [{% for item in month_submissions_solutions_comments_questions_reports %} {{ item.2 }}, {% endfor %}],
+            data: [{% for item in month_submissions_solutions_comments %} {{ item.2 }}, {% endfor %}],
         }, {
             label: 'Комментарии',
             backgroundColor: 'rgb(255, 99, 132)',
             borderColor: 'rgb(255, 99, 132)',
-            data: [{% for item in month_submissions_solutions_comments_questions_reports %} {{ item.3 }}, {% endfor %}],
-        }, {
-            label: 'Вопросы',
-            backgroundColor: 'rgb(75, 192, 192)',
-            borderColor: 'rgb(75, 192, 192)',
-            data: [{% for item in month_submissions_solutions_comments_questions_reports %} {{ item.4 }}, {% endfor %}],
-        }, {
-            label: 'Сообщения об ошибках',
-            backgroundColor: 'rgb(153, 102, 255)',
-            borderColor: 'rgb(153, 102, 255)',
-            data: [{% for item in month_submissions_solutions_comments_questions_reports %} {{ item.5 }}, {% endfor %}],
+            data: [{% for item in month_submissions_solutions_comments %} {{ item.3 }}, {% endfor %}],
         }]
     };
 

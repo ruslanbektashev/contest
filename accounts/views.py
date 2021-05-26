@@ -45,7 +45,7 @@ def get_study_years_list(account):
     return years
 
 
-def get_month_submissions_solutions_comments_questions_reports_count_list(user, year):
+def get_month_submissions_solutions_comments_count_list(user, year):
     locale.setlocale(locale.LC_ALL, "ru_RU")
     settings.USE_TZ = False
     academic_year_start_month = 9
@@ -57,8 +57,6 @@ def get_month_submissions_solutions_comments_questions_reports_count_list(user, 
         submissions.count(),
         submissions.filter(status='OK').values_list('problem', flat=True).distinct().order_by().count(),
         Comment.objects.filter(author=user, date_created__year=day.year, date_created__month=day.month).count(),
-        Question.objects.filter(owner=user, date_created__year=day.year, date_created__month=day.month).count(),
-        Report.objects.filter(owner=user, date_created__year=day.year, date_created__month=day.month).count()
     )]
     while day.year != today.year and day.month != academic_year_start_month - 1 or day.year == today.year and day.month != today.month:
         day = datetime.datetime(*nextmonth(year=day.year, month=day.month), 1)
@@ -68,8 +66,6 @@ def get_month_submissions_solutions_comments_questions_reports_count_list(user, 
             submissions.count(),
             submissions.filter(status='OK').values_list('problem', flat=True).distinct().order_by().count(),
             Comment.objects.filter(author=user, date_created__year=day.year, date_created__month=day.month).count(),
-            Question.objects.filter(owner=user, date_created__year=day.year, date_created__month=day.month).count(),
-            Report.objects.filter(owner=user, date_created__year=day.year, date_created__month=day.month).count()
         ))
     settings.USE_TZ = True
     locale.setlocale(locale.LC_ALL, "en_US")
@@ -135,7 +131,7 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
         context['questions_count'] = Question.objects.filter(owner=self.object.user).count()
         context['reports_count'] = Report.objects.filter(owner=self.object.user).count()
         context['submissions_count'] = Submission.objects.filter(owner=self.object.user).count()
-        context['month_submissions_solutions_comments_questions_reports'] = get_month_submissions_solutions_comments_questions_reports_count_list(self.object.user, self.storage['year'])
+        context['month_submissions_solutions_comments'] = get_month_submissions_solutions_comments_count_list(self.object.user, self.storage['year'])
         context['years'] = get_study_years_list(self.object)
         context.update(self.storage)
         return context
