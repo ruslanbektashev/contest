@@ -1,3 +1,4 @@
+import math
 from statistics import mean
 
 from django.apps import apps
@@ -292,7 +293,7 @@ class Account(models.Model):
                 submissions_count = problem_submissions.count() + 1
             assignment = problem_submissions.first().assignment
             submission_limit = assignment.submission_limit if assignment else Assignment.DEFAULT_SUBMISSION_LIMIT
-            submissions_score = ((submission_limit + 1 - submissions_count) * 100 / submission_limit) if submissions_count <= submission_limit else (100 / submissions_count)
+            submissions_score = 100 / math.ceil(submissions_count / submission_limit)
             submissions_scores.append(submissions_score)
         return round(mean(submissions_scores)) if submissions_scores else 0
 
