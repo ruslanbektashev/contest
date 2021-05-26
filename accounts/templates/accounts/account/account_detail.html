@@ -49,32 +49,17 @@
 <a id="activity" class="activity-anchor">&nbsp</a>
 <legend>Активность</legend>
 
-<div class="row my-3">
-    <div class="col-8">
-        <div class="card mb-2">
-            <div class="card-header d-flex align-items-center p-1">
-                <span class="col-10 mr-auto">Учебный год</span>
-                <select id="year_select" name="year" class="col-2 form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;" style="width:20%;">
-                    {% for yr, yr_display in years %}
-                    <option value="{% get_full_path_with_updated_query_string request year=yr %}#activity" {% if year == yr %}selected{% endif %}>{{ yr_display }}</option>
-                    {% endfor %}
-                </select>
-                <label for="year_select"></label>
-            </div>
-            <div class="card-body">
-                <canvas id="submissionsChart"></canvas>
-            </div>
-        </div>
+<div class="card mb-2">
+    <div class="card-header d-flex align-items-center p-1">
+        <select id="year_select" name="year" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;" style="width:20%;">
+            {% for yr, yr_display in years %}
+            <option value="{% get_full_path_with_updated_query_string request year=yr %}#activity" {% if year == yr %}selected{% endif %}>{{ yr_display }}</option>
+            {% endfor %}
+        </select>
+        <label for="year_select"></label>
     </div>
-    <div class="col-lg-4 d-flex align-items-stretch">
-        <div class="card mb-2">
-            <div class="card-header">
-                Все время
-            </div>
-            <div class="card-body">
-                <canvas id="activityOverviewChart"></canvas>
-            </div>
-        </div>
+    <div class="card-body">
+        <canvas id="submissionsChart"></canvas>
     </div>
 </div>
 
@@ -129,22 +114,22 @@
 {% block javascript %}
 <script>
     const submissionsChartData = {
-        labels: [{% for item in month_submissions_solutions_comments %} '{{ item.0 }}', {% endfor %}],
+        labels: [{% for item in year_month_submissions_solutions_comments %} '{{ item.1 }} {{item.0}}', {% endfor %}],
         datasets: [{
             label: 'Посылки',
             backgroundColor: 'rgb(0, 123, 255)',
             borderColor: 'rgb(0, 123, 255)',
-            data: [{% for item in month_submissions_solutions_comments %} {{ item.1 }}, {% endfor %}],
+            data: [{% for item in year_month_submissions_solutions_comments %} {{ item.2 }}, {% endfor %}],
         }, {
             label: 'Решения',
             backgroundColor: 'rgb(40, 167, 69)',
             borderColor: 'rgb(40, 167, 69)',
-            data: [{% for item in month_submissions_solutions_comments %} {{ item.2 }}, {% endfor %}],
+            data: [{% for item in year_month_submissions_solutions_comments %} {{ item.3 }}, {% endfor %}],
         }, {
             label: 'Комментарии',
             backgroundColor: 'rgb(255, 99, 132)',
             borderColor: 'rgb(255, 99, 132)',
-            data: [{% for item in month_submissions_solutions_comments %} {{ item.3 }}, {% endfor %}],
+            data: [{% for item in year_month_submissions_solutions_comments %} {{ item.4 }}, {% endfor %}],
         }]
     };
 
@@ -161,56 +146,9 @@
             }
         }
     };
-
     var submissionsChart = new Chart(
         document.getElementById('submissionsChart'),
         submissionsChartConfig
-    );
-
-    const activityOverviewChartData = {
-        labels: [
-            'Комментарии',
-            'Вопросы',
-            'Сообщения об ошибках',
-            'Решения',
-        ],
-        datasets: [{
-            data: [
-                {{ comments_count }},
-                {{ questions_count }},
-                {{ reports_count }},
-                {{ account.solved_problems_count }},
-            ],
-            fill: true,
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            borderColor: 'rgb(54, 162, 235)',
-            pointBackgroundColor: 'rgb(54, 162, 235)',
-            pointBorderColor: '#fff',
-            pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: 'rgb(54, 162, 235)'
-        }]
-    };
-
-    const activityOverviewChartConfig = {
-        type: 'radar',
-        data: activityOverviewChartData,
-        options: {
-            elements: {
-                line: {
-                    borderWidth: 3
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false,
-                }
-            }
-        },
-    };
-
-    var activityOverviewChart = new Chart(
-        document.getElementById('activityOverviewChart'),
-        activityOverviewChartConfig
     );
 </script>
 {% endblock javascript %}
