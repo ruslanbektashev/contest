@@ -323,7 +323,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
             (2, 'Рейтинг'),
         )
         LEVEL_CHOICES = list(Account.LEVEL_CHOICES)
-        if self.request.user.account.type == 3:
+        if self.request.user.account.is_instructor:
             course_ids = self.request.user.filter_set.values_list('course', flat=True)
             COURSE_CHOICES = list(Course.objects.filter(id__in=course_ids).values_list('id', 'title'))
             if self.request.user.has_perm('contests.add_faculty'):

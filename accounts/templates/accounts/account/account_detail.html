@@ -67,19 +67,19 @@
     <table class="table table-sm table-hover">
         <tbody>
             <tr>
-                <td style="vertical-align: middle;">Количество решенных задач</td>
+                <td style="vertical-align: middle;">Решено задач</td>
                 <td class="text-center" style="vertical-align: middle; width: 4%;">
                     <span class="text-{{ problems_count|colorize_activity_count }}"><strong>{{ problems_count }}</strong></span>
                 </td>
             </tr>
             <tr>
-                <td style="vertical-align: middle;">Количество посылок</td>
+                <td style="vertical-align: middle;">Отправлено посылок</td>
                 <td class="text-center" style="vertical-align: middle; width: 4%;">
                     <span class="text-{{ submissions_count|colorize_activity_count }}"><strong>{{ submissions_count }}</strong></span>
                 </td>
             </tr>
             <tr>
-                <td style="vertical-align: middle;">Количество комментариев</td>
+                <td style="vertical-align: middle;">Написано комментариев</td>
                 <td class="text-center" style="vertical-align: middle; width: 4%;">
                     <span class="text-{{ comments_count|colorize_activity_count }}"><strong>{{ comments_count }}</strong></span>
                 </td>
@@ -142,18 +142,18 @@
         labels: [{% for item in year_month_submissions_solutions_comments %} '{{ item.1 }} {{item.0}}', {% endfor %}],
         datasets: [{
             label: 'Посылки',
-            backgroundColor: 'rgb(0, 123, 255)',
-            borderColor: 'rgb(0, 123, 255)',
+            backgroundColor: 'rgb(91, 192, 222)',
+            borderColor: 'rgb(91, 192, 222)',
             data: [{% for item in year_month_submissions_solutions_comments %} {{ item.2 }}, {% endfor %}],
         }, {
             label: 'Решения',
-            backgroundColor: 'rgb(40, 167, 69)',
-            borderColor: 'rgb(40, 167, 69)',
+            backgroundColor: 'rgb(92, 184, 92)',
+            borderColor: 'rgb(92, 184, 92)',
             data: [{% for item in year_month_submissions_solutions_comments %} {{ item.3 }}, {% endfor %}],
         }, {
             label: 'Комментарии',
-            backgroundColor: 'rgb(255, 99, 132)',
-            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgb(108, 117, 125)',
+            borderColor: 'rgb(108, 117, 125)',
             data: [{% for item in year_month_submissions_solutions_comments %} {{ item.4 }}, {% endfor %}],
         }]
     };

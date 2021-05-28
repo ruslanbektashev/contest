@@ -89,7 +89,7 @@
         </select>
         <label for="sort_select"></label>
     {% endif %}
-    {% if sort == 2 and request.user.account.type == 3 %}
+    {% if sort == 2 and request.user.account.is_instructor %}
         <select id="course_select" name="course" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
             {% for crs, crs_display in courses %}
             <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id level=level type=1 sort=sort course=crs %}" {% if course == crs %}selected{% endif %}>{{ crs_display }}</option>
