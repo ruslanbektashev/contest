@@ -123,21 +123,18 @@
         });
     });
     $(function () {
-        let tooltips = $('[data-toggle="tooltip"]');
-        tooltips.tooltip({
+        let popovers = $('[data-toggle="popover"]');
+        popovers.popover({
             trigger: "hover",
             delay: {"show": 500, "hide": 100}
         });
-        tooltips.each(function (){
-            $(this).attr("onclick", "closeTooltips()");
+        popovers.each(function (){
+            $(this).attr("onclick", "closePopovers()");
         });
     });
-    function closeTooltips() {
-        $('[data-toggle="tooltip"]').tooltip('hide');
+    function closePopovers() {
+        $('[data-toggle="popover"]').popover('hide');
     }
-    $(function () {
-        $('[data-toggle="popover"]').popover()
-    })
 </script>
 {% block javascript %}
 {% endblock javascript %}

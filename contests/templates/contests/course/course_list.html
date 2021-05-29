@@ -14,7 +14,7 @@
 <legend>
     Курсы
     {% if perms.contests.add_course %}
-    <a href="{% url 'contests:course-create' %}" class="text-success text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
+    <a href="{% url 'contests:course-create' %}" class="text-success text-decoration-none pull-right" data-toggle="popover" data-placement="left" data-content="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
     {% endif %}
 </legend>
 {% if request.user.account.is_instructor %}

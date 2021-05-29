@@ -21,7 +21,7 @@
             <tr>
                 {% if sort != 2 %}
                 <th class="text-center" style="width: 4%;">
-                    <div class="custom-control custom-checkbox" data-toggle="tooltip" data-placement="top" title="Выбрать всех пользователей">
+                    <div class="custom-control custom-checkbox" data-toggle="popover" data-placement="top" data-content="Выбрать всех пользователей">
                         <input id="check_all" type="checkbox" class="custom-control-input">
                         <label for="check_all" class="custom-control-label ml-2"></label>
                     </div>
@@ -115,13 +115,13 @@
 <legend>Действия</legend>
 <div class="list-group mb-3">
     {% if perms.accounts.change_account %}
-    <button type="submit" name="action" form="account_list_form" value="reset_password" class="btn btn-info btn-block" data-toggle="tooltip" data-placement="left" title="Выставить новый пароль для профилей выбранных пользователей"><i class="fa fa-key fa-fw"></i> Сбросить пароль</button>
+    <button type="submit" name="action" form="account_list_form" value="reset_password" class="btn btn-info btn-block" data-toggle="popover" data-placement="left" data-content="Выставить новый пароль для профилей выбранных пользователей"><i class="fa fa-key fa-fw"></i> Сбросить пароль</button>
     {% if type == 1 %}
-    <button type="submit" name="action" form="account_list_form" value="level_up" class="btn btn-info btn-block" data-toggle="tooltip" data-placement="left" title="Повысить уровень выбранных студентов на 1"><i class="fa fa-level-up fa-fw"></i> Повысить уровень</button>
-    <button type="submit" name="action" form="account_list_form" value="level_down" class="btn btn-info btn-block" data-toggle="tooltip" data-placement="left" title="Понизить уровень выбранных студентов на 1"><i class="fa fa-level-down fa-fw"></i> Понизить уровень</button>
-    <button type="submit" name="action" form="account_list_form" value="enroll" class="btn btn-info btn-block" data-toggle="tooltip" data-placement="left" title="Восстановить выбранных отчисленных студентов"><i class="fa fa-undo fa-fw"></i> Восстановить</button>
-    <button type="submit" name="action" form="account_list_form" value="graduate" class="btn btn-success btn-block" data-toggle="tooltip" data-placement="left" title="Пометить выбранных студентов как выпускников"><i class="fa fa-graduation-cap fa-fw"></i> Выпустить</button>
-    <button type="submit" name="action" form="account_list_form" value="expel" class="btn btn-danger btn-block" data-toggle="tooltip" data-placement="left" title="Пометить выбранных студентов как отчисленных"><i class="fa fa-ban fa-fw"></i> Отчислить</button>
+    <button type="submit" name="action" form="account_list_form" value="level_up" class="btn btn-info btn-block" data-toggle="popover" data-placement="left" data-content="Повысить уровень выбранных студентов на 1"><i class="fa fa-level-up fa-fw"></i> Повысить уровень</button>
+    <button type="submit" name="action" form="account_list_form" value="level_down" class="btn btn-info btn-block" data-toggle="popover" data-placement="left" data-content="Понизить уровень выбранных студентов на 1"><i class="fa fa-level-down fa-fw"></i> Понизить уровень</button>
+    <button type="submit" name="action" form="account_list_form" value="enroll" class="btn btn-info btn-block" data-toggle="popover" data-placement="left" data-content="Восстановить выбранных отчисленных студентов"><i class="fa fa-undo fa-fw"></i> Восстановить</button>
+    <button type="submit" name="action" form="account_list_form" value="graduate" class="btn btn-success btn-block" data-toggle="popover" data-placement="left" data-content="Пометить выбранных студентов как выпускников"><i class="fa fa-graduation-cap fa-fw"></i> Выпустить</button>
+    <button type="submit" name="action" form="account_list_form" value="expel" class="btn btn-danger btn-block" data-toggle="popover" data-placement="left" data-content="Пометить выбранных студентов как отчисленных"><i class="fa fa-ban fa-fw"></i> Отчислить</button>
     {% endif %}
     {% endif %}
 </div>

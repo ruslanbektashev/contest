@@ -17,10 +17,10 @@
 <legend>
     Посылка {{ submission.id }}
     {% if perms.contests.delete_submission %}
-    <a href="{% url 'contests:submission-delete' submission.id %}" class="text-danger text-decoration-none pull-right" data-toggle="tooltip" data-placement="top" title="Удалить посылку" style="position: relative; top: -0.08rem;"><i class="fa fa-times fa-fw"></i></a>
+    <a href="{% url 'contests:submission-delete' submission.id %}" class="text-danger text-decoration-none pull-right" data-toggle="popover" data-placement="top" data-content="Удалить посылку" style="position: relative; top: -0.08rem;"><i class="fa fa-times fa-fw"></i></a>
     {% endif %}
     {% if perms.contests.moss_submission and submission.problem.type == 'Program' %}
-    <a href="{% url 'contests:submission-moss' submission.id %}" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="MOSS"><i class="fa fa-maxcdn fa-fw"></i></a>
+    <a href="{% url 'contests:submission-moss' submission.id %}" class="text-secondary text-decoration-none pull-right" data-toggle="popover" data-placement="left" data-content="MOSS"><i class="fa fa-maxcdn fa-fw"></i></a>
     {% endif %}
 </legend>
 <table class="table table-sm">
