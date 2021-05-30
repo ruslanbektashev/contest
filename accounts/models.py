@@ -308,7 +308,7 @@ class Account(models.Model):
         return self.course_submissions_score()
 
     def update_score(self):
-        self.score = self.course_score()
+        self.score = self.course_credit_score()
         self.save()
 
     def get_absolute_url(self):
