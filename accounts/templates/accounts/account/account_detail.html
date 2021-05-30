@@ -139,7 +139,7 @@
 {% block javascript %}
 <script>
     const submissionsChartData = {
-        labels: [{% for item in year_month_submissions_solutions_comments %} '{{ item.1 }} {{item.0}}', {% endfor %}],
+        labels: [{% for item in year_month_submissions_solutions_comments %} {% if year == 0 %} '{{ item.1 }} {{item.0}}' {% else %} '{{ item.1 }}' {% endif %}, {% endfor %}],
         datasets: [{
             label: 'Посылки',
             backgroundColor: 'rgb(91, 192, 222)',
