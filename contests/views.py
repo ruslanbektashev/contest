@@ -1396,7 +1396,13 @@ class SubmissionBackup(LoginRedirectPermissionRequiredMixin, BaseListView):
 
     def get_queryset(self):
         course_id = self.kwargs.get('course_id', None)
+        contest_id = int(self.request.GET.get('contest_id') or 0)
+        year = int(self.request.GET.get('year') or 0)
         queryset = super().get_queryset().filter(problem__contest__course_id=course_id).select_related('problem')
+        if contest_id:
+            queryset = queryset.filter(problem__contest__id=contest_id)
+        if year:
+            queryset = queryset.filter(date_created__year__gte=year)
         return queryset
 
 

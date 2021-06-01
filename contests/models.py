@@ -714,15 +714,18 @@ class SubmissionManager(models.Manager):
         with zipfile.ZipFile(stream, 'w') as zip_file:
             for submission in submission_list:
                 for f in submission.files:
-                    _, filename = os.path.split(f)
-                    zip_path = "{contest_id}/{problem_num}/{user_id}/{submission_id}/{filename}".format(
-                        contest_id=submission.problem.contest_id,
-                        problem_num=submission.problem.number,
-                        user_id=submission.owner_id,
-                        submission_id=submission.id,
-                        filename=filename
-                    )
-                    zip_file.write(f, zip_path)
+                    try:
+                        _, filename = os.path.split(f)
+                        zip_path = "{contest_id}/{problem_num}/{user_id}/{submission_id}/{filename}".format(
+                            contest_id=submission.problem.contest_id,
+                            problem_num=submission.problem.number,
+                            user_id=submission.owner_id,
+                            submission_id=submission.id,
+                            filename=filename
+                        )
+                        zip_file.write(f, zip_path)
+                    except FileNotFoundError:
+                        pass
         return stream.getvalue()
 
 
