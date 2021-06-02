@@ -136,8 +136,6 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
     def get(self, request, *args, **kwargs):
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
             self.object = self.get_object()
-        if self.object.score is None:
-            self.object.update_score()
         context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
 

@@ -203,7 +203,6 @@ class Account(models.Model):
     students = StudentManager.from_queryset(StudentQuerySet)()
 
     comments_read = models.ManyToManyField('Comment', blank=True)
-    score = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="Баллы")
 
     class Meta:
         ordering = ('user__last_name', 'user__first_name', 'user_id')
@@ -307,9 +306,9 @@ class Account(models.Model):
     def submissions_score(self):
         return self.course_submissions_score()
 
-    def update_score(self):
-        self.score = self.course_credit_score()
-        self.save()
+    @property
+    def score(self):
+        return self.course_credit_score()
 
     def get_absolute_url(self):
         return reverse('accounts:account-detail', kwargs={'pk': self.pk})

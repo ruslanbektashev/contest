@@ -166,12 +166,6 @@ class Credit(CRUDEntry):
         verbose_name = "Зачет"
         verbose_name_plural = "Зачеты"
 
-    def save(self, *args, **kwargs):
-        old_score = Credit.objects.get(pk=self.pk).score
-        if old_score != self.score:
-            self.user.account.update_score()
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return "Зачет по курсу: %s" % self.course.title
 
@@ -875,10 +869,6 @@ class Submission(CRDEntry):
 
     def save(self, *args, **kwargs):
         created = self._state.adding
-        if self.is_ok:
-            old_status = Submission.objects.get(pk=self.pk).status
-            if old_status != self.status:
-                self.owner.account.update_score()
         super().save(*args, **kwargs)
         if created:
             submission_subscribers_ids = Subscription.objects.filter(object_type=ContentType.objects.get(model='submission')).values_list('user', flat=True)
