@@ -81,9 +81,32 @@
 
 {% block javascript %}
 <script src="{% static 'js/bs-custom-file-input.min.js' %}" type="text/javascript"></script>
+{% if problem.type == 'Files' %}
 <script type="text/javascript">
 $(function () {
     bsCustomFileInput.init()
 });
 </script>
+{% endif %}
+{% if problem.type == 'Text' %}
+<script type="text/javascript">
+
+const second = 1000
+const interval = 5 * second
+
+let measurements = []
+
+function getText() {
+    let text = CKEDITOR.instances['id_text'].getData()
+    measurements.push(text.length)
+}
+
+function watchText(ms) {
+    setInterval(getText, interval)
+}
+
+window.addEventListener('load', watchText)
+
+</script>
+{% endif %}
 {% endblock javascript %}
