@@ -131,7 +131,7 @@ CKEDITOR_CONFIGS = {
             {'name': 'links', 'items': ['Link', 'Unlink']},
             {'name': 'insert',
              'items': ['Image', 'Table', 'HorizontalRule', 'PageBreak']},
-            {'name': 'styles', 'items': ['Format', 'Font', 'FontSize']},
+            {'name': 'styles', 'items': ['Styles', 'Format', 'Font', 'FontSize']},
             {'items': [
                 # put the name of your editor.ui.addButton here
                 'Maximize',
