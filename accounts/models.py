@@ -574,6 +574,10 @@ class Comment(models.Model):
         verbose_name = "Комментарий"
         verbose_name_plural = "Комментарии"
 
+    @property
+    def owner(self):
+        return self.author
+
     def save(self, *args, **kwargs):
         created = self._state.adding
         super().save(*args, **kwargs)
