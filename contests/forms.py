@@ -7,6 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.template.defaultfilters import filesizeformat
+from django.utils import timezone
 
 from accounts.models import Account
 from contest.widgets import BootstrapCheckboxSelect, BootstrapRadioSelect
@@ -324,12 +325,18 @@ class FNTestForm(forms.ModelForm):
 class AssignmentUpdatePartialForm(forms.ModelForm):
     class Meta:
         model = Assignment
-        fields = ['score', 'score_max', 'score_is_locked', 'submission_limit', 'remark']
+        fields = ['score', 'score_max', 'score_is_locked', 'submission_limit', 'remark', 'deadline']
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.fields['score'].widget.attrs['max'] = 5
         self.fields['score_max'].widget.attrs['max'] = 5
+
+    def clean_deadline(self):
+        deadline = self.cleaned_data['deadline']
+        if deadline is not None and deadline <= timezone.now():
+            raise ValidationError("Укажите дату в будущем", code='invalid_deadline')
+        return deadline
 
     def clean(self):
         super().clean()
@@ -370,11 +377,18 @@ class AssignmentSetForm(forms.Form):
     contest = forms.ModelChoiceField(queryset=Contest.objects.none(), label="Раздел")
     type = forms.ChoiceField(choices=Problem.TYPE_CHOICES, initial='Program', label="Тип задач")
     limit_per_user = forms.IntegerField(min_value=1, max_value=5, initial=1, label="Дополнить до")
+    deadline = forms.DateTimeField(required=False, label="Принимать посылки до")
 
     def __init__(self, course, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['contest'].queryset = course.contest_set.all()
         self.fields['limit_per_user'].append_text = "заданий"
+
+    def clean_deadline(self):
+        deadline = self.cleaned_data['deadline']
+        if deadline is not None and deadline <= timezone.now():
+            raise ValidationError("Укажите дату в будущем", code='invalid_deadline')
+        return deadline
 
 
 # TODO: refactor
@@ -408,6 +422,7 @@ class SubmissionAttachmentForm(AttachmentForm):
     def __init__(self, *args, **kwargs):
         self.owner = kwargs.pop('owner', None)
         self.problem = kwargs.pop('problem', None)
+        self.assignment = kwargs.pop('assignment', None)
         super().__init__(*args, **kwargs)
 
     def clean_files(self):
@@ -464,8 +479,15 @@ class SubmissionTextForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         kwargs.pop('owner', None)
         kwargs.pop('problem', None)
+        self.assignment = kwargs.pop('assignment', None)
         super().__init__(*args, **kwargs)
         self.fields['text'].required = True
+
+    def clean(self):
+        if self.assignment is not None and self.assignment.deadline is not None:
+            if self.assignment.deadline < timezone.now():
+                raise ValidationError("Время приема посылок по Вашему заданию истекло", code="deadline_reached")
+        return super().clean()
 
 
 class SubmissionFilesForm(AttachmentForm):
@@ -480,6 +502,7 @@ class SubmissionFilesForm(AttachmentForm):
     def __init__(self, *args, **kwargs):
         self.owner = kwargs.pop('owner', None)
         self.problem = kwargs.pop('problem', None)
+        self.assignment = kwargs.pop('assignment', None)
         super().__init__(*args, **kwargs)
 
 
@@ -491,6 +514,7 @@ class SubmissionOptionsForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         kwargs.pop('owner', None)
         problem = kwargs.pop('problem')
+        self.assignment = kwargs.pop('assignment', None)
         super().__init__(*args, **kwargs)
         options = problem.option_set.all()
         if options.filter(is_correct=True).count() > 1:

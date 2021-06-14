@@ -27,6 +27,17 @@
     <tr><td class="text-right" style="width: 20%;">Задача</td><td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td></tr>
     <tr><td class="text-right" style="width: 20%;">Назначено</td><td>{{ assignment.date_created }}</td></tr>
     <tr><td class="text-right" style="width: 20%;">Обновлено</td><td>{{ assignment.date_updated }}</td></tr>
+    {% if assignment.deadline is not None %}
+    <tr>
+        <td class="text-right" style="width: 20%;">
+        {% if assignment.deadline > current_time %}
+        Посылки принимаются до</td><td>{{ assignment.deadline }} (осталось {{ assignment.deadline|timeuntil:current_time }})
+        {% else %}
+        Посылки принимались до</td><td>{{ assignment.deadline }}
+        {% endif %}
+        </td>
+    </tr>
+    {% endif %}
     <tr><td class="text-right" style="width: 20%;">Посылок</td><td>{{ assignment.get_submissions.count }} / {{ assignment.submission_limit }}</td></tr>
     <tr>
         <td class="text-right" style="width: 20%;">Оценка</td>

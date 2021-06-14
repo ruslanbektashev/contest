@@ -618,7 +618,7 @@ class AssignmentQuerySet(models.QuerySet):
 
 
 class AssignmentManager(models.Manager):
-    def create_random_set(self, owner, contest, type, limit_per_user, debts=False):
+    def create_random_set(self, owner, contest, type, limit_per_user, deadline, debts=False):
         """ create random set of assignments with problems of given contest
             aligning their number to limit_per_user for contest.course.level students """
         problem_ids = contest.problem_set.filter(type=type).order_by('number').values_list('id', flat=True)
@@ -646,6 +646,8 @@ class AssignmentManager(models.Manager):
                     new_assignment = Assignment(owner_id=owner.id,
                                                 user_id=user_id,
                                                 problem_id=to_assign_problem_id)
+                    if deadline is not None:
+                        new_assignment.deadline = deadline
                     new_assignments.append(new_assignment)
         Assignment.objects.bulk_create(new_assignments)
 
@@ -664,6 +666,7 @@ class Assignment(CRUDEntry):
     score_is_locked = models.BooleanField(default=False, verbose_name="Оценка заблокирована", help_text="заблокированная оценка не может быть изменена системой автоматической проверки")
     submission_limit = models.PositiveSmallIntegerField(default=DEFAULT_SUBMISSION_LIMIT, verbose_name="Ограничение количества посылок")
     remark = models.CharField(max_length=255, blank=True, verbose_name="Пометка", help_text="для преподавателей")
+    deadline = models.DateTimeField(null=True, blank=True, verbose_name="Принимать посылки до")
 
     comment_set = GenericRelation(Comment, content_type_field='object_type')
     subscription_set = GenericRelation(Subscription, content_type_field='object_type')

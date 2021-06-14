@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from django.forms.models import inlineformset_factory
+from django.utils import timezone
 
 from markdown import markdown
 from mimetypes import guess_type
@@ -937,6 +938,7 @@ class AssignmentDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         submissions = self.object.get_submissions()
         context['paginator'], context['page_obj'], context['submissions'], context['is_paginated'] = \
             self.paginate_queryset(submissions)
+        context['current_time'] = timezone.now()
         return context
 
 
@@ -1019,7 +1021,8 @@ class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
         form = self.get_form()
         if form.is_valid():
             Assignment.objects.create_random_set(request.user, form.cleaned_data['contest'], form.cleaned_data['type'],
-                                                 form.cleaned_data['limit_per_user'], self.storage['debts'])
+                                                 form.cleaned_data['limit_per_user'], form.cleaned_data['deadline'],
+                                                 self.storage['debts'])
             return self.form_valid(form)
         return self.form_invalid(form)
 
@@ -1191,6 +1194,11 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         problem = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
         self.storage['problem'] = problem
 
+        try:
+            self.storage['assignment'] = Assignment.objects.get(user=self.request.user, problem=self.storage['problem'])
+        except Assignment.DoesNotExist:
+            self.storage['assignment'] = None
+
         main_submission_id = kwargs.pop('submission_id', None)
         if main_submission_id:
             main_submission = get_object_or_404(Submission, id=main_submission_id)
@@ -1202,13 +1210,13 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         elif problem.type == 'Test':
             self.storage['main_problem'] = problem
             self.storage['problem'] = problem.sub_problems.first()
-
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['owner'] = self.request.user
         kwargs['problem'] = self.storage['problem']
+        kwargs['assignment'] = self.storage['assignment']
         return kwargs
 
     def get_form_class(self):
@@ -1226,10 +1234,8 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         form.instance.owner = self.request.user
         form.instance.problem = self.storage['problem']
 
-        try:
-            form.instance.assignment = Assignment.objects.get(user=self.request.user, problem=self.storage['problem'])
-        except Assignment.DoesNotExist:
-            pass
+        if self.storage['assignment'] is not None:
+            form.instance.assignment = self.storage['assignment']
 
         main_problem = self.storage.get('main_problem')
         if main_problem:
