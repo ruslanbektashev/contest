@@ -772,6 +772,7 @@ class Submission(CRDEntry):
                                         verbose_name="Подпосылки")
     options = models.ManyToManyField(Option, verbose_name="Варианты ответа")
 
+    footprint = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=2, choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
     score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE, verbose_name="Оценка в баллах")
     text = RichTextField(null=True, blank=True, verbose_name="Текст ответа")
