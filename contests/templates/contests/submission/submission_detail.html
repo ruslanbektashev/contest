@@ -210,6 +210,13 @@ $(function () {
 
 const interval = 2;
 
+let footprint = JSON.parse("{{ submission.footprint }}");
+let labels = Array(footprint.length)
+
+for (let i = 0; i < labels.length; i++) {
+    labels[i] = i * interval;
+}
+
 const footprintData = {
     labels: labels,
     datasets: [
@@ -254,13 +261,6 @@ const footprintChartConfig = {
         },
     },
 };
-
-let footprint = JSON.parse("{{ submission.footprint }}");
-let labels = Array(footprint.length)
-
-for (let i = 0; i < labels.length; i++) {
-    labels[i] = i * interval;
-}
 
 var footprintChart = new Chart(
     document.getElementById('footprintChart'),
