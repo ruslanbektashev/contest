@@ -95,11 +95,13 @@
         {{ submission.text|safe }}
     </div>
 </div>
+{% if perms.contests.change_submission %}
 <div class="card mb-3">
     <div class="card-body">
         <canvas id="footprintChart" height="120"></canvas>
     </div>
 </div>
+{% endif %}
 {% endif %}
 {% if submission.problem.type == 'Options' %}
 <h6 class="text-muted">Ответ:</h6>
@@ -203,7 +205,7 @@ $(function () {
 });
 {% endif %}
 </script>
-{% if submission.problem.type == 'Text' %}
+{% if submission.problem.type == 'Text' and perms.contests.change_submission %}
 <script>
 
 const INTERVAL = 2;
