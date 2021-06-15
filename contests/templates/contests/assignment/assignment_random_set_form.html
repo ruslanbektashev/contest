@@ -25,6 +25,7 @@
     {% render_field form.contest class+="form-control selectpicker" %}
     {% render_field form.type class+="form-control selectpicker" %}
     {% render_field form.limit_per_user class+="form-control selectpicker" %}
+    {% render_field form.submission_limit class+="form-control" %}
     {% render_field form.deadline class+="form-control" placeholder="Неограниченно" %}
     {% endwith %}
     {% render_submit_button value="Распределить" %}

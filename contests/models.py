@@ -618,7 +618,7 @@ class AssignmentQuerySet(models.QuerySet):
 
 
 class AssignmentManager(models.Manager):
-    def create_random_set(self, owner, contest, type, limit_per_user, deadline, debts=False):
+    def create_random_set(self, owner, contest, type, limit_per_user, submission_limit, deadline, debts=False):
         """ create random set of assignments with problems of given contest
             aligning their number to limit_per_user for contest.course.level students """
         problem_ids = contest.problem_set.filter(type=type).order_by('number').values_list('id', flat=True)
@@ -645,7 +645,8 @@ class AssignmentManager(models.Manager):
                 for to_assign_problem_id in to_assign_problem_id_list:
                     new_assignment = Assignment(owner_id=owner.id,
                                                 user_id=user_id,
-                                                problem_id=to_assign_problem_id)
+                                                problem_id=to_assign_problem_id,
+                                                submission_limit=submission_limit)
                     if deadline is not None:
                         new_assignment.deadline = deadline
                     new_assignments.append(new_assignment)

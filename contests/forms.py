@@ -377,6 +377,8 @@ class AssignmentSetForm(forms.Form):
     contest = forms.ModelChoiceField(queryset=Contest.objects.none(), label="Раздел")
     type = forms.ChoiceField(choices=Problem.TYPE_CHOICES, initial='Program', label="Тип задач")
     limit_per_user = forms.IntegerField(min_value=1, max_value=5, initial=1, label="Дополнить до")
+    submission_limit = forms.IntegerField(initial=Assignment.DEFAULT_SUBMISSION_LIMIT,
+                                          label="Ограничить количество посылок до")
     deadline = forms.DateTimeField(required=False, label="Принимать посылки до")
 
     def __init__(self, course, *args, **kwargs):
