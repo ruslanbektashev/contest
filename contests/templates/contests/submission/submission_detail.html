@@ -95,6 +95,11 @@
         {{ submission.text|safe }}
     </div>
 </div>
+<div class="card mb-3">
+    <div class="card-body">
+        <canvas id="footprintChart" height="120"></canvas>
+    </div>
+</div>
 {% endif %}
 {% if submission.problem.type == 'Options' %}
 <h6 class="text-muted">Ответ:</h6>
@@ -198,4 +203,68 @@ $(function () {
 });
 {% endif %}
 </script>
+{% if submission.problem.type == 'Text' %}
+<script>
+
+const INTERVAL = 2;
+
+let footprint = JSON.parse("{{ submission.footprint }}");
+let labels = Array(footprint.length)
+
+for (let i = 0; i < labels.length; i++) {
+    labels[i] = i * INTERVAL;
+}
+
+const footprintData = {
+    labels: labels,
+    datasets: [
+        {
+            label: 'Длина текста',
+            data: footprint,
+            borderColor: 'rgb(91, 192, 222)',
+            backgroundColor: 'rgb(91, 192, 222)',
+        },
+    ],
+};
+
+const footprintChartConfig = {
+    type: 'line',
+    data: footprintData,
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false,
+            },
+        },
+        scales: {
+            x: {
+                ticks: {
+                    stepSize: 1,
+                },
+                title: {
+                    display: true,
+                    text: 'Секунды'
+                },
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Количество символов'
+                },
+                ticks: {
+                    stepSize: 1,
+                }
+            },
+        },
+    },
+};
+
+var footprintChart = new Chart(
+    document.getElementById('footprintChart'),
+    footprintChartConfig
+);
+
+</script>
+{% endif %}
 {% endblock javascript %}
