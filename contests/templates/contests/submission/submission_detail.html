@@ -208,14 +208,7 @@ $(function () {
 {% if submission.problem.type == 'Text' and perms.contests.change_submission %}
 <script>
 
-const INTERVAL = 2;
-
-let footprint = JSON.parse("{{ submission.footprint }}");
-let labels = Array(footprint.length)
-
-for (let i = 0; i < labels.length; i++) {
-    labels[i] = i * INTERVAL;
-}
+const interval = 2;
 
 const footprintData = {
     labels: labels,
@@ -261,6 +254,13 @@ const footprintChartConfig = {
         },
     },
 };
+
+let footprint = JSON.parse("{{ submission.footprint }}");
+let labels = Array(footprint.length)
+
+for (let i = 0; i < labels.length; i++) {
+    labels[i] = i * interval;
+}
 
 var footprintChart = new Chart(
     document.getElementById('footprintChart'),
