@@ -67,6 +67,7 @@
         {% endif %}
         <div class="input-group">
             {{ form.text }}
+            {{ form.footprint }}
         </div>
     </div>
 
@@ -91,21 +92,22 @@ $(function () {
 {% if problem.type == 'Text' %}
 <script type="text/javascript">
 
-const second = 1000
-const interval = 5 * second
+const second = 1000;
+const interval = 2 * second;
 
-let measurements = []
+let measurements = [];
 
 function getText() {
-    let text = CKEDITOR.instances['id_text'].getData()
-    measurements.push(text.length)
+    let text = CKEDITOR.instances['id_text'].document.getBody().getText();
+    measurements.push(text.length);
+    document.getElementById("id_footprint").value = JSON.stringify(measurements);;
 }
 
 function watchText(ms) {
-    setInterval(getText, interval)
+    setInterval(getText, interval);
 }
 
-window.addEventListener('load', watchText)
+window.addEventListener('load', watchText);
 
 </script>
 {% endif %}

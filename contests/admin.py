@@ -207,7 +207,7 @@ class SubmissionAdmin(admin.ModelAdmin):
             'fields': ('owner', 'problem', 'assignment')
         }),
         ('Детали', {
-            'fields': ('status', 'score', 'task_id')
+            'fields': ('status', 'score', 'task_id', 'footprint')
         }),
         ('Даты', {
             'fields': ('date_created',)

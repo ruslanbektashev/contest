@@ -474,7 +474,8 @@ class SubmissionAttachmentForm(AttachmentForm):
 class SubmissionTextForm(forms.ModelForm):
     class Meta:
         model = Submission
-        fields = ['text']
+        fields = ['text', 'footprint']
+        widgets = {'footprint': forms.HiddenInput}
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('owner', None)
