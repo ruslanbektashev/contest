@@ -123,14 +123,13 @@ CKEDITOR_CONFIGS = {
         'toolbar_CustomToolbarConfig': [
             {'name': 'clipboard', 'items': ['Undo', 'Redo', '-', 'Cut', 'Copy', 'Paste']},
             {'name': 'basicstyles',
-             'items': ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat']},
+             'items': ['Bold', 'Italic', 'Underline', 'Strike', 'codeTag', 'Subscript', 'Superscript', '-', 'RemoveFormat']},
             {'name': 'colors', 'items': ['TextColor']},
             {'name': 'paragraph',
              'items': ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', '-',
                        'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
             {'name': 'links', 'items': ['Link', 'Unlink']},
-            {'name': 'insert',
-             'items': ['Image', 'Table', 'HorizontalRule', 'PageBreak']},
+            {'name': 'insert', 'items': ['Image', 'Table', 'HorizontalRule']},
             {'name': 'styles', 'items': ['Styles', 'Format', 'Font', 'FontSize']},
             {'items': [
                 # put the name of your editor.ui.addButton here
@@ -142,7 +141,6 @@ CKEDITOR_CONFIGS = {
         'tabSpaces': 4,
         'extraPlugins': ','.join([
             'uploadimage',  # the upload image feature
-            # your extra plugins here
             'autolink',
             'autoembed',
             'embedsemantic',
@@ -153,6 +151,43 @@ CKEDITOR_CONFIGS = {
             'pastefromword',
             'mathjax',
             'table',
+        ]),
+    },
+    'minimal': {
+        'skin': 'moono-lisa',
+        'toolbar_MinimalToolbarConfig': [
+            {'name': 'clipboard', 'items': ['Undo', 'Redo', '-', 'Cut', 'Copy', 'Paste']},
+            {'name': 'basicstyles',
+             'items': ['Bold', 'Italic', 'Underline', 'Strike', 'codeTag', 'Subscript', 'Superscript', '-', 'RemoveFormat']},
+            {'name': 'colors', 'items': ['TextColor']},
+            {'name': 'paragraph',
+             'items': ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', '-',
+                       'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
+            {'name': 'insert',
+             'items': ['Table', 'HorizontalRule']},
+            {'name': 'styles', 'items': ['Styles', 'Format']},
+            {'items': [
+                # put the name of your editor.ui.addButton here
+                'Maximize',
+            ]},
+        ],
+        'toolbar': 'MinimalToolbarConfig',  # put selected toolbar config here
+        'width': '100%',
+        'tabSpaces': 4,
+        'extraPlugins': ','.join([
+            'uploadimage',  # the upload image feature
+            'autolink',
+            'autoembed',
+            'embedsemantic',
+            'autogrow',
+            'lineutils',
+            'clipboard',
+            'pastefromword',
+            'mathjax',
+            'table',
+        ]),
+        'removePlugins': ','.join([
+            'elementspath',
         ]),
     }
 }

@@ -779,7 +779,7 @@ class Submission(CRDEntry):
     footprint = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=2, choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
     score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE, verbose_name="Оценка в баллах")
-    text = RichTextField(null=True, blank=True, verbose_name="Текст ответа")
+    text = RichTextField(null=True, blank=True, verbose_name="Текст ответа", config_name='minimal')
     task_id = models.UUIDField(null=True, blank=True, verbose_name="Идентификатор асинхронной задачи")
     moss_to_submissions = models.CharField(max_length=200, null=True, validators=[validate_comma_separated_integer_list],
                                            verbose_name="С посылками MOSS")
