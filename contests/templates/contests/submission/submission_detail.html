@@ -236,6 +236,10 @@ const footprintChartConfig = {
     type: 'line',
     data: footprintData,
     options: {
+        interaction: {
+            intersect: false
+        },
+        radius: 0,
         responsive: true,
         plugins: {
             legend: {
