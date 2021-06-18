@@ -208,7 +208,7 @@ $(function () {
 {% if submission.problem.type == 'Text' and perms.contests.change_submission %}
 <script>
 
-const interval = 2;
+const interval = 10;
 
 let footprint = JSON.parse("{{ submission.footprint }}");
 let labels = Array(footprint.length)
