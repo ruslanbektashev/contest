@@ -96,7 +96,10 @@
     </div>
 </div>
 {% if perms.contests.change_submission %}
-<div class="card mb-3">
+<button class="btn btn-{% if submission.has_footprint_increments %}warning{% else %}success{% endif %} mb-3" type="button" data-toggle="collapse" data-target="#collapseChart" aria-expanded="false" aria-controls="collapseChart">
+    Показать график
+</button>
+<div class="card mb-3 collapse" id="collapseChart">
     <div class="card-body">
         <canvas id="footprintChart" height="120"></canvas>
     </div>

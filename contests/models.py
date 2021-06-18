@@ -3,6 +3,7 @@ import io
 import os
 import random
 import zipfile
+import json
 
 from statistics import mean
 from ckeditor.fields import RichTextField
@@ -810,6 +811,19 @@ class Submission(CRDEntry):
     @property
     def files(self):
         return [attachment.file.path for attachment in self.attachment_set.all()]
+
+    @property
+    def has_footprint_increments(self) -> bool:
+        if self.problem.type != 'Text':
+            return False
+        footprint = json.loads(self.footprint)
+        if isinstance(footprint, list):
+            prev = 0
+            for cur in footprint:
+                if cur - prev > 50:
+                    return True
+                prev = cur
+        return False
 
     def get_files_as_zip(self):
         stream = io.BytesIO()
