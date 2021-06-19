@@ -14,7 +14,12 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Отправить решение</legend>
+<legend>
+    Отправить решение
+    {% if main_problem and assignment.deadline is not None and assignment.deadline > current_time %}
+    <span id="countdown_wrapper" class="text-muted pull-right">осталось: <span id="countdown_to_deadline"></span></span>
+    {% endif %}
+</legend>
 
 {% if problem.type == 'Text' or problem.type == 'Options' or problem.type == 'Files' %}
 <p>{{ problem.description|safe }}</p>
@@ -100,7 +105,7 @@ let measurements = [];
 function getText() {
     let text = CKEDITOR.instances['id_text'].document.getBody().getText();
     measurements.push(text.length);
-    document.getElementById("id_footprint").value = JSON.stringify(measurements);;
+    document.getElementById("id_footprint").value = JSON.stringify(measurements);
 }
 
 function watchText(ms) {
@@ -109,6 +114,14 @@ function watchText(ms) {
 
 window.addEventListener('load', watchText);
 
+</script>
+{% endif %}
+{% if main_problem and assignment.deadline %}
+<script src="{% static 'js/countdown.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function() {
+    startCountdown("{{ assignment.deadline.isoformat }}");
+});
 </script>
 {% endif %}
 {% endblock javascript %}

@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views accounts contests %}
+{% load views accounts contests static %}
 
 {% block title %}
 Задание
@@ -31,9 +31,9 @@
     <tr>
         <td class="text-right" style="width: 20%;">
         {% if assignment.deadline > current_time %}
-        Посылки принимаются до</td><td>{{ assignment.deadline }} (осталось {{ assignment.deadline|timeuntil:current_time }})
+            Посылки принимаются до</td><td>{{ assignment.deadline }} <span id="countdown_wrapper">(осталось: <span id="countdown_to_deadline"></span>)</span>
         {% else %}
-        Посылки принимались до</td><td>{{ assignment.deadline }}
+            Посылки принимались до</td><td>{{ assignment.deadline }}
         {% endif %}
         </td>
     </tr>
@@ -77,3 +77,12 @@
     {% endif %}
 </div>
 {% endblock submenu %}
+
+{% block javascript %}
+<script src="{% static 'js/countdown.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function() {
+    startCountdown("{{ assignment.deadline.isoformat }}");
+});
+</script>
+{% endblock javascript %}
