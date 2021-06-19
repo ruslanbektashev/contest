@@ -813,7 +813,7 @@ class Submission(CRDEntry):
         return [attachment.file.path for attachment in self.attachment_set.all()]
 
     @property
-    def has_footprint_increments(self) -> bool:
+    def has_footprint_increments(self):
         if self.problem.type != 'Text':
             return False
         footprint = json.loads(self.footprint)
