@@ -1244,7 +1244,7 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
                                                                             assignment=self.storage['assignment'])
         else:
             form.instance.assignment = self.storage['assignment']
-        form.instance.main_submission = self.storage['main_submission']
+        form.instance.main_submission = self.storage.get('main_submission')
 
         self.object = form.save()
         if self.object.problem.type == 'Program' and self.object.problem.is_testable:
