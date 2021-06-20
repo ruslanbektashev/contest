@@ -777,7 +777,7 @@ class Submission(CRDEntry):
                                         verbose_name="Подпосылки")
     options = models.ManyToManyField(Option, verbose_name="Варианты ответа")
 
-    footprint = models.TextField(null=True, blank=True)
+    footprint = models.TextField(default="[]")
     status = models.CharField(max_length=2, choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
     score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE, verbose_name="Оценка в баллах")
     text = RichTextField(null=True, blank=True, verbose_name="Текст ответа", config_name='minimal')
@@ -814,7 +814,7 @@ class Submission(CRDEntry):
 
     @property
     def has_footprint_increments(self):
-        if self.problem.type != 'Text':
+        if self.problem.type != 'Text' or not self.footprint:
             return False
         footprint = json.loads(self.footprint)
         if isinstance(footprint, list):

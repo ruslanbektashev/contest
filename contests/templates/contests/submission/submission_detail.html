@@ -95,7 +95,7 @@
         {{ submission.text|safe }}
     </div>
 </div>
-{% if perms.contests.change_submission %}
+{% if perms.contests.change_submission and submission.footprint %}
 <button class="btn btn-{% if submission.has_footprint_increments %}warning{% else %}success{% endif %} mb-3" type="button" data-toggle="collapse" data-target="#collapseChart" aria-expanded="false" aria-controls="collapseChart">
     Показать график
 </button>
