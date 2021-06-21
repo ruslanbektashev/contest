@@ -65,7 +65,9 @@
 {% if submission.problem.type == 'Program' or submission.problem.type == 'Files' %}
 <div class="text-right text-muted">
     {% if perms.contests.download_submission %}
-    <p class="text-warning text-break" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>директория на сервере: {{ submission.attachment_set.all.0.dirname }}</p>
+    <p class="text-warning text-break" title="Отображается только преподавателям">
+        <i class="fa fa-lock fa-fw"></i>директория на сервере: {{ submission.attachment_set.all.0.dirname }}
+    </p>
     {% endif %}
     {% if perms.contests.moss_submission %}
         {% if submission.moss_to_submissions %}
@@ -96,9 +98,20 @@
     </div>
 </div>
 {% if perms.contests.change_submission and submission.footprint %}
-<button class="btn btn-{% if submission.has_footprint_increments %}warning{% else %}success{% endif %} mb-3" type="button" data-toggle="collapse" data-target="#collapseChart" aria-expanded="false" aria-controls="collapseChart">
-    Показать график
-</button>
+<div class="text-right">
+{% if submission.has_footprint_increments %}
+    <span class="text-warning">
+        Обнаружена вставка текста.
+    </span>
+{% else %}
+    <span class="text-success">
+        Вставка текста не обнаружена.
+    </span>
+{% endif %}
+    <button class="btn btn-link px-0" onclick="toggleText(this, 'Показать график', 'Скрыть график')" data-toggle="collapse" data-target="#collapseChart" aria-expanded="false" aria-controls="collapseChart" title="Отображается только преподавателям">
+        Показать график
+    </button>
+</div>
 <div class="card mb-3 collapse" id="collapseChart">
     <div class="card-body">
         <canvas id="footprintChart" height="120"></canvas>
@@ -190,15 +203,28 @@
 {% endblock content %}
 
 {% block javascript %}
-<script type="text/javascript" src="{% static 'js/submissions.js' %}"></script>
+<script src="{% static 'js/submissions.js' %}" type="text/javascript"></script>
+<script src="{% static 'js/utils.js' %}" type="text/javascript"></script>
 <script src="{% static 'waypoints/lib/jquery.waypoints.min.js' %}" type="text/javascript"></script>
 <script src="{% static 'waypoints/lib/shortcuts/infinite.min.js' %}" type="text/javascript"></script>
 <script>
-    var infinite = new Waypoint.Infinite({
-        element: $('.comment-list')[0],
-        items: '.comment-list-item',
-        more: '.comment-list-more'
-    });
+document.addEventListener("DOMContentLoaded", function() {
+    let elements = document.querySelectorAll('.execution-collapse-toggle');
+    for (let elem of elements) {
+        elem.addEventListener("click", function () {
+            elem.firstChild.classList.toggle("fa-angle-up");
+            elem.firstChild.classList.toggle("fa-angle-down");
+            //toggleHTML(elem, '<i class="fa fa-angle-down fa-lg"></i>', '<i class="fa fa-angle-up fa-lg"></i>');
+        });
+    }
+});
+</script>
+<script>
+var infinite = new Waypoint.Infinite({
+    element: $('.comment-list')[0],
+    items: '.comment-list-item',
+    more: '.comment-list-more'
+});
 </script>
 <script type="text/javascript">
 {% if submission.task_id %}
