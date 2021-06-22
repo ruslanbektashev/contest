@@ -1,4 +1,6 @@
 from datetime import date, datetime
+
+from django.core.exceptions import PermissionDenied
 from django.forms.models import inlineformset_factory
 from django.utils import timezone
 
@@ -1195,9 +1197,14 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         problem = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
 
         try:
-            self.storage['assignment'] = Assignment.objects.get(user=self.request.user, problem=problem)
+            assignment = Assignment.objects.get(user=self.request.user, problem=problem)
         except Assignment.DoesNotExist:
-            self.storage['assignment'] = None
+            assignment = None
+
+        if assignment:
+            nsubmissions = Submission.objects.filter(owner=self.request.user, problem=problem).count()
+            if nsubmissions >= assignment.submission_limit:
+                raise PermissionDenied()
 
         if problem.type == 'Test':
             self.storage['main_problem'] = problem
