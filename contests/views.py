@@ -1201,6 +1201,8 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         except Assignment.DoesNotExist:
             assignment = None
 
+        self.storage['assignment'] = assignment
+
         if assignment:
             nsubmissions = Submission.objects.filter(owner=self.request.user, problem=problem).count()
             if nsubmissions >= assignment.submission_limit:
