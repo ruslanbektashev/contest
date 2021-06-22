@@ -414,18 +414,83 @@ def grouped_problems(course, contest, multiple=False):
 """=================================================== Submission ==================================================="""
 
 
-class SubmissionAttachmentForm(AttachmentForm):
+class SubmissionForm(forms.ModelForm):
+    class Meta:
+        abstract = True
+        model = Submission
+        fields = []
+
+    def __init__(self, *args, **kwargs):
+        self.owner = kwargs.pop('owner')
+        self.problem = kwargs.pop('problem')
+        self.assignment = kwargs.pop('assignment')
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        if self.problem.is_testable:
+            last_submission = self.problem.get_latest_submission_by(self.owner)
+            if last_submission and last_submission.is_un:
+                raise ValidationError("Последнее присланное решение еще не проверено",
+                                      code='last_submission_is_un')
+        if self.assignment is not None:
+            if self.assignment.deadline is not None and self.assignment.deadline < timezone.now():
+                raise ValidationError("Время приема посылок по Вашему заданию истекло",
+                                      code='assignment_deadline_reached')
+            if self.assignment.get_submissions().count() >= self.assignment.submission_limit:
+                raise ValidationError("Количество попыток исчерпано", code='submission_limit_reached')
+        return super().clean()
+
+
+class SubmissionAttachmentForm(SubmissionForm, AttachmentForm):
     FILES_MIN = 1
+
+    class Meta:
+        abstract = True
+        model = Submission
+        fields = []
+
+
+class SubmissionTextForm(SubmissionForm):
+    class Meta:
+        model = Submission
+        fields = ['text', 'footprint']
+        widgets = {'footprint': forms.HiddenInput}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['text'].required = True
+
+
+class SubmissionOptionsForm(forms.ModelForm):
+    class Meta:
+        model = Submission
+        fields = ['options']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        options = self.problem.option_set.all()
+        if options.filter(is_correct=True).count() > 1:
+            widget = BootstrapCheckboxSelect()
+        else:
+            widget = BootstrapRadioSelect()
+            widget.allow_multiple_selected = True
+        self.fields['options'] = forms.ModelMultipleChoiceField(required=True, label="Варианты",  queryset=options,
+                                                                widget=widget)
+
+
+class SubmissionFilesForm(SubmissionAttachmentForm):
+    FILES_SIZE_LIMIT = 10 * 1024 * 1024
+    FILES_ALLOWED_EXTENSIONS = ['.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf', '.png', '.jpg', '.jpeg']
 
     class Meta:
         model = Submission
         fields = []
 
-    def __init__(self, *args, **kwargs):
-        self.owner = kwargs.pop('owner', None)
-        self.problem = kwargs.pop('problem', None)
-        self.assignment = kwargs.pop('assignment', None)
-        super().__init__(*args, **kwargs)
+
+class SubmissionProgramForm(SubmissionAttachmentForm):
+    class Meta:
+        model = Submission
+        fields = []
 
     def clean_files(self):
         files = super().clean_files()
@@ -438,10 +503,10 @@ class SubmissionAttachmentForm(AttachmentForm):
                 raise ValidationError("Количество файлов не соответствует комплекту поставки решения", code='no_match')
             label = None
             for f in files:
-                for ptn in patterns:
-                    match = re.match(ptn, f.name)
+                for pattern in patterns:
+                    match = re.match(pattern, f.name)
                     if match:
-                        patterns.remove(ptn)
+                        patterns.remove(pattern)
                         if label is None:
                             label = match.group(1)
                         elif label != match.group(1):
@@ -455,78 +520,6 @@ class SubmissionAttachmentForm(AttachmentForm):
                 raise ValidationError("Идентификатор %(label)s не соответствует комплекту поставки решения",
                                       code='wrong_label', params={'label': label})
         return files
-
-    def clean(self):
-        if self.problem.is_testable:
-            last_submission = self.problem.get_latest_submission_by(self.owner)
-            if last_submission and last_submission.is_un:
-                raise ValidationError("Последнее присланное решение еще не проверено",
-                                      code='last_submission_is_un')
-        try:
-            assignment = Assignment.objects.get(user=self.owner, problem=self.problem)
-        except ObjectDoesNotExist:
-            pass
-        else:
-            nsubmissions = Submission.objects.filter(owner=self.owner, problem=self.problem).count()
-            if nsubmissions >= assignment.submission_limit:
-                raise ValidationError("Количество попыток исчерпано", code='limit_reached')
-        return super().clean()
-
-
-class SubmissionTextForm(forms.ModelForm):
-    class Meta:
-        model = Submission
-        fields = ['text', 'footprint']
-        widgets = {'footprint': forms.HiddenInput}
-
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('owner', None)
-        kwargs.pop('problem', None)
-        self.assignment = kwargs.pop('assignment', None)
-        super().__init__(*args, **kwargs)
-        self.fields['text'].required = True
-
-    def clean(self):
-        if self.assignment is not None and self.assignment.deadline is not None:
-            if self.assignment.deadline < timezone.now():
-                raise ValidationError("Время приема посылок по Вашему заданию истекло", code="deadline_reached")
-        return super().clean()
-
-
-class SubmissionFilesForm(AttachmentForm):
-    FILES_MIN = 1
-    FILES_SIZE_LIMIT = 10 * 1024 * 1024
-    FILES_ALLOWED_EXTENSIONS = ['.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf', '.png', '.jpg', '.jpeg']
-
-    class Meta:
-        model = Submission
-        fields = []
-
-    def __init__(self, *args, **kwargs):
-        self.owner = kwargs.pop('owner', None)
-        self.problem = kwargs.pop('problem', None)
-        self.assignment = kwargs.pop('assignment', None)
-        super().__init__(*args, **kwargs)
-
-
-class SubmissionOptionsForm(forms.ModelForm):
-    class Meta:
-        model = Submission
-        fields = ['options']
-
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('owner', None)
-        problem = kwargs.pop('problem')
-        self.assignment = kwargs.pop('assignment', None)
-        super().__init__(*args, **kwargs)
-        options = problem.option_set.all()
-        if options.filter(is_correct=True).count() > 1:
-            widget = BootstrapCheckboxSelect()
-        else:
-            widget = BootstrapRadioSelect()
-            widget.allow_multiple_selected = True
-        self.fields['options'] = forms.ModelMultipleChoiceField(required=True, label="Варианты",  queryset=options,
-                                                                widget=widget)
 
 
 class SubmissionUpdateForm(forms.ModelForm):

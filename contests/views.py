@@ -29,7 +29,7 @@ from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, Log
 from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, AssignmentUpdatePartialForm,
                             ContestForm, ContestPartialForm, CourseForm, CreditSetForm, EventForm, FNTestForm,
                             OptionBaseFormSet, OptionForm, ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm,
-                            ProblemRollbackResultsForm, ProblemTestForm, SubmissionAttachmentForm, SubmissionFilesForm,
+                            ProblemRollbackResultsForm, ProblemTestForm, SubmissionProgramForm, SubmissionFilesForm,
                             SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm,
                             SubmissionUpdateForm, UTTestForm)
 from contests.models import (Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, Filter, IOTest,
@@ -1197,16 +1197,9 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         problem = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
 
         try:
-            assignment = Assignment.objects.get(user=self.request.user, problem=problem)
+            self.storage['assignment'] = Assignment.objects.get(user=self.request.user, problem=problem)
         except Assignment.DoesNotExist:
-            assignment = None
-
-        self.storage['assignment'] = assignment
-
-        if assignment:
-            nsubmissions = Submission.objects.filter(owner=self.request.user, problem=problem).count()
-            if nsubmissions >= assignment.submission_limit:
-                raise PermissionDenied()
+            self.storage['assignment'] = None
 
         if problem.type == 'Test':
             self.storage['main_problem'] = problem
@@ -1240,7 +1233,7 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         elif problem.type == 'Files':
             return SubmissionFilesForm
         else:
-            return SubmissionAttachmentForm
+            return SubmissionProgramForm
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
