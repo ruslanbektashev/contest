@@ -461,13 +461,12 @@ class SubmissionTextForm(SubmissionForm):
         self.fields['text'].required = True
 
 
-class SubmissionOptionsForm(forms.ModelForm):
+class SubmissionOptionsForm(SubmissionForm):
     class Meta:
         model = Submission
         fields = ['options']
 
     def __init__(self, *args, **kwargs):
-        self.problem = kwargs.pop("problem")
         super().__init__(*args, **kwargs)
         options = self.problem.option_set.all()
         if options.filter(is_correct=True).count() > 1:
