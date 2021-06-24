@@ -1219,9 +1219,11 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['owner'] = self.request.user
+        problem = self.storage['problem']
+        if problem.type != 'Options':
+            kwargs['owner'] = self.request.user
+            kwargs['assignment'] = self.storage['assignment']
         kwargs['problem'] = self.storage['problem']
-        kwargs['assignment'] = self.storage['assignment']
         return kwargs
 
     def get_form_class(self):

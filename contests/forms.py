@@ -467,6 +467,7 @@ class SubmissionOptionsForm(forms.ModelForm):
         fields = ['options']
 
     def __init__(self, *args, **kwargs):
+        self.problem = kwargs.pop("problem")
         super().__init__(*args, **kwargs)
         options = self.problem.option_set.all()
         if options.filter(is_correct=True).count() > 1:
