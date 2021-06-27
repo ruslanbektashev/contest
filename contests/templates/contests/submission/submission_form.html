@@ -83,6 +83,26 @@
     {% endif %}
     {% render_submit_button value="Отправить" %}
 </form>
+
+{% if pending_sub_problems %}
+<h6 class="text-muted">Другие задачи теста:</h6>
+<div class="list-group mb-0">
+    {% if main_submission %}
+        {% for sub_problem in pending_sub_problems %}
+        <a href="{% url 'contests:sub-submission-create' main_problem.id main_submission.id %}?sub_problem={{ sub_problem.id }}" class="list-group-item list-group-item-action d-flex" title="{{ sub_problem.get_type_display }}">
+            {{ sub_problem }}
+        </a>
+        {% endfor %}
+    {% else %}
+        {% for sub_problem in pending_sub_problems %}
+        <a href="{% url 'contests:submission-create' main_problem.id %}?sub_problem={{ sub_problem.id }}" class="list-group-item list-group-item-action d-flex" title="{{ sub_problem.get_type_display }}">
+            {{ sub_problem }}
+        </a>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endif %}
+
 {% endblock content %}
 
 {% block javascript %}

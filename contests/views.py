@@ -1203,18 +1203,38 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
         if problem.type == 'Test':
             self.storage['main_problem'] = problem
+
+            sub_problem_id = request.GET.get("sub_problem")
             main_submission_id = kwargs.pop('submission_id', None)
+
+            sub_problem = None
             if main_submission_id:
                 main_submission = get_object_or_404(Submission, id=main_submission_id)
                 self.storage['main_submission'] = main_submission
-                current_problem = problem.sub_problems.exclude(submission__in=main_submission.sub_submissions.all()).first()
-                if not current_problem:
+
+                pending_sub_problems = problem.sub_problems.exclude(submission__in=main_submission.sub_submissions.all())
+
+                if sub_problem_id and sub_problem_id.isdigit():
+                    sub_problem = pending_sub_problems.filter(id=sub_problem_id).first()
+
+                if sub_problem is None:
+                    sub_problem = pending_sub_problems.first()
+
+                if sub_problem is None:
                     return HttpResponseRedirect(reverse('contests:submission-detail', kwargs={'pk': main_submission.id}))
-                self.storage['problem'] = current_problem
+
+                self.storage['problem'] = sub_problem
             else:
-                self.storage['problem'] = problem.sub_problems.first()
+                if sub_problem_id and sub_problem_id.isdigit():
+                    sub_problem = problem.sub_problems.filter(id=sub_problem_id).first()
+
+                if sub_problem is None:
+                    sub_problem = problem.sub_problems.first()
+
+                self.storage['problem'] = sub_problem
         else:
             self.storage['problem'] = problem
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -1260,16 +1280,30 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['problem'] = self.storage['problem']
+        problem = self.storage['problem']
+
+        context['problem'] = problem
         context['assignment'] = self.storage['assignment']
-        context['main_problem'] = self.storage.get('main_problem')
+
+        main_problem = self.storage.get('main_problem')
+
+        if main_problem:
+            context['main_problem'] = main_problem
+            main_submission = self.storage.get('main_submission')
+
+            if main_submission:
+                context['main_submission'] = main_submission
+                context['pending_sub_problems'] = main_problem.sub_problems.exclude(submission__in=main_submission.sub_submissions.all()).exclude(id=problem.id)
+            else:
+                context['pending_sub_problems'] = main_problem.sub_problems.exclude(id=problem.id)
+
         context['current_time'] = timezone.now()
         return context
 
     def get_success_url(self):
         if 'main_problem' in self.storage:
             main_submission = self.storage['main_submission']
-            return reverse('contests:submission-continue',
+            return reverse('contests:sub-submission-create',
                            kwargs={'problem_id': main_submission.problem.id, 'submission_id': main_submission.id})
         return super().get_success_url()
 
