@@ -540,6 +540,17 @@ class SubmissionUpdateForm(forms.ModelForm):
             raise ValidationError("Посылки к этой задаче проверяются автоматически", code='problem_is_testable')
         return super().clean()
 
+    def save(self, commit=True):
+        instance = super().save(commit)
+
+        if instance.main_submission is not None:
+            if 'status' in self.changed_data:
+                instance.main_submission.update_test_status()
+            elif 'score' in self.changed_data:
+                instance.main_submission.update_test_score()
+
+        return instance
+
 
 class ToSubmissionsChoiceField(forms.ModelMultipleChoiceField):
     def label_from_instance(self, obj):
