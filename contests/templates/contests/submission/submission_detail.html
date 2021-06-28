@@ -15,7 +15,7 @@
 
 {% block content %}
 <legend>
-    Посылка {{ submission.id }}
+    {% if submission.main_submission %}Подп{% else %}П{% endif %}осылка {{ submission.id }}
     {% if perms.contests.delete_submission %}
     <a href="{% url 'contests:submission-delete' submission.id %}" class="text-danger text-decoration-none pull-right" data-toggle="popover" data-placement="top" data-content="Удалить посылку" style="position: relative; top: -0.08rem;"><i class="fa fa-times fa-fw"></i></a>
     {% endif %}
@@ -28,6 +28,12 @@
     <tr><td class="text-right" style="width: 20%;">К задаче</td><td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td></tr>
     {% if submission.assignment %}
     <tr><td class="text-right" style="width: 20%;">По заданию</td><td><a href="{{ submission.assignment.get_absolute_url }}"><span class="numtus status-{{ submission.assignment.score|colorize }}">{{ submission.assignment.score|default:'-' }}</span></a></td></tr>
+    {% endif %}
+    {% if submission.main_submission %}
+    <tr><td class="text-right" style="width: 20%;">Основная посылка</td><td><a href="{{ submission.main_submission.get_absolute_url }}"><span class="numtus status-{{ submission.main_submission.status|colorize }}">{{ submission.main_submission.status }}</span></a></td></tr>
+    {% if submission.main_submission.assignment %}
+    <tr><td class="text-right" style="width: 20%;">По заданию</td><td><a href="{{ submission.main_submission.assignment.get_absolute_url }}"><span class="numtus status-{{ submission.main_submission.assignment.score|colorize }}">{{ submission.main_submission.assignment.score|default:'-' }}</span></a></td></tr>
+    {% endif %}
     {% endif %}
     <tr><td class="text-right" style="width: 20%;">Отправлена</td><td>{{ submission.date_created }}</td></tr>
     {% if submission.date_updated %}
@@ -97,6 +103,8 @@
 </div>
 {% if perms.contests.change_submission and submission.footprint %}
 <div class="text-right">
+<span data-toggle="popover" data-placement="left" data-content="Отображается только преподавателям">
+    <i class="fa fa-lock fa-fw"></i>
 {% if submission.has_footprint_increments %}
     <span class="text-warning">
         Обнаружена вставка текста.
@@ -109,6 +117,7 @@
     <button class="btn btn-link px-0" onclick="toggleText(this, 'Показать график', 'Скрыть график')" data-toggle="collapse" data-target="#collapseChart" aria-expanded="false" aria-controls="collapseChart" title="Отображается только преподавателям">
         Показать график
     </button>
+</span>
 </div>
 <div class="card mb-3 collapse" id="collapseChart">
     <div class="card-body">
