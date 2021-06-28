@@ -424,6 +424,7 @@ class SubmissionForm(forms.ModelForm):
         self.owner = kwargs.pop('owner')
         self.problem = kwargs.pop('problem')
         self.assignment = kwargs.pop('assignment')
+        self.main_submission = kwargs.pop('main_submission', None)
         super().__init__(*args, **kwargs)
 
     def clean(self):
@@ -436,7 +437,8 @@ class SubmissionForm(forms.ModelForm):
             if self.assignment.deadline is not None and self.assignment.deadline < timezone.now():
                 raise ValidationError("Время приема посылок по Вашему заданию истекло",
                                       code='assignment_deadline_reached')
-            if self.assignment.get_submissions().count() >= self.assignment.submission_limit:
+            submission_count = self.assignment.get_submissions().count()
+            if submission_count >= self.assignment.submission_limit and self.main_submission is None:
                 raise ValidationError("Количество попыток исчерпано", code='submission_limit_reached')
         return super().clean()
 
