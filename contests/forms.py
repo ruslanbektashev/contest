@@ -542,13 +542,11 @@ class SubmissionUpdateForm(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit)
-
         if instance.main_submission is not None:
             if 'status' in self.changed_data:
                 instance.main_submission.update_test_status()
-            elif 'score' in self.changed_data:
+            if 'score' in self.changed_data:
                 instance.main_submission.update_test_score()
-
         return instance
 
 

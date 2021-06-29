@@ -865,7 +865,6 @@ class Submission(CRDEntry):
     def update_test_status(self):
         statuses = (choice[0] for choice in self.STATUS_CHOICES)
         acquired_statuses = set(self.sub_submissions.values_list('status', flat=True))
-
         for status in statuses:
             if status in acquired_statuses:
                 self.status = status
