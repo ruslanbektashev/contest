@@ -56,7 +56,7 @@
 </div>
 {% if not submission.problem.type == 'Program' or not submission.problem.is_testable %}
 {% if perms.contests.change_submission %}
-<a href="{% url 'contests:submission-update' submission.id %}{% if from_url %}?from={{ from_url }}{% endif %}" class="btn btn-light btn-block border mb-3">Изменить статус</a>
+<a href="{% url 'contests:submission-update' submission.id %}{% if from_url %}?from={{ from_url }}{% endif %}" class="btn btn-light btn-block border mb-3">Изменить оценку</a>
 {% endif %}
 {% elif submission.is_un %}
 <a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url %}?from={{ from_url }}{% endif %}" class="btn btn-light btn-block border mb-3">Проверить</a>
@@ -141,25 +141,32 @@
 {% for sub_submission in submission.sub_submissions.all %}
 <div class="card mb-3">
     <div class="card-header d-flex align-items-center">
-        <small class="mr-3" title="Номер в тесте">{{ sub_submission.problem.number }}</small>
+        <small class="mr-3" data-toggle="popover" data-placement="top" data-content="Номер в тесте">{{ sub_submission.problem.number }}</small>
         {% if sub_submission.problem.title %}
-        <small class="mr-auto" title="Перейти к задаче">
+        <small class="mr-auto">
             <a href="{% url 'contests:problem-detail' sub_submission.problem.id %}" class="card-link">
                 {{ sub_submission.problem.title }}
             </a>
         </small>
         {% endif %}
+        {% if perms.contests.change_submission and sub_submission.problem.type == 'Text' %}
+        {% if sub_submission.has_footprint_increments %}
+        <span class="text-warning mr-2" data-toggle="popover" data-placement="top" data-content="Обнаружена вставка текста" style="position: relative; top: -0.08em;"><i class="fa fa-exclamation-triangle fa-fw fa-lg"></i></span>
+        {% else %}
+        <span class="text-success mr-2" data-toggle="popover" data-placement="top" data-content="Вставка текста не обнаружена" style="position: relative; top: -0.08em;"><i class="fa fa-check-circle fa-fw fa-lg"></i></span>
+        {% endif %}
+        {% endif %}
         <small>{{ sub_submission.problem.get_type_display }}</small>
-        {% if perms.contests.change_subproblem and perms.contests.delete_subproblem %}
-        <a href="{% url 'contests:submission-update' sub_submission.id %}" class="card-link ml-3" title="Изменить статус">
+        {% if perms.contests.change_submission %}
+        <a href="{% url 'contests:submission-update' sub_submission.id %}" class="card-link ml-3" data-toggle="popover" data-placement="top" data-content="Изменить оценку">
             <i class="fa fa-edit fa-fw fa-lg"></i>
         </a>
         {% endif %}
-        <a href="{{ sub_submission.get_absolute_url }}" class="status status-{{ sub_submission.status|colorize }} ml-3" title="{{ sub_submission.get_status_display }}">
+        <a href="{{ sub_submission.get_absolute_url }}" class="status status-{{ sub_submission.status|colorize }} ml-3" title="{{ sub_submission.get_status_display }}" data-toggle="popover" data-placement="top" data-content="Перейти к посылке">
             {{ sub_submission.status }}
         </a>
     </div>
-    <div class="card-body">
+    <div class="card-body bg-light">
         {{ sub_submission.problem.description|safe }}
         <h6 class="text-muted">Ответ:</h6>
         {% if sub_submission.problem.type == 'Program' or sub_submission.problem.type == 'Files' %}
