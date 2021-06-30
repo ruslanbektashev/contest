@@ -1,5 +1,5 @@
-{% extends 'base.html' %}
-{% load views %}
+{% extends 'base_wide.html' %}
+{% load views contests %}
 
 {% block title %}
 Курсы
@@ -11,14 +11,42 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Курсы</legend>
-{% include 'list.html' with lst=courses warn_if_empty="Курсы еще не добавлены" %}
-{% endblock content %}
-
-{% block submenu %}
-<div class="list-group mb-3">
+<legend>
+    Курсы
     {% if perms.contests.add_course %}
-    <a href="{% url 'contests:course-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить курс</a>
+    <a href="{% url 'contests:course-create' %}" class="text-success text-decoration-none pull-right" data-toggle="popover" data-placement="left" data-content="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
     {% endif %}
+</legend>
+{% if request.user.account.is_instructor %}
+{% if courses %}
+<div class="table-responsive mb-3">
+    <table class="table">
+        <thead>
+            <th>Название</th>
+            <th class="text-center">Средняя оценка</th>
+            <th class="text-center">Сложность</th>
+        </thead>
+        <tbody>
+            {% for course in courses %}
+            <tr>
+                <td style="vertical-align: middle;"><a href="{{ course.get_absolute_url }}" class="mr-auto text-truncate">{{ course }}</a></td>
+                <td class="text-center" style="vertical-align: middle; width: 14%;">
+                    <span class="text-{{ course.avg_credit_score|colorize_course_avg_score }}"><strong>{{ course.avg_credit_score }}</strong></span>
+                </td>
+                <td class="text-center" style="vertical-align: middle; width: 14%;">
+                    <span class="numtus status-{{ course.difficulty|colorize_course_difficulty }}">{{ course.difficulty|course_difficulty }}</span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
-{% endblock submenu %}
+{% else %}
+<div class="alert alert-info mb-3" role="alert">
+    Курсы еще не добавлены
+</div>
+{% endif %}
+{% else %}
+{% include 'list.html' with lst=courses warn_if_empty="Курсы еще не добавлены" %}
+{% endif %}
+{% endblock content %}

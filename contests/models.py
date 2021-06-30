@@ -3,7 +3,9 @@ import io
 import os
 import random
 import zipfile
+import json
 
+from statistics import mean
 from ckeditor.fields import RichTextField
 from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth.models import User
@@ -94,6 +96,23 @@ class Course(CRUDEntry):
         ordering = ('level', 'id')
         verbose_name = "Курс"
         verbose_name_plural = "Курсы"
+
+    @property
+    def avg_credit_score(self):
+        credit_scores = Credit.objects.filter(course=self).exclude(score=0).values_list('score', flat=True)
+        return round(mean(credit_scores), 1) if credit_scores else 0
+
+    @property
+    def difficulty(self):
+        avg_credit_score = self.avg_credit_score
+        difficulty = 0
+        if avg_credit_score >= 4.5:
+            difficulty = 1
+        elif avg_credit_score >= 3.5:
+            difficulty = 2
+        elif avg_credit_score >= 2:
+            difficulty = 3
+        return difficulty
 
     def get_latest_submissions(self):
         return Submission.objects.filter(assignment__isnull=False, problem__contest__course=self)
@@ -323,7 +342,7 @@ class Problem(CRUDEntry):
     def get_assignment_score(self, submission):
         if self.type == 'Program':
             score = 2
-            if submission.status == 'OK':
+            if submission.is_ok:
                 score = 4
             elif submission.status in ['TF', 'TR', 'WA', 'NA']:
                 score = 3
@@ -600,7 +619,7 @@ class AssignmentQuerySet(models.QuerySet):
 
 
 class AssignmentManager(models.Manager):
-    def create_random_set(self, owner, contest, type, limit_per_user, debts=False):
+    def create_random_set(self, owner, contest, type, limit_per_user, submission_limit, deadline, debts=False):
         """ create random set of assignments with problems of given contest
             aligning their number to limit_per_user for contest.course.level students """
         problem_ids = contest.problem_set.filter(type=type).order_by('number').values_list('id', flat=True)
@@ -627,7 +646,10 @@ class AssignmentManager(models.Manager):
                 for to_assign_problem_id in to_assign_problem_id_list:
                     new_assignment = Assignment(owner_id=owner.id,
                                                 user_id=user_id,
-                                                problem_id=to_assign_problem_id)
+                                                problem_id=to_assign_problem_id,
+                                                submission_limit=submission_limit)
+                    if deadline is not None:
+                        new_assignment.deadline = deadline
                     new_assignments.append(new_assignment)
         Assignment.objects.bulk_create(new_assignments)
 
@@ -646,6 +668,7 @@ class Assignment(CRUDEntry):
     score_is_locked = models.BooleanField(default=False, verbose_name="Оценка заблокирована", help_text="заблокированная оценка не может быть изменена системой автоматической проверки")
     submission_limit = models.PositiveSmallIntegerField(default=DEFAULT_SUBMISSION_LIMIT, verbose_name="Ограничение количества посылок")
     remark = models.CharField(max_length=255, blank=True, verbose_name="Пометка", help_text="для преподавателей")
+    deadline = models.DateTimeField(null=True, blank=True, verbose_name="Принимать посылки до")
 
     comment_set = GenericRelation(Comment, content_type_field='object_type')
     subscription_set = GenericRelation(Subscription, content_type_field='object_type')
@@ -757,9 +780,10 @@ class Submission(CRDEntry):
                                         verbose_name="Подпосылки")
     options = models.ManyToManyField(Option, verbose_name="Варианты ответа")
 
+    footprint = models.TextField(default="[]")
     status = models.CharField(max_length=2, choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
     score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE, verbose_name="Оценка в баллах")
-    text = RichTextField(null=True, blank=True, verbose_name="Текст ответа")
+    text = RichTextField(null=True, blank=True, verbose_name="Текст ответа", config_name='minimal')
     task_id = models.UUIDField(null=True, blank=True, verbose_name="Идентификатор асинхронной задачи")
     moss_to_submissions = models.CharField(max_length=200, null=True, validators=[validate_comma_separated_integer_list],
                                            verbose_name="С посылками MOSS")
@@ -790,6 +814,19 @@ class Submission(CRDEntry):
     @property
     def files(self):
         return [attachment.file.path for attachment in self.attachment_set.all()]
+
+    @property
+    def has_footprint_increments(self):
+        if self.problem.type != 'Text' or not self.footprint:
+            return False
+        footprint = json.loads(self.footprint)
+        if isinstance(footprint, list):
+            prev = 0
+            for cur in footprint:
+                if cur - prev > 50:
+                    return True
+                prev = cur
+        return False
 
     def get_files_as_zip(self):
         stream = io.BytesIO()
@@ -825,18 +862,17 @@ class Submission(CRDEntry):
     def update_test_score(self):
         max_score = sum(self.problem.sub_problems.values_list('problem__score_max', flat=True))
         scores_sum = sum(self.sub_submissions.values_list('score', flat=True))
-        percentage = scores_sum * 100 // max_score
-        self.status = 'OK'
-        if percentage >= self.problem.score_for_5:
-            self.score = 5
-        elif percentage >= self.problem.score_for_4:
-            self.score = self.problem.score_for_4
-        elif percentage >= self.problem.score_for_3:
-            self.score = self.problem.score_for_3
-        else:
-            self.score = 2
-            self.status = 'TF'
-        super().save(update_fields=['score', 'status'])
+        self.score = scores_sum * 100 // max_score
+        self.save()
+
+    def update_test_status(self):
+        statuses = (choice[0] for choice in self.STATUS_CHOICES)
+        acquired_statuses = set(self.sub_submissions.values_list('status', flat=True))
+        for status in statuses:
+            if status in acquired_statuses:
+                self.status = status
+                self.save()
+                return
 
     def update_options_score(self):
         correct_option_ids = set(self.problem.option_set.filter(is_correct=True).values_list('id', flat=True))
@@ -847,7 +883,7 @@ class Submission(CRDEntry):
         else:
             self.score = 0
             self.status = 'WA'
-        super().save(update_fields=['score', 'status'])
+        self.save()
 
     def get_discussion_url(self):
         return self.get_absolute_url()
@@ -857,10 +893,12 @@ class Submission(CRDEntry):
         super().save(*args, **kwargs)
         if created:
             submission_subscribers_ids = Subscription.objects.filter(object_type=ContentType.objects.get(model='submission')).values_list('user', flat=True)
-            course_subscribers_ids = self.problem.contest.course.subscription_set.values_list('user_id', flat=True)
-            user_ids = list(set(submission_subscribers_ids) & set(course_subscribers_ids))
+            contest_subscribers_ids = self.problem.contest.subscription_set.values_list('user_id', flat=True)
+            user_ids = list(set(submission_subscribers_ids) & set(contest_subscribers_ids))
             Activity.objects.notify_users(user_ids, subject=self.owner, action="отправил посылку", object=self)
-        self.update_assignment()
+
+        if created and self.problem.type in ['Program'] or not created:
+            self.update_assignment()
 
     def __str__(self):
         return "Посылка от %s к задаче %s" % (self.owner.account, self.problem)

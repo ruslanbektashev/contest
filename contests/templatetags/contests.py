@@ -1,8 +1,10 @@
 import re
 
 from django import template
+from django.apps import apps
 
 register = template.Library()
+Assignment = apps.get_model('contests', 'Assignment')
 
 STATE_COLORS = {
     'OK': 'success',
@@ -36,6 +38,14 @@ STATE_COLORS = {
 }
 
 
+COURSE_DIFFICULTY_CHOICES = {
+    0: 'Нет сведений',
+    1: 'Легкий',
+    2: 'Средний',
+    3: 'Сложный',
+}
+
+
 @register.filter
 def remove_pwd(string):
     return re.sub(r'/?[\w\-./]+/', '', string)
@@ -44,6 +54,84 @@ def remove_pwd(string):
 @register.filter
 def colorize(value):
     return STATE_COLORS.get(value, 'info')
+
+
+@register.filter
+def colorize_solved_flag(value):
+    return 'success' if value else 'danger'
+
+
+@register.filter
+def colorize_progress(value):
+    if value >= 80:
+        return 'success'
+    elif value >= 60:
+        return 'warning'
+    elif value >= 40:
+        return 'danger'
+    else:
+        return 'default'
+
+
+@register.filter
+def colorize_submission_count(submission_count, submission_limit=Assignment.DEFAULT_SUBMISSION_LIMIT):
+    if submission_count == 0:
+        return 'default'
+    elif submission_count <= submission_limit / 2:
+        return 'success'
+    elif submission_count <= submission_limit:
+        return 'warning'
+    else:
+        return 'danger'
+
+
+@register.filter
+def colorize_activity_count(value):
+    return 'success' if value else 'default'
+
+
+@register.filter
+def colorize_course_difficulty(value):
+    if value == 1:
+        return 'success'
+    elif value == 2:
+        return 'warning'
+    elif value == 3:
+        return 'danger'
+    else:
+        return 'default'
+
+
+@register.filter
+def colorize_course_avg_score(value):
+    if value >= 4.5:
+        return 'success'
+    elif value >= 3.5:
+        return 'warning'
+    elif value >= 2:
+        return 'danger'
+    else:
+        return 'default'
+
+
+@register.filter
+def course_difficulty(value):
+    return COURSE_DIFFICULTY_CHOICES.get(value, 'Нет сведений')
+
+
+@register.simple_tag()
+def account_course_credit_score(account, course_id=None):
+    return account.course_credit_score(course_id=course_id)
+
+
+@register.simple_tag()
+def submissions_count(submissions, problem):
+    return submissions.filter(problem=problem).count()
+
+
+@register.simple_tag()
+def solved(submissions, problem):
+    return submissions.filter(problem=problem, status='OK').exists()
 
 
 @register.simple_tag()
@@ -115,11 +203,6 @@ def render_assignment_course_table(course, students, assignments, debts=False):
         'debts': debts
     }
     return context
-
-
-@register.inclusion_tag('contests/assignment/assignment_progress.html')
-def render_assignment_progress(assignments):
-    return {'progress': assignments.progress()}
 
 
 @register.inclusion_tag('contests/execution/execution_list.html', takes_context=True)

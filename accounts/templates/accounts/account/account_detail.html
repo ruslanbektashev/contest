@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views contests %}
 
 {% block title %}
@@ -12,12 +12,20 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Учетная запись пользователя {{ account }}</legend>
-<div class="row">
-    <div class="col-4">
+<legend>
+    {{ account }}
+    {% if account.user_id == request.user.id %}
+    <a href="{% url 'password-change' %}" class="text-secondary text-decoration-none pull-right" data-toggle="popover" data-placement="top" data-content="Изменить пароль" style="position: relative; top: -0.03rem;"><i class="fa fa-lock fa-fw"></i></a>
+    {% endif %}
+    {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
+    <a href="{% url 'accounts:account-update' account.user.id %}" class="text-primary text-decoration-none pull-right" data-toggle="popover" data-placement="left" data-content="Редактировать профиль"><i class="fa fa-edit fa-fw"></i></a>
+    {% endif %}
+</legend>
+<div class="row my-3">
+    <div class="col-3">
         {% include 'accounts/account/account_card.html' with image=True %}
     </div>
-    <div class="col-8">
+    <div class="col-9">
         <table class="table table-borderless table-sm">
             <tr><td class="text-right" style="width: 30%;">e-mail</td><td>{% if account.email %}<a href="mailto:{{ account.email }}">{{ account.email }}</a>{% elif perms.auth.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}<a href="{% url 'accounts:account-update' account.user_id %}" class="text-danger" >укажите e-mail</a>{% else %}-{% endif %}</td></tr>
             <tr><td class="text-right" style="width: 30%;">Факультет</td><td>{{ account.faculty }}</td></tr>
@@ -37,24 +45,135 @@
         </table>
     </div>
 </div>
-{% if perms.contests.view_assignment_table and account.is_student %}
-<legend>Задания</legend>
-{% render_assignment_user_table assignments credits %}
-{% render_assignment_progress assignments %}
+{% if account.is_student %}
+<a id="activity" class="activity-anchor">&nbsp</a>
+<legend>Активность</legend>
+
+<div class="card mb-2">
+    <div class="card-header d-flex align-items-center p-1">
+        <select id="year_select" name="year" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;" style="width:20%;">
+            {% for yr, yr_display in years %}
+            <option value="{% get_full_path_with_updated_query_string request year=yr %}#activity" {% if year == yr %}selected{% endif %}>{{ yr_display }}</option>
+            {% endfor %}
+        </select>
+        <label for="year_select"></label>
+    </div>
+    <div class="card-body">
+        <canvas id="submissionsChart" height="100"></canvas>
+    </div>
+</div>
+
+<div class="table-responsive my-3">
+    <table class="table table-sm table-hover">
+        <tbody>
+            <tr>
+                <td style="vertical-align: middle;">Решено задач</td>
+                <td class="text-center" style="vertical-align: middle; width: 4%;">
+                    <span class="text-{{ problems_count|colorize_activity_count }}"><strong>{{ problems_count }}</strong></span>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: middle;">Отправлено посылок</td>
+                <td class="text-center" style="vertical-align: middle; width: 4%;">
+                    <span class="text-{{ submissions_count|colorize_activity_count }}"><strong>{{ submissions_count }}</strong></span>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: middle;">Написано комментариев</td>
+                <td class="text-center" style="vertical-align: middle; width: 4%;">
+                    <span class="text-{{ comments_count|colorize_activity_count }}"><strong>{{ comments_count }}</strong></span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+{% if perms.contests.view_assignment_table or account.user_id == request.user.id %}
+{% if credits %}
+<legend>
+    Результаты
+    {% if account.is_student %}
+    {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
+    <a href="{% if account.user_id == request.user.id %} {% url 'contests:assignment-list' %} {% else %} {% url 'accounts:account-assignment-list' account.user_id %} {% endif %}" class="text-secondary text-decoration-none pull-right" data-toggle="popover" data-placement="left" data-content="Задания" style="position: relative; top: -0.08rem;"><i class="fa fa-list-ol fa-fw"></i></a>
+    {% endif %}
+    {% endif %}
+</legend>
+{% include 'accounts/account/account_results.html' %}
+<div class="table-responsive mb-3">
+    <table class="table table-sm table-borderless">
+        <tbody>
+            {% if account.submissions_score %}
+            <tr>
+                <td style="vertical-align: middle;">Точность</td>
+                <td class="text-center" style="vertical-align: middle; width: 70%;">
+                    {% render_progress account.submissions_score "" %}
+                </td>
+                <td class="text-center" style="vertical-align: middle; width: 4%;">
+                    <span class="d-inline-block" data-toggle="popover" data-placement="left" data-content="Учитывает количество посылок для решения задачи">
+                        <i class="text-muted fa fa-question-circle fa-fw" style="position: relative; top: -0.08rem;"></i>
+                    </span>
+                </td>
+            </tr>
+            {% endif %}
+            {% if account.score %}
+            <tr>
+                <td style="vertical-align: middle;">Общая успеваемость</td>
+                <td class="text-center" style="vertical-align: middle; width: 70%;">
+                    {% render_progress account.score "" %}
+                </td>
+                <td class="text-center" style="vertical-align: middle; width: 4%;">
+                    <span class="d-inline-block" data-toggle="popover" data-placement="left" data-content="Учитывает оценки по курсам и количество посылок для решения задачи">
+                        <i class="text-muted fa fa-question-circle fa-fw" style="position: relative; top: -0.08rem;"></i>
+                    </span>
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endif %}
 {% endif %}
 {% endblock content %}
 
-{% block submenu %}
-<div class="list-group mb-3">
-    {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
-    <a href="{% url 'accounts:account-update' account.user.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать профиль</a>
-    {% endif %}
-</div>
-<div class="list-group mb-3">
-    {% if account.user_id == request.user.id %}
-    <a href="{% url 'password-change' %}" class="list-group-item list-group-item-action"><i class="fa fa-lock fa-fw"></i> Изменить пароль</a>
-    {% else %}
-    <a href="{% url 'accounts:message-create' account.user.id %}" class="list-group-item list-group-item-action"><i class="fa fa-envelope-o fa-fw"></i> Написать сообщение</a>
-    {% endif %}
-</div>
-{% endblock submenu %}
+{% block javascript %}
+<script>
+    const submissionsChartData = {
+        labels: [{% for item in year_month_submissions_solutions_comments %} {% if year == 0 %} '{{ item.1 }} {{item.0}}' {% else %} '{{ item.1 }}' {% endif %}, {% endfor %}],
+        datasets: [{
+            label: 'Посылки',
+            backgroundColor: 'rgb(91, 192, 222)',
+            borderColor: 'rgb(91, 192, 222)',
+            data: [{% for item in year_month_submissions_solutions_comments %} {{ item.2 }}, {% endfor %}],
+        }, {
+            label: 'Решения',
+            backgroundColor: 'rgb(92, 184, 92)',
+            borderColor: 'rgb(92, 184, 92)',
+            data: [{% for item in year_month_submissions_solutions_comments %} {{ item.3 }}, {% endfor %}],
+        }, {
+            label: 'Комментарии',
+            backgroundColor: 'rgb(108, 117, 125)',
+            borderColor: 'rgb(108, 117, 125)',
+            data: [{% for item in year_month_submissions_solutions_comments %} {{ item.4 }}, {% endfor %}],
+        }]
+    };
+
+    const submissionsChartConfig = {
+        type: 'bar',
+        data: submissionsChartData,
+        options: {
+            scales: {
+                y: {
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    };
+    var submissionsChart = new Chart(
+        document.getElementById('submissionsChart'),
+        submissionsChartConfig
+    );
+</script>
+{% endblock javascript %}

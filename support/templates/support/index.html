@@ -86,11 +86,7 @@
         {% endfor %}
         {% else %}
         <div class="alert alert-info mb-3" role="alert">
-            {% if perms.support.change_report %}
             Открытых сообщений об ошибках нет
-            {% else %}
-            Недавно закрытых сообщений об ошибках нет
-            {% endif %}
         </div>
         {% endif %}
     </div>

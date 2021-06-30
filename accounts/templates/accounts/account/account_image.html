@@ -1,0 +1,4 @@
+<div class="card-img-top text-muted user-select-none" style="{% if size %} height: {{ size }}px; width: {{ size }}px; {% endif %} {% if rounded %} border-radius: 50%; {% endif %} background-color: #dddddd; display: flex; align-items: center; justify-content: center;">
+    <div style="display: block; padding-bottom: 100%;"></div>
+    <div style="font-size: {% if size %} {% widthratio size 2.5 1 %}px; {% else %} 8vw; {% endif %}">{{ last_name.0 }}{{ first_name.0 }}</div>
+</div>

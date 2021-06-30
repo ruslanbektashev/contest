@@ -11,7 +11,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Оповещения <a href="{% url 'accounts:activity-settings' %}" onclick="closeTooltips()" class="text-secondary text-decoration-none pull-right" data-toggle="tooltip" data-placement="left" title="Настроить оповещения"><i class="fa fa-cog fa-fw"></i></a></legend>
+<legend>Оповещения <a href="{% url 'accounts:activity-settings' %}" class="text-secondary text-decoration-none pull-right" data-toggle="popover" data-placement="left" data-content="Настроить оповещения"><i class="fa fa-cog fa-fw"></i></a></legend>
 
 <div id="activities" class="activity-list list-group list-group-flush mb-3">
     {% if activities %}

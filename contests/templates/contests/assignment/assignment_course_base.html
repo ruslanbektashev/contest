@@ -14,7 +14,7 @@
 {% block content %}
 <legend>Таблица заданий {% if debts %}должников{% endif %}</legend>
 {% render_assignment_course_table course students assignments debts %}
-{% render_assignment_progress assignments %}
+{% render_assignment_progress assignments "Прогресс" %}
 <div class="collapse mt-3" id="assignments_legend">
     <div class="card card-body">
         <p><span class="numtus status-success">#</span> - 4, 5</p>

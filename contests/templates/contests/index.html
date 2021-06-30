@@ -48,14 +48,16 @@
 
 {% block submenu %}
 <div class="list-group mb-3">
+    <a class="list-group-item list-group-item-action" href="{% url 'contests:course-list' %}">
+        <i class="fa fa-book fa-fw"></i> Все курсы
+    </a>
     {% if perms.contests.view_submission_list %}
     <a href="{% url 'contests:submission-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
     {% endif %}
     {% if perms.accounts.change_account %}
     {% if perms.accounts.add_faculty %}
-    <a class="list-group-item list-group-item-action dropdown-toggle {% if perms.accounts.view_filter %}border-bottom-0{% endif %}" href="#" role="button" id="account_list_menu"
-           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
-        <i class="fa fa-users fa-fw"></i> Пользователи
+    <a class="list-group-item list-group-item-action dropdown-toggle {% if perms.accounts.view_filter %}border-bottom-0{% endif %}" href="#" role="button" id="account_list_menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="display: flex; justify-content: space-between; align-items: center;">
+        <span><i class="fa fa-users fa-fw"></i> Пользователи</span>
     </a>
     <div class="dropdown-menu" aria-labelledby="account_list_menu">
     {% for faculty in faculties %}

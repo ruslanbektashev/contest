@@ -8,7 +8,7 @@
     <div class="d-flex comment-list-item col{{ comment.level|add:'-13' }} offset-{{ comment.level|add:'-1' }} mb-3 p-3 rounded {% if comment not in request.user.account.comments_read.all and comment.author_id != request.user.id %}bg-light" data-unread=true{% else %}"{% endif %} data-id={{ comment.id }} >
         <a id="comment_{{ comment.id }}" class="comment-anchor">&nbsp</a>
         <div class="comment-avatar mr-3">
-            <img src="{% static 'comment-avatar.png' %}" alt="Изображение профиля">
+            {% include 'accounts/account/account_image.html' with last_name=comment.author.account.last_name first_name=comment.author.account.first_name size=40 rounded=True %}
         </div>
         <div class="comment-main w-100">
             <div class="comment-header mb-1 d-flex lake">
@@ -35,7 +35,7 @@
                 {% if perms.accounts.change_comment or comment.author.id == request.user.id %}
                 <small class="pebble">{% if comment.is_repliable %}| {% endif %}<a href="{% url 'accounts:comment-update' comment.id %}{% get_comment_query_string page_obj.number %}" class="text-uppercase text-muted">Редактировать</a></small>
                 {% endif %}
-                {% if perms.accounts.delete_comment %}
+                {% if perms.accounts.delete_comment or comment.author.id == request.user.id %}
                 <small class="pebble">| <a href="{% url 'accounts:comment-delete' comment.id %}{% get_comment_query_string page_obj.number %}" class="text-uppercase text-muted">Удалить</a></small>
                 {% endif %}
             </div>

@@ -1,5 +1,5 @@
-{% extends 'base.html' %}
-{% load views accounts contests %}
+{% extends 'base_wide.html' %}
+{% load views accounts contests static %}
 
 {% block title %}
 Задание
@@ -17,7 +17,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ assignment }}</legend>
+<legend>Задание{% if perms.contests.delete_assignment %}<a href="{% url 'contests:assignment-delete' assignment.id %}" class="text-danger text-decoration-none pull-right" data-toggle="popover" data-placement="top" data-content="Удалить задание" style="position: relative; top: -0.08rem;"><i class="fa fa-times fa-fw"></i></a>{% endif %}{% if perms.contests.change_assignment %}<a href="{% url 'contests:assignment-update' assignment.id %}" class="text-decoration-none pull-right" data-toggle="popover" data-placement="left" data-content="Редактировать задание"><i class="fa fa-edit fa-fw"></i></a>{% endif %}</legend>
 <a class="btn btn-light btn-block border mb-3" href="{% url 'contests:assignment-discussion' assignment.id %}">
     {% unread_comments_count request.user.account assignment as ucc %}
     <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
@@ -25,21 +25,45 @@
 <table class="table table-sm">
     <tr><td class="text-right" style="width: 20%;">Студент</td><td><a href="{{ assignment.user.account.get_absolute_url }}">{{ assignment.user.account }}</a></td></tr>
     <tr><td class="text-right" style="width: 20%;">Задача</td><td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td></tr>
+    <tr><td class="text-right" style="width: 20%;">Назначено</td><td>{{ assignment.date_created }}</td></tr>
+    <tr><td class="text-right" style="width: 20%;">Обновлено</td><td>{{ assignment.date_updated }}</td></tr>
+    {% if assignment.deadline is not None %}
+    <tr>
+        <td class="text-right" style="width: 20%;">
+        {% if assignment.deadline > current_time %}
+            Посылки принимаются до</td><td>{{ assignment.deadline }} <span id="countdown_wrapper">(осталось: <span id="countdown_to_deadline"></span>)</span>
+        {% else %}
+            Посылки принимались до</td><td>{{ assignment.deadline }}
+        {% endif %}
+        </td>
+    </tr>
+    {% endif %}
+    <tr><td class="text-right" style="width: 20%;">Посылок</td><td>{{ assignment.get_submissions.count }} / {{ assignment.submission_limit }}</td></tr>
     <tr>
         <td class="text-right" style="width: 20%;">Оценка</td>
         <td>
             <span class="numtus status-{{ assignment.score|colorize }}">{{ assignment.score|default:'-' }}</span>{% if perms.contests.change_assignment %} {% if assignment.score_max < 5 %}/ {{ assignment.score_max }}{% endif %}{% if assignment.score_is_locked %} <span class="numtus status-warning" title="Оценка заблокирована и не может быть изменена системой автоматической проверки посылок"><i class="fa fa-lock"></i></span>{% endif %}{% endif %}
         </td>
     </tr>
-    <tr><td class="text-right" style="width: 20%;">Назначено</td><td>{{ assignment.date_created }}</td></tr>
-    <tr><td class="text-right" style="width: 20%;">Обновлено</td><td>{{ assignment.date_updated }}</td></tr>
-    <tr><td class="text-right" style="width: 20%;">Посылок</td><td>{{ assignment.get_submissions.count }} / {{ assignment.submission_limit }}</td></tr>
 </table>
+{% if perms.contests.change_assignment %}
+<a href="{% url 'contests:assignment-update' assignment.id %}?partial=1" class="btn btn-block btn-light border mb-3"><i class="fa fa-pencil fa-fw"></i> Изменить оценку</a>
+{% endif %}
+{% if perms.contests.add_submission and request.user == assignment.user %}
+{% if assignment.submission_limit > assignment.get_submissions.count %}
+<a href="{% url 'contests:submission-create' assignment.problem.id %}" class="btn btn-block btn-info mb-3"><i class="fa fa-file-text-o fa-fw"></i> Отправить решение</a>
+{% else %}
+<button class="btn btn-block btn-secondary mb-3" disabled>Все попытки потрачены</button>
+{% endif %}
+{% endif %}
 {% if perms.contests.view_assignment_table and assignment.remark %}
 <div class="alert alert-warning" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>Пометка для преподавателей: {{ assignment.remark }}</div>
 {% endif %}
 <div class="col-xs-12 col-md-6 mx-auto">
+    {% if submissions %}
+    <h4>Посылки</h4>
     {% include 'contests/submission/submission_table.html' %}
+    {% endif %}
 </div>
 {% endblock content %}
 
@@ -51,12 +75,14 @@
     {% if perms.contests.delete_assignment %}
     <a href="{% url 'contests:assignment-delete' assignment.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить задание</a>
     {% endif %}
-    {% if request.user == assignment.user %}
-    {% if assignment.submission_limit > assignment.get_submissions.count %}
-    <a href="{% url 'contests:submission-create' assignment.problem.id %}" class="btn btn-info btn-block"><i class="fa fa-file-code-o fa-fw"></i> Отправить решение</a>
-    {% else %}
-    <button class="btn btn-warning btn-block">Все попытки потрачены</button>
-    {% endif %}
-    {% endif %}
 </div>
 {% endblock submenu %}
+
+{% block javascript %}
+<script src="{% static 'js/countdown.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function() {
+    startCountdown("{{ assignment.deadline.isoformat }}");
+});
+</script>
+{% endblock javascript %}

@@ -1,5 +1,8 @@
 from datetime import date, datetime
+
+from django.core.exceptions import PermissionDenied
 from django.forms.models import inlineformset_factory
+from django.utils import timezone
 
 from markdown import markdown
 from mimetypes import guess_type
@@ -23,12 +26,12 @@ from django.views.generic.list import BaseListView
 from accounts.models import Account, Activity, Faculty
 from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin,
                             PaginatorMixin)
-from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, ContestForm, ContestPartialForm,
-                            CourseForm, CreditSetForm, EventForm, FNTestForm, OptionBaseFormSet, OptionForm,
-                            ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm, ProblemRollbackResultsForm,
-                            ProblemTestForm, SubmissionAttachmentForm, SubmissionFilesForm, SubmissionMossForm,
-                            SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm, SubmissionUpdateForm,
-                            UTTestForm)
+from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, AssignmentUpdatePartialForm,
+                            ContestForm, ContestPartialForm, CourseForm, CreditSetForm, EventForm, FNTestForm,
+                            OptionBaseFormSet, OptionForm, ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm,
+                            ProblemRollbackResultsForm, ProblemTestForm, SubmissionProgramForm, SubmissionFilesForm,
+                            SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm,
+                            SubmissionUpdateForm, UTTestForm)
 from contests.models import (Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, Filter, IOTest,
                              Lecture, Option, Problem, SubProblem, Submission, SubmissionPattern, UTTest)
 from contests.results import TaskProgress
@@ -166,7 +169,12 @@ class CourseList(LoginRequiredMixin, ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        return Course.objects.filter(faculty=self.storage['faculty'])
+        if self.request.user.account.is_instructor and not self.request.user.has_perm('contests.add_faculty'):
+            course_ids = self.request.user.filter_set.values_list('course', flat=True)
+            courses = Course.objects.filter(id__in=course_ids)
+        else:
+            courses = Course.objects.filter(faculty=self.storage['faculty'])
+        return courses
 
 
 """===================================================== Credit ====================================================="""
@@ -345,6 +353,13 @@ class LectureDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 class ContestDetail(LoginRequiredMixin, DetailView):
     model = Contest
     template_name = 'contests/contest/contest_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['subscribers_ids'] = self.object.subscription_set.all().values_list('user', flat=True)
+        if self.request.user.id in context['subscribers_ids']:
+            context['subscription_id'] = self.object.subscription_set.get(user=self.request.user).id
+        return context
 
 
 class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
@@ -925,6 +940,7 @@ class AssignmentDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         submissions = self.object.get_submissions()
         context['paginator'], context['page_obj'], context['submissions'], context['is_paginated'] = \
             self.paginate_queryset(submissions)
+        context['current_time'] = timezone.now()
         return context
 
 
@@ -1007,7 +1023,9 @@ class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
         form = self.get_form()
         if form.is_valid():
             Assignment.objects.create_random_set(request.user, form.cleaned_data['contest'], form.cleaned_data['type'],
-                                                 form.cleaned_data['limit_per_user'], self.storage['debts'])
+                                                 form.cleaned_data['limit_per_user'],
+                                                 form.cleaned_data['submission_limit'], form.cleaned_data['deadline'],
+                                                 self.storage['debts'])
             return self.form_valid(form)
         return self.form_invalid(form)
 
@@ -1025,18 +1043,33 @@ class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
 
 class AssignmentUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     model = Assignment
-    form_class = AssignmentUpdateForm
     template_name = 'contests/assignment/assignment_form.html'
     permission_required = 'contests.change_assignment'
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['partial'] = int(request.GET.get('partial') or 0)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_class(self):
+        if self.storage['partial']:
+            return AssignmentUpdatePartialForm
+        else:
+            return AssignmentUpdateForm
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['course'] = self.object.problem.contest.course
+        if not self.storage['partial']:
+            kwargs['course'] = self.object.problem.contest.course
         return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['course'] = self.object.problem.contest.course
+        context['partial'] = self.storage['partial']
         return context
 
 
@@ -1162,19 +1195,45 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         problem = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
-        self.storage['problem'] = problem
 
-        main_submission_id = kwargs.pop('submission_id', None)
-        if main_submission_id:
-            main_submission = get_object_or_404(Submission, id=main_submission_id)
-            self.storage['main_submission'] = main_submission
-            current_problem = problem.sub_problems.exclude(submission__in=main_submission.sub_submissions.all()).first()
-            if not current_problem:
-                return HttpResponseRedirect(reverse('contests:submission-detail', kwargs={'pk': main_submission.id}))
-            self.storage['problem'] = current_problem
-        elif problem.type == 'Test':
+        try:
+            self.storage['assignment'] = Assignment.objects.get(user=self.request.user, problem=problem)
+        except Assignment.DoesNotExist:
+            self.storage['assignment'] = None
+
+        if problem.type == 'Test':
             self.storage['main_problem'] = problem
-            self.storage['problem'] = problem.sub_problems.first()
+
+            sub_problem_id = request.GET.get("sub_problem")
+            main_submission_id = kwargs.pop('submission_id', None)
+
+            sub_problem = None
+            if main_submission_id:
+                main_submission = get_object_or_404(Submission, id=main_submission_id)
+                self.storage['main_submission'] = main_submission
+
+                pending_sub_problems = problem.sub_problems.exclude(submission__in=main_submission.sub_submissions.all())
+
+                if sub_problem_id and sub_problem_id.isdigit():
+                    sub_problem = pending_sub_problems.filter(id=sub_problem_id).first()
+
+                if sub_problem is None:
+                    sub_problem = pending_sub_problems.first()
+
+                if sub_problem is None:
+                    return HttpResponseRedirect(reverse('contests:submission-detail', kwargs={'pk': main_submission.id}))
+
+                self.storage['problem'] = sub_problem
+            else:
+                if sub_problem_id and sub_problem_id.isdigit():
+                    sub_problem = problem.sub_problems.filter(id=sub_problem_id).first()
+
+                if sub_problem is None:
+                    sub_problem = problem.sub_problems.first()
+
+                self.storage['problem'] = sub_problem
+        else:
+            self.storage['problem'] = problem
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -1182,6 +1241,9 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         kwargs = super().get_form_kwargs()
         kwargs['owner'] = self.request.user
         kwargs['problem'] = self.storage['problem']
+        kwargs['assignment'] = self.storage['assignment']
+        if 'main_submission' in self.storage:
+            kwargs['main_submission'] = self.storage['main_submission']
         return kwargs
 
     def get_form_class(self):
@@ -1193,25 +1255,19 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         elif problem.type == 'Files':
             return SubmissionFilesForm
         else:
-            return SubmissionAttachmentForm
+            return SubmissionProgramForm
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
         form.instance.problem = self.storage['problem']
 
-        try:
-            form.instance.assignment = Assignment.objects.get(user=self.request.user, problem=self.storage['problem'])
-        except Assignment.DoesNotExist:
-            pass
-
-        main_problem = self.storage.get('main_problem')
-        if main_problem:
-            self.storage['main_submission'] = Submission.objects.create(
-                problem=main_problem,
-                owner=self.request.user,
-                assignment=Assignment.objects.filter(user=self.request.user, problem=main_problem).first(),
-            )
-
+        if 'main_problem' in self.storage:
+            if 'main_submission' not in self.storage:
+                self.storage['main_submission'] = Submission.objects.create(problem=self.storage.get('main_problem'),
+                                                                            owner=self.request.user,
+                                                                            assignment=self.storage['assignment'])
+        else:
+            form.instance.assignment = self.storage['assignment']
         form.instance.main_submission = self.storage.get('main_submission')
 
         self.object = form.save()
@@ -1219,18 +1275,37 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
             task = evaluate_submission.delay(self.object.pk, self.request.user.id)
             self.object.task_id = task.id
             self.object.save()
+        if self.object.problem.type == 'Options':
+            self.object.update_options_score()
         Activity.objects.on_submission_created(self.object)
         return HttpResponseRedirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['problem'] = self.storage['problem']
+        problem = self.storage['problem']
+
+        context['problem'] = problem
+        context['assignment'] = self.storage['assignment']
+
+        main_problem = self.storage.get('main_problem')
+
+        if main_problem:
+            context['main_problem'] = main_problem
+            main_submission = self.storage.get('main_submission')
+
+            if main_submission:
+                context['main_submission'] = main_submission
+                context['pending_sub_problems'] = main_problem.sub_problems.exclude(submission__in=main_submission.sub_submissions.all()).exclude(id=problem.id)
+            else:
+                context['pending_sub_problems'] = main_problem.sub_problems.exclude(id=problem.id)
+
+        context['current_time'] = timezone.now()
         return context
 
     def get_success_url(self):
-        main_submission = self.storage.get('main_submission')
-        if main_submission:
-            return reverse('contests:submission-continue',
+        if 'main_problem' in self.storage:
+            main_submission = self.storage['main_submission']
+            return reverse('contests:sub-submission-create',
                            kwargs={'problem_id': main_submission.problem.id, 'submission_id': main_submission.id})
         return super().get_success_url()
 
@@ -1240,12 +1315,6 @@ class SubmissionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     form_class = SubmissionUpdateForm
     template_name = 'contests/submission/submission_update_form.html'
     permission_required = 'contests.change_submission'
-
-    def form_valid(self, form):
-        self.object = form.save()
-        if self.object.main_submission is not None:
-            self.object.main_submission.update_test_score()
-        return HttpResponseRedirect(self.get_success_url())
 
 
 class SubmissionMoss(LoginRedirectPermissionRequiredMixin, SingleObjectMixin, FormView):

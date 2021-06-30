@@ -1,3 +1,6 @@
+import math
+from statistics import mean
+
 from django.apps import apps
 from django.contrib.auth.models import User, Group
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -258,6 +261,55 @@ class Account(models.Model):
     def date_joined(self):
         return self.user.date_joined
 
+    @property
+    def solved_problems_count(self):
+        Submission = apps.get_model('contests', 'Submission')
+        Assignment = apps.get_model('contests', 'Assignment')
+        problem_ids = Submission.objects.filter(owner=self.user).values_list('problem', flat=True).distinct().order_by()
+        count = 0
+        for problem_id in problem_ids:
+            if Submission.objects.filter(owner=self.user, problem_id=problem_id, status='OK').exists() or Assignment.objects.filter(user=self.user, problem_id=problem_id, score__gte=3).exists():
+                count += 1
+        return count
+
+    def course_credit_score(self, course_id=None):
+        credits = self.user.credit_set.exclude(score=0)
+        if course_id:
+            credits = credits.filter(course=course_id)
+        credit_scores = credits.values_list('score', flat=True)
+        avg_credit_score = mean(credit_scores) if credit_scores else 0
+        return round(avg_credit_score * 20 if 0 < avg_credit_score < 6 else 0)
+
+    def course_submissions_score(self, course_id=None):
+        Submission = apps.get_model('contests', 'Submission')
+        Assignment = apps.get_model('contests', 'Assignment')
+        submissions = Submission.objects.filter(owner=self.user)
+        if course_id:
+            submissions = submissions.filter(problem__contest__course=course_id)
+        problem_ids = submissions.values_list('problem', flat=True).distinct().order_by()
+        submissions_scores = []
+        for problem_id in problem_ids:
+            problem_submissions = Submission.objects.filter(owner=self.user, problem=problem_id)
+            success_submissions = problem_submissions.filter(status='OK')
+            if success_submissions.exists():
+                first_success_submission = success_submissions.order_by('date_created')[0]
+                submissions_count = problem_submissions.filter(date_created__lte=first_success_submission.date_created).count()
+            else:
+                submissions_count = problem_submissions.count() + 1
+            assignment = problem_submissions.first().assignment
+            submission_limit = assignment.submission_limit if assignment else Assignment.DEFAULT_SUBMISSION_LIMIT
+            submissions_score = 100 / math.ceil(submissions_count / submission_limit)
+            submissions_scores.append(submissions_score)
+        return round(mean(submissions_scores)) if submissions_scores else 0
+
+    @property
+    def submissions_score(self):
+        return self.course_submissions_score()
+
+    @property
+    def score(self):
+        return self.course_credit_score()
+
     def get_absolute_url(self):
         return reverse('accounts:account-detail', kwargs={'pk': self.pk})
 
@@ -278,12 +330,53 @@ class Account(models.Model):
 """================================================== Subscription =================================================="""
 
 
+class SubscriptionManager(models.Manager):
+    def make_subscription(self, user, object, cascade=False):
+        Course = apps.get_model('contests', 'Course')
+        Contest = apps.get_model('contests', 'Contest')
+        Submission = apps.get_model('contests', 'Submission')
+        Subscription(object=object, user=user).save()
+        if isinstance(object, Course) and cascade:
+            subscribed_contest_ids = Subscription.objects.for_user_model(user, Contest).values_list('object_id', flat=True)
+            new_contest_ids = Contest.objects.filter(course=object).exclude(id__in=subscribed_contest_ids).values_list('id', flat=True)
+            contest_subscriptions = (Subscription(object_type=ContentType.objects.get_for_model(Contest), object_id=contest_id, user=user) for contest_id in new_contest_ids)
+            Subscription.objects.bulk_create(contest_subscriptions)
+        if isinstance(object, (Course, Contest)):
+            if not Subscription.objects.for_user_models(user, Comment, Submission).exists():
+                Subscription(object_type=ContentType.objects.get_for_model(model=Comment), user=user).save()
+                Subscription(object_type=ContentType.objects.get_for_model(model=Submission), user=user).save()
+
+    def delete_subscription(self, user, object, cascade=False):
+        Course = apps.get_model('contests', 'Course')
+        Contest = apps.get_model('contests', 'Contest')
+        Submission = apps.get_model('contests', 'Submission')
+        Subscription.objects.for_user_object(user, object).delete()
+        if isinstance(object, Course) and cascade:
+            course_contest_ids = Contest.objects.filter(course=object).values_list('id', flat=True)
+            Subscription.objects.for_user_model(user, Contest).filter(object_id__in=course_contest_ids).delete()
+        if not Subscription.objects.for_user_models(user, Course, Contest).exists():
+            Subscription.objects.for_user_models(user, Comment, Submission).delete()
+
+
+class SubscriptionQuerySet(models.QuerySet):
+    def for_user_model(self, user, model):
+        return self.filter(user=user, object_type=ContentType.objects.get_for_model(model))
+
+    def for_user_models(self, user, *models):
+        return self.filter(user=user, object_type__in=ContentType.objects.get_for_models(*models).values())
+    
+    def for_user_object(self, user, object):
+        return self.filter(user=user, object_type=ContentType.objects.get_for_model(object._meta.model), object_id=object.id)
+
+
 class Subscription(models.Model):
     object_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField(null=True, blank=True)
     object = GenericForeignKey(ct_field='object_type')
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    objects = SubscriptionManager.from_queryset(SubscriptionQuerySet)()
 
     class Meta:
         verbose_name = "Подписка"
@@ -481,6 +574,10 @@ class Comment(models.Model):
         verbose_name = "Комментарий"
         verbose_name_plural = "Комментарии"
 
+    @property
+    def owner(self):
+        return self.author
+
     def save(self, *args, **kwargs):
         created = self._state.adding
         super().save(*args, **kwargs)
@@ -500,23 +597,23 @@ class Comment(models.Model):
         self._notify_users(created)
 
     @property
-    def course(self):
+    def parent_object(self):
         model = self.object_type.model
         if model == 'course':
             return self.object
         elif model == 'contest':
-            return self.object.course
+            return self.object
         elif model == 'problem':
-            return self.object.contest.course
+            return self.object.contest
         elif model == 'assignment' or 'submission':
-            return self.object.problem.contest.course
+            return self.object.problem.contest
         else:
             return None
 
     def _notify_users(self, created=False):
         comment_subscribers_ids = Subscription.objects.filter(object_type=ContentType.objects.get(model='comment')).values_list('user', flat=True)
-        course_subscribers_ids = self.course.subscription_set.values_list('user_id', flat=True)
-        user_ids = list(set(comment_subscribers_ids) & set(course_subscribers_ids))
+        parent_object_subscribers_ids = self.parent_object.subscription_set.values_list('user_id', flat=True)
+        user_ids = list(set(comment_subscribers_ids) & set(parent_object_subscribers_ids))
         if self.object.owner_id not in user_ids:
             user_ids_set = set(user_ids)
             user_ids_set.add(self.object.owner_id)
@@ -545,16 +642,19 @@ class Comment(models.Model):
             max_order = thread.aggregate(models.Max('order'))['order__max']
             self.order = max_order + 1
 
-    def soft_delete(self):
+    def soft_delete(self, delete_threads=False, commit=True):
         thread = Comment.objects.filter(thread_id=self.thread_id)
         if self.thread_id == self.id:
-            thread.update(is_deleted=True)
+            comments_to_delete = thread
         else:
             next_subthread_head = thread.filter(level__lte=self.level, order__gt=self.order).first()
             if next_subthread_head:
-                thread.filter(order__gte=self.order, order__lt=next_subthread_head.order).update(is_deleted=True)
+                comments_to_delete = thread.filter(order__gte=self.order, order__lt=next_subthread_head.order)
             else:
-                thread.filter(order__gte=self.order).update(is_deleted=True)
+                comments_to_delete = thread.filter(order__gte=self.order)
+        if commit and (delete_threads or comments_to_delete.count() == 1):
+            comments_to_delete.update(is_deleted=True)
+        return comments_to_delete.count()
 
     def is_repliable(self):
         return self.level < self.MAX_LEVEL

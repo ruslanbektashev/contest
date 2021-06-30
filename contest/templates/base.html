@@ -9,6 +9,7 @@
     <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet"/>
     <link href="{% static 'css/contest.css' %}" rel="stylesheet"/>
     <link href="{% static 'bootstrap-select/dist/css/bootstrap-select.min.css' %}" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {% block stylesheets %}
     {% endblock stylesheets %}
 </head>
@@ -122,13 +123,17 @@
         });
     });
     $(function () {
-        $('[data-toggle="tooltip"]').tooltip({
+        let popovers = $('[data-toggle="popover"]');
+        popovers.popover({
             trigger: "hover",
             delay: {"show": 500, "hide": 100}
         });
+        popovers.each(function (){
+            $(this).attr("onclick", "closePopovers()");
+        });
     });
-    function closeTooltips() {
-        $('[data-toggle="tooltip"]').tooltip('hide');
+    function closePopovers() {
+        $('[data-toggle="popover"]').popover('hide');
     }
 </script>
 {% block javascript %}

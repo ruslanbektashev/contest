@@ -23,16 +23,28 @@
     </div>
 
     {% render_submit_button value="Сохранить" %}
-
-    {% if courses %}
-    <div class="mb-3">
-        <p>Вы подписаны на курс{% if courses.count > 1 %}ы{% endif %}:</p>
-        {% for course in courses %}
-        {% subscription_id_for_course_id request.user course.id as subscription_id %}
-        <a class="btn btn-primary mb-2 mr-1" href="{% url 'accounts:subscription-delete' subscription_id %}?previous_url={{ request.path }}" title="Отписаться" style="border-radius:23px;">{{ course.title }}<i class="fa fa-times fa-lg ml-2"></i></a>
-        {% endfor %}
-    </div>
-    {% endif %}
 </form>
 
+{% if contests %}
+<legend>Курсы и разделы</legend>
+<div class="my-3">
+    {% for course in all_courses %}
+        <div class="mb-2">
+        {% course_contests course contests as cc %}
+        {% if course in courses %}
+            {% subscription_id_for_course_id request.user course.id as course_subscription_id %}
+            <a class="btn btn-sm btn-primary mb-2 mr-1" href="{% url 'accounts:subscription-delete' course_subscription_id %}?previous_url={{ request.path }}" title="Отписаться от курса" style="border-radius:23px;">{{ course.title }}<i class="fa fa-times fa-lg ml-2" style="position: relative; top: -0.03rem;"></i></a>
+        {% elif cc %}
+            <a class="btn btn-sm btn-light mb-2 mr-1" href="{% url 'contests:course-detail' course.id %}" title="Перейти к курсу" style="border-radius:23px;">{{ course.title }}</a>
+        {% endif %}
+        {% if cc %}
+            {% for contest in cc %}
+                {% subscription_id_for_contest_id request.user contest.id as contest_subscription_id %}
+                <a class="btn btn-sm btn-secondary mb-2 mr-1" href="{% url 'accounts:subscription-delete' contest_subscription_id %}?previous_url={{ request.path }}" title="Отписаться от раздела" style="border-radius:23px;">{{ contest.title }}<i class="fa fa-times fa-lg ml-2" style="position: relative; top: -0.03rem;"></i></a>
+            {% endfor %}
+        {% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
 {% endblock content %}

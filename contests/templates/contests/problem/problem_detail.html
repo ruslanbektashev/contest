@@ -234,7 +234,7 @@
 {% if request.user.account.is_student or request.user.is_superuser %}
 <div class="list-group mb-3">
     {% if perms.contests.add_submission %}
-    <a href="{% url 'contests:submission-create' problem.id %}" class="btn btn-info btn-block"><i class="fa fa-file-code-o fa-fw"></i> Отправить решение</a>
+    <a href="{% url 'contests:submission-create' problem.id %}" class="btn btn-block btn-info"><i class="fa fa-file-text-o fa-fw"></i> Отправить решение</a>
     {% endif %}
 </div>
 {% endif %}

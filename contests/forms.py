@@ -7,6 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.template.defaultfilters import filesizeformat
+from django.utils import timezone
 
 from accounts.models import Account
 from contest.widgets import BootstrapCheckboxSelect, BootstrapRadioSelect
@@ -321,50 +322,75 @@ class FNTestForm(forms.ModelForm):
 """=================================================== Assignment ==================================================="""
 
 
-class AssignmentForm(forms.ModelForm):
-    user = UserChoiceField(queryset=User.objects.none(), label="Студент")
-
+class AssignmentUpdatePartialForm(forms.ModelForm):
     class Meta:
         model = Assignment
-        fields = ['user', 'problem', 'score', 'score_max', 'score_is_locked', 'submission_limit', 'remark']
+        fields = ['score', 'score_max', 'score_is_locked', 'submission_limit', 'remark', 'deadline']
 
-    def __init__(self, course, *args, contest=None, user=None, debts=False, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.fields['score'].widget.attrs['max'] = 5
+        self.fields['score_max'].widget.attrs['max'] = 5
+
+    def clean_deadline(self):
+        deadline = self.cleaned_data['deadline']
+        if deadline is not None and deadline <= timezone.now():
+            raise ValidationError("Укажите дату в будущем", code='invalid_deadline')
+        return deadline
+
+    def clean(self):
+        super().clean()
+        if self.cleaned_data['score'] > self.cleaned_data['score_max']:
+            raise ValidationError("Оценка не может превышать максимальную оценку", code='score_gt_score_max')
+        return self.cleaned_data
+
+
+class AssignmentUpdateForm(AssignmentUpdatePartialForm):
+    user = UserChoiceField(queryset=User.objects.none(), label="Студент", disabled=True)
+
+    class Meta(AssignmentUpdatePartialForm.Meta):
+        fields = AssignmentUpdatePartialForm.Meta.fields + ['user', 'problem']
+
+    def __init__(self, course, contest=None, **kwargs):
+        super().__init__(**kwargs)
+        user_ids = Account.students.enrolled().current(course).values_list('user_id')
+        self.fields['user'].queryset = User.objects.filter(id__in=user_ids)
+        self.fields['problem'].choices = grouped_problems(course, contest)
+
+
+class AssignmentForm(AssignmentUpdateForm):
+    user = UserChoiceField(queryset=User.objects.none(), label="Студент")
+
+    class Meta(AssignmentUpdateForm.Meta):
+        pass
+
+    def __init__(self, course, contest=None, user=None, debts=False, **kwargs):
+        super().__init__(course, contest, **kwargs)
         if debts:
             user_ids = Account.students.enrolled().debtors(course).values_list('user_id')
             self.fields['user'].queryset = User.objects.filter(id__in=user_ids)
-        else:
-            user_ids = Account.students.enrolled().current(course).values_list('user_id')
-            self.fields['user'].queryset = User.objects.filter(id__in=user_ids)
         if user:
             self.fields['user'].initial = user
-        self.fields['problem'].choices = grouped_problems(course, contest)
-        self.fields['score'].widget.attrs['max'] = 5
-        self.fields['score_max'].widget.attrs['max'] = 5
-
-
-class AssignmentUpdateForm(AssignmentForm):
-    user = UserChoiceField(queryset=User.objects.all(), label="Студент", disabled=True)
-
-    class Meta(AssignmentForm.Meta):
-        pass
-
-    def __init__(self, course, *args, contest=None, **kwargs):
-        super(AssignmentForm, self).__init__(*args, **kwargs)
-        self.fields['problem'].choices = grouped_problems(course, contest)
-        self.fields['score'].widget.attrs['max'] = 5
-        self.fields['score_max'].widget.attrs['max'] = 5
 
 
 class AssignmentSetForm(forms.Form):
     contest = forms.ModelChoiceField(queryset=Contest.objects.none(), label="Раздел")
     type = forms.ChoiceField(choices=Problem.TYPE_CHOICES, initial='Program', label="Тип задач")
     limit_per_user = forms.IntegerField(min_value=1, max_value=5, initial=1, label="Дополнить до")
+    submission_limit = forms.IntegerField(initial=Assignment.DEFAULT_SUBMISSION_LIMIT,
+                                          label="Ограничить количество посылок до")
+    deadline = forms.DateTimeField(required=False, label="Принимать посылки до")
 
     def __init__(self, course, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['contest'].queryset = course.contest_set.all()
         self.fields['limit_per_user'].append_text = "заданий"
+
+    def clean_deadline(self):
+        deadline = self.cleaned_data['deadline']
+        if deadline is not None and deadline <= timezone.now():
+            raise ValidationError("Укажите дату в будущем", code='invalid_deadline')
+        return deadline
 
 
 # TODO: refactor
@@ -388,17 +414,85 @@ def grouped_problems(course, contest, multiple=False):
 """=================================================== Submission ==================================================="""
 
 
-class SubmissionAttachmentForm(AttachmentForm):
+class SubmissionForm(forms.ModelForm):
+    class Meta:
+        abstract = True
+        model = Submission
+        fields = []
+
+    def __init__(self, *args, **kwargs):
+        self.owner = kwargs.pop('owner')
+        self.problem = kwargs.pop('problem')
+        self.assignment = kwargs.pop('assignment')
+        self.main_submission = kwargs.pop('main_submission', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        if self.problem.is_testable:
+            last_submission = self.problem.get_latest_submission_by(self.owner)
+            if last_submission and last_submission.is_un:
+                raise ValidationError("Последнее присланное решение еще не проверено",
+                                      code='last_submission_is_un')
+        if self.assignment is not None:
+            if self.assignment.deadline is not None and self.assignment.deadline < timezone.now():
+                raise ValidationError("Время приема посылок по Вашему заданию истекло",
+                                      code='assignment_deadline_reached')
+            submission_count = self.assignment.get_submissions().count()
+            if submission_count >= self.assignment.submission_limit and self.main_submission is None:
+                raise ValidationError("Количество попыток исчерпано", code='submission_limit_reached')
+        return super().clean()
+
+
+class SubmissionAttachmentForm(SubmissionForm, AttachmentForm):
     FILES_MIN = 1
+
+    class Meta:
+        abstract = True
+        model = Submission
+        fields = []
+
+
+class SubmissionTextForm(SubmissionForm):
+    class Meta:
+        model = Submission
+        fields = ['text', 'footprint']
+        widgets = {'footprint': forms.HiddenInput}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['text'].required = True
+
+
+class SubmissionOptionsForm(SubmissionForm):
+    class Meta:
+        model = Submission
+        fields = ['options']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        options = self.problem.option_set.all()
+        if options.filter(is_correct=True).count() > 1:
+            widget = BootstrapCheckboxSelect()
+        else:
+            widget = BootstrapRadioSelect()
+            widget.allow_multiple_selected = True
+        self.fields['options'] = forms.ModelMultipleChoiceField(required=True, label="Варианты",  queryset=options,
+                                                                widget=widget)
+
+
+class SubmissionFilesForm(SubmissionAttachmentForm):
+    FILES_SIZE_LIMIT = 10 * 1024 * 1024
+    FILES_ALLOWED_EXTENSIONS = ['.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf', '.png', '.jpg', '.jpeg']
 
     class Meta:
         model = Submission
         fields = []
 
-    def __init__(self, *args, **kwargs):
-        self.owner = kwargs.pop('owner', None)
-        self.problem = kwargs.pop('problem', None)
-        super().__init__(*args, **kwargs)
+
+class SubmissionProgramForm(SubmissionAttachmentForm):
+    class Meta:
+        model = Submission
+        fields = []
 
     def clean_files(self):
         files = super().clean_files()
@@ -411,10 +505,10 @@ class SubmissionAttachmentForm(AttachmentForm):
                 raise ValidationError("Количество файлов не соответствует комплекту поставки решения", code='no_match')
             label = None
             for f in files:
-                for ptn in patterns:
-                    match = re.match(ptn, f.name)
+                for pattern in patterns:
+                    match = re.match(pattern, f.name)
                     if match:
-                        patterns.remove(ptn)
+                        patterns.remove(pattern)
                         if label is None:
                             label = match.group(1)
                         elif label != match.group(1):
@@ -428,73 +522,6 @@ class SubmissionAttachmentForm(AttachmentForm):
                 raise ValidationError("Идентификатор %(label)s не соответствует комплекту поставки решения",
                                       code='wrong_label', params={'label': label})
         return files
-
-    def clean(self):
-        if self.problem.is_testable:
-            last_submission = self.problem.get_latest_submission_by(self.owner)
-            if last_submission and last_submission.is_un:
-                raise ValidationError("Последнее присланное решение еще не проверено",
-                                      code='last_submission_is_un')
-        try:
-            assignment = Assignment.objects.get(user=self.owner, problem=self.problem)
-        except ObjectDoesNotExist:
-            pass
-        else:
-            nsubmissions = Submission.objects.filter(owner=self.owner, problem=self.problem).count()
-            if nsubmissions >= assignment.submission_limit:
-                raise ValidationError("Количество попыток исчерпано", code='limit_reached')
-        return super().clean()
-
-
-class SubmissionTextForm(forms.ModelForm):
-    class Meta:
-        model = Submission
-        fields = ['text']
-
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('owner', None)
-        kwargs.pop('problem', None)
-        super().__init__(*args, **kwargs)
-        self.fields['text'].required = True
-
-
-class SubmissionFilesForm(AttachmentForm):
-    FILES_MIN = 1
-    FILES_SIZE_LIMIT = 10 * 1024 * 1024
-    FILES_ALLOWED_EXTENSIONS = ['.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf', '.png', '.jpg', '.jpeg']
-
-    class Meta:
-        model = Submission
-        fields = []
-
-    def __init__(self, *args, **kwargs):
-        self.owner = kwargs.pop('owner', None)
-        self.problem = kwargs.pop('problem', None)
-        super().__init__(*args, **kwargs)
-
-
-class SubmissionOptionsForm(forms.ModelForm):
-    class Meta:
-        model = Submission
-        fields = ['options']
-
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('owner', None)
-        problem = kwargs.pop('problem')
-        super().__init__(*args, **kwargs)
-        options = problem.option_set.all()
-        if options.filter(is_correct=True).count() > 1:
-            widget = BootstrapCheckboxSelect()
-        else:
-            widget = BootstrapRadioSelect()
-            widget.allow_multiple_selected = True
-        self.fields['options'] = forms.ModelMultipleChoiceField(required=True, label="Варианты",  queryset=options,
-                                                                widget=widget)
-
-    def save(self, commit=True):
-        instance = super().save(commit=commit)
-        instance.update_options_score()
-        return instance
 
 
 class SubmissionUpdateForm(forms.ModelForm):
@@ -512,6 +539,15 @@ class SubmissionUpdateForm(forms.ModelForm):
         if self.instance.problem.is_testable:
             raise ValidationError("Посылки к этой задаче проверяются автоматически", code='problem_is_testable')
         return super().clean()
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        if instance.main_submission is not None:
+            if 'status' in self.changed_data:
+                instance.main_submission.update_test_status()
+            if 'score' in self.changed_data:
+                instance.main_submission.update_test_score()
+        return instance
 
 
 class ToSubmissionsChoiceField(forms.ModelMultipleChoiceField):

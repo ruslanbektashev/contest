@@ -1,7 +1,12 @@
 import json
+import locale
+import datetime
 
 from markdown import markdown
+from statistics import mean
 
+from django.apps import apps
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
@@ -15,14 +20,76 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.contenttypes.models import ContentType
 
 from accounts.templatetags.comments import get_comment_query_string
-from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
-                            PaginatorMixin)
 from accounts.forms import (AccountPartialForm, AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm,
                             CommentForm, ManageSubscriptionsForm)
 from accounts.models import Account, Activity, Comment, Faculty, Message, Chat, Announcement, Subscription
-from contests.models import Course, Submission
+from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
+                            PaginatorMixin)
+from contest.templatetags.views import get_updated_query_string
+from contests.models import Contest, Course, Problem, Submission
+from support.models import Question, Report
 
 """==================================================== Account ====================================================="""
+
+
+def nextmonth(year, month):
+    if month == 12:
+        return year + 1, 1
+    else:
+        return year, month + 1
+
+
+def get_study_years_list(account):
+    today = datetime.datetime.today()
+    current_year = today.year if today.month >= 9 else today.year - 1
+    years = [(current_year - i, str(current_year - i) + '-' + str(current_year - i + 1) + ' учебный год') for i in range(current_year - account.admission_year + 1)]
+    return years
+
+
+def get_year_month_submissions_solutions_comments_count_list(user, year):
+    Assignment = apps.get_model('contests', 'Assignment')
+    locale.setlocale(locale.LC_ALL, "ru_RU")
+    settings.USE_TZ = False
+    academic_year_start_month = 9
+    today = datetime.datetime.today()
+    all_time = not year
+    if all_time:
+        year = user.account.admission_year
+    day = datetime.datetime(year, academic_year_start_month, 1)
+    submissions = user.submission_set.filter(date_created__year=day.year, date_created__month=day.month)
+    problem_ids = submissions.values_list('problem', flat=True).distinct().order_by()
+    problems_count = 0
+    counted_problem_ids = []
+    for problem_id in problem_ids:
+        if problem_id not in counted_problem_ids and (submissions.filter(problem_id=problem_id, status='OK').exists() or Assignment.objects.filter(user=user, problem_id=problem_id, score__gte=3).exists()):
+            problems_count += 1
+            counted_problem_ids.append(problem_id)
+    result = [(
+        day.year,
+        day.strftime("%B"),
+        submissions.count(),
+        problems_count,
+        Comment.objects.filter(author=user, date_created__year=day.year, date_created__month=day.month).count(),
+    )]
+    while (not all_time and (day.year != today.year and day.month != academic_year_start_month - 1 or day.year == today.year and day.month != today.month)) or (all_time and day < datetime.datetime(today.year, today.month, 1)):
+        day = datetime.datetime(*nextmonth(year=day.year, month=day.month), 1)
+        submissions = user.submission_set.filter(date_created__year=day.year, date_created__month=day.month)
+        problem_ids = submissions.values_list('problem', flat=True).distinct().order_by()
+        problems_count = 0
+        for problem_id in problem_ids:
+            if problem_id not in counted_problem_ids and (submissions.filter(problem_id=problem_id, status='OK').exists() or Assignment.objects.filter(user=user, problem_id=problem_id, score__gte=3).exists()):
+                problems_count += 1
+                counted_problem_ids.append(problem_id)
+        result.append((
+            day.year,
+            day.strftime("%B"),
+            submissions.count(),
+            problems_count,
+            Comment.objects.filter(author=user, date_created__year=day.year, date_created__month=day.month).count(),
+        ))
+    settings.USE_TZ = True
+    locale.setlocale(locale.LC_ALL, "en_US")
+    return result
 
 
 @csrf_exempt
@@ -58,6 +125,14 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
     template_name = 'accounts/account/account_detail.html'
     permission_required = 'accounts.view_account'
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = {}
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['year'] = int(self.request.GET.get('year') or get_study_years_list(request.user.account)[0][0])
+        return super().dispatch(request, *args, **kwargs)
+
     def get(self, request, *args, **kwargs):
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
             self.object = self.get_object()
@@ -66,10 +141,20 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        years_list = get_study_years_list(self.object)
+        years_list.append((0, 'Все время'))
         context['assignments'] = (self.object.user.assignment_set
                                   .select_related('problem', 'problem__contest', 'problem__contest__course')
                                   .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
-        context['credits'] = self.object.user.credit_set.select_related('course')
+        context['credits'] = self.object.user.credit_set.select_related('course').order_by('course')
+        context['comments_count'] = Comment.objects.filter(author=self.object.user).count()
+        context['questions_count'] = Question.objects.filter(owner=self.object.user).count()
+        context['reports_count'] = Report.objects.filter(owner=self.object.user).count()
+        context['submissions_count'] = Submission.objects.filter(owner=self.object.user).count()
+        context['problems_count'] = self.object.solved_problems_count
+        context['year_month_submissions_solutions_comments'] = get_year_month_submissions_solutions_comments_count_list(self.object.user, self.storage['year'])
+        context['years'] = years_list
+        context.update(self.storage)
         return context
 
 
@@ -167,6 +252,8 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
         self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
         self.storage['level'] = int(self.request.GET.get('level') or 1)
         self.storage['type'] = int(self.request.GET.get('type') or 1)
+        self.storage['sort'] = int(self.request.GET.get('sort') or 1)
+        self.storage['course'] = int(self.request.GET.get('course') or 0)
         enrolled, graduated = self.request.GET.get('enrolled'), self.request.GET.get('graduated')
         if enrolled is not None and enrolled == '0':
             self.storage['enrolled'] = False
@@ -183,7 +270,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
             accounts = form.cleaned_data['accounts']
             if action == 'reset_password':
                 self.request.session['credentials'] = accounts.reset_password()
-                return HttpResponseRedirect(reverse('accounts:account-credentials'))
+                return HttpResponseRedirect(reverse('accounts:account-credentials') + get_updated_query_string(request))
             elif self.storage['type'] == 1:
                 if action == 'level_up':
                     accounts.level_up()
@@ -218,13 +305,33 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
             queryset = Account.students.all()
             if 'enrolled' in self.storage and 'graduated' in self.storage:
                 queryset = queryset.filter(enrolled=self.storage['enrolled'], graduated=self.storage['graduated'])
-            else:
+            elif self.storage['level']:
                 queryset = queryset.enrolled().filter(level=self.storage['level'])
-        return queryset.filter(faculty=self.storage['faculty'])
+            else:
+                queryset = queryset.enrolled()
+        queryset = queryset.filter(faculty=self.storage['faculty'])
+        if self.storage['sort'] == 2 and queryset.exists():
+            queryset = sorted(queryset, key=lambda account: account.course_credit_score(course_id=self.storage['course']), reverse=True)
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['levels'] = Account.LEVEL_CHOICES
+        SORT_TYPE_CHOICES = (
+            (1, 'В алфавитном порядке'),
+            (2, 'Рейтинг'),
+        )
+        LEVEL_CHOICES = list(Account.LEVEL_CHOICES)
+        if self.request.user.account.is_instructor:
+            course_ids = self.request.user.filter_set.values_list('course', flat=True)
+            COURSE_CHOICES = list(Course.objects.filter(id__in=course_ids).values_list('id', 'title'))
+            if self.request.user.has_perm('contests.add_faculty'):
+                LEVEL_CHOICES.append((0, 'Все уровни'))
+                COURSE_CHOICES = list(Course.objects.filter(faculty=self.storage['faculty']).values_list('id', 'title'))
+                COURSE_CHOICES.insert(0, (0, 'Все курсы'))
+            context['courses'] = COURSE_CHOICES
+        context['sortings'] = SORT_TYPE_CHOICES
+        context['levels'] = LEVEL_CHOICES
+        context['faculties'] = Faculty.objects.all()
         context.update(self.storage)
         return context
 
@@ -253,6 +360,65 @@ class AccountCredentials(LoginRedirectPermissionRequiredMixin, TemplateView):
         return context
 
 
+class AccountCourseResults(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
+    model = Account
+    template_name = 'accounts/account/account_course_results.html'
+    permission_required = 'accounts.view_account'
+
+    def get(self, request, *args, **kwargs):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        context = self.get_context_data(object=self.object, **kwargs)
+        return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['course'] = Course.objects.get(id=kwargs.pop('course_id'))
+        context['assignments'] = (self.object.user.assignment_set.filter(problem__contest__course=context['course']).select_related('problem', 'problem__contest').order_by('problem__contest__course', 'problem__contest', 'date_created'))
+        context['credit'] = self.object.user.credit_set.get(course=context['course'])
+        context['additional_submissions'] = self.object.user.submission_set.filter(problem__contest__course=context['course'], assignment__isnull=True).select_related('problem', 'problem__contest').order_by('problem__contest', 'problem')
+        context['course_submissions_score'] = self.object.course_submissions_score(context['course'])
+        return context
+
+
+class AccountAssignmentList(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
+    model = Account
+    template_name = 'accounts/account/account_assignment_list.html'
+    permission_required = 'accounts.view_account'
+
+    def get(self, request, *args, **kwargs):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        context = self.get_context_data(object=self.object, **kwargs)
+        return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['assignments'] = (self.object.user.assignment_set
+                                  .select_related('problem', 'problem__contest', 'problem__contest__course')
+                                  .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
+        context['credits'] = self.object.user.credit_set.select_related('course').order_by('course')
+        return context
+
+
+class AccountProblemSubmissionList(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
+    model = Account
+    template_name = 'accounts/account/account_problem_submissions.html'
+    permission_required = 'accounts.view_account'
+
+    def get(self, request, *args, **kwargs):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        context = self.get_context_data(object=self.object, **kwargs)
+        return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['problem'] = Problem.objects.get(id=kwargs.pop('problem_id'))
+        context['submissions'] = (self.object.user.submission_set.filter(problem=context['problem']).order_by('date_created'))
+        return context
+
+
 """================================================== Subscription =================================================="""
 
 
@@ -266,27 +432,13 @@ class SubscriptionCreate(CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['previous_url'] = self.request.GET.get('previous_url', '')
+        self.storage['cascade'] = self.request.GET.get('cascade', '')
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        self.object = Subscription(
-            object=ContentType.objects.get(
-                app_label='contests',
-                model=kwargs.pop('object_model')
-            ).get_object_for_this_type(id=kwargs.pop('object_id')),
-            user=self.request.user
-        )
-        self.object.save()
-
-        comment_type = ContentType.objects.get(model='comment')
-        if not self.request.user.subscription_set.filter(object_type=comment_type).exists():
-            comment_subscription = Subscription(object_type=comment_type, user=self.request.user)
-            comment_subscription.save()
-        submission_type = ContentType.objects.get(model='submission')
-        if not self.request.user.subscription_set.filter(object_type=submission_type).exists():
-            submission_subscription = Subscription(object_type=submission_type, user=self.request.user)
-            submission_subscription.save()
-
+        object_type = ContentType.objects.get(model=kwargs.pop('object_model'))
+        object = object_type.get_object_for_this_type(id=kwargs.pop('object_id'))
+        Subscription.objects.make_subscription(user=self.request.user, object=object, cascade=bool(self.storage['cascade']))
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
@@ -303,14 +455,11 @@ class SubscriptionDelete(DeleteView):
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['previous_url'] = self.request.GET.get('previous_url', '')
+        self.storage['cascade'] = self.request.GET.get('cascade', '')
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.request.user.subscription_set.filter(object_type=ContentType.objects.get(model='course')).count() == 1:
-            comment_submission_types = ContentType.objects.filter(model__in=['comment', 'submission'])
-            self.request.user.subscription_set.filter(object_type__in=comment_submission_types).delete()
-        self.object.delete()
+        Subscription.objects.delete_subscription(user=self.request.user, object=self.get_object().object, cascade=bool(self.storage['cascade']))
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
@@ -333,8 +482,11 @@ class ManageSubscriptions(LoginRequiredMixin, FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        course_ids = self.request.user.subscription_set.filter(object_type=ContentType.objects.get(model='course')).values_list('object_id', flat=True)
+        course_ids = self.request.user.subscription_set.filter(object_type=ContentType.objects.get_for_model(Course)).values_list('object_id', flat=True)
+        context['all_courses'] = Course.objects.all()
         context['courses'] = Course.objects.filter(id__in=course_ids)
+        contest_ids = self.request.user.subscription_set.filter(object_type=ContentType.objects.get_for_model(Contest)).values_list('object_id', flat=True)
+        context['contests'] = Contest.objects.filter(id__in=contest_ids)
         return context
 
     def post(self, request, *args, **kwargs):
@@ -350,13 +502,11 @@ class ManageSubscriptions(LoginRequiredMixin, FormView):
             new_subscriptions = (Subscription(object_type=ContentType.objects.get(id=i), user=user) for i in new_object_type_ids)
             Subscription.objects.bulk_create(new_subscriptions)
 
-            comment_submission_types = ContentType.objects.filter(model__in=['comment', 'submission'])
-            if not user.subscription_set.filter(object_type__in=comment_submission_types).exists():
-                user.subscription_set.filter(object_type=ContentType.objects.get(model='course')).delete()
-            if user.subscription_set.filter(object_type__in=comment_submission_types).exists() and not user.subscription_set.filter(object_type=ContentType.objects.get(model='course')).exists():
-                course_ids = Course.objects.all().values_list('id', flat=True)
-                course_subscriptions = (Subscription(object_type=ContentType.objects.get(model='course'), object_id=course_id, user=user) for course_id in course_ids)
-                Subscription.objects.bulk_create(course_subscriptions)
+            if not Subscription.objects.for_user_models(user, Comment, Submission).exists():
+                Subscription.objects.for_user_models(user, Course, Contest).delete()
+            elif not Subscription.objects.for_user_models(user, Course, Contest).exists():
+                for course in Course.objects.all():
+                    Subscription.objects.make_subscription(user, object=course, cascade=True)
 
             return self.form_valid(form)
         return self.form_invalid(form)
@@ -452,15 +602,21 @@ class CommentUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView)
         return self.object.object.get_discussion_url() + get_comment_query_string(page) + '#comment_' + str(self.object.pk)
 
 
-class CommentDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class CommentDelete(LoginRedirectOwnershipOrPermissionRequiredMixin, DeleteView):
     model = Comment
     template_name = 'accounts/comment/comment_delete.html'
     permission_required = 'accounts.delete_comment'
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        context['thread_length'] = self.object.soft_delete(commit=False)
+        return self.render_to_response(context)
+
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
         success_url = self.get_success_url()
-        self.object.soft_delete()
+        self.object.soft_delete(delete_threads=request.user.has_perm(self.permission_required))
         return HttpResponseRedirect(success_url)
 
     def get_success_url(self):

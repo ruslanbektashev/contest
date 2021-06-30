@@ -115,7 +115,7 @@ urlpatterns = [
     path('course/<int:course_id>/submission/list', views.SubmissionList.as_view(), name='submission-list'),
     path('course/<int:course_id>/submission/backup', views.SubmissionBackup.as_view(), name='submission-backup'),
     path('problem/<int:problem_id>/submission/create', views.SubmissionCreate.as_view(), name='submission-create'),
-    path('problem/<int:problem_id>/submission/<int:submission_id>/continue', views.SubmissionCreate.as_view(), name='submission-continue'),
+    path('problem/<int:problem_id>/submission/<int:submission_id>', views.SubmissionCreate.as_view(), name='sub-submission-create'),
     path('submission/', include([
         path('<int:pk>/', include([
             path('', views.SubmissionDetail.as_view(), name='submission-detail'),
