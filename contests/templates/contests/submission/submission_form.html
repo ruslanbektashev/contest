@@ -81,6 +81,7 @@
     {{ form.options }}
 
     {% endif %}
+    {% if problem.type == 'Text' %}
     <div class="form-group">
         <button id="form_proceed" class="btn btn-light btn-block border" type="button" onclick="showConfirmation()" style="opacity: 1;">Продолжить</button>
     </div>
@@ -90,10 +91,15 @@
             <button class="btn btn-danger" type="button" onclick="hideConfirmation()">Отмена</button>
         </div>
     </div>
+    {% else %}
+    <div class="form-group">
+        <input class="btn btn-light btn-block border" type="submit" value="Отправить"/>
+    </div>
+    {% endif %}
 </form>
 
 {% if pending_sub_problems %}
-<h6 class="text-muted">Перейти к решению других задач этого теста:</h6>
+<h6 class="text-muted">Вы можете перейти к решению других задач этого теста. Неотправленное решение текущей задачи будет утеряно!</h6>
 <div class="list-group mb-0">
     {% if main_submission %}
         {% for sub_problem in pending_sub_problems %}
@@ -114,20 +120,18 @@
 {% endblock content %}
 
 {% block javascript %}
+{% if problem.type == 'Program' or problem.type == 'Files' %}
 <script src="{% static 'js/bs-custom-file-input.min.js' %}" type="text/javascript"></script>
-{% if problem.type == 'Files' %}
 <script type="text/javascript">
-$(function () {
+document.addEventListener("DOMContentLoaded", function() {
     bsCustomFileInput.init()
 });
 </script>
 {% endif %}
 {% if problem.type == 'Text' %}
 <script type="text/javascript">
-
 const second = 1000;
 const interval = 10 * second;
-
 let measurements = [];
 
 function getText() {
@@ -141,17 +145,9 @@ function watchText(ms) {
 }
 
 window.addEventListener('load', watchText);
-
 </script>
-{% endif %}
-{% if main_problem and assignment.deadline %}
-<script src="{% static 'js/countdown.js' %}" type="text/javascript"></script>
 <script src="{% static 'js/utils.js' %}" type="text/javascript"></script>
 <script type="text/javascript">
-document.addEventListener("DOMContentLoaded", function() {
-    startCountdown("{{ assignment.deadline.isoformat }}");
-});
-
 function showConfirmation() {
     let proceed_element = document.getElementById('form_proceed');
     let confirm_element = document.getElementById('form_confirm');
@@ -167,6 +163,14 @@ function hideConfirmation() {
     //confirm_element.classList.toggle('d-none');
     toggleOpacity(confirm_element, proceed_element, '0.3s', '0.7s');
 }
+</script>
+{% endif %}
+{% if main_problem and assignment.deadline %}
+<script src="{% static 'js/countdown.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function() {
+    startCountdown("{{ assignment.deadline.isoformat }}");
+});
 </script>
 {% endif %}
 {% endblock javascript %}
