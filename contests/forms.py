@@ -144,6 +144,20 @@ class CreditSetForm(forms.Form):
                                                                  option_attrs=option_attrs)
 
 
+class CreditReportForm(forms.Form):
+    type = forms.CharField(required=True, label="Тип ведомости")
+    group_name = forms.CharField(required=True, label="Название группы")
+    students = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите студентов")
+    examiners = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите экзаменаторов")
+
+    def __init__(self, course, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        students = Account.students.enrolled().current(course)
+        self.fields['students'].queryset = students.order_by('-level', 'user__last_name', 'user__first_name')
+        examiners = Account.objects.filter(type=2, faculty=course.faculty)
+        self.fields['examiners'].queryset = examiners.order_by('user__last_name', 'user__first_name')
+
+
 """==================================================== Contest ====================================================="""
 
 

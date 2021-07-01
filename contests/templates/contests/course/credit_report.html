@@ -1,0 +1,27 @@
+{% extends 'base_wide.html' %}
+{% load views forms %}
+
+{% block title %}
+Сгенерировать ведомость
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb course course %}
+{% breadcrumb "Сгенерировать ведомость" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Сгенерировать ведомость</legend>
+<form action="" method="post" class="form-horizontal">
+    {% csrf_token %}
+    {% render_form_errors form %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.students class+="form-control selectpicker" title="..." data-actions-box="true" data-selected-text-format="count > 3" %}
+    {% render_field form.examiners class+="form-control selectpicker" title="..." data-actions-box="true" data-selected-text-format="count > 3" %}
+    {% render_field form.group_name class+="form-control" %}
+    {% render_field form.type class+="form-control" %}
+    {% endwith %}
+    {% render_submit_button value="Сгенерировать" %}
+</form>
+{% endblock content %}
