@@ -183,7 +183,7 @@ class CourseList(LoginRequiredMixin, ListView):
 """===================================================== Credit ====================================================="""
 
 
-def generate_credit_report(faculty, direction, group_name, semester, course_name, report_type, examiners, date, students):
+def generate_credit_report(faculty, direction, group_name, semester, discipline, report_type, examiners, date, students):
     months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
 
     f = open('blank_report.docx', 'rb')
@@ -227,7 +227,6 @@ def generate_credit_report(faculty, direction, group_name, semester, course_name
 
     date_paragraph.paragraph_format.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.RIGHT
     formatted_date = "\nДАТА  «{}» {} {} г.\n".format(date.day, months[date.month - 1], date.year)
-    print(formatted_date)
     date_paragraph.add_run(formatted_date).bold = True
 
     # -------------------------------------------------------------------------
@@ -256,7 +255,7 @@ def generate_credit_report(faculty, direction, group_name, semester, course_name
     # -------------------------------------------------------------------------
 
     credit_info_table = document.tables[0]
-    credit_info_table.rows[0].cells[1].text = course_name
+    credit_info_table.rows[0].cells[1].text = discipline
     credit_info_table.rows[1].cells[1].text = report_type.upper()
     credit_info_table.rows[2].cells[1].text = ' / '.join(examiners)
 
@@ -265,13 +264,10 @@ def generate_credit_report(faculty, direction, group_name, semester, course_name
     credit_info_table = document.tables[1]
     for number, name in enumerate(students, 1):
         row_cells = credit_info_table.add_row().cells
-        row_cells[0].text = str(number) + '.'
+        row_cells[0].text = str(number)
 
         row_cells[1].text = name
         row_cells[1].paragraphs[0].runs[0].font.size = docx.shared.Pt(12)
-
-        row_cells[2].text = '00000000'
-        row_cells[2].paragraphs[0].runs[0].font.size = docx.shared.Pt(12)
 
     # -------------------------------------------------------------------------
 
@@ -283,7 +279,7 @@ def generate_credit_report(faculty, direction, group_name, semester, course_name
 
 class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
     form_class = CreditReportForm
-    template_name = 'contests/course/credit_report.html'
+    template_name = 'contests/credit/credit_report.html'
     permission_required = 'contests.add_credit'
 
     def __init__(self, **kwargs):
@@ -311,9 +307,9 @@ class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
                 direction="ПМиИ",
                 group_name=form.cleaned_data['group_name'],
                 semester=course.level,
-                course_name=course.title,
+                discipline=form.cleaned_data['discipline'],
                 report_type=form.cleaned_data['type'],
-                examiners=[str(examiner) for examiner in examiners],
+                examiners=[(examiner.position if examiner.position else "") + str(examiner) for examiner in examiners],
                 date=datetime.today(),
                 students=[str(student) for student in students],
             )
