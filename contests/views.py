@@ -1314,6 +1314,7 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
         comments = self.object.comment_set.actual()
         context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
             self.paginate_queryset(comments)
+        context['current_time'] = timezone.now()
         return context
 
 
