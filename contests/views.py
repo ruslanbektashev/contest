@@ -262,12 +262,15 @@ def generate_credit_report(faculty, direction, group_name, semester, discipline,
     # -------------------------------------------------------------------------
 
     credit_info_table = document.tables[1]
-    for number, name in enumerate(students, 1):
+    for number, student in enumerate(students, 1):
         row_cells = credit_info_table.add_row().cells
         row_cells[0].text = str(number)
 
-        row_cells[1].text = name
+        row_cells[1].text = student["name"]
         row_cells[1].paragraphs[0].runs[0].font.size = docx.shared.Pt(12)
+
+        row_cells[3].text = str(student["score"])
+        row_cells[3].paragraphs[0].runs[0].font.size = docx.shared.Pt(12)
 
     # -------------------------------------------------------------------------
 
@@ -298,9 +301,23 @@ class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
     def post(self, request, *args, **kwargs):
         form = self.get_form()
         if form.is_valid():
-            students = form.cleaned_data['students']
             examiners = form.cleaned_data['examiners']
             course = self.storage['course']
+            students_with_scores = form.cleaned_data['students']
+
+            students_prepared = []
+            for student in students_with_scores:
+                score_choices = {key: val for key, val in Credit.SCORE_CHOICES}
+                score = student.credit_score
+                if score == 0:
+                    score_str = ""
+                else:
+                    score_str = "{} ({})".format(score, score_choices[score])
+
+                students_prepared.append({
+                    "name": str(student),
+                    "score": score_str,
+                })
 
             report_file = generate_credit_report(
                 faculty="ПМиИ",
@@ -311,14 +328,13 @@ class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
                 report_type=form.cleaned_data['type'],
                 examiners=[(examiner.position if examiner.position else "") + str(examiner) for examiner in examiners],
                 date=datetime.today(),
-                students=[str(student) for student in students],
+                students=students_prepared,
             )
 
             response = HttpResponse(report_file, content_type='application/vnd.openxmlformats-officedocument')  # .wordprocessingml.document
             response['Content-Disposition'] = 'attachment; filename={}.docx'.format("credit_report")
 
             return response
-
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
