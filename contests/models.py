@@ -200,9 +200,7 @@ def generate_credit_report(faculty, direction, group_name, semester, discipline,
     paragraph = document.add_paragraph()
     paragraph.paragraph_format.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.LEFT
 
-    paragraph.add_run('''ДЕКАН ФАКУЛЬТЕТА
-ЗАВЕДУЮЩИЙ КАФЕДРЫ
-ПОДПИСИ ЭКЗАМЕНАТОРОВ''')
+    paragraph.add_run("ДЕКАН ФАКУЛЬТЕТА\n\nЗАВЕДУЮЩИЙ КАФЕДРЫ\n\nПОДПИСИ ЭКЗАМЕНАТОРОВ")
 
     # -------------------------------------------------------------------------
 
