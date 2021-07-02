@@ -161,7 +161,7 @@ class CreditReportForm(forms.Form):
         self.fields['discipline'].initial = course.title
         students = Account.students.enrolled().current(course).with_credits(course)
         self.fields['students'].queryset = students.order_by('user__last_name', 'user__first_name')
-        examiners = Account.objects.filter(type=2, faculty=course.faculty)
+        examiners = Account.objects.filter(user__groups__name='Преподаватель', faculty=course.faculty)
         self.fields['examiners'].queryset = examiners.order_by('user__last_name', 'user__first_name')
 
 
