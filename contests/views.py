@@ -262,6 +262,7 @@ def generate_credit_report(faculty, direction, group_name, semester, discipline,
     # -------------------------------------------------------------------------
 
     credit_info_table = document.tables[1]
+
     for number, student in enumerate(students, 1):
         row = credit_info_table.add_row()
         row.height_rule = docx.enum.table.WD_ROW_HEIGHT_RULE.AT_LEAST
@@ -310,15 +311,17 @@ class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
 
             students_prepared = []
             for student in students_with_scores:
-                score_choices = {key: val for key, val in Credit.SCORE_CHOICES}
-                score = student.credit_score
-                if score == 0:
-                    score_str = ""
-                else:
-                    score_str = "{} ({})".format(score, score_choices[score])
+                score_choices = {
+                    0: "",
+                    2: "2 (неуд.)",
+                    3: "3 (удов.)",
+                    4: "4 (хор.)",
+                    5: "5 (отл.)",
+                }
+
                 students_prepared.append({
                     "name": str(student),
-                    "score": score_str,
+                    "score": score_choices[student.credit_score],
                 })
 
             report_file = generate_credit_report(
