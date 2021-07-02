@@ -332,8 +332,28 @@ class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
                 date=datetime.today(),
                 students=students_prepared,
             )
-            response = HttpResponse(report_file, content_type='application/vnd.openxmlformats-officedocument')  # .wordprocessingml.document
-            response['Content-Disposition'] = 'attachment; filename={}.docx'.format("credit_report")
+
+            filename = "vedomost_{}_{}_{}_{}".format(
+                form.cleaned_data['type'].lower(),
+                course.title.lower(),
+                form.cleaned_data['group_name'].lower(),
+                datetime.today().date(),
+            )
+
+            alphabet_ru_a = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
+            alphabet_ru_s = 'жйхцчшщыюя'
+            translit_en_a = 'abvgdee_zi_klmnoprstuf________e__'
+            translit_en_s = ['zh', 'y', 'kh', 'ts', 'ch', 'sh', 'sh', 'y', 'yu', 'ya']
+            transtable = {ord(c): p for c, p in zip(alphabet_ru_a, translit_en_a)}
+            transtable.update({ord(c): p for c, p in zip(alphabet_ru_s, translit_en_s)})
+
+            filename = filename.translate(transtable)
+            filename = filename.replace(" ", "_")
+
+            print(filename)
+
+            response = HttpResponse(report_file, content_type='application/vnd.openxmlformats-officedocument')
+            response['Content-Disposition'] = 'attachment; filename={}.docx'.format(filename)
             return response
         return self.form_invalid(form)
 
