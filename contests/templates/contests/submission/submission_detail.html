@@ -74,8 +74,10 @@
 {% if submission.problem.type == 'Program' or submission.problem.type == 'Files' %}
 <div class="text-right text-muted">
     {% if perms.contests.download_submission %}
-    <p class="text-warning text-break" title="Отображается только преподавателям">
-        <i class="fa fa-lock fa-fw"></i>директория на сервере: {{ submission.attachment_set.all.0.dirname }}
+    <p class="text-warning text-break">
+        <span data-toggle="popover" data-placement="left" data-content="Отображается только преподавателям">
+            <i class="fa fa-lock fa-fw"></i>директория на сервере: {{ submission.attachment_set.all.0.dirname }}
+        </span>
     </p>
     {% endif %}
     {% if perms.contests.moss_submission %}
@@ -178,8 +180,8 @@
         <div class="text-right text-muted">
             {% if perms.contests.moss_submission %}
                 {% if sub_submission.moss_to_submissions %}
-            <p class="text-warning text-wrap" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>с посылками MOSS: {% for to_submission_id in sub_submission.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-            <p class="text-warning text-wrap" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>ссылка на отчет MOSS: {% if sub_submission.moss_report_url %}<a href="{{ sub_submission.moss_report_url }}" target="_blank">{{ sub_submission.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
+            <p class="text-warning text-wrap" data-toggle="popover" data-placement="left" data-content="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>с посылками MOSS: {% for to_submission_id in sub_submission.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+            <p class="text-warning text-wrap" data-toggle="popover" data-placement="left" data-content="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>ссылка на отчет MOSS: {% if sub_submission.moss_report_url %}<a href="{{ sub_submission.moss_report_url }}" target="_blank">{{ sub_submission.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
                 {% endif %}
             {% endif %}
         </div>
