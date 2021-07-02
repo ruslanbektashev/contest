@@ -263,14 +263,17 @@ def generate_credit_report(faculty, direction, group_name, semester, discipline,
 
     credit_info_table = document.tables[1]
     for number, student in enumerate(students, 1):
-        row_cells = credit_info_table.add_row().cells
-        row_cells[0].text = str(number)
+        row = credit_info_table.add_row()
+        row.height_rule = docx.enum.table.WD_ROW_HEIGHT_RULE.AT_LEAST
+        row.height = docx.shared.Cm(0.635)
 
-        row_cells[1].text = student["name"]
-        row_cells[1].paragraphs[0].runs[0].font.size = docx.shared.Pt(12)
+        row.cells[0].text = str(number)
 
-        row_cells[3].text = str(student["score"])
-        row_cells[3].paragraphs[0].runs[0].font.size = docx.shared.Pt(12)
+        row.cells[1].text = student["name"]
+        row.cells[1].paragraphs[0].runs[0].font.size = docx.shared.Pt(12)
+
+        row.cells[3].text = str(student["score"])
+        row.cells[3].paragraphs[0].runs[0].font.size = docx.shared.Pt(12)
 
     # -------------------------------------------------------------------------
 
@@ -325,7 +328,7 @@ class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
                 semester=course.level,
                 discipline=form.cleaned_data['discipline'],
                 report_type=form.cleaned_data['type'],
-                examiners=[(examiner.position if examiner.position else "") + str(examiner) for examiner in examiners],
+                examiners=[(examiner.position + " " if examiner.position else "") + str(examiner) for examiner in examiners],
                 date=datetime.today(),
                 students=students_prepared,
             )
