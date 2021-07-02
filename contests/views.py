@@ -1,11 +1,4 @@
-import io
-
 from datetime import date, datetime
-
-from django.forms.models import inlineformset_factory
-from django.utils import timezone
-
-import docx
 
 from markdown import markdown
 from mimetypes import guess_type
@@ -17,9 +10,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.forms.models import inlineformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.views.generic import CreateView, DeleteView, DetailView, FormView, ListView, UpdateView
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import BaseDetailView, SingleObjectMixin
@@ -183,107 +178,6 @@ class CourseList(LoginRequiredMixin, ListView):
 """===================================================== Credit ====================================================="""
 
 
-def generate_credit_report(faculty, direction, group_name, semester, discipline, report_type, examiners, date, students):
-    months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
-
-    f = open('blank_report.docx', 'rb')
-
-    document = docx.Document(f)
-    style = document.styles['Normal']
-    style.font.name = 'Times New Roman'
-    style.font.size = docx.shared.Pt(10)
-
-    # -------------------------------------------------------------------------
-
-    header_paragraph = document.paragraphs[0]
-    header_paragraph.paragraph_format.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
-
-    header_paragraph.add_run('''ФИЛИАЛ МОСКОВСКОГО ГОСУДАРСТВЕННОГО УНИВЕРСИТЕТА
-имени М.В.ЛОМОНОСОВА в г. ТАШКЕНТЕ
-''')
-
-    run = header_paragraph.add_run('ЭКЗАМЕНАЦИОННАЯ')
-    run.bold = True
-    run.underline = True
-
-    header_paragraph.add_run(' (ЗАЧЕТНАЯ) ВЕДОМОСТЬ №\n')
-
-    # -------------------------------------------------------------------------
-
-    group_paragraph = document.paragraphs[1]
-
-    group_paragraph.add_run('ФАКУЛЬТЕТ  ')
-    group_paragraph.add_run(faculty).bold = True
-    group_paragraph.add_run('    НАПРАВЛЕНИЕ  ')
-    group_paragraph.add_run(direction).bold = True
-    group_paragraph.add_run('    ГРУППА  ')
-    group_paragraph.add_run(group_name).bold = True
-    group_paragraph.add_run('    СЕМЕСТР  ')
-    group_paragraph.add_run(str(semester) + '\n').bold = True
-
-    # -------------------------------------------------------------------------
-
-    date_paragraph = document.paragraphs[2]
-
-    date_paragraph.paragraph_format.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.RIGHT
-    formatted_date = "\nДАТА  «{}» {} {} г.\n".format(date.day, months[date.month - 1], date.year)
-    date_paragraph.add_run(formatted_date).bold = True
-
-    # -------------------------------------------------------------------------
-
-    paragraph = document.add_paragraph()
-    paragraph.paragraph_format.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.RIGHT
-
-    paragraph.add_run('''ВСЕГО ОЦЕНОК_______
-ОТЛИЧНО_______
-ХОРОШО_______
-УДОВЛЕТВОРИТЕЛЬНО_______
-НЕУДОВЛЕТВОРИТЕЛЬНО_______
-ЗАЧЕТ_______
-НЕЗАЧЕТ_______
-НЕ ЯВИЛСЯ_______''')
-
-    # -------------------------------------------------------------------------
-
-    paragraph = document.add_paragraph()
-    paragraph.paragraph_format.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.LEFT
-
-    paragraph.add_run('''ДЕКАН ФАКУЛЬТЕТА
-ЗАВЕДУЮЩИЙ КАФЕДРЫ
-ПОДПИСИ ЭКЗАМЕНАТОРОВ''')
-
-    # -------------------------------------------------------------------------
-
-    credit_info_table = document.tables[0]
-    credit_info_table.rows[0].cells[1].text = discipline
-    credit_info_table.rows[1].cells[1].text = report_type.upper()
-    credit_info_table.rows[2].cells[1].text = ' / '.join(examiners)
-
-    # -------------------------------------------------------------------------
-
-    credit_info_table = document.tables[1]
-
-    for number, student in enumerate(students, 1):
-        row = credit_info_table.add_row()
-        row.height_rule = docx.enum.table.WD_ROW_HEIGHT_RULE.AT_LEAST
-        row.height = docx.shared.Cm(0.635)
-
-        row.cells[0].text = str(number)
-
-        row.cells[1].text = student["name"]
-        row.cells[1].paragraphs[0].runs[0].font.size = docx.shared.Pt(12)
-
-        row.cells[3].text = str(student["score"])
-        row.cells[3].paragraphs[0].runs[0].font.size = docx.shared.Pt(12)
-
-    # -------------------------------------------------------------------------
-
-    target_stream = io.BytesIO()
-    document.save(target_stream)
-
-    return target_stream.getvalue()
-
-
 class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
     form_class = CreditReportForm
     template_name = 'contests/credit/credit_report.html'
@@ -305,56 +199,12 @@ class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
     def post(self, request, *args, **kwargs):
         form = self.get_form()
         if form.is_valid():
-            examiners = form.cleaned_data['examiners']
-            course = self.storage['course']
-            students_with_scores = form.cleaned_data['students']
-
-            students_prepared = []
-            for student in students_with_scores:
-                score_choices = {
-                    0: "",
-                    2: "2 (неуд.)",
-                    3: "3 (удов.)",
-                    4: "4 (хор.)",
-                    5: "5 (отл.)",
-                }
-
-                students_prepared.append({
-                    "name": str(student),
-                    "score": score_choices[student.credit_score],
-                })
-
-            report_file = generate_credit_report(
-                faculty="ПМиИ",
-                direction="ПМиИ",
-                group_name=form.cleaned_data['group_name'],
-                semester=course.level,
-                discipline=form.cleaned_data['discipline'],
-                report_type=form.cleaned_data['type'],
-                examiners=[(examiner.position + " " if examiner.position else "") + str(examiner) for examiner in examiners],
-                date=datetime.today(),
-                students=students_prepared,
-            )
-
-            filename = "vedomost_{}_{}_{}_{}".format(
-                form.cleaned_data['type'].lower(),
-                course.title.lower(),
-                form.cleaned_data['group_name'].lower(),
-                datetime.today().date(),
-            )
-
-            alphabet_ru_a = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
-            alphabet_ru_s = 'жйхцчшщыюя'
-            translit_en_a = 'abvgdee_zi_klmnoprstuf________e__'
-            translit_en_s = ['zh', 'y', 'kh', 'ts', 'ch', 'sh', 'sh', 'y', 'yu', 'ya']
-            transtable = {ord(c): p for c, p in zip(alphabet_ru_a, translit_en_a)}
-            transtable.update({ord(c): p for c, p in zip(alphabet_ru_s, translit_en_s)})
-
-            filename = filename.translate(transtable)
-            filename = filename.replace(" ", "_")
-
-            print(filename)
-
+            report_file, filename = Credit.objects.create_report(self.storage['course'],
+                                                                 form.cleaned_data['examiners'],
+                                                                 form.cleaned_data['students'],
+                                                                 form.cleaned_data['group_name'],
+                                                                 form.cleaned_data['discipline'],
+                                                                 form.cleaned_data['type'])
             response = HttpResponse(report_file, content_type='application/vnd.openxmlformats-officedocument')
             response['Content-Disposition'] = 'attachment; filename={}.docx'.format(filename)
             return response
