@@ -313,7 +313,6 @@ class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
                     score_str = ""
                 else:
                     score_str = "{} ({})".format(score, score_choices[score])
-
                 students_prepared.append({
                     "name": str(student),
                     "score": score_str,
@@ -330,11 +329,10 @@ class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
                 date=datetime.today(),
                 students=students_prepared,
             )
-
             response = HttpResponse(report_file, content_type='application/vnd.openxmlformats-officedocument')  # .wordprocessingml.document
             response['Content-Disposition'] = 'attachment; filename={}.docx'.format("credit_report")
-
             return response
+        return self.form_invalid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
