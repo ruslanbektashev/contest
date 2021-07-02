@@ -243,7 +243,7 @@ class CreditManager(models.Manager):
             new_credits.append(new_credit)
         return self.bulk_create(new_credits)
 
-    def create_report(self, course, examiners, students_with_scores, group_name, discipline, type):
+    def create_report(self, course, examiners, students_with_scores, group_name, discipline, date, type):
         examiners = examiners.annotate(
             lead=models.Exists(course.leaders.filter(id=models.OuterRef('user_id')))
         ).order_by('-lead')
@@ -265,11 +265,9 @@ class CreditManager(models.Manager):
         examiners = [(examiner.position + " " if examiner.position else "") + str(examiner) for examiner in examiners]
         report_file = generate_credit_report(faculty="ПМиИ", direction="ПМиИ", group_name=group_name,
                                              semester=course.level, discipline=discipline, report_type=type,
-                                             examiners=examiners, date=timezone.datetime.today(),
-                                             students=students_prepared)
+                                             examiners=examiners, date=date, students=students_prepared)
 
-        filename = "vedomost_{}_{}_{}_{}".format(type.lower(), course.title.lower(), group_name.lower(),
-                                                 timezone.datetime.today().date())
+        filename = "vedomost_{}_{}_{}_{}".format(type.lower(), course.title.lower(), group_name.lower(), date)
 
         alphabet_ru_a = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
         alphabet_ru_s = 'жйхцчшщыюя'

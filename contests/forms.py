@@ -152,6 +152,7 @@ class CreditReportForm(forms.Form):
 
     type = forms.ChoiceField(required=True, choices=TYPE_CHOICES, label="Тип ведомости")
     discipline = forms.CharField(required=True, label="Дисциплина")
+    date = forms.DateField(required=True, label="Дата")
     group_name = forms.CharField(required=True, label="Название группы")
     students = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите студентов")
     examiners = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите экзаменаторов")

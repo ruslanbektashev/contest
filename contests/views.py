@@ -204,6 +204,7 @@ class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
                                                                  form.cleaned_data['students'],
                                                                  form.cleaned_data['group_name'],
                                                                  form.cleaned_data['discipline'],
+                                                                 form.cleaned_data['date'],
                                                                  form.cleaned_data['type'])
             response = HttpResponse(report_file, content_type='application/vnd.openxmlformats-officedocument')
             response['Content-Disposition'] = 'attachment; filename={}.docx'.format(filename)
