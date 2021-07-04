@@ -1049,7 +1049,16 @@ class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
     def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
         self.storage['debts'] = bool(request.GET.get('debts'))
+        contest_id = int(request.GET.get('contest_id') or 0)
+        if contest_id:
+            self.storage['contest'] = get_object_or_404(Contest, id=contest_id, course=self.storage['course'])
         return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if 'contest' in self.storage:
+            initial['contest'] = self.storage['contest']
+        return initial
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -1180,24 +1189,17 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
     permission_required = 'contests.view_submission'
     paginate_by = 30
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        self.storage['from_url'] = request.GET.get('from', '')
-        return super().dispatch(request, *args, **kwargs)
-
     def get(self, request, *args, **kwargs):
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
             self.object = self.get_object()
-        Activity.objects.filter(recipient=request.user, object_type=ContentType.objects.get_for_model(self.object), object_id=self.object.id).mark_as_read()
+        Activity.objects.filter(recipient=request.user,
+                                object_type=ContentType.objects.get_for_model(self.object),
+                                object_id=self.object.id).mark_as_read()
         context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['from_url'] = self.storage['from_url']
         comments = self.object.comment_set.actual()
         context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
             self.paginate_queryset(comments)
@@ -1396,7 +1398,6 @@ class SubmissionEvaluate(LoginRedirectOwnershipOrPermissionRequiredMixin, Update
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['from_url'] = request.GET.get('from', '')
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
@@ -1409,11 +1410,7 @@ class SubmissionEvaluate(LoginRedirectOwnershipOrPermissionRequiredMixin, Update
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
-        url = reverse('contests:submission-detail', kwargs={'pk': self.object.pk})
-        if self.storage['from_url']:
-            return url + '?from=' + self.storage['from_url']
-        else:
-            return url
+        return reverse('contests:submission-detail', kwargs={'pk': self.object.pk})
 
 
 def submission_get_progress(request, task_id):
@@ -1426,14 +1423,6 @@ class SubmissionClearTask(LoginRedirectOwnershipOrPermissionRequiredMixin, BaseU
     http_method_names = ['get']
     permission_required = 'contests.evaluate_submission'
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        self.storage['from_url'] = request.GET.get('from', '')
-        return super().dispatch(request, *args, **kwargs)
-
     def get(self, request, *args, **kwargs):
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
             self.object = self.get_object()
@@ -1442,11 +1431,7 @@ class SubmissionClearTask(LoginRedirectOwnershipOrPermissionRequiredMixin, BaseU
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
-        url = reverse('contests:submission-detail', kwargs={'pk': self.object.pk})
-        if self.storage['from_url']:
-            return url + '?from=' + self.storage['from_url']
-        else:
-            return url
+        return reverse('contests:submission-detail', kwargs={'pk': self.object.pk})
 
 
 class SubmissionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):

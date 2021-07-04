@@ -6,11 +6,12 @@
                 <th class="text-right" style="width: 4%;">№</th>
                 <th>Студент</th>
                 {% for contest in contests %}
-                <th>
+                <th class="lake">
                     <a href="{{ contest.get_absolute_url }}" data-toggle="popover" data-placement="top" data-content="{{ contest }}">{{ contest.number }}</a>
+                    <a href="{% url 'contests:assignment-randomize' course.id %}?contest_id={{ contest.id }}{% if debts %}&debts=1{% endif %}" class="numtus status-info pebble" title="Распределить задания случайно в этом разделе"><i class="fa fa-random"></i></a>
                 </th>
                 {% endfor %}
-                <th class="text-center" style="width: 8%;">Зачет</th>
+                <th class="text-center" style="width: 6%;">Зачет</th>
             </tr>
         </thead>
         <tbody>
