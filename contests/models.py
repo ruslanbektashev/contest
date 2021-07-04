@@ -26,7 +26,8 @@ try:
     from tools.sandbox import Sandbox
     from tools.utility import Status, diff
 except ImportError:
-    from contest.utils import Sandbox, Status, diff
+    from contest.utils import Sandbox, Status, diff, transliterate
+
 
 """=================================================== Attachment ==================================================="""
 
@@ -268,16 +269,7 @@ class CreditManager(models.Manager):
                                              examiners=examiners, date=date, students=students_prepared)
 
         filename = "vedomost_{}_{}_{}_{}".format(type.lower(), course.title.lower(), group_name.lower(), date)
-
-        alphabet_ru_a = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
-        alphabet_ru_s = 'жйхцчшщыюя'
-        translit_en_a = 'abvgdee_zi_klmnoprstuf________e__'
-        translit_en_s = ['zh', 'y', 'kh', 'ts', 'ch', 'sh', 'sh', 'y', 'yu', 'ya']
-        transtable = {ord(c): p for c, p in zip(alphabet_ru_a, translit_en_a)}
-        transtable.update({ord(c): p for c, p in zip(alphabet_ru_s, translit_en_s)})
-
-        filename = filename.translate(transtable)
-        filename = filename.replace(" ", "_")
+        filename = transliterate(filename).replace(" ", "_")
 
         return report_file, filename
 

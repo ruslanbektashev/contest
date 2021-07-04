@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 
 from contest.abstract import CRUDEntry
+from contest.utils import transliterate
 
 
 """==================================================== Faculty ====================================================="""
@@ -84,20 +85,14 @@ class StaffManager(models.Manager):
         return super().get_queryset().filter(type__gt=1).select_related('user')
 
     def create_set(self, faculty, level, type, admission_year, names):
-        alphabet_ru_a = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
-        alphabet_ru_s = 'жйхцчшщыюя'
-        translit_en_a = 'abvgdee_zi_klmnoprstuf________e__'
-        translit_en_s = ['zh', 'y', 'kh', 'ts', 'ch', 'sh', 'sh', 'y', 'yu', 'ya']
-        transtable = {ord(c): p for c, p in zip(alphabet_ru_a, translit_en_a)}
-        transtable.update({ord(c): p for c, p in zip(alphabet_ru_s, translit_en_s)})
         new_accounts, credentials = [], []
         for name in names:
             first_name = name[1].lower()
             last_name = name[0].lower()
             patronymic = name[2].lower().capitalize() if len(name) > 2 else ""
-            username = last_name.translate(transtable)
+            username = transliterate(last_name)
             if User.objects.filter(username=username).exists():
-                username = first_name[0].translate(transtable) + username
+                username = transliterate(first_name[0]) + username
             password = User.objects.make_random_password()
             user = User.objects.create_user(username, password=password, first_name=first_name.capitalize(),
                                             last_name=last_name.capitalize())
@@ -116,13 +111,7 @@ class StudentManager(models.Manager):
         return super().get_queryset().filter(user__groups__name="Студент").select_related('user')
 
     def create_set(self, faculty, level, admission_year, names):
-        alphabet_ru_a = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
-        alphabet_ru_s = 'жйхцчшщыюя'
-        translit_en_a = 'abvgdee_zi_klmnoprstuf________e__'
-        translit_en_s = ['zh', 'y', 'kh', 'ts', 'ch', 'sh', 'sh', 'y', 'yu', 'ya']
-        transtable = {ord(c): p for c, p in zip(alphabet_ru_a, translit_en_a)}
-        transtable.update({ord(c): p for c, p in zip(alphabet_ru_s, translit_en_s)})
-        group_prefix = faculty.group_prefix.lower().translate(transtable)
+        group_prefix = transliterate(faculty.group_prefix.lower())
         new_accounts, credentials = [], []
         i = 1
         for name in names:
