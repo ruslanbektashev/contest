@@ -5,11 +5,13 @@ register = template.Library()
 
 
 @register.inclusion_tag('breadcrumb.html')
-def breadcrumb(title, *args, **kwargs):
+def breadcrumb(title, *args, query_string=None, **kwargs):
     context = {
         'title': title,
         'url': resolve_url(*args, **kwargs) if args else None
     }
+    if isinstance(query_string, str):
+        context['url'] += query_string
     return context
 
 
@@ -33,14 +35,12 @@ def render_submission_progress(submission, title):
 def get_updated_query_string(request, **kwargs):
     _GET = request.GET.copy()
     _GET.update(kwargs)
-    return '?' + '&'.join(['{}={}'.format(key, value) for key, value in _GET.items()])
+    return '?' + _GET.urlencode()
 
 
 @register.simple_tag()
 def get_full_path_with_updated_query_string(request, **kwargs):
-    _GET = request.GET.copy()
-    _GET.update(kwargs)
-    return request.path + '?' + '&'.join(['{}={}'.format(key, value) for key, value in _GET.items()])
+    return request.path + get_updated_query_string(request, **kwargs)
 
 
 @register.inclusion_tag('page_nav.html', takes_context=True)
