@@ -17,7 +17,6 @@ from django.core.validators import validate_comma_separated_integer_list, MinVal
 from django.db import models
 from django.dispatch import receiver
 from django.urls import reverse
-from django.utils import timezone
 
 from contest.abstract import CDEntry, CRDEntry, CRUDEntry
 from accounts.models import Account, Comment, Activity, Faculty, Subscription
@@ -244,10 +243,11 @@ class CreditManager(models.Manager):
             new_credits.append(new_credit)
         return self.bulk_create(new_credits)
 
-    def create_report(self, course, examiners, students_with_scores, group_name, discipline, date, type):
+    def create_report(self, course, discipline, type, examiners, students, date, group_name):
         examiners = examiners.annotate(
             lead=models.Exists(course.leaders.filter(id=models.OuterRef('user_id')))
         ).order_by('-lead')
+        students_with_scores = students.with_credits(course)
 
         students_prepared = []
         for student in students_with_scores:

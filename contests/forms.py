@@ -150,17 +150,17 @@ class CreditReportForm(forms.Form):
         ("Зачёт", "Зачёт"),
     )
 
-    type = forms.ChoiceField(required=True, choices=TYPE_CHOICES, label="Тип ведомости")
     discipline = forms.CharField(required=True, label="Дисциплина")
+    type = forms.ChoiceField(required=True, choices=TYPE_CHOICES, label="Тип ведомости")
+    examiners = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите экзаменаторов")
+    students = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите студентов")
     date = forms.DateField(required=True, label="Дата")
     group_name = forms.CharField(required=True, label="Название группы")
-    students = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите студентов")
-    examiners = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите экзаменаторов")
 
     def __init__(self, course, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['discipline'].initial = course.title
-        students = Account.students.enrolled().current(course).with_credits(course)
+        students = Account.students.enrolled().current(course)
         self.fields['students'].queryset = students.order_by('user__last_name', 'user__first_name')
         examiners = Account.objects.filter(user__groups__name='Преподаватель', faculty=course.faculty)
         self.fields['examiners'].queryset = examiners.order_by('user__last_name', 'user__first_name')
