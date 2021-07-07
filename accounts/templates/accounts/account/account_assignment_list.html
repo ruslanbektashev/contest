@@ -14,8 +14,10 @@
 
 {% block content %}
 <legend>
-{{ account }}, Задания
-<a href="{% url 'contests:course-list' %}" class="text-secondary text-decoration-none pull-right" data-toggle="popover" data-placement="left" data-content="Все курсы"><i class="fa fa-book fa-fw"></i></a>
+    {{ account }}, Задания
+    <span class="pull-right">
+        <a href="{% url 'contests:course-list' %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Все курсы"><i class="fa fa-book fa-fw"></i></a>
+    </span>
 </legend>
 {% render_assignment_user_table assignments credits %}
 {% render_assignment_progress assignments "Прогресс" %}

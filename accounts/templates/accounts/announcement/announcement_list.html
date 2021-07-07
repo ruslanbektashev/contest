@@ -11,17 +11,24 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Объявления{% if perms.accounts.add_announcement %}<a href="{% url 'accounts:announcement-create' %}" class="text-success text-decoration-none pull-right" data-toggle="popover" data-placement="left" data-content="Добавить объявление"><i class="fa fa-plus fa-fw"></i></a>{% endif %}</legend>
+<legend>
+    Объявления
+    <span class="pull-right">
+    {% if perms.accounts.add_announcement %}
+        <a href="{% url 'accounts:announcement-create' %}" class="text-success text-decoration-none" data-toggle="tooltip" data-placement="left" title="Добавить объявление"><i class="fa fa-plus fa-fw"></i></a>
+    {% endif %}
+    </span>
+</legend>
 {% for announcement in announcements %}
 <div class="card{% if forloop.counter > 1 %} mt-3{% endif %}">
     <div class="card-header d-flex align-items-center">
         <span class="text-primary mr-auto">{{ announcement.title }}</span>
         {% if perms.contests.change_announcement and perms.contests.delete_announcement %}
-        <a href="{% url 'accounts:announcement-update' announcement.id %}" class="card-link" title="Редактировать объявление">
-            <i class="fa fa-edit fa-lg"></i>
+        <a href="{% url 'accounts:announcement-update' announcement.id %}" class="card-link" data-toggle="tooltip" data-placement="left" title="Редактировать объявление">
+            <i class="fa fa-edit fa-lg fa-fw"></i>
         </a>
-        <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="card-link text-danger ml-3" title="Удалить объявление" style="position: relative; top: -0.08rem;">
-            <i class="fa fa-times fa-lg"></i>
+        <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="card-link text-danger ml-2" data-toggle="tooltip" data-placement="top" title="Удалить объявление" style="position: relative; top: -0.08rem;">
+            <i class="fa fa-times fa-lg fa-fw"></i>
         </a>
         {% endif %}
     </div>

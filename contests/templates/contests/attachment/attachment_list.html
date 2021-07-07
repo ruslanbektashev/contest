@@ -5,9 +5,9 @@
             <samp>{{ attachment.filename }}</samp>
         </a>
         <span class="text-muted text-nowrap mr-2">{{ attachment.date_created }}</span>
-        <a href="{{ attachment.file.url }}" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
+        <a href="{{ attachment.file.url }}" data-toggle="tooltip" data-placement="top" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
         {% if perms.contests.delete_attachment %}
-        <a class="ml-2" href="{% url 'contests:attachment-delete' attachment.id %}" title="Удалить"><i class="fa fa-trash-o fa-fw"></i></a>
+        <a class="ml-2" href="{% url 'contests:attachment-delete' attachment.id %}" data-toggle="tooltip" data-placement="top" title="Удалить"><i class="fa fa-trash-o fa-fw"></i></a>
         {% endif %}
     </li>
     {% endfor %}

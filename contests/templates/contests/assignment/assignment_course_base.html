@@ -15,15 +15,15 @@
 <legend>
     Таблица заданий {% if debts %}должников{% endif %}
     <span class="pull-right">
-        <a href="{% url 'contests:course-start' course.id %}" class="text-decoration-none" data-toggle="popover" data-placement="left" data-content="Начать курс"><i class="fa fa-play fa-fw"></i></a>
+        <a href="{% url 'contests:course-start' course.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Начать курс"><i class="fa fa-play fa-fw"></i></a>
         {% if debts %}
-        <a href="{% url 'contests:assignment-table' course.id %}" class="text-decoration-none" data-toggle="popover" data-placement="top" data-content="Перейти к таблице"><i class="fa fa-table fa-fw"></i></a>
+        <a href="{% url 'contests:assignment-table' course.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Перейти к таблице"><i class="fa fa-table fa-fw"></i></a>
         {% else %}
-        <a href="{% url 'contests:assignment-table' course.id %}?debts=1" class="text-decoration-none" data-toggle="popover" data-placement="top" data-content="Перейти к должникам"><i class="fa fa-columns fa-fw"></i></a>
+        <a href="{% url 'contests:assignment-table' course.id %}?debts=1" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Перейти к должникам"><i class="fa fa-columns fa-fw"></i></a>
         {% endif %}
-        <a href="{% url 'contests:credit-report' course.id %}{% if debts %}?debts=1{% endif %}" class="text-decoration-none" data-toggle="popover" data-placement="top" data-content="Сгенерировать отчетную ведомость"><i class="fa fa-file-word-o fa-fw"></i></a>
-        <a href="{% url 'contests:assignment-randomize' course.id %}{% if debts %}?debts=1{% endif %}" class="text-decoration-none" data-toggle="popover" data-placement="top" data-content="Распределить задания случайно"><i class="fa fa-random fa-fw"></i></a>
-        <a href="{% url 'contests:assignment-create' course.id %}{% if debts %}?debts=1{% endif %}" class="text-decoration-none text-success" data-toggle="popover" data-placement="top" data-content="Назначить новое задание"><i class="fa fa-plus fa-fw"></i></a>
+        <a href="{% url 'contests:credit-report' course.id %}{% if debts %}?debts=1{% endif %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Сгенерировать отчетную ведомость"><i class="fa fa-file-word-o fa-fw"></i></a>
+        <a href="{% url 'contests:assignment-randomize' course.id %}{% if debts %}?debts=1{% endif %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Распределить задания случайно"><i class="fa fa-random fa-fw"></i></a>
+        <a href="{% url 'contests:assignment-create' course.id %}{% if debts %}?debts=1{% endif %}" class="text-decoration-none text-success" data-toggle="tooltip" data-placement="top" title="Назначить новое задание"><i class="fa fa-plus fa-fw"></i></a>
     </span>
 </legend>
 {% render_assignment_course_table course students assignments debts %}

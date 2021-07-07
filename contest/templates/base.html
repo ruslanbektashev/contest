@@ -26,20 +26,20 @@
         <div class="collapse navbar-collapse" id="navbarToggler">
             <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
                 {% if request.user.is_authenticated %}
-                <li title="Объявления">
+                <li>
                     <a class="nav-link" href="{% url 'accounts:announcement-list' %}">Объявления</a>
                 </li>
-                <li title="Расписание">
+                <li>
                     <a class="nav-link" href="{% url 'schedule:schedule-list' %}">Расписание</a>
                 </li>
-                <li title="Помощь">
+                <li>
                     <a class="nav-link" href="{% url 'support:index' %}">Помощь</a>
                 </li>
-                <li title="Сообщить об ошибке">
+                <li>
                     <a class="nav-link" href="{% url 'support:report-create' %}?from={{ request.path }}">Сообщить об ошибке</a>
                 </li>
                 {% if request.user.is_staff %}
-                <li title="Админка">
+                <li>
                     <a class="nav-link" href="{% url 'admin:index' %}">Админка</a>
                 </li>
                 {% endif %}
@@ -123,17 +123,17 @@
         });
     });
     $(function () {
-        let popovers = $('[data-toggle="popover"]');
-        popovers.popover({
-            trigger: "hover",
-            delay: {"show": 500, "hide": 100}
+        let tooltips = $('[data-toggle="tooltip"]');
+        tooltips.tooltip({
+            container: 'body',
+            delay: {'show': 1000, 'hide': 100}
         });
-        popovers.each(function (){
-            $(this).attr("onclick", "closePopovers()");
+        tooltips.each(function (){
+            $(this).attr('onclick', 'closeTooltips()');
         });
     });
-    function closePopovers() {
-        $('[data-toggle="popover"]').popover('hide');
+    function closeTooltips() {
+        $('[data-toggle="tooltip"]').tooltip('hide');
     }
 </script>
 {% block javascript %}

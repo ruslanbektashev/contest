@@ -17,7 +17,17 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Задание{% if perms.contests.delete_assignment %}<a href="{% url 'contests:assignment-delete' assignment.id %}" class="text-danger text-decoration-none pull-right" data-toggle="popover" data-placement="top" data-content="Удалить задание" style="position: relative; top: -0.08rem;"><i class="fa fa-times fa-fw"></i></a>{% endif %}{% if perms.contests.change_assignment %}<a href="{% url 'contests:assignment-update' assignment.id %}" class="text-decoration-none pull-right" data-toggle="popover" data-placement="left" data-content="Редактировать задание"><i class="fa fa-edit fa-fw"></i></a>{% endif %}</legend>
+<legend>
+    Задание
+    <span class="pull-right">
+    {% if perms.contests.change_assignment %}
+        <a href="{% url 'contests:assignment-update' assignment.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Редактировать задание"><i class="fa fa-edit fa-fw"></i></a>
+    {% endif %}
+    {% if perms.contests.delete_assignment %}
+        <a href="{% url 'contests:assignment-delete' assignment.id %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить задание" style="position: relative; top: -0.08rem;"><i class="fa fa-times fa-fw"></i></a>
+    {% endif %}
+    </span>
+</legend>
 <a class="btn btn-light btn-block border mb-3" href="{% url 'contests:assignment-discussion' assignment.id %}">
     {% unread_comments_count request.user.account assignment as ucc %}
     <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
