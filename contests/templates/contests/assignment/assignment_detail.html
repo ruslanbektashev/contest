@@ -52,7 +52,7 @@
     <tr>
         <td class="text-right" style="width: 20%;">Оценка</td>
         <td>
-            <span class="numtus status-{{ assignment.score|colorize }}">{{ assignment.score|default:'-' }}</span>{% if perms.contests.change_assignment %} {% if assignment.score_max < 5 %}/ {{ assignment.score_max }}{% endif %}{% if assignment.score_is_locked %} <span class="numtus status-warning" title="Оценка заблокирована и не может быть изменена системой автоматической проверки посылок"><i class="fa fa-lock"></i></span>{% endif %}{% endif %}
+            <span class="numtus status-{{ assignment.score|colorize }}">{{ assignment.score|default:'-' }}</span>{% if perms.contests.change_assignment %} {% if assignment.score_max < 5 %}/ {{ assignment.score_max }}{% endif %}{% if assignment.score_is_locked %} <span class="numtus status-warning" data-toggle="tooltip" data-placement="right" title="Оценка заблокирована и не может быть изменена системой автоматической проверки посылок"><i class="fa fa-lock"></i></span>{% endif %}{% endif %}
         </td>
     </tr>
 </table>
@@ -67,7 +67,7 @@
 {% endif %}
 {% endif %}
 {% if perms.contests.view_assignment_table and assignment.remark %}
-<div class="alert alert-warning" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>Пометка для преподавателей: {{ assignment.remark }}</div>
+<div class="alert alert-warning" data-toggle="tooltip" data-placement="bottom" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>Пометка для преподавателей: {{ assignment.remark }}</div>
 {% endif %}
 <div class="col-xs-12 col-md-6 mx-auto">
     {% if submissions %}

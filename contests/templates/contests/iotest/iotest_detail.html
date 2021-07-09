@@ -21,9 +21,9 @@
         <td>
             <code class="mr-2">{{ iotest.compile_args|default:"не указаны" }}</code>
             {% if iotest.compile_args_override %}
-            <span title="Затирают параметры задачи!" class="badge badge-danger"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+            <span data-toggle="tooltip" data-placement="right" title="Затирают параметры задачи!" class="badge badge-danger"><i class="fa fa-exclamation-circle fa-fw"></i></span>
             {% else %}
-            <span title="Дополняют параметры задачи!" class="badge badge-info"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+            <span data-toggle="tooltip" data-placement="right" title="Дополняют параметры задачи!" class="badge badge-info"><i class="fa fa-exclamation-circle fa-fw"></i></span>
             {% endif %}
         </td>
     </tr>
@@ -32,9 +32,9 @@
         <td>
             <code class="mr-2">{{ iotest.launch_args|default:"не указаны" }}</code>
             {% if iotest.launch_args_override %}
-            <span title="Затирают параметры задачи!" class="badge badge-danger"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+            <span data-toggle="tooltip" data-placement="right" title="Затирают параметры задачи!" class="badge badge-danger"><i class="fa fa-exclamation-circle fa-fw"></i></span>
             {% else %}
-            <span title="Дополняют параметры задачи!" class="badge badge-info"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+            <span data-toggle="tooltip" data-placement="right" title="Дополняют параметры задачи!" class="badge badge-info"><i class="fa fa-exclamation-circle fa-fw"></i></span>
             {% endif %}
         </td>
     </tr>

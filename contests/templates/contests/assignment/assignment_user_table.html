@@ -32,11 +32,11 @@
                 {% if forloop.parentloop.first and forloop.first and assignment.credit %}
                 <td class="text-center" rowspan="{{ course_assignments|length }}" style="vertical-align: middle;">
                     {% if perms.contests.change_credit %}
-                    <a href="{% url 'contests:credit-update' assignment.credit.id %}" class="numtus status-{{ assignment.credit.score|colorize }}" title="{{ assignment.credit.get_score_display }}">
+                    <a href="{% url 'contests:credit-update' assignment.credit.id %}" class="numtus status-{{ assignment.credit.score|colorize }}" data-toggle="tooltip" data-placement="bottom" title="{{ assignment.credit.get_score_display }}">
                         {{ assignment.credit.score|default:'-' }}
                     </a>
                     {% else  %}
-                    <span class="numtus status-{{ assignment.credit.score|colorize }}" title="{{ assignment.credit.get_score_display }}">
+                    <span class="numtus status-{{ assignment.credit.score|colorize }}" data-toggle="tooltip" data-placement="bottom" title="{{ assignment.credit.get_score_display }}">
                         {{ assignment.credit.score|default:'-' }}
                     </span>
                     {% endif %}

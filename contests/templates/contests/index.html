@@ -14,7 +14,7 @@
                 <a href="{% url 'contests:course-detail' course.id %}">{{ course.title }}</a>
             </div>
             {% with latest_submissions=course.get_latest_submissions|slice:':3' %}
-            <table class="table table-sm {% if not latest_submissions %}table-borderless{% endif %} mb-1" title="последние посылки по заданиям" style="min-height: 98px;">
+            <table class="table table-sm {% if not latest_submissions %}table-borderless{% endif %} mb-1" data-toggle="tooltip" data-placement="bottom" title="Последние посылки по заданиям" style="min-height: 98px;">
                 <tbody>
                     {% for submission in latest_submissions %}
                     <tr>
@@ -23,7 +23,7 @@
                             <a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a>
                         </td>
                         <td class="text-center" style="width: 13%;">
-                            <a href="{{ submission.get_absolute_url }}" class="status status-{{ submission.status|colorize }}" title="{{ submission.get_status_display }}">
+                            <a href="{{ submission.get_absolute_url }}" class="status status-{{ submission.status|colorize }}" data-toggle="tooltip" data-placement="bottom" title="{{ submission.get_status_display }}">
                                 {{ submission.status }}
                             </a>
                         </td>

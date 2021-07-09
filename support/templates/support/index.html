@@ -32,7 +32,7 @@
                 <span class="text-primary mr-auto"><a href="{{ question.get_absolute_url }}">{{ question }}</a></span>
                 {% if question.addressee == request.user %}
                 <span class="text-warning">
-                    <i class="fa fa-star fa-fw" title="Вопрос адресован вам"></i>
+                    <i class="fa fa-star fa-fw" data-toggle="tooltip" data-placement="bottom" title="Вопрос адресован вам"></i>
                 </span>
                 {% endif %}
             </div>

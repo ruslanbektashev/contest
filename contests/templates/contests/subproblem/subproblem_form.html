@@ -22,9 +22,9 @@
 <legend>Изменение номера подзадачи в тесте</legend>
 <div class="card mb-3">
     <div class="card-header d-flex align-items-center">
-        <small class="mr-3" title="Номер в тесте">{{ subproblem.number }}</small>
+        <small class="mr-3" data-toggle="tooltip" data-placement="top" title="Номер в тесте">{{ subproblem.number }}</small>
         {% if subproblem.sub_problem.title %}
-            <small class="mr-auto" title="Перейти к задаче">
+            <small class="mr-auto">
                 <a href="{% url 'contests:problem-detail' subproblem.sub_problem.id %}" class="card-link">
                     {{ subproblem.sub_problem.title }}
                 </a>
