@@ -7,35 +7,45 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
+{% if from_assignment and submission.get_assignment %}
+{% if perms.contests.view_assignment_table %}
+{% breadcrumb submission.problem.contest.course submission.problem.contest.course %}
+{% breadcrumb "Задания" 'contests:assignment-table' submission.problem.contest.course_id %}
+{% else %}
+{% breadcrumb "Мои задания" 'contests:assignment-list' %}
+{% endif %}
+{% breadcrumb submission.get_assignment submission.get_assignment %}
+{% if submission.main_submission %}
+{% breadcrumb submission.main_submission.short_title submission.main_submission query_string='?from_assignment=1' %}
+{% endif %}
+{% else %}
 {% breadcrumb submission.problem.contest.course submission.problem.contest.course %}
 {% breadcrumb submission.problem.contest submission.problem.contest %}
 {% breadcrumb submission.problem submission.problem %}
-{% breadcrumb submission.id %}
+{% if submission.main_submission %}
+{% breadcrumb submission.main_submission.short_title submission.main_submission %}
+{% endif %}
+{% endif %}
+{% breadcrumb submission.short_title %}
 {% endblock breadcrumbs %}
 
 {% block content %}
 <legend>
-    {% if submission.main_submission %}Подп{% else %}П{% endif %}осылка {{ submission.id }}
+    {{ submission.short_title }}
     <span class="pull-right">
     {% if perms.contests.moss_submission and submission.problem.type == 'Program' %}
         <a href="{% url 'contests:submission-moss' submission.id %}" class="text-secondary text-decoration-none" data-toggle="tooltip" data-placement="left" title="MOSS"><i class="fa fa-maxcdn fa-fw"></i></a>
     {% endif %}
     {% if perms.contests.delete_submission %}
-        <a href="{% url 'contests:submission-delete' submission.id %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить посылку" style="position: relative; top: -0.08rem;"><i class="fa fa-times fa-fw"></i></a>
+        <a href="{% url 'contests:submission-delete' submission.id %}{% if from_assignment %}?from_assignment=1{% endif %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить посылку" style="position: relative; top: -0.08rem;"><i class="fa fa-times fa-fw"></i></a>
     {% endif %}
     </span>
 </legend>
 <table class="table table-sm">
     <tr><td class="text-right" style="width: 20%;">Автор</td><td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td></tr>
     <tr><td class="text-right" style="width: 20%;">К задаче</td><td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td></tr>
-    {% if submission.assignment %}
-    <tr><td class="text-right" style="width: 20%;">По заданию</td><td><a href="{{ submission.assignment.get_absolute_url }}"><span class="numtus status-{{ submission.assignment.score|colorize }}">{{ submission.assignment.score|default:'-' }}</span></a></td></tr>
-    {% endif %}
-    {% if submission.main_submission %}
-    <tr><td class="text-right" style="width: 20%;">Основная посылка</td><td><a href="{{ submission.main_submission.get_absolute_url }}"><span class="numtus status-{{ submission.main_submission.status|colorize }}">{{ submission.main_submission.status }}</span></a></td></tr>
-    {% if submission.main_submission.assignment %}
-    <tr><td class="text-right" style="width: 20%;">По заданию</td><td><a href="{{ submission.main_submission.assignment.get_absolute_url }}"><span class="numtus status-{{ submission.main_submission.assignment.score|colorize }}">{{ submission.main_submission.assignment.score|default:'-' }}</span></a></td></tr>
-    {% endif %}
+    {% if submission.get_assignment %}
+    <tr><td class="text-right" style="width: 20%;">По заданию</td><td><a href="{{ submission.get_assignment.get_absolute_url }}"><span class="numtus status-{{ submission.get_assignment.score|colorize }}">{{ submission.get_assignment.score|default:'-' }}</span></a></td></tr>
     {% endif %}
     <tr><td class="text-right" style="width: 20%;">Отправлена</td><td>{{ submission.date_created }}</td></tr>
     {% if submission.date_updated %}
@@ -43,6 +53,9 @@
     {% endif %}
     {% if submission.problem.type == 'Test' %}
     <tr><td class="text-right" style="width: 20%;">Решено подзадач</td><td>{{ submission.sub_submissions.count }} из {{ submission.problem.sub_problems.count }}</td></tr>
+    {% endif %}
+    {% if submission.main_submission %}
+    <tr><td class="text-right" style="width: 20%;">Основная посылка</td><td><a href="{{ submission.main_submission.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}"><span class="numtus status-{{ submission.main_submission.status|colorize }}">{{ submission.main_submission.status }}</span></a></td></tr>
     {% endif %}
 </table>
 {% if submission.score > 0 %}
@@ -58,12 +71,12 @@
 </div>
 {% if not submission.problem.type == 'Program' or not submission.problem.is_testable %}
 {% if perms.contests.change_submission %}
-<a href="{% url 'contests:submission-update' submission.id %}{% if from_url %}?from={{ from_url }}{% endif %}" class="btn btn-light btn-block border mb-3">Изменить оценку</a>
+<a href="{% url 'contests:submission-update' submission.id %}{% if from_assignment %}?from_assignment=1{% endif %}" class="btn btn-light btn-block border mb-3">Изменить оценку</a>
 {% endif %}
 {% elif submission.is_un %}
-<a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url %}?from={{ from_url }}{% endif %}" class="btn btn-light btn-block border mb-3">Проверить</a>
+<a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_assignment %}?from_assignment=1{% endif %}" class="btn btn-light btn-block border mb-3">Проверить</a>
 {% elif perms.contests.evaluate_submission %}
-<a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_url %}?from={{ from_url }}{% endif %}" class="btn btn-light btn-block border mb-3">Проверить еще раз</a>
+<a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_assignment %}?from_assignment=1{% endif %}" class="btn btn-light btn-block border mb-3">Проверить еще раз</a>
 {% endif %}
 {% if submission.problem.type == 'Test' and submission.owner.id == request.user.id and submission.sub_submissions.all|length < submission.problem.sub_problems.all|length %}
     {% if submission.assignment is None or submission.assignment.deadline and submission.assignment.deadline > current_time %}
@@ -101,7 +114,7 @@
     {% for attachment in submission.attachment_set.all %}
     <span class="list-group-item d-flex">
         {% if perms.contests.download_submission %}
-        <a class="mr-auto" href="{% url 'contests:submission-attachment' submission.id attachment.id %}"><samp>{{ attachment.filename }}</samp></a>
+        <a class="mr-auto" href="{% url 'contests:submission-attachment' submission.id attachment.id %}{% if from_assignment %}?from_assignment=1{% endif %}"><samp>{{ attachment.filename }}</samp></a>
         <a href="{{ attachment.file.url }}" data-toggle="tooltip" data-placement="left" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
         {% else %}
         <samp>{{ attachment.filename }}</samp>
@@ -174,11 +187,11 @@
         {% endif %}
         <small>{{ sub_submission.problem.get_type_display }}</small>
         {% if perms.contests.change_submission %}
-        <a href="{% url 'contests:submission-update' sub_submission.id %}" class="card-link ml-3" data-toggle="tooltip" data-placement="top" title="Изменить оценку">
+        <a href="{% url 'contests:submission-update' sub_submission.id %}?from_main_submission=1{% if from_assignment %}&from_assignment=1{% endif %}" class="card-link ml-3" data-toggle="tooltip" data-placement="top" title="Изменить оценку">
             <i class="fa fa-edit fa-fw fa-lg"></i>
         </a>
         {% endif %}
-        <a href="{{ sub_submission.get_absolute_url }}" class="status status-{{ sub_submission.status|colorize }} ml-3" title="{{ sub_submission.get_status_display }}" data-toggle="tooltip" data-placement="top" title="Перейти к посылке">
+        <a href="{{ sub_submission.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}" class="status status-{{ sub_submission.status|colorize }} ml-3" data-toggle="tooltip" data-placement="top" title="{{ sub_submission.get_status_display }}">
             {{ sub_submission.status }}
         </a>
     </div>

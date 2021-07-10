@@ -26,7 +26,7 @@
                 <td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td>
                 {% endif %}
                 <td class="text-center">
-                    <a href="{{ submission.get_absolute_url }}" class="status status-{{ submission.status|colorize }}" data-toggle="tooltip" data-placement="bottom" title="{{ submission.get_status_display }}">
+                    <a href="{{ submission.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}" class="status status-{{ submission.status|colorize }}" data-toggle="tooltip" data-placement="bottom" title="{{ submission.get_status_display }}">
                         {{ submission.status }}
                     </a>
                 </td>

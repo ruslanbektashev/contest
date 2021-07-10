@@ -932,6 +932,13 @@ class Submission(CRDEntry):
         verbose_name_plural = "Посылки"
 
     @property
+    def short_title(self):
+        return "П{}осылка {}".format("" if self.main_submission is None else "одп", self.id)
+
+    def get_assignment(self):
+        return self.assignment if self.main_submission is None else self.main_submission.assignment
+
+    @property
     def is_ok(self):
         return self.status == 'OK'
 

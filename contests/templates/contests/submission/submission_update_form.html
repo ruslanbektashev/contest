@@ -7,10 +7,27 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
+{% if from_assignment and submission.get_assignment %}
+{% if perms.contests.view_assignment_table %}
+{% breadcrumb submission.problem.contest.course submission.problem.contest.course %}
+{% breadcrumb "Задания" 'contests:assignment-table' submission.problem.contest.course_id %}
+{% else %}
+{% breadcrumb "Мои задания" 'contests:assignment-list' %}
+{% endif %}
+{% breadcrumb submission.get_assignment submission.get_assignment %}
+{% if submission.main_submission %}
+{% breadcrumb submission.main_submission.short_title submission.main_submission query_string='?from_assignment=1' %}
+{% endif %}
+{% breadcrumb submission.short_title submission query_string='?from_assignment=1' %}
+{% else %}
 {% breadcrumb submission.problem.contest.course submission.problem.contest.course %}
 {% breadcrumb submission.problem.contest submission.problem.contest %}
 {% breadcrumb submission.problem submission.problem %}
-{% breadcrumb submission submission %}
+{% if submission.main_submission %}
+{% breadcrumb submission.main_submission.short_title submission.main_submission %}
+{% endif %}
+{% breadcrumb submission.short_title submission %}
+{% endif %}
 {% breadcrumb "Редактирование" %}
 {% endblock breadcrumbs %}
 

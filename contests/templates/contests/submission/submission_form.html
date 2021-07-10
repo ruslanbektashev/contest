@@ -7,9 +7,25 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
+{% if from_assignment and assignment %}
+{% if perms.contests.view_assignment_table %}
+{% breadcrumb problem.contest.course problem.contest.course %}
+{% breadcrumb "Задания" 'contests:assignment-table' problem.contest.course_id %}
+{% else %}
+{% breadcrumb "Мои задания" 'contests:assignment-list' %}
+{% endif %}
+{% breadcrumb assignment assignment %}
+{% if main_submission %}
+{% breadcrumb main_submission.short_title main_submission query_string='?from_assignment=1' %}
+{% endif %}
+{% else %}
 {% breadcrumb problem.contest.course problem.contest.course %}
 {% breadcrumb problem.contest problem.contest %}
 {% breadcrumb problem problem %}
+{% if main_submission %}
+{% breadcrumb main_submission.short_title main_submission %}
+{% endif %}
+{% endif %}
 {% breadcrumb "Новая посылка" %}
 {% endblock breadcrumbs %}
 
@@ -102,7 +118,7 @@
 <h6 class="text-muted">Вы можете перейти к решению других задач этого теста. Неотправленное решение текущей задачи будет утеряно!</h6>
 <div class="list-group mb-0">
     {% for sub_problem in pending_sub_problems %}
-    <a href="{% if main_submission %}{% url 'contests:sub-submission-create' main_problem.id main_submission.id %}{% else %}{% url 'contests:submission-create' main_problem.id %}{% endif %}?sub_problem={{ sub_problem.id }}" class="list-group-item list-group-item-action d-flex" title="{{ sub_problem.get_type_display }}">
+    <a href="{% if main_submission %}{% url 'contests:sub-submission-create' main_problem.id main_submission.id %}{% else %}{% url 'contests:submission-create' main_problem.id %}{% endif %}?sub_problem={{ sub_problem.id }}{% if from_assignment %}&from_assignment=1{% endif %}" class="list-group-item list-group-item-action d-flex" title="{{ sub_problem.get_type_display }}">
         {{ sub_problem }}
     </a>
     {% endfor %}
