@@ -67,7 +67,7 @@
 {% endif %}
 {% endif %}
 {% if perms.contests.view_assignment_table and assignment.remark %}
-<div class="alert alert-warning" data-toggle="tooltip" data-placement="bottom" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>Пометка для преподавателей: {{ assignment.remark }}</div>
+<div class="alert alert-warning" data-toggle="tooltip" data-placement="bottom" title="Отображается только преподавателям">{{ assignment.remark }}</div>
 {% endif %}
 <div class="col-xs-12 col-md-6 mx-auto">
     {% if submissions %}
