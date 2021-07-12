@@ -1029,7 +1029,7 @@ class Submission(CRDEntry):
     def save(self, *args, **kwargs):
         created = self._state.adding
         super().save(*args, **kwargs)
-        if created:
+        if created and self.main_submission is None:
             submission_subscribers_ids = Subscription.objects.filter(object_type=ContentType.objects.get(model='submission')).values_list('user', flat=True)
             contest_subscribers_ids = self.problem.contest.subscription_set.values_list('user_id', flat=True)
             user_ids = list(set(submission_subscribers_ids) & set(contest_subscribers_ids))
