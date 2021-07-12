@@ -232,6 +232,7 @@ class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView)
         if self.request.user.has_perm('accounts.change_account'):
             initial['first_name'] = self.object.first_name
             initial['last_name'] = self.object.last_name
+            initial['is_active'] = self.object.is_active
         initial['email'] = self.object.email
         return initial
 

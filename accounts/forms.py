@@ -29,6 +29,7 @@ class AccountPartialForm(forms.ModelForm):
 class AccountForm(AccountPartialForm):
     first_name = forms.CharField(max_length=30, label="Имя")
     last_name = forms.CharField(max_length=150, label="Фамилия")
+    is_active = forms.BooleanField(required=False, label="Активен")
 
     class Meta:
         model = Account
@@ -37,7 +38,7 @@ class AccountForm(AccountPartialForm):
 
     def save(self, commit=True):
         super(AccountPartialForm, self).save(commit)
-        for field_name in ['email', 'first_name', 'last_name']:
+        for field_name in ['email', 'first_name', 'last_name', 'is_active']:
             if field_name in self.changed_data:
                 setattr(self.instance.user, field_name, self.cleaned_data[field_name])
         self.instance.user.save()

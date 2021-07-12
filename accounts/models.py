@@ -226,6 +226,10 @@ class Account(models.Model):
     def last_name(self):
         return self.user.last_name
 
+    @property
+    def is_active(self):
+        return self.user.is_active
+
     def get_full_name(self):
         full_name = "{last_name} {first_name} {patronymic}".format(first_name=self.first_name, last_name=self.last_name,
                                                                    patronymic=self.patronymic)
