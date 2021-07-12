@@ -36,11 +36,13 @@
             {% if account.is_student %}
             <tr><td class="text-right" style="width: 30%;">Уровень</td><td>{{ account.get_level_display }}</td></tr>
             <tr><td class="text-right" style="width: 30%;">Год поступления</td><td>{{ account.admission_year }}</td></tr>
+            <tr><td class="text-right" style="width: 30%;">№ зачетной книжки</td><td>{{ account.record_book_id|default:'' }}</td></tr>
             <tr><td class="text-right" style="width: 30%;">Обучается</td><td>{{ account.enrolled|yesno:'да,нет' }}</td></tr>
             <tr><td class="text-right" style="width: 30%;">Закончил обучение</td><td>{{ account.graduated|yesno:'да,нет' }}</td></tr>
             {% endif %}
             {% if perms.accounts.change_account %}
             <tr><td class="text-right" style="width: 30%;">Логин</td><td>{{ account.username }}</td></tr>
+            <tr><td class="text-right" style="width: 30%;">Активен</td><td>{% if account.is_active %}<i class="fa fa-check-circle fa-lg text-success"></i>{% else %}<i class="fa fa-times-circle fa-lg text-danger"></i>{% endif %}</td></tr>
             <tr><td class="text-right" style="width: 30%;">Последний вход</td><td>{{ account.last_login|date:'d E Y, H:i' }}</td></tr>
             <tr><td class="text-right" style="width: 30%;">Дата регистрации</td><td>{{ account.date_joined|date:'d E Y' }}</td></tr>
             {% endif %}

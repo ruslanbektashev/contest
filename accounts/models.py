@@ -184,6 +184,7 @@ class Account(models.Model):
                                                       verbose_name="Год поступления")
     enrolled = models.BooleanField(default=True, verbose_name="Обучается?")
     graduated = models.BooleanField(default=False, verbose_name="Закончил обучение?")
+    record_book_id = models.PositiveIntegerField(null=True, blank=True, verbose_name="№ зачетной книжки")
 
     date_updated = models.DateTimeField(auto_now=True)
 

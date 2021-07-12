@@ -33,8 +33,8 @@ class AccountForm(AccountPartialForm):
 
     class Meta:
         model = Account
-        fields = ['patronymic', 'faculty', 'department', 'position', 'degree', 'image', 'level', 'type',
-                  'admission_year', 'enrolled', 'graduated']
+        fields = ['patronymic', 'faculty', 'department', 'position', 'degree', 'record_book_id', 'image', 'level',
+                  'type', 'admission_year', 'enrolled', 'graduated']
 
     def save(self, commit=True):
         super(AccountPartialForm, self).save(commit)
