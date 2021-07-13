@@ -1204,6 +1204,7 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
         context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
             self.paginate_queryset(comments)
         context['current_time'] = timezone.now()
+        context['score_percentage'] = self.object.score * 100 // self.object.problem.score_max
         context['from_assignment'] = 'from_assignment' in self.request.GET
         return context
 
