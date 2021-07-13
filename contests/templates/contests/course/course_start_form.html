@@ -8,6 +8,7 @@
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb course course %}
+{% breadcrumb "Задания" 'contests:assignment-table' course.id %}
 {% breadcrumb "Начать курс" %}
 {% endblock breadcrumbs %}
 

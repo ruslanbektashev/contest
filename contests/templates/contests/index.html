@@ -11,7 +11,7 @@
     <div class="col-12 col-md-6 mb-3">
         <div class="card shadow-sm">
             <div class="card-header">
-                <a href="{% url 'contests:course-detail' course.id %}">{{ course.title }}</a>
+                <a href="{% url 'contests:course-detail' course.id %}">{{ course }}</a>
             </div>
             {% with latest_submissions=course.get_latest_submissions|slice:':3' %}
             <table class="table table-sm {% if not latest_submissions %}table-borderless{% endif %} mb-1" data-toggle="tooltip" data-placement="bottom" title="Последние посылки по заданиям" style="min-height: 98px;">

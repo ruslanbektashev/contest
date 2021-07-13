@@ -114,7 +114,7 @@ class CourseForm(forms.ModelForm):
 
     class Meta:
         model = Course
-        fields = ['leaders', 'faculty', 'title', 'description', 'level']
+        fields = ['leaders', 'faculty', 'title_official', 'title_unofficial', 'description', 'level']
 
     def __init__(self, *args, faculty=None, **kwargs):
         super().__init__(*args, **kwargs)

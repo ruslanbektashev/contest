@@ -22,7 +22,8 @@
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {{ form.media }}
-    {% render_field form.title class+="form-control" %}
+    {% render_field form.title_official class+="form-control" %}
+    {% render_field form.title_unofficial class+="form-control" %}
     <div class="form-group">
         <label for="{{ field.id_for_label }}">
             {{ form.description.label }}{{ form.description.label_suffix }}

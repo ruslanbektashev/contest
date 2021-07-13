@@ -87,7 +87,11 @@ class Course(CRUDEntry):
     faculty = models.ForeignKey(Faculty, on_delete=models.DO_NOTHING, verbose_name="Факультет")
     leaders = models.ManyToManyField(User, related_name="courses_leading", verbose_name="Ведущие преподаватели")
 
-    title = models.CharField(max_length=100, verbose_name="Заголовок")
+    title_official = models.CharField(max_length=100, verbose_name="Официальное название",
+                                      help_text="Официальное название будет использовано при составлении отчетных "
+                                                "документов")
+    title_unofficial = models.CharField(max_length=100, null=True, blank=True, verbose_name="Неофициальное название",
+                                        help_text="Неофициальное название будет отображено для пользователей сайта")
     description = RichTextField(verbose_name="Описание")
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, verbose_name="Уровень")
 
@@ -98,6 +102,10 @@ class Course(CRUDEntry):
         ordering = ('level', 'id')
         verbose_name = "Курс"
         verbose_name_plural = "Курсы"
+
+    @property
+    def title(self):
+        return self.title_official if self.title_unofficial is None else self.title_unofficial
 
     @property
     def avg_credit_score(self):
