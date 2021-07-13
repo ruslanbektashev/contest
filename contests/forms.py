@@ -159,7 +159,7 @@ class CreditReportForm(forms.Form):
 
     def __init__(self, course, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['discipline'].initial = course.title
+        self.fields['discipline'].initial = course.title_official
         students = Account.students.enrolled().current(course)
         self.fields['students'].queryset = students.order_by('user__last_name', 'user__first_name')
         examiners = Account.objects.filter(user__groups__name='Преподаватель', faculty=course.faculty)

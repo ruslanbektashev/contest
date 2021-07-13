@@ -26,7 +26,7 @@ class AccountAdmin(admin.ModelAdmin):
             'fields': ('user',)
         }),
         ('Детали', {
-            'fields': ('patronymic', 'department', 'position', 'degree', 'image', 'faculty', 'level', 'type', 'admission_year', 'enrolled', 'graduated')
+            'fields': ('patronymic', 'department', 'position', 'degree', 'image', 'faculty', 'level', 'type', 'admission_year', 'enrolled', 'graduated', 'record_book_id')
         }),
         ('Даты', {
             'fields': ('date_updated',)

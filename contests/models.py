@@ -231,6 +231,9 @@ def generate_credit_report(faculty, direction, group_name, semester, discipline,
         row.cells[1].text = student["name"]
         row.cells[1].paragraphs[0].runs[0].font.size = docx.shared.Pt(12)
 
+        row.cells[2].text = str(student["record_book_id"])
+        row.cells[2].paragraphs[0].runs[0].font.size = docx.shared.Pt(12)
+
         row.cells[3].text = str(student["score"])
         row.cells[3].paragraphs[0].runs[0].font.size = docx.shared.Pt(12)
 
@@ -269,6 +272,7 @@ class CreditManager(models.Manager):
             students_prepared.append({
                 "name": str(student),
                 "score": score_choices[student.credit_score],
+                "record_book_id": student.record_book_id or "",
             })
 
         examiners = [(examiner.position + " " if examiner.position else "") + str(examiner) for examiner in examiners]
