@@ -356,7 +356,7 @@ class AssignmentUpdatePartialForm(forms.ModelForm):
 
     def clean_deadline(self):
         deadline = self.cleaned_data['deadline']
-        if deadline is not None and deadline <= timezone.now():
+        if deadline is not None and 'deadline' in self.changed_data and deadline <= timezone.now():
             raise ValidationError("Укажите дату в будущем", code='invalid_deadline')
         return deadline
 
