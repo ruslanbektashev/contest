@@ -20,6 +20,7 @@ from contest.utils import transliterate
 
 class Faculty(models.Model):
     name = models.CharField(max_length=50, verbose_name="Наименование")
+    short_name = models.CharField(max_length=50, verbose_name="Краткое наименование")
     group_name = models.CharField(max_length=50, verbose_name="Наименование группы")
     group_prefix = models.CharField(max_length=5, verbose_name="Префикс группы")
 
