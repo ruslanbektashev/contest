@@ -199,13 +199,17 @@ class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
     def post(self, request, *args, **kwargs):
         form = self.get_form()
         if form.is_valid():
-            report_file, filename = Credit.objects.create_report(self.storage['course'],
-                                                                 form.cleaned_data['discipline'],
-                                                                 form.cleaned_data['type'],
-                                                                 form.cleaned_data['examiners'],
-                                                                 form.cleaned_data['students'],
-                                                                 form.cleaned_data['date'],
-                                                                 form.cleaned_data['group_name'])
+            report_file, filename = Credit.objects.create_report(
+                self.storage['course'],
+                form.cleaned_data['group_name'],
+                form.cleaned_data['students'],
+                form.cleaned_data['type'],
+                form.cleaned_data['examiners'],
+                form.cleaned_data['faculty'],
+                form.cleaned_data['discipline'],
+                form.cleaned_data['semester'],
+                form.cleaned_data['date'],
+            )
             response = HttpResponse(report_file, content_type='application/vnd.openxmlformats-officedocument')
             response['Content-Disposition'] = 'attachment; filename={}.docx'.format(filename)
             return response

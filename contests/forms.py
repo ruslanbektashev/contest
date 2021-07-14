@@ -5,7 +5,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
 
@@ -150,20 +150,25 @@ class CreditReportForm(forms.Form):
         ("Зачёт", "Зачёт"),
     )
 
-    discipline = forms.CharField(required=True, label="Дисциплина")
+    group_name = forms.CharField(required=True, label="Название группы")
+    students = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите студентов")
     type = forms.ChoiceField(required=True, choices=TYPE_CHOICES, label="Тип ведомости")
     examiners = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите экзаменаторов")
-    students = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите студентов")
+    faculty = forms.CharField(required=True, label="Факультет")
+    discipline = forms.CharField(required=True, label="Дисциплина")
+    semester = forms.IntegerField(required=True, label="Семестр")
     date = forms.DateField(required=True, label="Дата")
-    group_name = forms.CharField(required=True, label="Название группы")
 
     def __init__(self, course, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['discipline'].initial = course.title_official
         students = Account.students.enrolled().current(course)
         self.fields['students'].queryset = students.order_by('user__last_name', 'user__first_name')
         examiners = Account.objects.filter(user__groups__name='Преподаватель', faculty=course.faculty)
         self.fields['examiners'].queryset = examiners.order_by('user__last_name', 'user__first_name')
+        self.fields['examiners'].initial = course.leaders.all()
+        self.fields['faculty'].initial = course.faculty.short_name
+        self.fields['discipline'].initial = course.title_official
+        self.fields['semester'].initial = course.level
 
 
 """==================================================== Contest ====================================================="""
