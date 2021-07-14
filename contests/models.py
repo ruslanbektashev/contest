@@ -242,6 +242,7 @@ def generate_credit_report(faculty, direction, group_name, semester, discipline,
 
     target_stream = io.BytesIO()
     document.save(target_stream)
+    f.close()
 
     return target_stream.getvalue()
 
