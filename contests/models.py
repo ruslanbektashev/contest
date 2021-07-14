@@ -144,7 +144,7 @@ class Course(CRUDEntry):
 """===================================================== Credit ====================================================="""
 
 
-def generate_credit_report(faculty, direction, group_name, semester, discipline, report_type, examiners, date, students):
+def generate_credit_report(group_name, students, report_type, examiners, faculty, direction, discipline, semester, date):
     months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
 
     f = open('blank_report.docx', 'rb')
@@ -256,7 +256,7 @@ class CreditManager(models.Manager):
             new_credits.append(new_credit)
         return self.bulk_create(new_credits)
 
-    def create_report(self, course, discipline, type, examiners, students, date, group_name):
+    def create_report(self, course, group_name, students, type, examiners, faculty, discipline, semester, date):
         examiners = examiners.annotate(
             lead=models.Exists(course.leaders.filter(id=models.OuterRef('user_id')))
         ).order_by('-lead')
@@ -278,9 +278,17 @@ class CreditManager(models.Manager):
             })
 
         examiners = [(examiner.position + " " if examiner.position else "") + str(examiner) for examiner in examiners]
-        report_file = generate_credit_report(faculty="ПМиИ", direction="ПМиИ", group_name=group_name,
-                                             semester=course.level, discipline=discipline, report_type=type,
-                                             examiners=examiners, date=date, students=students_prepared)
+        report_file = generate_credit_report(
+            group_name=group_name,
+            students=students_prepared,
+            report_type=type,
+            examiners=examiners,
+            faculty=faculty,
+            direction=faculty,
+            discipline=discipline,
+            semester=semester,
+            date=date,
+        )
 
         filename = "vedomost_{}_{}_{}_{}".format(type.lower(), course.title.lower(), group_name.lower(), date)
         filename = transliterate(filename).replace(" ", "_")
