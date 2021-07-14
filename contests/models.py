@@ -19,13 +19,14 @@ from django.dispatch import receiver
 from django.urls import reverse
 
 from contest.abstract import CDEntry, CRDEntry, CRUDEntry
+from contest.utils import transliterate
 from accounts.models import Account, Comment, Activity, Faculty, Subscription
 
 try:
     from tools.sandbox import Sandbox
     from tools.utility import Status, diff
 except ImportError:
-    from contest.utils import Sandbox, Status, diff, transliterate
+    from contest.utils import Sandbox, Status, diff
 
 
 """=================================================== Attachment ==================================================="""
