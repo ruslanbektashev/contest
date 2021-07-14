@@ -254,7 +254,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
         self.storage['level'] = int(self.request.GET.get('level') or 1)
         self.storage['type'] = int(self.request.GET.get('type') or 1)
         self.storage['sort'] = int(self.request.GET.get('sort') or 1)
-        self.storage['course'] = int(self.request.GET.get('course') or 0)
+        self.storage['course_id'] = int(self.request.GET.get('course_id') or 0)
         enrolled, graduated = self.request.GET.get('enrolled'), self.request.GET.get('graduated')
         if enrolled is not None and enrolled == '0':
             self.storage['enrolled'] = False
@@ -312,27 +312,29 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
                 queryset = queryset.enrolled()
         queryset = queryset.filter(faculty=self.storage['faculty'])
         if self.storage['sort'] == 2 and queryset.exists():
-            queryset = sorted(queryset, key=lambda account: account.course_credit_score(course_id=self.storage['course']), reverse=True)
+            queryset = sorted(queryset, key=lambda account: account.course_credit_score(course_id=self.storage['course_id']), reverse=True)
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         SORT_TYPE_CHOICES = (
-            (1, 'В алфавитном порядке'),
-            (2, 'Рейтинг'),
+            (1, "В алфавитном порядке"),
+            (2, "Рейтинг"),
         )
         LEVEL_CHOICES = list(Account.LEVEL_CHOICES)
         if self.request.user.account.is_instructor:
-            course_ids = self.request.user.filter_set.values_list('course', flat=True)
-            COURSE_CHOICES = list(Course.objects.filter(id__in=course_ids).values_list('id', 'title'))
+            course_ids = self.request.user.filter_set.values_list('course_id', flat=True)
+            courses = Course.objects.filter(id__in=course_ids)
+            COURSE_CHOICES = list((c.id, c.title) for c in courses)
             if self.request.user.has_perm('contests.add_faculty'):
-                LEVEL_CHOICES.append((0, 'Все уровни'))
-                COURSE_CHOICES = list(Course.objects.filter(faculty=self.storage['faculty']).values_list('id', 'title'))
-                COURSE_CHOICES.insert(0, (0, 'Все курсы'))
-            context['courses'] = COURSE_CHOICES
-        context['sortings'] = SORT_TYPE_CHOICES
-        context['levels'] = LEVEL_CHOICES
-        context['faculties'] = Faculty.objects.all()
+                LEVEL_CHOICES.append((0, "Все уровни"))
+                courses = Course.objects.filter(faculty=self.storage['faculty'])
+                COURSE_CHOICES = list((c.id, c.title) for c in courses)
+                COURSE_CHOICES.insert(0, (0, "Все курсы"))
+            context['course_choices'] = COURSE_CHOICES
+        context['sort_choices'] = SORT_TYPE_CHOICES
+        context['level_choices'] = LEVEL_CHOICES
+        context['faculty_choices'] = list((f.id, f.short_name) for f in Faculty.objects.all())
         context.update(self.storage)
         return context
 

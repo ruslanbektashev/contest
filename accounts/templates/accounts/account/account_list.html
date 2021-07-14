@@ -69,33 +69,33 @@
 <div class="list-group">
     {% if perms.accounts.add_faculty %}
     <select id="faculty_select" name="faculty" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
-        {% for f in faculties %}
-        <option value="{% get_full_path_with_updated_query_string request faculty_id=f.id %}" {% if faculty.id == f.id %}selected{% endif %}>{{ f.name }}</option>
+        {% for fct_id, fct_display in faculty_choices %}
+        <option value="{% get_full_path_with_updated_query_string request faculty_id=fct_id %}" {% if faculty.id == fct_id %}selected{% endif %}>{{ fct_display }}</option>
         {% endfor %}
     </select>
     <label for="faculty_select"></label>
     {% endif %}
     <select id="level_select" name="level" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
-        {% for lvl, lvl_display in levels %}
+        {% for lvl, lvl_display in level_choices %}
         <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id level=lvl enrolled=1 graduated=0 type=1 %}" {% if level == lvl %}selected{% endif %}>{{ lvl_display }}</option>
         {% endfor %}
     </select>
     <label for="level_select"></label>
     {% if type == 1 %}
-        <select id="sort_select" name="sort" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
-            {% for srt, srt_display in sortings %}
-            <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id level=level type=1 sort=srt course=0 %}" {% if sort == srt %}selected{% endif %}>{{ srt_display }}</option>
-            {% endfor %}
-        </select>
-        <label for="sort_select"></label>
+    <select id="sort_select" name="sort" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+        {% for srt, srt_display in sort_choices %}
+        <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id level=level type=1 sort=srt course_id=0 %}" {% if sort == srt %}selected{% endif %}>{{ srt_display }}</option>
+        {% endfor %}
+    </select>
+    <label for="sort_select"></label>
     {% endif %}
     {% if sort == 2 and request.user.account.is_instructor %}
-        <select id="course_select" name="course" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
-            {% for crs, crs_display in courses %}
-            <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id level=level type=1 sort=sort course=crs %}" {% if course == crs %}selected{% endif %}>{{ crs_display }}</option>
-            {% endfor %}
-        </select>
-        <label for="course_select"></label>
+    <select id="course_select" name="course_id" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+        {% for crs_id, crs_display in course_choices %}
+        <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id level=level type=1 sort=sort course_id=crs_id %}" {% if course_id == crs_id %}selected{% endif %}>{{ crs_display }}</option>
+        {% endfor %}
+    </select>
+    <label for="course_select"></label>
     {% endif %}
 </div>
 <div class="list-group mb-3">
