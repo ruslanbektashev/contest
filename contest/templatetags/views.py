@@ -35,7 +35,7 @@ def render_submission_progress(submission, title):
 def get_updated_query_string(request, **kwargs):
     _GET = request.GET.copy()
     _GET.update(kwargs)
-    return '?' + _GET.urlencode()
+    return '?' + '&'.join(['{}={}'.format(key, value) for key, value in _GET.items()])  # _GET.urlencode()
 
 
 @register.simple_tag()
