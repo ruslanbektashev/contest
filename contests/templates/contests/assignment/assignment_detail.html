@@ -77,17 +77,6 @@
 </div>
 {% endblock content %}
 
-{% block submenu %}
-<div class="list-group mb-3">
-    {% if perms.contests.change_assignment %}
-    <a href="{% url 'contests:assignment-update' assignment.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать задание</a>
-    {% endif %}
-    {% if perms.contests.delete_assignment %}
-    <a href="{% url 'contests:assignment-delete' assignment.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить задание</a>
-    {% endif %}
-</div>
-{% endblock submenu %}
-
 {% block javascript %}
 <script src="{% static 'js/countdown.js' %}" type="text/javascript"></script>
 <script type="text/javascript">

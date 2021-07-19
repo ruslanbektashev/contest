@@ -12,7 +12,8 @@
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb course course %}
-{% breadcrumb "Сгенерировать ведомость" %}
+{% breadcrumb "Задания" 'contests:assignment-table' course.id %}
+{% breadcrumb "Генератор ведомости" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
