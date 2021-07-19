@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views forms contests %}
 
 {% block title %}
@@ -11,7 +11,79 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if type == 1 %}Студенты{% else %}Сотрудники{% endif %}{% if graduated %}: выпускники{% elif enrolled == False %}: отчисленные{% endif %}{% if not perms.accounts.add_faculty %}<span class="text-muted pull-right d-none d-md-block">{{ faculty }}</span>{% endif %}</legend>
+<legend>
+    {% if type == 1 %}Студенты{% else %}Сотрудники{% endif %}{% if graduated %}: выпускники{% elif enrolled == False %}: отчисленные{% endif %}
+    <span class="pull-right">
+    {% if perms.accounts.change_account %}
+        <a href="{% url 'accounts:account-update-set' %}{{ request|get_query_string }}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Перейти в режим редактирования"><i class="fa fa-edit fa-fw"></i></a>
+    {% endif %}
+    {% if perms.accounts.add_account %}
+        <a href="{% url 'accounts:account-create-set' %}?faculty_id={{ faculty.id }}" class="text-success text-decoration-none" data-toggle="tooltip" data-placement="top" title="Добавить пользователей"><i class="fa fa-plus fa-fw"></i></a>
+    {% endif %}
+    </span>
+</legend>
+<form>
+    <div class="form-row">
+        <div class="col-6 col-md-2">
+            <select id="type_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+                <option value="{% get_full_path_with_updated_query_string request type=1 %}" {% if type == 1 %}selected{% endif %}>Студенты</option>
+                <option value="{% get_full_path_with_updated_query_string request type=2 %}" {% if type == 2 %}selected{% endif %}>Модераторы</option>
+                <option value="{% get_full_path_with_updated_query_string request type=3 %}" {% if type == 3 %}selected{% endif %}>Преподаватели</option>
+            </select>
+            <label for="type_select"></label>
+        </div>
+        {% if perms.accounts.add_faculty %}
+        <div class="col-6 col-md-2">
+            <select id="faculty_select" name="faculty" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+                {% for fct_id, fct_display in faculty_choices %}
+                <option value="{% get_full_path_with_updated_query_string request faculty_id=fct_id %}" {% if faculty.id == fct_id %}selected{% endif %}>{{ fct_display }}</option>
+                {% endfor %}
+            </select>
+            <label for="faculty_select"></label>
+        </div>
+        {% endif %}
+        {% if type == 1 %}
+        <div class="col-6 col-md-2">
+            <select id="student_type_select" name="student_type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+                <option value="{% get_full_path_with_updated_query_string request enrolled=1 graduated=0 %}" {% if enrolled == True and graduated == False %}selected{% endif %}>Учащиеся</option>
+                <option value="{% get_full_path_with_updated_query_string request enrolled=0 graduated=1 %}" {% if enrolled == False and graduated == True %}selected{% endif %}>Выпускники</option>
+                <option value="{% get_full_path_with_updated_query_string request enrolled=0 graduated=0 %}" {% if enrolled == False and graduated == False %}selected{% endif %}>Отчисленные</option>
+            </select>
+            <label for="student_type_select"></label>
+        </div>
+        {% if enrolled == True %}
+        <div class="col-6 col-md-2">
+            <select id="level_select" name="level" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+                {% for lvl, lvl_display in level_choices %}
+                <option value="{% get_full_path_with_updated_query_string request level=lvl enrolled=1 graduated=0 type=1 %}" {% if level == lvl %}selected{% endif %}>{{ lvl_display }}</option>
+                {% endfor %}
+            </select>
+            <label for="level_select"></label>
+        </div>
+        {% endif %}
+        {% endif %}
+        {% if perms.accounts.change_account %}
+        <div class="col-12 col-md-4 pull-right mb-3 mb-md-0">
+            <div class="pull-right">
+                <div id="account_list_form_actions" class="btn-toolbar" style="visibility: hidden;" role="toolbar" aria-label="Toolbar with button groups">
+                    <div class="btn-group mr-2" role="group" aria-label="First group">
+                        <button type="submit" name="action" form="account_list_form" value="reset_password" class="btn btn-sm btn-info" data-toggle="tooltip" data-placement="top" title="Выставить новый пароль для профилей выбранных пользователей"><i class="fa fa-key fa-fw"></i></button>
+                    </div>
+                {% if type == 1 %}
+                    <div class="btn-group" role="group" aria-label="Second group">
+                        <button type="submit" name="action" form="account_list_form" value="level_up" class="btn btn-info" data-toggle="tooltip" data-placement="top" title="Повысить уровень выбранных студентов на 1"><i class="fa fa-level-up fa-fw"></i></button>
+                        <button type="submit" name="action" form="account_list_form" value="level_down" class="btn btn-info" data-toggle="tooltip" data-placement="top" title="Понизить уровень выбранных студентов на 1"><i class="fa fa-level-down fa-fw"></i></button>
+                        <button type="submit" name="action" form="account_list_form" value="enroll" class="btn btn-info" data-toggle="tooltip" data-placement="top" title="Восстановить выбранных отчисленных студентов"><i class="fa fa-undo fa-fw"></i></button>
+                        <button type="submit" name="action" form="account_list_form" value="graduate" class="btn btn-success" data-toggle="tooltip" data-placement="top" title="Пометить выбранных студентов как выпускников"><i class="fa fa-graduation-cap fa-fw"></i></button>
+                        <button type="submit" name="action" form="account_list_form" value="expel" class="btn btn-danger" data-toggle="tooltip" data-placement="top" title="Пометить выбранных студентов как отчисленных"><i class="fa fa-ban fa-fw"></i></button>
+                    </div>
+                {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</form>
 <form id="account_list_form" action="{{ request.get_full_path }}" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
@@ -36,7 +108,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for account in accounts %}
+            {% for account in form.accounts.field.queryset %}
             <tr>
                 {% if sort != 2 %}
                 <td class="text-center">
@@ -64,74 +136,29 @@
 </form>
 {% endblock content %}
 
-{% block submenu %}
-
-<div class="list-group">
-    {% if perms.accounts.add_faculty %}
-    <select id="faculty_select" name="faculty" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
-        {% for fct_id, fct_display in faculty_choices %}
-        <option value="{% get_full_path_with_updated_query_string request faculty_id=fct_id %}" {% if faculty.id == fct_id %}selected{% endif %}>{{ fct_display }}</option>
-        {% endfor %}
-    </select>
-    <label for="faculty_select"></label>
-    {% endif %}
-    <select id="level_select" name="level" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
-        {% for lvl, lvl_display in level_choices %}
-        <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id level=lvl enrolled=1 graduated=0 type=1 %}" {% if level == lvl %}selected{% endif %}>{{ lvl_display }}</option>
-        {% endfor %}
-    </select>
-    <label for="level_select"></label>
-    {% if type == 1 %}
-    <select id="sort_select" name="sort" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
-        {% for srt, srt_display in sort_choices %}
-        <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id level=level type=1 sort=srt course_id=0 %}" {% if sort == srt %}selected{% endif %}>{{ srt_display }}</option>
-        {% endfor %}
-    </select>
-    <label for="sort_select"></label>
-    {% endif %}
-    {% if sort == 2 and request.user.account.is_instructor %}
-    <select id="course_select" name="course_id" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
-        {% for crs_id, crs_display in course_choices %}
-        <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id level=level type=1 sort=sort course_id=crs_id %}" {% if course_id == crs_id %}selected{% endif %}>{{ crs_display }}</option>
-        {% endfor %}
-    </select>
-    <label for="course_select"></label>
-    {% endif %}
-</div>
-<div class="list-group mb-3">
-    <a href="{% url 'accounts:account-list' %}?enrolled=0&graduated=1&faculty_id={{ faculty.id }}&sort={{ sort }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != True %}-o{% endif %} fa-fw"></i> Выпускники</a>
-    <a href="{% url 'accounts:account-list' %}?enrolled=0&faculty_id={{ faculty.id }}&sort={{ sort }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if enrolled != False or graduated != False %}-o{% endif %} fa-fw"></i> Отчисленные</a>
-</div>
-<div class="list-group mb-3">
-    <a href="{% url 'accounts:account-list' %}?type=2&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if type != 2 %}-o{% endif %} fa-fw"></i> Модераторы</a>
-    <a href="{% url 'accounts:account-list' %}?type=3&faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-circle{% if type != 3 %}-o{% endif %} fa-fw"></i> Преподаватели</a>
-</div>
-<div class="list-group mb-3">
-    {% if perms.accounts.add_account %}
-    <a href="{% url 'accounts:account-create-set' %}?faculty_id={{ faculty.id }}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить пользователей</a>
-    {% endif %}
-</div>
-{% if sort != 2 %}
-<legend>Действия</legend>
-<div class="list-group mb-3">
-    {% if perms.accounts.change_account %}
-    <button type="submit" name="action" form="account_list_form" value="reset_password" class="btn btn-info btn-block" data-toggle="tooltip" data-placement="left" title="Выставить новый пароль для профилей выбранных пользователей"><i class="fa fa-key fa-fw"></i> Сбросить пароль</button>
-    {% if type == 1 %}
-    <button type="submit" name="action" form="account_list_form" value="level_up" class="btn btn-info btn-block" data-toggle="tooltip" data-placement="left" title="Повысить уровень выбранных студентов на 1"><i class="fa fa-level-up fa-fw"></i> Повысить уровень</button>
-    <button type="submit" name="action" form="account_list_form" value="level_down" class="btn btn-info btn-block" data-toggle="tooltip" data-placement="left" title="Понизить уровень выбранных студентов на 1"><i class="fa fa-level-down fa-fw"></i> Понизить уровень</button>
-    <button type="submit" name="action" form="account_list_form" value="enroll" class="btn btn-info btn-block" data-toggle="tooltip" data-placement="left" title="Восстановить выбранных отчисленных студентов"><i class="fa fa-undo fa-fw"></i> Восстановить</button>
-    <button type="submit" name="action" form="account_list_form" value="graduate" class="btn btn-success btn-block" data-toggle="tooltip" data-placement="left" title="Пометить выбранных студентов как выпускников"><i class="fa fa-graduation-cap fa-fw"></i> Выпустить</button>
-    <button type="submit" name="action" form="account_list_form" value="expel" class="btn btn-danger btn-block" data-toggle="tooltip" data-placement="left" title="Пометить выбранных студентов как отчисленных"><i class="fa fa-ban fa-fw"></i> Отчислить</button>
-    {% endif %}
-    {% endif %}
-</div>
-{% endif %}
-{% endblock submenu %}
-
 {% block javascript %}
 <script type="text/javascript">
-$("#check_all").click(function () {
-    $(".check").prop('checked', $(this).prop('checked'));
+function toggleToolbar() {
+    let checkboxes = document.getElementsByName('accounts');
+    let show = false;
+    checkboxes.forEach(function (value) {
+        if (value.checked) show = true;
+    });
+    let toolbar = document.getElementById('account_list_form_actions');
+    if (show)
+        toolbar.style.visibility = 'visible';
+    else
+        toolbar.style.visibility = 'hidden';
+}
+document.getElementById('check_all').addEventListener('click', function (e) {
+    let checkboxes = document.getElementsByName('accounts');
+    checkboxes.forEach(function (value) {
+        value.checked = e.target.checked;
+    });
+    toggleToolbar();
+})
+document.getElementsByName('accounts').forEach(function (e) {
+    e.addEventListener('click', toggleToolbar);
 });
 </script>
 {% endblock javascript %}

@@ -19,6 +19,18 @@ class AccountPartialForm(forms.ModelForm):
         model = Account
         fields = []
 
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance')
+        if instance is not None:
+            initial = {
+                'email': instance.user.email
+            }
+            if 'initial' in kwargs:
+                kwargs['initial'].update(initial)
+            else:
+                kwargs.update(initial=initial)
+        super().__init__(*args, **kwargs)
+
     def save(self, commit=True):
         super().save(commit)
         self.instance.user.email = self.cleaned_data['email']
@@ -36,6 +48,20 @@ class AccountForm(AccountPartialForm):
         fields = ['patronymic', 'faculty', 'department', 'position', 'degree', 'record_book_id', 'image', 'level',
                   'type', 'admission_year', 'enrolled', 'graduated']
 
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance')
+        if instance is not None:
+            initial = {
+                'first_name': instance.user.first_name,
+                'last_name': instance.user.last_name,
+                'is_active': instance.user.is_active
+            }
+            if 'initial' in kwargs:
+                kwargs['initial'].update(initial)
+            else:
+                kwargs.update(initial=initial)
+        super().__init__(*args, **kwargs)
+
     def save(self, commit=True):
         super(AccountPartialForm, self).save(commit)
         for field_name in ['email', 'first_name', 'last_name', 'is_active']:
@@ -43,6 +69,18 @@ class AccountForm(AccountPartialForm):
                 setattr(self.instance.user, field_name, self.cleaned_data[field_name])
         self.instance.user.save()
         return self.instance
+
+
+class StudentForm(AccountForm):
+    class Meta:
+        model = Account
+        fields = ['patronymic', 'faculty', 'record_book_id', 'level', 'admission_year', 'enrolled', 'graduated']
+
+
+class StaffForm(AccountForm):
+    class Meta:
+        model = Account
+        fields = ['patronymic', 'faculty', 'department', 'position', 'degree', 'type']
 
 
 class AccountListForm(forms.Form):

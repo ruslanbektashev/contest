@@ -2,8 +2,8 @@ import json
 import locale
 import datetime
 
+from django.forms import modelformset_factory
 from markdown import markdown
-from statistics import mean
 
 from django.apps import apps
 from django.conf import settings
@@ -15,17 +15,16 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView, TemplateView
 from django.views.generic.edit import BaseUpdateView
-from django.views.generic.list import BaseListView
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.contenttypes.models import ContentType
 
 from accounts.templatetags.comments import get_comment_query_string
 from accounts.forms import (AccountPartialForm, AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm,
-                            CommentForm, ManageSubscriptionsForm)
+                            CommentForm, ManageSubscriptionsForm, StaffForm, StudentForm)
 from accounts.models import Account, Activity, Comment, Faculty, Message, Chat, Announcement, Subscription
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
-from contest.templatetags.views import get_updated_query_string
+from contest.templatetags.views import get_query_string, get_updated_query_string
 from contests.models import Contest, Course, Problem, Submission
 from support.models import Question, Report
 
@@ -130,7 +129,7 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
         self.storage = {}
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['year'] = int(self.request.GET.get('year') or get_study_years_list(request.user.account)[0][0])
+        self.storage['year'] = int(request.GET.get('year') or get_study_years_list(request.user.account)[0][0])
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
@@ -168,9 +167,9 @@ class AccountCreateSet(LoginRedirectPermissionRequiredMixin, FormView):
         self.storage = {}
 
     def dispatch(self, request, *args, **kwargs):
-        faculty_id = int(self.request.GET.get('faculty_id') or request.user.account.faculty_id)
+        faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
         self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
-        self.storage['level'] = int(self.request.GET.get('level') or 1)
+        self.storage['level'] = int(request.GET.get('level') or 1)
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -179,22 +178,22 @@ class AccountCreateSet(LoginRedirectPermissionRequiredMixin, FormView):
         kwargs['level'] = self.storage['level']
         return kwargs
 
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        if form.is_valid():
-            if form.cleaned_data['type'] == 1:
-                _, self.request.session['credentials'] = Account.students.create_set(form.cleaned_data['faculty'],
-                                                                                     form.cleaned_data['level'],
-                                                                                     form.cleaned_data['admission_year'],
-                                                                                     form.cleaned_data['names'])
-            else:
-                _, self.request.session['credentials'] = Account.staff.create_set(form.cleaned_data['faculty'],
-                                                                                  form.cleaned_data['level'],
-                                                                                  form.cleaned_data['type'],
-                                                                                  form.cleaned_data['admission_year'],
-                                                                                  form.cleaned_data['names'])
-            return self.form_valid(form)
-        return self.form_invalid(form)
+    def form_valid(self, form):
+        if form.cleaned_data['type'] == 1:
+            _, self.request.session['credentials'] = Account.students.create_set(form.cleaned_data['faculty'],
+                                                                                 form.cleaned_data['level'],
+                                                                                 form.cleaned_data['admission_year'],
+                                                                                 form.cleaned_data['names'])
+        else:
+            _, self.request.session['credentials'] = Account.staff.create_set(form.cleaned_data['faculty'],
+                                                                              form.cleaned_data['level'],
+                                                                              form.cleaned_data['type'],
+                                                                              form.cleaned_data['admission_year'],
+                                                                              form.cleaned_data['names'])
+        self.storage['faculty'] = form.cleaned_data['faculty']
+        self.storage['level'] = form.cleaned_data['level']
+        self.storage['type'] = form.cleaned_data['type']
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -202,7 +201,10 @@ class AccountCreateSet(LoginRedirectPermissionRequiredMixin, FormView):
         return context
 
     def get_success_url(self):
-        return reverse('accounts:account-credentials') + "?faculty_id={}".format(self.storage['faculty'].id)
+        return reverse('accounts:account-credentials') + get_updated_query_string(self.request,
+                                                                                  faculty_id=self.storage['faculty'].id,
+                                                                                  level=self.storage['level'],
+                                                                                  type=self.storage['type'])
 
 
 class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView):
@@ -237,11 +239,8 @@ class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView)
         return initial
 
 
-class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormView):
-    model = Account
-    form_class = AccountListForm
-    template_name = 'accounts/account/account_list.html'
-    context_object_name = 'accounts'
+class AccountUpdateSet(LoginRedirectPermissionRequiredMixin, FormView):
+    template_name = 'accounts/account/account_formset.html'
     permission_required = 'accounts.change_account'
 
     def __init__(self, **kwargs):
@@ -249,20 +248,58 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
         self.storage = {}
 
     def dispatch(self, request, *args, **kwargs):
-        faculty_id = int(self.request.GET.get('faculty_id') or request.user.account.faculty_id)
+        faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
         self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
-        self.storage['level'] = int(self.request.GET.get('level') or 1)
-        self.storage['type'] = int(self.request.GET.get('type') or 1)
-        self.storage['sort'] = int(self.request.GET.get('sort') or 1)
-        self.storage['course_id'] = int(self.request.GET.get('course_id') or 0)
-        enrolled, graduated = self.request.GET.get('enrolled'), self.request.GET.get('graduated')
+        self.storage['level'] = int(request.GET.get('level') or 1)
+        self.storage['type'] = int(request.GET.get('type') or 1)
+        enrolled, graduated = request.GET.get('enrolled'), request.GET.get('graduated')
+        self.storage['enrolled'] = True
+        self.storage['graduated'] = False
         if enrolled is not None and enrolled == '0':
             self.storage['enrolled'] = False
-            self.storage['graduated'] = False
         if graduated is not None and graduated == '1':
-            self.storage['enrolled'] = False
             self.storage['graduated'] = True
         return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        if self.storage['type'] > 1:
+            queryset = Account.staff.filter(type=self.storage['type'])
+        else:
+            queryset = Account.students.filter(enrolled=self.storage['enrolled'], graduated=self.storage['graduated'])
+            if self.storage['level'] and self.storage['enrolled'] and not self.storage['graduated']:
+                queryset = queryset.filter(level=self.storage['level'])
+        queryset = queryset.filter(faculty=self.storage['faculty'])
+        return queryset
+
+    def get_form_class(self):
+        if self.storage['type'] > 1:
+            form = StaffForm
+        else:
+            form = StudentForm
+        return modelformset_factory(Account, form=form, extra=0)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['queryset'] = self.get_queryset()
+        return kwargs
+
+    def form_valid(self, form):
+        self.objects = form.save()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['formset'] = context['form']
+        context.update(self.storage)
+        return context
+
+    def get_success_url(self):
+        return reverse('accounts:account-list') + get_query_string(self.request)
+
+
+class AccountFormList(AccountUpdateSet):
+    template_name = 'accounts/account/account_list.html'
+    permission_required = 'accounts.change_account'
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
@@ -271,7 +308,7 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
             accounts = form.cleaned_data['accounts']
             if action == 'reset_password':
                 self.request.session['credentials'] = accounts.reset_password()
-                return HttpResponseRedirect(reverse('accounts:account-credentials') + get_updated_query_string(request))
+                return HttpResponseRedirect(reverse('accounts:account-credentials') + get_query_string(request))
             elif self.storage['type'] == 1:
                 if action == 'level_up':
                     accounts.level_up()
@@ -290,52 +327,15 @@ class AccountFormList(LoginRedirectPermissionRequiredMixin, BaseListView, FormVi
         else:
             return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        self.object_list = self.get_queryset()
-        return self.render_to_response(self.get_context_data(form=form))
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['queryset'] = self.get_queryset()
-        return kwargs
-
-    def get_queryset(self):
-        if self.storage['type'] > 1:
-            queryset = Account.staff.filter(type=self.storage['type'])
-        else:
-            queryset = Account.students.all()
-            if 'enrolled' in self.storage and 'graduated' in self.storage:
-                queryset = queryset.filter(enrolled=self.storage['enrolled'], graduated=self.storage['graduated'])
-            elif self.storage['level']:
-                queryset = queryset.enrolled().filter(level=self.storage['level'])
-            else:
-                queryset = queryset.enrolled()
-        queryset = queryset.filter(faculty=self.storage['faculty'])
-        if self.storage['sort'] == 2 and queryset.exists():
-            queryset = sorted(queryset, key=lambda account: account.course_credit_score(course_id=self.storage['course_id']), reverse=True)
-        return queryset
+    def get_form_class(self):
+        return AccountListForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        SORT_TYPE_CHOICES = (
-            (1, "В алфавитном порядке"),
-            (2, "Рейтинг"),
-        )
         LEVEL_CHOICES = list(Account.LEVEL_CHOICES)
-        if self.request.user.account.is_instructor:
-            course_ids = self.request.user.filter_set.values_list('course_id', flat=True)
-            courses = Course.objects.filter(id__in=course_ids)
-            COURSE_CHOICES = list((c.id, c.title) for c in courses)
-            if self.request.user.has_perm('contests.add_faculty'):
-                LEVEL_CHOICES.append((0, "Все уровни"))
-                courses = Course.objects.filter(faculty=self.storage['faculty'])
-                COURSE_CHOICES = list((c.id, c.title) for c in courses)
-                COURSE_CHOICES.insert(0, (0, "Все курсы"))
-            context['course_choices'] = COURSE_CHOICES
-        context['sort_choices'] = SORT_TYPE_CHOICES
+        LEVEL_CHOICES.insert(0, (0, "Все уровни"))
         context['level_choices'] = LEVEL_CHOICES
         context['faculty_choices'] = list((f.id, f.short_name) for f in Faculty.objects.all())
-        context.update(self.storage)
         return context
 
     def get_success_url(self):
@@ -352,7 +352,7 @@ class AccountCredentials(LoginRedirectPermissionRequiredMixin, TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['credentials'] = self.request.session.pop('credentials', None)
-        faculty_id = int(self.request.GET.get('faculty_id') or request.user.account.faculty_id)
+        faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
         self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
         return super().dispatch(request, *args, **kwargs)
 

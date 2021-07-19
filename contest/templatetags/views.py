@@ -43,6 +43,11 @@ def get_full_path_with_updated_query_string(request, **kwargs):
     return request.path + get_updated_query_string(request, **kwargs)
 
 
+@register.filter()
+def get_query_string(request):
+    return '?' + '&'.join(['{}={}'.format(key, value) for key, value in request.GET.items()])
+
+
 @register.inclusion_tag('page_nav.html', takes_context=True)
 def render_page_nav(context):
     if context['page_obj'].number < 3:

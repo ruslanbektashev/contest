@@ -29,7 +29,7 @@ class Faculty(models.Model):
         verbose_name_plural = "Факультеты"
 
     def __str__(self):
-        return self.name
+        return self.short_name
 
 
 """==================================================== Account ====================================================="""

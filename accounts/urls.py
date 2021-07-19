@@ -8,6 +8,7 @@ app_name = 'accounts'
 urlpatterns = [
     path('account/', include([
         path('create/set', views.AccountCreateSet.as_view(), name='account-create-set'),
+        path('update/set', views.AccountUpdateSet.as_view(), name='account-update-set'),
         path('<int:pk>/', include([
             path('', views.AccountDetail.as_view(), name='account-detail'),
             path('update', views.AccountUpdate.as_view(), name='account-update'),
