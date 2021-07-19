@@ -21,7 +21,7 @@ class CourseAdmin(admin.ModelAdmin):
             'fields': ('owner', 'leaders', 'faculty')
         }),
         ('Детали', {
-            'fields': ('title', 'description', 'level')
+            'fields': ('title_official', 'title_unofficial', 'description', 'level')
         }),
         ('Даты', {
             'fields': ('date_updated', 'date_created')
