@@ -63,14 +63,14 @@
         {% endif %}
         {% endif %}
         {% if perms.accounts.change_account %}
-        <div class="col-12 col-md-4 pull-right mb-3 mb-md-0">
+        <div class="col-12 col-md-4 ml-auto mb-3 mb-md-0">
             <div class="pull-right">
                 <div id="account_list_form_actions" class="btn-toolbar" style="visibility: hidden;" role="toolbar" aria-label="Toolbar with button groups">
-                    <div class="btn-group mr-2" role="group" aria-label="First group">
+                    <div class="btn-group" role="group" aria-label="First group">
                         <button type="submit" name="action" form="account_list_form" value="reset_password" class="btn btn-sm btn-info" data-toggle="tooltip" data-placement="top" title="Выставить новый пароль для профилей выбранных пользователей"><i class="fa fa-key fa-fw"></i></button>
                     </div>
                 {% if type == 1 %}
-                    <div class="btn-group" role="group" aria-label="Second group">
+                    <div class="btn-group ml-2" role="group" aria-label="Second group">
                         <button type="submit" name="action" form="account_list_form" value="level_up" class="btn btn-info" data-toggle="tooltip" data-placement="top" title="Повысить уровень выбранных студентов на 1"><i class="fa fa-level-up fa-fw"></i></button>
                         <button type="submit" name="action" form="account_list_form" value="level_down" class="btn btn-info" data-toggle="tooltip" data-placement="top" title="Понизить уровень выбранных студентов на 1"><i class="fa fa-level-down fa-fw"></i></button>
                         <button type="submit" name="action" form="account_list_form" value="enroll" class="btn btn-info" data-toggle="tooltip" data-placement="top" title="Восстановить выбранных отчисленных студентов"><i class="fa fa-undo fa-fw"></i></button>
@@ -147,8 +147,10 @@ function toggleToolbar() {
     let toolbar = document.getElementById('account_list_form_actions');
     if (show)
         toolbar.style.visibility = 'visible';
-    else
+    else {
         toolbar.style.visibility = 'hidden';
+        document.getElementById('check_all').checked = false;
+    }
 }
 document.getElementById('check_all').addEventListener('click', function (e) {
     let checkboxes = document.getElementsByName('accounts');
