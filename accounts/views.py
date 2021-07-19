@@ -330,6 +330,9 @@ class AccountFormList(AccountUpdateSet):
     def get_form_class(self):
         return AccountListForm
 
+    def form_valid(self, form):
+        return HttpResponseRedirect(self.get_success_url())
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         LEVEL_CHOICES = list(Account.LEVEL_CHOICES)
