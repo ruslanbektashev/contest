@@ -209,7 +209,6 @@ class AccountCreateSet(LoginRedirectPermissionRequiredMixin, FormView):
 
 class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView):
     model = Account
-    form_class = AccountForm
     template_name = 'accounts/account/account_form.html'
     permission_required = 'accounts.change_account'
 
@@ -225,18 +224,12 @@ class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView)
 
     def get_form_class(self):
         if self.request.user.has_perm('accounts.change_account'):
-            return self.form_class
+            if self.object.type > 1:
+                return StaffForm
+            else:
+                return StudentForm
         else:
             return AccountPartialForm
-
-    def get_initial(self):
-        initial = super().get_initial()
-        if self.request.user.has_perm('accounts.change_account'):
-            initial['first_name'] = self.object.first_name
-            initial['last_name'] = self.object.last_name
-            initial['is_active'] = self.object.is_active
-        initial['email'] = self.object.email
-        return initial
 
 
 class AccountUpdateSet(LoginRedirectPermissionRequiredMixin, FormView):
