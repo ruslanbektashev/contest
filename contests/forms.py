@@ -2,12 +2,13 @@ import os
 import re
 
 from django import forms
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from accounts.models import Account
 from contest.widgets import BootstrapCheckboxSelect, BootstrapRadioSelect
@@ -150,14 +151,15 @@ class CreditReportForm(forms.Form):
         ("Зачёт", "Зачёт"),
     )
 
-    group_name = forms.CharField(required=True, label="Название группы")
-    students = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите студентов")
-    type = forms.ChoiceField(required=True, choices=TYPE_CHOICES, label="Тип ведомости")
-    examiners = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите экзаменаторов")
-    faculty = forms.CharField(required=True, label="Факультет")
-    discipline = forms.CharField(required=True, label="Дисциплина")
-    semester = forms.IntegerField(required=True, label="Семестр")
-    date = forms.DateField(required=True, label="Дата")
+    group = forms.ModelChoiceField(queryset=Group.objects.none(), required=False, label="Выберите группу")
+    group_name = forms.CharField(required=False, label="Название группы")
+    students = UserMultipleChoiceField(queryset=Account.objects.none(), required=False, label="Выберите студентов")
+    type = forms.ChoiceField(choices=TYPE_CHOICES, label="Тип ведомости")
+    examiners = UserMultipleChoiceField(queryset=Account.objects.none(), label="Выберите экзаменаторов")
+    faculty = forms.CharField(label="Факультет")
+    discipline = forms.CharField(label="Дисциплина")
+    semester = forms.IntegerField(label="Семестр")
+    date = forms.DateField(label="Дата")
 
     def __init__(self, course, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -166,9 +168,23 @@ class CreditReportForm(forms.Form):
         examiners = Account.objects.filter(user__groups__name='Преподаватель', faculty=course.faculty)
         self.fields['examiners'].queryset = examiners.order_by('user__last_name', 'user__first_name')
         self.fields['examiners'].initial = course.leaders.all()
+        self.fields['group'].queryset = Group.objects.filter(user__in=students.values_list('user_id', flat=True)).distinct()
         self.fields['faculty'].initial = course.faculty.short_name
         self.fields['discipline'].initial = course.title_official
         self.fields['semester'].initial = course.level
+        self.storage = {'students': students}
+
+    def clean(self):
+        group = self.cleaned_data.get('group')
+        if group is not None:
+            self.cleaned_data['students'] = self.storage['students'].filter(user__in=group.user_set.all())
+            self.cleaned_data['group_name'] = group.name
+            return self.cleaned_data
+        if self.cleaned_data['group_name'] == '':
+            self.add_error('group_name', forms.ValidationError(_('This field is required.'), code='required'))
+        if len(self.cleaned_data['students']) == 0:
+            self.add_error('students', forms.ValidationError(_('This field is required.'), code='required'))
+        return self.cleaned_data
 
 
 """==================================================== Contest ====================================================="""

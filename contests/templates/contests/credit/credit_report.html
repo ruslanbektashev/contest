@@ -22,9 +22,10 @@
     {% csrf_token %}
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.group class+="form-control selectpicker" title="..." %}
     {% render_field form.group_name class+="form-control" %}
     {% render_field form.students class+="form-control selectpicker" title="..." data-actions-box="true" data-selected-text-format="count > 3" %}
-    {% render_field form.type class+="form-control selectpicker" %}
+    {% render_field form.type class+="form-control selectpicker" title="..." %}
     {% render_field form.examiners class+="form-control selectpicker" title="..." data-actions-box="true" data-selected-text-format="count > 3" %}
     {% render_field form.faculty class+="form-control" %}
     {% render_field form.discipline class+="form-control" %}
