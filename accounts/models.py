@@ -180,7 +180,7 @@ class Account(models.Model):
     ADMISSION_YEAR_DEFAULT = timezone.now().year
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    faculty = models.ForeignKey(Faculty, null=True, on_delete=models.DO_NOTHING, verbose_name="Факультет")
+    faculty = models.ForeignKey(Faculty, on_delete=models.DO_NOTHING, verbose_name="Факультет")
 
     patronymic = models.CharField(max_length=30, blank=True, verbose_name="Отчество")
     department = models.CharField(max_length=150, blank=True, verbose_name="Кафедра")
