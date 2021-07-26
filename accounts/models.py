@@ -80,6 +80,9 @@ class StudentQuerySet(AccountQuerySet):
     def graduate(self):
         return self.update(enrolled=False, graduated=True)
 
+    def get_distinct_groups(self):
+        return self.order_by().values_list('group', flat=True).distinct()
+
 
 class StaffManager(models.Manager):
     def get_queryset(self):
@@ -149,6 +152,11 @@ def account_image_path(instance, filename):
 
 
 class Account(models.Model):
+    GROUP_CHOICES = (
+        (1, "1"),
+        (2, "2"),
+    )
+    GROUP_DEFAULT = 1
     LEVEL_CHOICES = (
         (1, "1 курс, 1 семестр"),
         (2, "1 курс, 2 семестр"),
@@ -179,13 +187,14 @@ class Account(models.Model):
     position = models.CharField(max_length=100, blank=True, verbose_name="Должность")
     degree = models.CharField(max_length=50, blank=True, verbose_name="Ученая степень")
     image = models.ImageField(upload_to=account_image_path, blank=True, verbose_name="Аватар")
-    level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, default=LEVEL_DEFAULT, verbose_name="Уровень")
     type = models.PositiveSmallIntegerField(choices=TYPE_CHOICES, default=TYPE_DEFAULT, verbose_name="Тип")
-    admission_year = models.PositiveSmallIntegerField(choices=ADMISSION_YEAR_CHOICES, default=ADMISSION_YEAR_DEFAULT,
-                                                      verbose_name="Год поступления")
+    level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, default=LEVEL_DEFAULT, verbose_name="Уровень")
+    group = models.PositiveSmallIntegerField(choices=GROUP_CHOICES, default=GROUP_DEFAULT, verbose_name="Группа")
     enrolled = models.BooleanField(default=True, verbose_name="Обучается?")
     graduated = models.BooleanField(default=False, verbose_name="Закончил обучение?")
     record_book_id = models.PositiveIntegerField(null=True, blank=True, verbose_name="№ зачетной книжки")
+    admission_year = models.PositiveSmallIntegerField(choices=ADMISSION_YEAR_CHOICES, default=ADMISSION_YEAR_DEFAULT,
+                                                      verbose_name="Год поступления")
 
     date_updated = models.DateTimeField(auto_now=True)
 
@@ -199,6 +208,15 @@ class Account(models.Model):
         ordering = ('user__last_name', 'user__first_name', 'user_id')
         verbose_name = "Аккаунт"
         verbose_name_plural = "Аккаунты"
+
+    @staticmethod
+    def make_group_name(group_prefix, group, level):
+        group_suffix = (timezone.now().year - level // 2) % 100
+        return "{}{}-{}".format(group_prefix, group, group_suffix)
+
+    @property
+    def get_group_name(self):
+        return self.make_group_name(self.faculty.group_prefix, self.group, self.level)
 
     @property
     def is_student(self):

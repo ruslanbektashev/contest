@@ -27,6 +27,7 @@
                     <th><div style="width: 15em;">Факультет</div></th>
                     {% if type == 1 %}
                     <th><div style="width: 12em;">Уровень</div></th>
+                    <th><div style="width: 5em;">Группа</div></th>
                     <th><div style="width: 10em;">Год поступления</div></th>
                     <th><div style="width: 12em;">№ зачетной книжки</div></th>
                     <th class="text-center"><div style="width: 6em;">Обучается</div></th>
@@ -54,6 +55,7 @@
                     <td>{% render_field form.faculty class+="form-control selectpicker" data-container="body" %}</td>
                     {% if type == 1 %}
                     <td>{% render_field form.level class+="form-control selectpicker" data-container="body" %}</td>
+                    <td>{% render_field form.group class+="form-control selectpicker" data-container="body" %}</td>
                     <td>{% render_field form.admission_year class+="form-control selectpicker" data-container="body" %}</td>
                     <td>{% render_field form.record_book_id class+="form-control" %}</td>
                     <td class="text-center">

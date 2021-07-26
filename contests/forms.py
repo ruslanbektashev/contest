@@ -8,9 +8,8 @@ from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
-from django.utils.translation import gettext as _
 
-from accounts.models import Account
+from accounts.models import Account, Faculty
 from contest.widgets import BootstrapCheckboxSelect, BootstrapRadioSelect
 from contests.models import (Assignment, Attachment, Contest, Course, Event, FNTest, Filter, Option, Problem,
                              SubProblem, Submission, SubmissionPattern, UTTest)
@@ -151,7 +150,7 @@ class CreditReportForm(forms.Form):
         ("Зачёт", "Зачёт"),
     )
 
-    group = forms.ModelChoiceField(queryset=Group.objects.none(), required=False, label="Выберите группу")
+    group = forms.ChoiceField(choices=Account.GROUP_CHOICES, required=False, label="Выберите группу")
     group_name = forms.CharField(required=False, label="Название группы")
     students = UserMultipleChoiceField(queryset=Account.objects.none(), required=False, label="Выберите студентов")
     type = forms.ChoiceField(choices=TYPE_CHOICES, label="Тип ведомости")
@@ -168,22 +167,30 @@ class CreditReportForm(forms.Form):
         examiners = Account.objects.filter(user__groups__name='Преподаватель', faculty=course.faculty)
         self.fields['examiners'].queryset = examiners.order_by('user__last_name', 'user__first_name')
         self.fields['examiners'].initial = course.leaders.all()
-        self.fields['group'].queryset = Group.objects.filter(user__in=students.values_list('user_id', flat=True)).distinct()
         self.fields['faculty'].initial = course.faculty.short_name
         self.fields['discipline'].initial = course.title_official
         self.fields['semester'].initial = course.level
-        self.storage = {'students': students}
+        self.storage = {'students': students, 'course': course}
 
     def clean(self):
         group = self.cleaned_data.get('group')
-        if group is not None:
-            self.cleaned_data['students'] = self.storage['students'].filter(user__in=group.user_set.all())
-            self.cleaned_data['group_name'] = group.name
-            return self.cleaned_data
-        if self.cleaned_data['group_name'] == '':
-            self.add_error('group_name', forms.ValidationError(_('This field is required.'), code='required'))
-        if len(self.cleaned_data['students']) == 0:
-            self.add_error('students', forms.ValidationError(_('This field is required.'), code='required'))
+        if group is not None and group.isdigit() and int(group) > 0:
+            self.cleaned_data['group_name'] = Account.make_group_name(self.storage['course'].faculty.group_prefix,
+                                                                      group, self.storage['course'].level)
+            self.cleaned_data['students'] = self.storage['students'].filter(group=group)
+            if not self.cleaned_data['students'].exists():
+                self.add_error('group', ValidationError("В выбранной группе нет студентов", code='group_is_empty'))
+        else:
+            if self.cleaned_data['group_name'] == '':
+                self.add_error('group_name',
+                               ValidationError("Название группы требуется, если не выбрана группа из списка",
+                                               code='group_name_required'))
+            if len(self.cleaned_data['students']) == 0:
+                self.add_error('students',
+                               ValidationError("Следует выбрать хотя бы одного студента, если не выбрана группа из "
+                                               "списка", code='students_required'))
+            self.add_error('group', ValidationError("Выберите группу или введите название группы и выберите студентов",
+                                                    code='group_required'))
         return self.cleaned_data
 
 
