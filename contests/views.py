@@ -1239,7 +1239,8 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
     def get_form(self):
         if 'sub_form' not in self.storage:
             return super().get_form()
-        return SubmissionUpdateForm(instance=self.object)
+        form_class = self.get_form_class()
+        return form_class(instance=self.object)
 
     def get(self, request, *args, **kwargs):
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
