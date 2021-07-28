@@ -1224,15 +1224,14 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
-        return self.form_valid(form)
 
-    def form_valid(self, form):
         sub_form = self.storage.get('sub_form')
         if sub_form:
             if sub_form.is_valid():
                 sub_form.save()
                 return HttpResponseRedirect(self.get_success_url())
             return super().form_invalid(form)
+
         if form.is_valid():
             return super().form_valid(form)
         return super().form_invalid(form)
