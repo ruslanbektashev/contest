@@ -212,8 +212,7 @@
         {% render_field sub_form.status class+="form-control selectpicker" %}
         {% render_field sub_form.score class+="form-control" %}
         {% endwith %}
-        <input type="hidden" name="sub_submission_id" value="{{ sub_form.instance.id }}">
-        <button class="btn btn-light btn-block border mb-2">Сохранить</button>
+        <button class="btn btn-light btn-block border mb-2" name="sub_submission_id" value="{{ sub_form.instance.id }}">Сохранить</button>
     </form>
     {% endif %}
     <div class="card-body bg-light">
