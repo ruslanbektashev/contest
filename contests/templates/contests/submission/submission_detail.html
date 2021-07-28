@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views accounts contests comments static %}
+{% load views forms accounts contests comments static %}
 
 {% block title %}
 Посылка
@@ -68,7 +68,18 @@
 </div>
 {% if not submission.problem.type == 'Program' or not submission.problem.is_testable %}
 {% if perms.contests.change_submission %}
-<a href="{% url 'contests:submission-update' submission.id %}{% if from_assignment %}?from_assignment=1{% endif %}" class="btn btn-light btn-block border mb-3">Изменить оценку</a>
+<button type="button" id="submission-update-toggle-0" class="btn btn-light btn-block border mb-3" data-toggle="button" aria-pressed="{% if form.errors|length == 0 %}false{% else %}true{% endif %}">Изменить оценку</button>
+<form {% if form.errors|length == 0 %}hidden{% endif %} action="" id="submission-update-form-0" method="post" class="form-horizontal card">
+    <div class="card-body">
+        {% csrf_token %}
+        {% render_form_errors form %}
+        {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+        {% render_field form.status class+="form-control selectpicker" %}
+        {% render_field form.score class+="form-control" %}
+        {% endwith %}
+        <button class="btn btn-light btn-block border">Сохранить</button>
+    </div>
+</form>
 {% endif %}
 {% elif submission.is_un %}
 <a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_assignment %}?from_assignment=1{% endif %}" class="btn btn-light btn-block border mb-3">Проверить</a>
@@ -164,52 +175,65 @@
 {% endif %}
 {% if submission.problem.type == 'Test' %}
 <h6 class="text-muted">Подпосылки:</h6>
-{% for sub_submission in submission.sub_submissions.all %}
+{% for sub_form in forms %}
+
 <div class="card mb-3">
     <div class="card-header d-flex align-items-center">
-        <small class="mr-3" data-toggle="tooltip" data-placement="top" title="Номер подзадачи">{{ sub_submission.problem.number }}</small>
-        {% if sub_submission.problem.title %}
+        <small class="mr-3" data-toggle="tooltip" data-placement="top" title="Номер подзадачи">{{ sub_form.instance.problem.number }}</small>
+        {% if sub_form.instance.problem.title %}
         <small class="mr-auto">
-            <a href="{% url 'contests:problem-detail' sub_submission.problem.id %}" class="card-link">
-                {{ sub_submission.problem.title }}
+            <a href="{% url 'contests:problem-detail' sub_form.instance.problem.id %}" class="card-link">
+                {{ sub_form.instance.problem.title }}
             </a>
         </small>
         {% endif %}
-        {% if perms.contests.change_submission and sub_submission.problem.type == 'Text' %}
-        {% if sub_submission.has_footprint_increments %}
+        {% if perms.contests.change_submission and sub_form.instance.problem.type == 'Text' %}
+        {% if sub_form.instance.has_footprint_increments %}
         <span class="text-warning mr-2" data-toggle="tooltip" data-placement="top" title="Обнаружена вставка текста" style="position: relative; top: -0.08em;"><i class="fa fa-exclamation-triangle fa-fw fa-lg"></i></span>
         {% else %}
         <span class="text-success mr-2" data-toggle="tooltip" data-placement="top" title="Вставка текста не обнаружена" style="position: relative; top: -0.08em;"><i class="fa fa-check-circle fa-fw fa-lg"></i></span>
         {% endif %}
         {% endif %}
-        <small>{{ sub_submission.problem.get_type_display }}</small>
+        <small>{{ sub_form.instance.problem.get_type_display }}</small>
         {% if perms.contests.change_submission %}
-        <a href="{% url 'contests:submission-update' sub_submission.id %}?from_main_submission=1{% if from_assignment %}&from_assignment=1{% endif %}" class="card-link ml-3" data-toggle="tooltip" data-placement="top" title="Изменить оценку">
+        <a id="submission-update-toggle-{{ forloop.counter }}" class="card-link ml-3" data-toggle="tooltip" data-placement="top" title="Изменить оценку">
             <i class="fa fa-edit fa-fw fa-lg"></i>
         </a>
         {% endif %}
-        <a href="{{ sub_submission.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}" class="status status-{{ sub_submission.status|colorize }} ml-3" data-toggle="tooltip" data-placement="top" title="{{ sub_submission.get_status_display }}">
-            {{ sub_submission.status }}
+        <a href="{{ sub_form.instance.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}" class="status status-{{ sub_form.instance.status|colorize }} ml-3" data-toggle="tooltip" data-placement="top" title="{{ sub_form.instance.get_status_display }}">
+            {{ sub_form.instance.status }}
         </a>
     </div>
+    {% if perms.contests.change_submission %}
+    <form {% if sub_form.errors|length == 0 %}hidden{% endif %} action="" id="submission-update-form-{{ forloop.counter }}" method="post" class="form-horizontal card-header">
+        {% csrf_token %}
+        {% render_form_errors sub_form %}
+        {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+        {% render_field sub_form.status class+="form-control selectpicker" %}
+        {% render_field sub_form.score class+="form-control" %}
+        {% endwith %}
+        <input type="hidden" name="sub_submission_id" value="{{ sub_form.instance.id }}">
+        <button class="btn btn-light btn-block border mb-2">Сохранить</button>
+    </form>
+    {% endif %}
     <div class="card-body bg-light">
-        {{ sub_submission.problem.description|safe }}
+        {{ sub_form.instance.problem.description|safe }}
         <h6 class="text-muted">Ответ:</h6>
-        {% if sub_submission.problem.type == 'Program' or sub_submission.problem.type == 'Files' %}
+        {% if sub_form.instance.problem.type == 'Program' or sub_form.instance.problem.type == 'Files' %}
         <div class="text-right text-muted">
             {% if perms.contests.moss_submission %}
-                {% if sub_submission.moss_to_submissions %}
-            <p class="text-warning text-wrap" data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>с посылками MOSS: {% for to_submission_id in sub_submission.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-            <p class="text-warning text-wrap" data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>ссылка на отчет MOSS: {% if sub_submission.moss_report_url %}<a href="{{ sub_submission.moss_report_url }}" target="_blank">{{ sub_submission.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
+                {% if sub_form.instance.moss_to_submissions %}
+            <p class="text-warning text-wrap" data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>с посылками MOSS: {% for to_submission_id in sub_form.instance.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+            <p class="text-warning text-wrap" data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>ссылка на отчет MOSS: {% if sub_form.instance.moss_report_url %}<a href="{{ sub_form.instance.moss_report_url }}" target="_blank">{{ sub_form.instance.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
                 {% endif %}
             {% endif %}
         </div>
-        <legend>Файлы {% if perms.contests.download_submission %}<a href="{% url 'contests:submission-download' sub_submission.id %}" data-toggle="tooltip" data-placement="left" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>{% endif %}</legend>
+        <legend>Файлы {% if perms.contests.download_submission %}<a href="{% url 'contests:submission-download' sub_form.instance.id %}" data-toggle="tooltip" data-placement="left" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>{% endif %}</legend>
         <div class="list-group">
-            {% for attachment in sub_submission.attachment_set.all %}
+            {% for attachment in sub_form.instance.attachment_set.all %}
             <span class="list-group-item d-flex">
                 {% if perms.contests.download_submission %}
-                <a class="mr-auto" href="{% url 'contests:submission-attachment' sub_submission.id attachment.id %}"><samp>{{ attachment.filename }}</samp></a>
+                <a class="mr-auto" href="{% url 'contests:submission-attachment' sub_form.instance.id attachment.id %}"><samp>{{ attachment.filename }}</samp></a>
                 <a href="{{ attachment.file.url }}" data-toggle="tooltip" data-placement="left" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
                 {% else %}
                 <samp>{{ attachment.filename }}</samp>
@@ -218,18 +242,18 @@
             {% endfor %}
         </div>
         {% endif %}
-        {% if sub_submission.problem.type == 'Text' %}
+        {% if sub_form.instance.problem.type == 'Text' %}
         <div class="card">
             <div class="card-body">
-                {{ sub_submission.text|safe }}
+                {{ sub_form.instance.text|safe }}
             </div>
         </div>
         {% endif %}
-        {% if sub_submission.problem.type == 'Options' %}
+        {% if sub_form.instance.problem.type == 'Options' %}
         <ul class="list-group mb-3">
-            {% for option in sub_submission.problem.option_set.all %}
-            <li class="list-group-item {% if option in sub_submission.options.all %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
-                {% if option in sub_submission.options.all %}{% if option.is_correct %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% else %}<i class="fa fa-times-circle-o" aria-hidden="true"></i>{% endif %}{% endif %} {{ option.text }}
+            {% for option in sub_form.instance.problem.option_set.all %}
+            <li class="list-group-item {% if option in sub_form.instance.options.all %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
+                {% if option in sub_form.instance.options.all %}{% if option.is_correct %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% else %}<i class="fa fa-times-circle-o" aria-hidden="true"></i>{% endif %}{% endif %} {{ option.text }}
             </li>
             {% endfor %}
         </ul>
@@ -350,6 +374,17 @@ var footprintChart = new Chart(
     footprintChartConfig
 );
 
+</script>
+{% endif %}
+{% if perms.contests.change_submission %}
+<script>
+for (let i = 0; i <= {% if forms %}{{ forms|length }}{% else %}0{% endif %}; i++) {
+    let submissionUpdateForm = document.getElementById('submission-update-form-' + i);
+    let submissionUpdateButton = document.getElementById('submission-update-toggle-' + i);
+    submissionUpdateButton.addEventListener('click', function() {
+        submissionUpdateForm.hidden = !submissionUpdateForm.hidden;
+    });
+}
 </script>
 {% endif %}
 {% endblock javascript %}

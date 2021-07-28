@@ -1023,7 +1023,7 @@ class Submission(CRDEntry):
         max_score = sum(self.problem.sub_problems.values_list('problem__score_max', flat=True))
         scores_sum = sum(self.sub_submissions.values_list('score', flat=True))
         self.score = scores_sum * 100 // max_score
-        self.save()
+        self.save(update_fields=['score'])
 
     def update_test_status(self):
         statuses = (choice[0] for choice in self.STATUS_CHOICES)
@@ -1043,7 +1043,7 @@ class Submission(CRDEntry):
         else:
             self.score = 0
             self.status = 'WA'
-        self.save()
+        self.save(update_fields=['score', 'status'])
 
     def get_discussion_url(self):
         return self.get_absolute_url()

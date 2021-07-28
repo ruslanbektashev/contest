@@ -1187,11 +1187,60 @@ class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
 """=================================================== Submission ==================================================="""
 
 
-class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, PaginatorMixin, DetailView):
+class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, PaginatorMixin, UpdateView):
     model = Submission
+    form_class = SubmissionUpdateForm
     template_name = 'contests/submission/submission_detail.html'
     permission_required = 'contests.view_submission'
     paginate_by = 30
+
+    def __init__(self):
+        super().__init__()
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.problem.type == 'Test':
+            sub_submission_id = request.POST.get('sub_submission_id', '')
+
+            if sub_submission_id.isnumeric():
+                sub_submission_id = int(sub_submission_id)
+
+            forms = dict()
+            for sub_submission in self.object.sub_submissions.all():
+                if sub_submission.id == sub_submission_id:
+                    form = SubmissionUpdateForm(instance=sub_submission, data=request.POST)
+                    self.storage['sub_form'] = form
+                    forms[sub_submission.id] = form
+                else:
+                    forms[sub_submission.id] = SubmissionUpdateForm(instance=sub_submission)
+
+            if sub_submission_id and 'sub_form' not in self.storage:
+                raise Http404()
+
+            self.storage['forms'] = forms
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        return self.form_valid(form)
+
+    def form_valid(self, form):
+        sub_form = self.storage.get('sub_form')
+        if sub_form:
+            if sub_form.is_valid():
+                sub_form.save()
+                return HttpResponseRedirect(self.get_success_url())
+            return super().form_invalid(form)
+        if form.is_valid():
+            return super().form_valid(form)
+        return super().form_invalid(form)
+
+    def get_form(self):
+        if 'sub_form' not in self.storage:
+            return super().get_form()
+        return SubmissionUpdateForm(instance=self.object)
 
     def get(self, request, *args, **kwargs):
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
@@ -1210,6 +1259,8 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
         context['current_time'] = timezone.now()
         context['score_percentage'] = self.object.score * 100 // self.object.problem.score_max
         context['from_assignment'] = 'from_assignment' in self.request.GET
+        if 'forms' in self.storage:
+            context['forms'] = self.storage['forms'].values()
         return context
 
 
