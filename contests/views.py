@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from django.http.response import HttpResponseBadRequest
 
 from markdown import markdown
 from mimetypes import guess_type
@@ -1201,46 +1202,45 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
     def dispatch(self, request, *args, **kwargs):
         self.object = self.get_object()
         if self.object.problem.type == 'Test':
-            sub_submission_id = request.POST.get('sub_submission_id', '')
+            sub_submission_id = request.POST.get('sub_submission_id')
+            if sub_submission_id is not None:
+                if sub_submission_id.isnumeric():
+                    sub_submission_id = int(sub_submission_id)
+                    self.storage['sub_submission_id'] = sub_submission_id
+                    if not self.object.sub_submissions.filter(id=sub_submission_id).exists():
+                        raise Http404()
+                else:
+                    raise HttpResponseBadRequest()
+        return super().dispatch(request, *args, **kwargs)
 
-            if sub_submission_id.isnumeric():
-                sub_submission_id = int(sub_submission_id)
-
+    def get_form(self):
+        form_class = self.get_form_class()
+        if self.object.problem.type == 'Test':
             forms = dict()
+            sub_submission_id = self.storage.get('sub_submission_id')
             for sub_submission in self.object.sub_submissions.all():
                 if sub_submission.id == sub_submission_id:
-                    form = SubmissionUpdateForm(instance=sub_submission, data=request.POST)
+                    form = form_class(instance=sub_submission, data=self.request.POST)
                     self.storage['sub_form'] = form
                     forms[sub_submission.id] = form
                 else:
-                    forms[sub_submission.id] = SubmissionUpdateForm(instance=sub_submission)
-
-            if sub_submission_id and 'sub_form' not in self.storage:
-                raise Http404()
-
+                    forms[sub_submission.id] = form_class(instance=sub_submission)
             self.storage['forms'] = forms
-
-        return super().dispatch(request, *args, **kwargs)
+        if 'sub_form' not in self.storage:
+            return super().get_form()            # filled with POST data
+        return form_class(instance=self.object)  # not filled with data
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
-
         sub_form = self.storage.get('sub_form')
         if sub_form:
             if sub_form.is_valid():
                 sub_form.save()
                 return HttpResponseRedirect(self.get_success_url())
             return super().form_invalid(form)
-
         if form.is_valid():
             return super().form_valid(form)
         return super().form_invalid(form)
-
-    def get_form(self):
-        if 'sub_form' not in self.storage:
-            return super().get_form()
-        form_class = self.get_form_class()
-        return form_class(instance=self.object)
 
     def get(self, request, *args, **kwargs):
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
