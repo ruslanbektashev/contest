@@ -1,5 +1,4 @@
 from datetime import date, datetime
-from django.http.response import HttpResponseBadRequest
 
 from markdown import markdown
 from mimetypes import guess_type
@@ -45,7 +44,7 @@ class AttachmentDetail(DetailView):
         try:
             attachment = self.object.attachment_set.get(id=kwargs.get('attachment_id'))
         except Attachment.DoesNotExist:
-            raise Http404('Attachment with id = %s does not exist.' % kwargs.get('attachment_id'))
+            raise Http404("Attachment with id = %s does not exist." % kwargs.get('attachment_id'))
         attachment_file_type, _ = guess_type(attachment.file.path)
         if 'x-c' not in attachment_file_type:
             return HttpResponseRedirect(attachment.file.url)
@@ -58,7 +57,7 @@ class AttachmentDetail(DetailView):
         try:
             content = attachment.file.read()
         except FileNotFoundError:
-            raise Http404('File %s does not exist.' % attachment.filename)
+            raise Http404("File %s does not exist." % attachment.filename)
         formatter = HtmlFormatter(linenos='inline', wrapcode=True)
         context['code'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter)
         return context
@@ -1204,16 +1203,16 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
         if self.object.problem.type == 'Test':
             sub_submission_id = request.POST.get('sub_submission_id')
             if sub_submission_id is not None:
-                if sub_submission_id.isnumeric():
+                if sub_submission_id.isdigit():
                     sub_submission_id = int(sub_submission_id)
                     self.storage['sub_submission_id'] = sub_submission_id
                     if not self.object.sub_submissions.filter(id=sub_submission_id).exists():
-                        raise Http404()
+                        raise Http404("Sub submission does not exist")
                 else:
-                    raise HttpResponseBadRequest()
+                    raise Http404("sub_submission_id must contain only digits")
         return super().dispatch(request, *args, **kwargs)
 
-    def get_form(self):
+    def get_form(self, form_class=None):
         form_class = self.get_form_class()
         if self.object.problem.type == 'Test':
             forms = dict()
@@ -1228,7 +1227,8 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
             self.storage['forms'] = forms
         if 'sub_form' not in self.storage:
             return super().get_form()            # filled with POST data
-        return form_class(instance=self.object)  # not filled with data
+        else:
+            return form_class(instance=self.object)  # not filled with data
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
@@ -1240,7 +1240,8 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
             return super().form_invalid(form)
         if form.is_valid():
             return super().form_valid(form)
-        return super().form_invalid(form)
+        else:
+            return super().form_invalid(form)
 
     def get(self, request, *args, **kwargs):
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
@@ -1262,6 +1263,12 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
         if 'forms' in self.storage:
             context['forms'] = self.storage['forms'].values()
         return context
+
+    def get_success_url(self):
+        success_url = self.object.get_absolute_url()
+        if 'from_assignment' in self.request.GET:
+            success_url += '?from_assignment=1'
+        return success_url
 
 
 class SubmissionDownload(LoginRedirectPermissionRequiredMixin, BaseDetailView):
