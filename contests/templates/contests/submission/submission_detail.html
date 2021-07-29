@@ -387,6 +387,8 @@ for (let i = 0; i <= formsNumber; i++) {
 
     button.addEventListener('click', function() {
         form.hidden = !form.hidden;
+
+        // Show one form at a time
         formsAndButtons.forEach(function(val) {
             if (!val.form.hidden && val.form.id != form.id) {
                 val.form.hidden = true;
@@ -401,6 +403,7 @@ for (let i = 0; i <= formsNumber; i++) {
         button: button,
     });
 
+    // Scroll to form with errors
     if (!form.hidden) {
         form.scrollIntoView(); 
     }
