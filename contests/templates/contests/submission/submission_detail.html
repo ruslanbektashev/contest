@@ -375,15 +375,34 @@ var footprintChart = new Chart(
 </script>
 {% endif %}
 {% if perms.contests.change_submission %}
+
+<!-- Submission Update -->
 <script>
-for (let i = 0; i <= {% if forms %}{{ forms|length }}{% else %}0{% endif %}; i++) {
-    let submissionUpdateForm = document.getElementById('submission-update-form-' + i);
-    let submissionUpdateButton = document.getElementById('submission-update-toggle-' + i);
-    submissionUpdateButton.addEventListener('click', function() {
-        submissionUpdateForm.hidden = !submissionUpdateForm.hidden;
+const formsNumber = {% if forms %}{{ forms|length }}{% else %}0{% endif %};
+let formsAndButtons = [];
+
+for (let i = 0; i <= formsNumber; i++) {
+    let form = document.getElementById('submission-update-form-' + i);
+    let button = document.getElementById('submission-update-toggle-' + i);
+
+    button.addEventListener('click', function() {
+        form.hidden = !form.hidden;
+        formsAndButtons.forEach(function(val) {
+            if (!val.form.hidden && val.form.id != form.id) {
+                val.form.hidden = true;
+                val.button.ariaPressed = false;
+                val.button.classList.remove('active');
+            }
+        });
     });
-    if (!submissionUpdateForm.hidden) {
-        submissionUpdateForm.scrollIntoView(); 
+
+    formsAndButtons.push({
+        form: form,
+        button: button,
+    });
+
+    if (!form.hidden) {
+        form.scrollIntoView(); 
     }
 }
 </script>
