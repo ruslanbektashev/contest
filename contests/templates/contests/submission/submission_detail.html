@@ -74,7 +74,7 @@
         {% csrf_token %}
         {% render_form_errors form %}
         {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-        {% render_field form.status class+="form-control selectpicker" %}
+        {% render_field form.status class+="form-control selectpicker" data-dropup-auto="false" %}
         {% render_field form.score class+="form-control" %}
         {% endwith %}
         <button class="btn btn-light btn-block border">Сохранить</button>
@@ -208,7 +208,7 @@
         {% csrf_token %}
         {% render_form_errors sub_form %}
         {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-        {% render_field sub_form.status class+="form-control selectpicker" %}
+        {% render_field sub_form.status class+="form-control selectpicker" data-dropup-auto="false" %}
         {% render_field sub_form.score class+="form-control" %}
         {% endwith %}
         <button class="btn btn-light btn-block border mb-2" name="sub_submission_id" value="{{ sub_form.instance.id }}">Сохранить</button>
@@ -298,10 +298,11 @@ $(function () {
 </script>
 {% if submission.problem.type != 'Program' and score_percentage > 0 %}
 <script>
-progress_bar_message_element = document.getElementById('progress-bar-message');
-if ({{ score_percentage }} <= 40 && progress_bar_message_element.style.color === 'white') {
+let progress_bar_message_element = document.getElementById('progress-bar-message');
+let score_percentage = {{ score_percentage }};
+if (score_percentage <= 15 && progress_bar_message_element.style.color === 'white') {
     progress_bar_message_element.style.color = 'black';
-} else if ({{ score_percentage }} > 40 && progress_bar_message_element.style.color === 'black') {
+} else if (score_percentage > 15 && progress_bar_message_element.style.color === 'black') {
     progress_bar_message_element.style.color = 'white';
 }
 </script>
