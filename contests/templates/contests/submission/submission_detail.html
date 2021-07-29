@@ -176,7 +176,6 @@
 {% if submission.problem.type == 'Test' %}
 <h6 class="text-muted">Подпосылки:</h6>
 {% for sub_form in forms %}
-
 <div class="card mb-3">
     <div class="card-header d-flex align-items-center">
         <small class="mr-3" data-toggle="tooltip" data-placement="top" title="Номер подзадачи">{{ sub_form.instance.problem.number }}</small>
@@ -249,7 +248,7 @@
         </div>
         {% endif %}
         {% if sub_form.instance.problem.type == 'Options' %}
-        <ul class="list-group mb-3">
+        <ul class="list-group">
             {% for option in sub_form.instance.problem.option_set.all %}
             <li class="list-group-item {% if option in sub_form.instance.options.all %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
                 {% if option in sub_form.instance.options.all %}{% if option.is_correct %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% else %}<i class="fa fa-times-circle-o" aria-hidden="true"></i>{% endif %}{% endif %} {{ option.text }}
@@ -383,6 +382,9 @@ for (let i = 0; i <= {% if forms %}{{ forms|length }}{% else %}0{% endif %}; i++
     submissionUpdateButton.addEventListener('click', function() {
         submissionUpdateForm.hidden = !submissionUpdateForm.hidden;
     });
+    if (!submissionUpdateForm.hidden) {
+        submissionUpdateForm.scrollIntoView(); 
+    }
 }
 </script>
 {% endif %}
