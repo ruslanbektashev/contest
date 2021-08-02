@@ -1021,9 +1021,9 @@ class Submission(CRDEntry):
             self.assignment.update(self)
 
     def update_test_score(self):
-        max_score = sum(self.problem.sub_problems.values_list('problem__score_max', flat=True))
+        max_score = sum(self.problem.sub_problems.values_list('score_max', flat=True))
         scores_sum = sum(self.sub_submissions.values_list('score', flat=True))
-        self.score = scores_sum * 100 // max_score
+        self.score = scores_sum * self.problem.score_max // max_score
         self.save(update_fields=['score'])
 
     def update_test_status(self):
