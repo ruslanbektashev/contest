@@ -15,7 +15,9 @@
             {% endif %}
         </span>
         <span class="text-muted" style="margin: 0 10px 0 0;">{{ execution.date_created }}</span>
-        <a class="execution-collapse-toggle ml-2" href="#test_{{ execution.test.id }}_{{ forloop.counter }}" data-toggle="collapse" aria-expanded="{% if not execution.test_is_passed %}true{% else %}false{% endif %}" aria-controls="test_{{ execution.test.id }}_{{ forloop.counter }}"><i class="fa fa-angle-down fa-lg"></i></a>
+        <a class="collapse-toggle ml-2" href="#test_{{ execution.test.id }}_{{ forloop.counter }}" data-toggle="collapse" aria-expanded="{% if not execution.test_is_passed %}true{% else %}false{% endif %}" aria-controls="test_{{ execution.test.id }}_{{ forloop.counter }}">
+            <i class="fa fa-angle-{% if not execution.test_is_passed %}up{% else %}down{% endif %} fa-lg"></i>
+        </a>
     </div>
     <div class="collapse {% if not execution.test_is_passed %}show{% endif %}" id="test_{{ execution.test.id }}_{{ forloop.counter }}">
         <div class="card-body">

@@ -201,11 +201,13 @@
             {% if perms.contests.change_submission %}
             <small>
                 <a id="submission-update-toggle-{{ forloop.counter }}" class="card-link ml-3" data-toggle="tooltip" data-placement="top" title="Изменить оценку" style="cursor: pointer;">
-                    Баллов: {{ sub_form.instance.score }}
+                    Оценка: {{ sub_form.instance.score }}
                 </a>
             </small>
             {% endif %}
-            <a class="ml-3" href data-toggle="collapse" data-target="#sub_submission_{{ sub_form.instance.id }}" aria-expanded="{% if sub_form.instance.status != 'OK' %}true{% else %}false{% endif %}" aria-controls="sub_submission_{{ sub_form.instance.id }}"><i class="fa fa-angle-down fa-lg"></i></a>
+            <a class="collapse-toggle ml-3" href data-toggle="collapse" data-target="#sub_submission_{{ sub_form.instance.id }}" aria-expanded="{% if sub_form.instance.status != 'OK' %}true{% else %}false{% endif %}" aria-controls="sub_submission_{{ sub_form.instance.id }}">
+                <i class="fa fa-angle-{% if sub_form.instance.status != 'OK' %}up{% else %}down{% endif %} fa-lg"></i>
+            </a>
         </div>
         {% if perms.contests.change_submission %}
             <form {% if sub_form.errors|length == 0 %}hidden{% endif %} action="" id="submission-update-form-{{ forloop.counter }}" method="post" class="form-horizontal card-header pt-3">
@@ -284,11 +286,17 @@
 <script src="{% static 'waypoints/lib/shortcuts/infinite.min.js' %}" type="text/javascript"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    let elements = document.querySelectorAll('.execution-collapse-toggle');
+    let elements = document.querySelectorAll('.collapse-toggle');
     for (let elem of elements) {
         elem.addEventListener("click", function () {
-            elem.firstChild.classList.toggle("fa-angle-up");
-            elem.firstChild.classList.toggle("fa-angle-down");
+            let is_shown = document.getElementById(elem.getAttribute('aria-controls')).classList.contains('show');
+            if (!is_shown) {
+                elem.children[0].classList.add("fa-angle-up");
+                elem.children[0].classList.remove("fa-angle-down");
+            } else {
+                elem.children[0].classList.remove("fa-angle-up");
+                elem.children[0].classList.add("fa-angle-down");
+            }
             //toggleHTML(elem, '<i class="fa fa-angle-down fa-lg"></i>', '<i class="fa fa-angle-up fa-lg"></i>');
         });
     }
