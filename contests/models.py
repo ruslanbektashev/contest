@@ -908,6 +908,7 @@ class SubmissionManager(models.Manager):
 class Submission(CRDEntry):
     STATUS_CHOICES = (
         ('OK', "Задача решена"),
+        ('PS', "Задача решена частично"),
         ('TF', "Тест провален"),
         ('TR', "Требуется проверка"),
         ('WA', "Неверный ответ"),
