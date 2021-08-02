@@ -138,6 +138,14 @@ class ProblemAdmin(admin.ModelAdmin):
                 'is_testable'
             )
         }),
+        ('Оценки', {
+            'fields': (
+                'score_max',
+                'score_for_5',
+                'score_for_4',
+                'score_for_3',
+            )
+        }),
         ('Даты', {
             'fields': ('date_updated', 'date_created')
         })
