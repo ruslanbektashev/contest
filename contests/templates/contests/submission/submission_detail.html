@@ -198,11 +198,13 @@
             {% endif %}
             {% endif %}
             <small>{{ sub_form.instance.problem.get_type_display }}</small>
+            {% if perms.contests.change_submission %}
             <small>
                 <a id="submission-update-toggle-{{ forloop.counter }}" class="card-link ml-3" data-toggle="tooltip" data-placement="top" title="Изменить оценку" style="cursor: pointer;">
                     Баллов: {{ sub_form.instance.score }}
                 </a>
             </small>
+            {% endif %}
             <a class="ml-3" data-toggle="collapse" data-target="#sub_submission_{{ sub_form.instance.id }}" aria-expanded="{% if sub_form.instance.status != 'OK' %}true{% else %}false{% endif %}" aria-controls="sub_submission_{{ sub_form.instance.id }}"><i class="fa fa-angle-down fa-lg"></i></a>
         </div>
         {% if perms.contests.change_submission %}
