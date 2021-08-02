@@ -579,6 +579,10 @@ class SubmissionUpdateForm(forms.ModelForm):
         model = Submission
         fields = ['status', 'score']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['score'].widget.attrs['max'] = self.instance.problem.score_max
+
     def clean_score(self):
         if self.cleaned_data['score'] > self.instance.problem.score_max:
             raise ValidationError("Оценка не может превышать максимальную оценку этой задачи",
@@ -598,6 +602,12 @@ class SubmissionUpdateForm(forms.ModelForm):
             if 'score' in self.changed_data:
                 instance.main_submission.update_test_score()
         return instance
+
+
+class SubmissionUpdateScoreForm(SubmissionUpdateForm):
+    class Meta:
+        model = Submission
+        fields = ['score']
 
 
 class ToSubmissionsChoiceField(forms.ModelMultipleChoiceField):

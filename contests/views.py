@@ -29,7 +29,7 @@ from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateF
                             OptionBaseFormSet, OptionForm, ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm,
                             ProblemRollbackResultsForm, ProblemTestForm, SubmissionProgramForm, SubmissionFilesForm,
                             SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm,
-                            SubmissionUpdateForm, UTTestForm)
+                            SubmissionUpdateForm, SubmissionUpdateScoreForm, UTTestForm)
 from contests.models import (Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, Filter, IOTest,
                              Lecture, Option, Problem, SubProblem, Submission, SubmissionPattern, UTTest)
 from contests.results import TaskProgress
@@ -1190,6 +1190,7 @@ class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
 class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, PaginatorMixin, UpdateView):
     model = Submission
     form_class = SubmissionUpdateForm
+    sub_form_class = SubmissionUpdateScoreForm
     template_name = 'contests/submission/submission_detail.html'
     permission_required = 'contests.view_submission'
     paginate_by = 30
@@ -1213,20 +1214,23 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
         return super().dispatch(request, *args, **kwargs)
 
     def get_form(self, form_class=None):
-        form_class = self.get_form_class()
+        sub_form_class = self.sub_form_class
+
         if self.object.problem.type == 'Test':
             forms = dict()
             sub_submission_id = self.storage.get('sub_submission_id')
             for sub_submission in self.object.sub_submissions.all():
                 if sub_submission.id == sub_submission_id:
-                    form = form_class(instance=sub_submission, data=self.request.POST)
+                    form = sub_form_class(instance=sub_submission, data=self.request.POST)
                     self.storage['sub_form'] = form
                     forms[sub_submission.id] = form
                 else:
-                    forms[sub_submission.id] = form_class(instance=sub_submission)
+                    forms[sub_submission.id] = sub_form_class(instance=sub_submission)
             self.storage['forms'] = forms
+
+        form_class = self.get_form_class()
         if 'sub_form' not in self.storage:
-            return super().get_form()            # filled with POST data
+            return super().get_form()                # filled with POST data
         else:
             return form_class(instance=self.object)  # not filled with data
 
