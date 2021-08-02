@@ -205,7 +205,7 @@
                 </a>
             </small>
             {% endif %}
-            <a class="ml-3" data-toggle="collapse" data-target="#sub_submission_{{ sub_form.instance.id }}" aria-expanded="{% if sub_form.instance.status != 'OK' %}true{% else %}false{% endif %}" aria-controls="sub_submission_{{ sub_form.instance.id }}"><i class="fa fa-angle-down fa-lg"></i></a>
+            <a class="ml-3" href data-toggle="collapse" data-target="#sub_submission_{{ sub_form.instance.id }}" aria-expanded="{% if sub_form.instance.status != 'OK' %}true{% else %}false{% endif %}" aria-controls="sub_submission_{{ sub_form.instance.id }}"><i class="fa fa-angle-down fa-lg"></i></a>
         </div>
         {% if perms.contests.change_submission %}
             <form {% if sub_form.errors|length == 0 %}hidden{% endif %} action="" id="submission-update-form-{{ forloop.counter }}" method="post" class="form-horizontal card-header pt-3">
