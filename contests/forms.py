@@ -596,12 +596,26 @@ class SubmissionUpdateForm(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit)
+        if 'status' in self.changed_data and 'score' not in self.changed_data:
+            status = self.cleaned_data['status']
+            if status == 'OK':
+                instance.score = instance.problem.score_max
+            elif status == 'WA':
+                instance.score = 0
+        if 'score' in self.changed_data and 'status' not in self.changed_data:
+            score = self.cleaned_data['score']
+            if score >= instance.problem.score_for_5:
+                instance.status = 'OK'
+            elif score >= instance.problem.score_for_3:
+                instance.status = 'PS'
+            else:
+                instance.status = 'WA'
         if instance.main_submission is not None:
             if 'status' in self.changed_data:
                 instance.main_submission.update_test_status()
             if 'score' in self.changed_data:
                 instance.main_submission.update_test_score()
-        return instance
+        return super().save(commit)
 
 
 class SubmissionUpdateScoreForm(SubmissionUpdateForm):
