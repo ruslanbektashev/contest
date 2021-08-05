@@ -1446,7 +1446,22 @@ class SubmissionUpdateAPI(LoginRequiredMixin, PermissionRequiredMixin, BaseUpdat
 
     def form_valid(self, form):
         self.object = form.save()
-        return JsonResponse({'status': 'ok', 'updated': {'status': self.object.status, 'score': self.object.score}})
+        response = {
+            'status': 'ok',
+            'updated': {
+                self.object.id: {
+                    'status': self.object.status,
+                    'score': self.object.score
+                }
+            }
+        }
+        if self.object.main_submission is not None:
+            response['updated'].update({
+                self.object.main_submission.id: {
+                    'status': self.object.main_submission.status,
+                    'score': self.object.main_submission.score}
+            })
+        return JsonResponse(response)
 
     def form_invalid(self, form):
         return JsonResponse({'status': 'form_errors', 'errors': form.errors})
