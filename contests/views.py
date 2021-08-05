@@ -7,7 +7,7 @@ from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer, TextLexer
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.forms.models import inlineformset_factory
@@ -1433,6 +1433,26 @@ class SubmissionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         if 'from_assignment' in self.request.GET:
             success_url += '?from_assignment=1'
         return success_url
+
+
+class SubmissionUpdateAPI(LoginRequiredMixin, PermissionRequiredMixin, BaseUpdateView):
+    model = Submission
+    form_class = SubmissionUpdateScoreForm
+    http_method_names = ['post']
+    permission_required = 'contests.change_submission'
+
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        return JsonResponse({'status': 'http_method_not_allowed'})
+
+    def form_valid(self, form):
+        self.object = form.save()
+        return JsonResponse({'status': 'ok'})
+
+    def form_invalid(self, form):
+        return JsonResponse({'status': 'form_errors', 'errors': form.errors})
+
+    def handle_no_permission(self):
+        return JsonResponse({'status': 'access_denied'})
 
 
 class SubmissionMoss(LoginRedirectPermissionRequiredMixin, SingleObjectMixin, FormView):
