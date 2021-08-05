@@ -1446,7 +1446,7 @@ class SubmissionUpdateAPI(LoginRequiredMixin, PermissionRequiredMixin, BaseUpdat
 
     def form_valid(self, form):
         self.object = form.save()
-        return JsonResponse({'status': 'ok'})
+        return JsonResponse({'status': 'ok', 'updated': {'status': self.object.status, 'score': self.object.score}})
 
     def form_invalid(self, form):
         return JsonResponse({'status': 'form_errors', 'errors': form.errors})
