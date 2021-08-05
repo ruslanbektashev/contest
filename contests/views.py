@@ -1448,18 +1448,19 @@ class SubmissionUpdateAPI(LoginRequiredMixin, PermissionRequiredMixin, BaseUpdat
         self.object = form.save()
         response = {
             'status': 'ok',
-            'updated': {
-                self.object.id: {
+            'updated': [
+                {
+                    'id': self.object.id,
                     'status': self.object.status,
                     'score': self.object.score
                 }
-            }
+            ]
         }
         if self.object.main_submission is not None:
-            response['updated'].update({
-                self.object.main_submission.id: {
-                    'status': self.object.main_submission.status,
-                    'score': self.object.main_submission.score}
+            response['updated'].append({
+                'id': self.object.main_submission.id,
+                'status': self.object.main_submission.status,
+                'score': self.object.main_submission.score
             })
         return JsonResponse(response)
 
