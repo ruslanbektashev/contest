@@ -27,6 +27,7 @@
     {% if account.is_student %}
     {% render_field form.level class+="form-control selectpicker" %}
     {% render_field form.group class+="form-control selectpicker" %}
+    {% render_field form.subgroup class+="form-control selectpicker" %}
     {% render_field form.admission_year class+="form-control selectpicker" %}
     {% render_field form.record_book_id class+="form-control" %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_left_labeled_switch.html" %}
