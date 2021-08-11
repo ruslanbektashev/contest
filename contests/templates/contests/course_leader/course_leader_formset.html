@@ -1,0 +1,111 @@
+{% extends 'base_wide.html' %}
+{% load views forms %}
+
+{% block title %}
+Курс
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb course course %}
+{% breadcrumb "Ведущие преподаватели" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Преподаватели курса</legend>
+<form action="" method="post" class="form-horizontal">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    {% render_form_errors formset %}
+    <div class="table-responsive">
+        <table class="table table-borderless table-sm">
+            <thead>
+                <tr>
+                    <td>Преподаватель</td>
+                    <td style="width: 6em;">Группа</td>
+                    <td style="width: 7em;">Подгруппа</td>
+                    <td style="width: 4em;"></td>
+                </tr>
+            </thead>
+            <tbody id="formset_table_body">
+                {% for form in formset %}
+                <tr>
+                    {% render_form_errors form %}
+                    {% if form.instance.id %}
+                    {% render_field form.id %}
+                    {% endif %}
+                    {% render_field form.course %}
+                    {% with WIDGET_ERROR_CLASS="is-invalid" %}
+                    <td>{% render_field form.leader class+="form-control selectpicker" data-container="body" %}</td>
+                    <td>{% render_field form.group class+="form-control selectpicker" data-container="body" %}</td>
+                    <td>{% render_field form.subgroup class+="form-control selectpicker" data-container="body" %}</td>
+                    <td class="text-center">
+                        {% if form.instance.id %}
+                        {% render_field form.DELETE class+="d-none" %}
+                        {% endif %}
+                        <button type="button" class="btn btn-link btn-sm text-secondary" {% if form.instance.id %}onclick="markAsDeleted(this)" data-target="{{ form.DELETE.id_for_label }}" {% else %}onclick="removeEmptyForm(this)"{% endif %}><i class="fa fa-times fa-2x"></i></button>
+                    </td>
+                    {% endwith %}
+                </tr>
+                {% endfor %}
+                <tr id="empty_form_row" class="d-none">
+                    {% render_field formset.empty_form.course %}
+                    <td>{% render_field formset.empty_form.leader class+="form-control" data-container="body" %}</td>
+                    <td>{% render_field formset.empty_form.group class+="form-control" data-container="body" %}</td>
+                    <td>{% render_field formset.empty_form.subgroup class+="form-control" data-container="body" %}</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-link btn-sm text-secondary" onclick="removeEmptyForm(this)"><i class="fa fa-times fa-2x"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">
+                        <button id="add_empty_form_row" type="button" class="btn btn-light btn-block text-success" onclick="addEmptyForm()"><i class="fa fa-plus fa-lg"></i></button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="">
+        <input class="btn btn-light btn-block border" type="submit" value="Сохранить" />
+    </div>
+</form>
+{% endblock content %}
+
+{% block javascript %}
+<script type="text/javascript">
+function addEmptyForm() {
+    let total_form_field = document.getElementById('id_form-TOTAL_FORMS');
+    let total_form_max = parseInt(document.getElementById('id_form-MAX_NUM_FORMS').value);
+    let total_form_count = parseInt(total_form_field.value);
+    if (total_form_count < total_form_max) {
+        let formset_table_body = document.getElementById('formset_table_body');
+        let formset_rows_count = formset_table_body.rows.length;
+        let empty_form_row = document.getElementById('empty_form_row');
+        let added_empty_form_row = formset_table_body.insertRow(formset_rows_count - 2);
+        added_empty_form_row.innerHTML = empty_form_row.innerHTML.replace(/__prefix__/g, total_form_field.value);
+        $(added_empty_form_row).find('.form-control').selectpicker(); // selectpicker works only with jQuery
+        total_form_field.value = total_form_count + 1;
+    }
+}
+
+function removeEmptyForm(element) {
+    let total_form_field = document.getElementById('id_form-TOTAL_FORMS');
+    let total_form_count = parseInt(total_form_field.value);
+    element.parentElement.parentElement.remove();
+    if (total_form_count > 0)
+        total_form_field.value = total_form_count - 1;
+}
+
+function markAsDeleted(element) {
+    let form_delete_field = document.getElementById(element.getAttribute('data-target'));
+    form_delete_field.checked = !form_delete_field.checked;
+    if (form_delete_field.checked) {
+        element.classList.remove('text-secondary');
+        element.classList.add('text-danger');
+    } else {
+        element.classList.remove('text-danger');
+        element.classList.add('text-secondary');
+    }
+}
+</script>
+{% endblock %}

@@ -18,7 +18,7 @@ class CourseAdmin(admin.ModelAdmin):
     form = CourseForm
     fieldsets = (
         ('Ссылки', {
-            'fields': ('owner', 'leaders', 'faculty')
+            'fields': ('owner', 'faculty')
         }),
         ('Детали', {
             'fields': ('title_official', 'title_unofficial', 'description', 'level')

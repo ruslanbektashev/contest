@@ -11,8 +11,8 @@ from django.utils import timezone
 
 from accounts.models import Account, Faculty
 from contest.widgets import BootstrapCheckboxSelect, BootstrapRadioSelect
-from contests.models import (Assignment, Attachment, Contest, Course, Event, FNTest, Filter, Option, Problem,
-                             SubProblem, Submission, SubmissionPattern, UTTest)
+from contests.models import (Assignment, Attachment, Contest, Course, CourseLeader, Event, FNTest, Filter, Option,
+                             Problem, SubProblem, Submission, SubmissionPattern, UTTest)
 
 
 class UserChoiceField(forms.ModelChoiceField):
@@ -125,6 +125,24 @@ class CourseForm(forms.ModelForm):
         for leader in instance.leaders.all():
             Filter.objects.get_or_create(user=leader, course=instance)
         return instance
+
+
+"""================================================== CourseLeader =================================================="""
+
+
+class CourseLeaderForm(forms.ModelForm):
+    leader = UserChoiceField(queryset=User.objects.none(), label="Преподаватель")
+
+    class Meta:
+        model = CourseLeader
+        fields = ['course', 'leader', 'group', 'subgroup']
+        widgets = {'course': forms.HiddenInput}
+
+    def __init__(self, *args, course, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['course'].initial = course
+        self.fields['leader'].queryset = User.objects.filter(groups__name="Преподаватель",
+                                                             account__faculty=course.faculty)
 
 
 """===================================================== Credit ====================================================="""
