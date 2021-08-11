@@ -110,21 +110,9 @@ class AttachmentForm(forms.ModelForm):
 
 
 class CourseForm(forms.ModelForm):
-    leaders = UserMultipleChoiceField(queryset=User.objects.none(), required=False, label="Ведущие преподаватели")
-
     class Meta:
         model = Course
         fields = ['leaders', 'faculty', 'title_official', 'title_unofficial', 'description', 'level']
-
-    def __init__(self, *args, faculty=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['leaders'].queryset = User.objects.filter(groups__name="Преподаватель", account__faculty=faculty)
-
-    def save(self, commit=True):
-        instance = super().save(commit)
-        for leader in instance.leaders.all():
-            Filter.objects.get_or_create(user=leader, course=instance)
-        return instance
 
 
 """================================================== CourseLeader =================================================="""

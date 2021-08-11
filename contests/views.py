@@ -125,11 +125,6 @@ class CourseCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         initial['faculty'] = self.storage['faculty']
         return initial
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['faculty'] = self.storage['faculty']
-        return kwargs
-
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
@@ -140,11 +135,6 @@ class CourseUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     form_class = CourseForm
     template_name = 'contests/course/course_form.html'
     permission_required = 'contests.change_course'
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['faculty'] = self.object.faculty
-        return kwargs
 
 
 class CourseDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
