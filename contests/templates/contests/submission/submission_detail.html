@@ -326,9 +326,7 @@ $(function () {
 });
 {% endif %}
 </script>
-{% if submission.problem.type != 'Program' and score_percentage > 0 %}
 <script>
-
 const adjustProgressBarMessageColor = (score) => {
     const progressBarMessageElem = document.getElementById('progress-bar-message');
 
@@ -338,14 +336,14 @@ const adjustProgressBarMessageColor = (score) => {
         progressBarMessageElem.style.color = 'white';
     }
 };
-
+</script>
+{% if submission.problem.type != 'Program' and score_percentage > 0 %}
+<script>
 adjustProgressBarMessageColor({{ score_percentage }});
-
 </script>
 {% endif %}
 {% if submission.problem.type == 'Text' and perms.contests.change_submission %}
 <script>
-
 const interval = 10;
 
 let footprint = JSON.parse("{{ submission.footprint }}");
