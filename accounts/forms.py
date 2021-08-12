@@ -46,7 +46,7 @@ class AccountForm(AccountPartialForm):
     class Meta:
         model = Account
         fields = ['patronymic', 'faculty', 'department', 'position', 'degree', 'record_book_id', 'image', 'level',
-                  'group', 'type', 'admission_year', 'enrolled', 'graduated']
+                  'group', 'subgroup', 'type', 'admission_year', 'enrolled', 'graduated']
 
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance')
@@ -74,7 +74,7 @@ class AccountForm(AccountPartialForm):
 class StudentForm(AccountForm):
     class Meta:
         model = Account
-        fields = ['patronymic', 'faculty', 'record_book_id', 'level', 'group', 'admission_year', 'enrolled',
+        fields = ['patronymic', 'faculty', 'record_book_id', 'level', 'group', 'subgroup', 'admission_year', 'enrolled',
                   'graduated']
 
 

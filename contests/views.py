@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-from django.forms.models import inlineformset_factory
+from django.forms.models import inlineformset_factory, modelformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -26,13 +26,15 @@ from accounts.models import Account, Activity, Faculty
 from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin,
                             PaginatorMixin)
 from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, AssignmentUpdatePartialForm,
-                            ContestForm, ContestPartialForm, CourseForm, CreditReportForm, CreditSetForm, EventForm, FNTestForm,
-                            OptionBaseFormSet, OptionForm, ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm,
-                            ProblemRollbackResultsForm, ProblemTestForm, SubmissionProgramForm, SubmissionFilesForm,
-                            SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm,
-                            SubmissionUpdateForm, UTTestForm)
-from contests.models import (Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, Filter, IOTest,
-                             Lecture, Option, Problem, SubProblem, Submission, SubmissionPattern, UTTest)
+                            ContestForm, ContestPartialForm, CourseForm, CourseLeaderForm, CreditReportForm,
+                            CreditSetForm, EventForm, FNTestForm, OptionBaseFormSet, OptionForm, ProblemCommonForm,
+                            ProblemProgramForm, ProblemAttachmentForm, ProblemRollbackResultsForm, ProblemTestForm,
+                            SubmissionProgramForm, SubmissionFilesForm, SubmissionMossForm, SubmissionOptionsForm,
+                            SubmissionPatternForm, SubmissionTextForm, SubmissionUpdateForm, SubmissionUpdateScoreForm,
+                            UTTestForm)
+from contests.models import (Assignment, Attachment, Contest, Course, CourseLeader, Credit, Event, Execution, FNTest,
+                             Filter, IOTest, Lecture, Option, Problem, SubProblem, Submission, SubmissionPattern,
+                             UTTest)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 
@@ -124,11 +126,6 @@ class CourseCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         initial['faculty'] = self.storage['faculty']
         return initial
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['faculty'] = self.storage['faculty']
-        return kwargs
-
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
@@ -139,11 +136,6 @@ class CourseUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     form_class = CourseForm
     template_name = 'contests/course/course_form.html'
     permission_required = 'contests.change_course'
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['faculty'] = self.object.faculty
-        return kwargs
 
 
 class CourseDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
@@ -174,6 +166,49 @@ class CourseList(LoginRequiredMixin, ListView):
         else:
             courses = Course.objects.filter(faculty=self.storage['faculty'])
         return courses
+
+
+"""================================================== CourseLeader =================================================="""
+
+
+class CourseUpdateLeaders(LoginRedirectPermissionRequiredMixin, FormView):
+    template_name = 'contests/course_leader/course_leader_formset.html'
+    permission_required = 'contests.change_course'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('pk'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return CourseLeader.objects.filter(course=self.storage['course'])
+
+    def get_form_class(self):
+        extra = 0 if self.get_queryset().exists() else 1
+        return modelformset_factory(CourseLeader, CourseLeaderForm, extra=extra, max_num=10, validate_max=True,
+                                    can_delete=True)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['queryset'] = self.get_queryset()
+        kwargs['form_kwargs'] = {'course': self.storage['course']}
+        return kwargs
+
+    def form_valid(self, form):
+        self.objects = form.save()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['formset'] = context['form']
+        context.update(self.storage)
+        return context
+
+    def get_success_url(self):
+        return reverse('contests:course-detail', kwargs={'pk': self.storage['course'].id})
 
 
 """===================================================== Credit ====================================================="""

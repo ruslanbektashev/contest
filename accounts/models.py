@@ -190,6 +190,7 @@ class Account(models.Model):
     type = models.PositiveSmallIntegerField(choices=TYPE_CHOICES, default=TYPE_DEFAULT, verbose_name="Тип")
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, default=LEVEL_DEFAULT, verbose_name="Уровень")
     group = models.PositiveSmallIntegerField(choices=GROUP_CHOICES, default=GROUP_DEFAULT, verbose_name="Группа")
+    subgroup = models.PositiveSmallIntegerField(choices=GROUP_CHOICES, default=GROUP_DEFAULT, verbose_name="Подгруппа")
     enrolled = models.BooleanField(default=True, verbose_name="Обучается?")
     graduated = models.BooleanField(default=False, verbose_name="Закончил обучение?")
     record_book_id = models.PositiveIntegerField(null=True, blank=True, verbose_name="№ зачетной книжки")

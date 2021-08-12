@@ -86,7 +86,8 @@ class Course(CRUDEntry):
     )
 
     faculty = models.ForeignKey(Faculty, on_delete=models.DO_NOTHING, verbose_name="Факультет")
-    leaders = models.ManyToManyField(User, related_name="courses_leading", verbose_name="Ведущие преподаватели")
+    leaders = models.ManyToManyField(User, through='CourseLeader', through_fields=('course', 'leader'),
+                                     related_name='leading', verbose_name="Ведущие преподаватели")
 
     title_official = models.CharField(max_length=100, verbose_name="Официальное название",
                                       help_text="Официальное название будет использовано при составлении отчетных "
@@ -139,6 +140,28 @@ class Course(CRUDEntry):
 
     def __str__(self):
         return "%s" % self.title
+
+
+"""================================================== CourseLeader =================================================="""
+
+
+class CourseLeader(models.Model):
+    GROUP_CHOICES = ((0, "Все"),) + Account.GROUP_CHOICES
+    GROUP_DEFAULT = 0
+
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='+', verbose_name="Преподаваемый курс")
+    leader = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+', verbose_name="Преподаватель курса")
+
+    group = models.PositiveSmallIntegerField(choices=GROUP_CHOICES, default=GROUP_DEFAULT, verbose_name="Группа")
+    subgroup = models.PositiveSmallIntegerField(choices=GROUP_CHOICES, default=GROUP_DEFAULT, verbose_name="Подгруппа")
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=('course', 'leader'), name='unique_course_leader')]
+        verbose_name = "Преподаватель курса"
+        verbose_name_plural = "Преподаватели курсов"
+
+    def __str__(self):
+        return "{} преподает {}".format(self.leader, self.course)
 
 
 """===================================================== Credit ====================================================="""

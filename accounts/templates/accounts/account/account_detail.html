@@ -36,6 +36,7 @@
             {% if account.is_student %}
             <tr><td class="text-right" style="width: 30%;">Уровень</td><td>{{ account.get_level_display }}</td></tr>
             <tr><td class="text-right" style="width: 30%;">Группа</td><td>{{ account.get_group_name }}</td></tr>
+            <tr><td class="text-right" style="width: 30%;">Подгруппа</td><td>{{ account.subgroup }}</td></tr>
             <tr><td class="text-right" style="width: 30%;">Год поступления</td><td>{{ account.admission_year }}</td></tr>
             <tr><td class="text-right" style="width: 30%;">№ зачетной книжки</td><td>{{ account.record_book_id|default:'' }}</td></tr>
             <tr><td class="text-right" style="width: 30%;">Обучается</td><td>{{ account.enrolled|yesno:'да,нет' }}</td></tr>

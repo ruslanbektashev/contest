@@ -15,6 +15,7 @@ urlpatterns = [
             path('', views.CourseDetail.as_view(), name='course-detail'),
             path('discussion', views.CourseDiscussion.as_view(), name='course-discussion'),
             path('update', views.CourseUpdate.as_view(), name='course-update'),
+            path('leader', views.CourseUpdateLeaders.as_view(), name='course-update-leaders'),
             path('delete', views.CourseDelete.as_view(), name='course-delete')
         ])),
         path('list', views.CourseList.as_view(), name='course-list')
