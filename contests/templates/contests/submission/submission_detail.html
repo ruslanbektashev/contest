@@ -204,7 +204,13 @@
                 {% if not sub_form.instance.problem.is_testable %}
                 <form action="{% url 'contests:api-submission-update' sub_form.instance.id %}" id="submission-update-form-{{ forloop.counter0 }}" method="POST" class="d-flex align-items-center ml-3" sub-submission-id={{ sub_form.instance.id }}>
                     {% csrf_token %}
-                    {{ sub_form.status.as_hidden }}
+                    <input
+                        type="hidden"
+                        id="{{ sub_form.status.id_for_label }}"
+                        name="{{ sub_form.status.html_name }}"
+                        {% if sub_form.status.value != None %} value="{{ sub_form.status.value|stringformat:'s' }}"{% endif %}
+                        style="border: none; background-color: transparent; width: 50px;"
+                    >
                     <button hidden id="submission-update-button-{{ forloop.counter0 }}" class="btn btn-light btn-sm border mr-3">Сохранить</button>
                     <small class="mr-1">Оценка: </small>
                     <small>
@@ -472,6 +478,7 @@ for (let i = 0; i < formsNumber; i++) {
 
     const subSubmissionId = Number(form.getAttribute('sub-submission-id'));
     const scoreInputElem = form.querySelector('#id_score');
+    const statusInputElem = form.querySelector('#id_status');
 
     form.onmouseover = (e) => {
         button.hidden = false;
@@ -504,6 +511,8 @@ for (let i = 0; i < formsNumber; i++) {
                 statusElem.innerHTML = subSubmission.status;
                 statusElem.classList.remove('status-success', 'status-info', 'status-warning', 'status-danger', 'status-secondary', 'status-primary');
                 statusElem.classList.add('status-' + subSubmission.color);
+
+                statusInputElem.setAttribute('value', subSubmission.status);
 
                 button.hidden = true;
             }
