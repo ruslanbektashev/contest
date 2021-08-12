@@ -30,8 +30,7 @@ from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateF
                             CreditSetForm, EventForm, FNTestForm, OptionBaseFormSet, OptionForm, ProblemCommonForm,
                             ProblemProgramForm, ProblemAttachmentForm, ProblemRollbackResultsForm, ProblemTestForm,
                             SubmissionProgramForm, SubmissionFilesForm, SubmissionMossForm, SubmissionOptionsForm,
-                            SubmissionPatternForm, SubmissionTextForm, SubmissionUpdateForm, SubmissionUpdateScoreForm,
-                            UTTestForm)
+                            SubmissionPatternForm, SubmissionTextForm, SubmissionUpdateForm, UTTestForm)
 from contests.models import (Assignment, Attachment, Contest, Course, CourseLeader, Credit, Event, Execution, FNTest,
                              Filter, IOTest, Lecture, Option, Problem, SubProblem, Submission, SubmissionPattern,
                              UTTest)
