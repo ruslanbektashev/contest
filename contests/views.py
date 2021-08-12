@@ -1,3 +1,4 @@
+from contests.templatetags.contests import colorize
 from datetime import date, datetime
 
 from markdown import markdown
@@ -29,7 +30,7 @@ from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateF
                             OptionBaseFormSet, OptionForm, ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm,
                             ProblemRollbackResultsForm, ProblemTestForm, SubmissionProgramForm, SubmissionFilesForm,
                             SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm,
-                            SubmissionUpdateForm, SubmissionUpdateScoreForm, UTTestForm)
+                            SubmissionUpdateForm, UTTestForm)
 from contests.models import (Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, Filter, IOTest,
                              Lecture, Option, Problem, SubProblem, Submission, SubmissionPattern, UTTest)
 from contests.results import TaskProgress
@@ -1190,7 +1191,7 @@ class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
 class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, PaginatorMixin, UpdateView):
     model = Submission
     form_class = SubmissionUpdateForm
-    sub_form_class = SubmissionUpdateScoreForm
+    sub_form_class = SubmissionUpdateForm
     template_name = 'contests/submission/submission_detail.html'
     permission_required = 'contests.view_submission'
     paginate_by = 30
@@ -1437,7 +1438,7 @@ class SubmissionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
 
 class SubmissionUpdateAPI(LoginRequiredMixin, PermissionRequiredMixin, BaseUpdateView):
     model = Submission
-    form_class = SubmissionUpdateScoreForm
+    form_class = SubmissionUpdateForm
     http_method_names = ['post']
     permission_required = 'contests.change_submission'
 
@@ -1452,7 +1453,9 @@ class SubmissionUpdateAPI(LoginRequiredMixin, PermissionRequiredMixin, BaseUpdat
                 {
                     'id': self.object.id,
                     'status': self.object.status,
-                    'score': self.object.score
+                    'status_display': self.object.get_status_display(),
+                    'score': self.object.score,
+                    'color': colorize(self.object.status)
                 }
             ]
         }
@@ -1460,7 +1463,9 @@ class SubmissionUpdateAPI(LoginRequiredMixin, PermissionRequiredMixin, BaseUpdat
             response['updated'].append({
                 'id': self.object.main_submission.id,
                 'status': self.object.main_submission.status,
-                'score': self.object.main_submission.score
+                'status_display': self.object.main_submission.get_status_display(),
+                'score': self.object.main_submission.score,
+                'color': colorize(self.object.main_submission.status)
             })
         return JsonResponse(response)
 

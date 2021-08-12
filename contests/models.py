@@ -1032,7 +1032,7 @@ class Submission(CRDEntry):
         for status in statuses:
             if status in acquired_statuses:
                 self.status = status
-                self.save()
+                self.save(update_fields=['status'])
                 return
 
     def update_options_score(self):

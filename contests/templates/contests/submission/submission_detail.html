@@ -68,8 +68,10 @@
 </div>
 {% if not submission.problem.type == 'Program' or not submission.problem.is_testable %}
 {% if perms.contests.change_submission %}
-<button type="button" id="submission-update-toggle-0" class="btn btn-light btn-block border mb-3" data-toggle="button" aria-pressed="{% if form.errors|length == 0 %}false{% else %}true{% endif %}">Изменить оценку</button>
-<form {% if form.errors|length == 0 %}hidden{% endif %} action="" id="submission-update-form-0" method="post" class="form-horizontal card">
+<button class="btn btn-light btn-block border mb-3" type="button" id="main-submission-update-button" data-toggle="collapse" data-target="#main-submission-update" aria-expanded="false" aria-controls="main-submission-update" aria-pressed="false">
+    Изменить оценку
+</button>
+<form action="{% url 'contests:api-submission-update' submission.id %}" id="main-submission-update" method="POST" class="form-horizontal collapse card">
     <div class="card-body">
         {% csrf_token %}
         {% render_form_errors form %}
@@ -180,7 +182,7 @@
     <div class="card">
         <div class="card-header d-flex align-items-center" id="heading_{{ sub_form.instance.id }}">
             <!-- <small class="mr-3" data-toggle="tooltip" data-placement="top" title="Номер подзадачи">{{ sub_form.instance.problem.number }}</small> -->
-            <a href="{{ sub_form.instance.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}" class="status status-{{ sub_form.instance.status|colorize }} mr-3" data-toggle="tooltip" data-placement="top" title="{{ sub_form.instance.get_status_display }}">
+            <a href="{{ sub_form.instance.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}" id="status-{{ forloop.counter0 }}" class="status status-{{ sub_form.instance.status|colorize }} mr-3" data-toggle="tooltip" data-placement="top" title="{{ sub_form.instance.get_status_display }}">
                 {{ sub_form.instance.status }}
             </a>
             {% if sub_form.instance.problem.title %}
@@ -199,26 +201,33 @@
             {% endif %}
             <small>{{ sub_form.instance.problem.get_type_display }}</small>
             {% if perms.contests.change_submission %}
-            <small>
-                <a id="submission-update-toggle-{{ forloop.counter }}" class="card-link ml-3" data-toggle="tooltip" data-placement="top" title="Изменить оценку" style="cursor: pointer;">
-                    Оценка: {{ sub_form.instance.score }}
-                </a>
-            </small>
+                {% if not sub_form.instance.problem.is_testable %}
+                <form action="{% url 'contests:api-submission-update' sub_form.instance.id %}" id="submission-update-form-{{ forloop.counter0 }}" method="POST" class="d-flex align-items-center ml-3" sub-submission-id={{ sub_form.instance.id }}>
+                    {% csrf_token %}
+                    {{ sub_form.status.as_hidden }}
+                    <button hidden id="submission-update-button-{{ forloop.counter0 }}" class="btn btn-light btn-sm border mr-3">Сохранить</button>
+                    <small class="mr-1">Оценка: </small>
+                    <small>
+                        <input
+                            type="{{ sub_form.score.field.widget.input_type }}"
+                            id="{{ sub_form.score.id_for_label }}"
+                            name="{{ sub_form.score.html_name }}"
+                            max="{{ sub_form.score.field.widget.attrs.max }}"
+                            min="{{ sub_form.score.field.widget.attrs.min }}"
+                            {% if sub_form.score.value != None %} value="{{ sub_form.score.value|stringformat:'s' }}"{% endif %}
+                            style="border: none; background-color: transparent; width: 50px;"
+                        >
+                    </small>
+                </form>
+                {% else %}
+                <small class="ml-3 mr-1">Оценка: </small>
+                <small>{{ sub_form.instance.score }}</small>
+                {% endif %}
             {% endif %}
             <a class="collapse-toggle ml-3" href data-toggle="collapse" data-target="#sub_submission_{{ sub_form.instance.id }}" aria-expanded="{% if sub_form.instance.status != 'OK' %}true{% else %}false{% endif %}" aria-controls="sub_submission_{{ sub_form.instance.id }}">
                 <i class="fa fa-angle-{% if sub_form.instance.status != 'OK' %}up{% else %}down{% endif %} fa-lg"></i>
             </a>
         </div>
-        {% if perms.contests.change_submission %}
-            <form {% if sub_form.errors|length == 0 %}hidden{% endif %} action="" id="submission-update-form-{{ forloop.counter }}" method="post" class="form-horizontal card-header pt-3">
-                {% csrf_token %}
-                {% render_form_errors sub_form %}
-                {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-                {% render_field sub_form.score class+="form-control" %}
-                {% endwith %}
-                <button class="btn btn-light btn-block border mb-2" name="sub_submission_id" value="{{ sub_form.instance.id }}">Сохранить</button>
-            </form>
-        {% endif %}
         <div class="collapse {% if sub_form.instance.status != 'OK' %}show{% endif %}" id="sub_submission_{{ sub_form.instance.id }}" aria-labelledby="heading_{{ sub_form.instance.id }}" data-parent="#subSubmissionsAccordion">
             <div class="card-body">
                 {{ sub_form.instance.problem.description|safe }}
@@ -319,13 +328,19 @@ $(function () {
 </script>
 {% if submission.problem.type != 'Program' and score_percentage > 0 %}
 <script>
-let progress_bar_message_element = document.getElementById('progress-bar-message');
-let score_percentage = {{ score_percentage }};
-if (score_percentage <= 15 && progress_bar_message_element.style.color === 'white') {
-    progress_bar_message_element.style.color = 'black';
-} else if (score_percentage > 15 && progress_bar_message_element.style.color === 'black') {
-    progress_bar_message_element.style.color = 'white';
-}
+
+const adjustProgressBarMessageColor = (score) => {
+    const progressBarMessageElem = document.getElementById('progress-bar-message');
+
+    if (score <= 15 && progressBarMessageElem.style.color === 'white') {
+        progressBarMessageElem.style.color = 'black';
+    } else if (score > 15 && progressBarMessageElem.style.color === 'black') {
+        progressBarMessageElem.style.color = 'white';
+    }
+};
+
+adjustProgressBarMessageColor({{ score_percentage }});
+
 </script>
 {% endif %}
 {% if submission.problem.type == 'Text' and perms.contests.change_submission %}
@@ -399,38 +414,103 @@ var footprintChart = new Chart(
 {% if perms.contests.change_submission %}
 <!-- Submission Update -->
 <script>
+
+const progressBar = document.getElementById('progress-bar');
 const formsNumber = {% if forms %}{{ forms|length }}{% else %}0{% endif %};
-let formsAndButtons = [];
+const mainForm = document.getElementById('main-submission-update');
+const mainStatusSelectElem = mainForm.querySelector('#id_status');
+const statusOptions = Array.from(mainStatusSelectElem.options);
 
-for (let i = 0; i <= formsNumber; i++) {
-    let form = document.getElementById('submission-update-form-' + i);
-    let button = document.getElementById('submission-update-toggle-' + i);
+const setProgressBarValue = (value) => {
+    const progressBar = document.getElementById('progress-bar');
+    progressBar.setAttribute('aria-valuenow', value);
+    progressBar.style.width = value + '%';
+};
 
-    button.addEventListener('click', function() {
-        form.hidden = !form.hidden;
-        if (!form.hidden) {
-            form.querySelector("#id_score").focus();
-        }
+const setProgressBarMessage = (message) => {
+    document.getElementById('progress-bar-message').innerHTML = message;
+};
 
-        // Show one form at a time
-        formsAndButtons.forEach(function(val) {
-            if (!val.form.hidden && val.form.id != form.id) {
-                val.form.hidden = true;
-                val.button.ariaPressed = false;
-                val.button.classList.remove('active');
-            }
+const updateMainSubmission = (data) => {
+    const mainSubmission = data.updated.find((value) => value.id === {{ submission.id }});
+
+    if (mainSubmission !== undefined) {
+        setProgressBarValue(mainSubmission.score);
+        setProgressBarMessage(mainSubmission.status_display + ' · ' + mainSubmission.score + '%');
+        mainForm.querySelector('#id_score').setAttribute('value', mainSubmission.score);
+
+        statusOptions.forEach((option, i) => {
+            if (option.value === mainSubmission.status) mainStatusSelectElem.selectedIndex = i;
         });
-    });
 
-    formsAndButtons.push({
-        form: form,
-        button: button,
-    });
-
-    // Scroll to form with errors
-    if (!form.hidden) {
-        form.scrollIntoView(); 
+        $('#main-submission-update') > $('#id_status').selectpicker('refresh');
+        progressBar.classList.remove('bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-secondary', 'bg-primary');
+        progressBar.classList.add('bg-' + mainSubmission.color);
+        adjustProgressBarMessageColor(mainSubmission.score);
     }
+};
+
+mainForm.onsubmit = async (e) => {
+    e.preventDefault();
+
+    const response = await fetch(mainForm.action, {
+        method: mainForm.method,
+        body: new FormData(mainForm),
+    });
+
+    if (response.status === 200) {
+        const result = await response.json();
+        updateMainSubmission(result);
+    }
+};
+
+for (let i = 0; i < formsNumber; i++) {
+    const form = document.getElementById('submission-update-form-' + i);
+    const button = document.getElementById('submission-update-button-' + i);
+
+    if (form === null) {
+        continue;
+    }
+
+    const subSubmissionId = Number(form.getAttribute('sub-submission-id'));
+    const scoreInputElem = form.querySelector('#id_score');
+
+    form.onmouseover = (e) => {
+        button.hidden = false;
+    };
+
+    form.onmouseout = (e) => {
+        if (scoreInputElem !== document.activeElement) {
+            button.hidden = true;
+        }
+    };
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+
+        const response = await fetch(form.action, {
+            method: form.method,
+            body: new FormData(form),
+        });
+
+        if (response.status === 200) {
+            const result = await response.json();
+            console.log(result);
+
+            const subSubmission = result.updated.find((value) => value.id === subSubmissionId);
+            const statusElem = document.getElementById('status-' + i)
+
+            if ('updated' in result) {
+                updateMainSubmission(result);
+
+                statusElem.innerHTML = subSubmission.status;
+                statusElem.classList.remove('status-success', 'status-info', 'status-warning', 'status-danger', 'status-secondary', 'status-primary');
+                statusElem.classList.add('status-' + subSubmission.color);
+
+                button.hidden = true;
+            }
+        }
+    };
 }
 </script>
 {% endif %}

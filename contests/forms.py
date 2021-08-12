@@ -582,6 +582,8 @@ class SubmissionUpdateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['score'].widget.attrs['max'] = self.instance.problem.score_max
+        self.fields['score'].required = False
+        self.fields['status'].required = False
 
     def clean_score(self):
         if self.cleaned_data['score'] > self.instance.problem.score_max:
@@ -602,6 +604,7 @@ class SubmissionUpdateForm(forms.ModelForm):
                 instance.score = instance.problem.score_max
             elif status == 'WA':
                 instance.score = 0
+            instance = super().save(commit)
         if 'score' in self.changed_data and 'status' not in self.changed_data:
             score = self.cleaned_data['score']
             if score >= instance.problem.score_for_5:
@@ -610,18 +613,21 @@ class SubmissionUpdateForm(forms.ModelForm):
                 instance.status = 'PS'
             else:
                 instance.status = 'WA'
+            instance = super().save(commit)
         if instance.main_submission is not None:
             if 'status' in self.changed_data:
                 instance.main_submission.update_test_status()
+                instance.main_submission.update_test_score()
             if 'score' in self.changed_data:
                 instance.main_submission.update_test_score()
+                instance.main_submission.update_test_status()
         return super().save(commit)
 
 
-class SubmissionUpdateScoreForm(SubmissionUpdateForm):
-    class Meta:
-        model = Submission
-        fields = ['score']
+# class SubmissionUpdateScoreForm(SubmissionUpdateForm):
+#     class Meta:
+#         model = Submission
+#         fields = ['score']
 
 
 class ToSubmissionsChoiceField(forms.ModelMultipleChoiceField):
