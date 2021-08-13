@@ -59,7 +59,7 @@
     <a class="list-group-item list-group-item-action dropdown-toggle {% if perms.accounts.view_filter %}border-bottom-0{% endif %}" href="#" role="button" id="account_list_menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="display: flex; justify-content: space-between; align-items: center;">
         <span><i class="fa fa-users fa-fw"></i> Пользователи</span>
     </a>
-    <div class="dropdown-menu" aria-labelledby="account_list_menu">
+    <div class="dropdown-menu shadow-sm" aria-labelledby="account_list_menu">
     {% for faculty in faculties %}
         <a class="dropdown-item" href="{% url 'accounts:account-list' %}?faculty_id={{ faculty.id }}">{{ faculty }}</a>
     {% endfor %}

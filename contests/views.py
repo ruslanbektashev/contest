@@ -1196,11 +1196,14 @@ class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
-        return super().dispatch(request, *args, **kwargs)
-
-    def get(self, request, *args, **kwargs):
+        course_leader_queryset = CourseLeader.objects.filter(course=self.storage['course'], leader=request.user)
+        course_leader = course_leader_queryset.get() if course_leader_queryset.exists() else None
+        default_group = course_leader.group if course_leader is not None else 0
+        default_subgroup = course_leader.subgroup if course_leader is not None else 0
+        self.storage['group'] = int(request.GET.get('group') or default_group)
+        self.storage['subgroup'] = int(request.GET.get('subgroup') or default_subgroup)
         self.storage['debts'] = bool(request.GET.get('debts'))
-        return super().get(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         course = self.storage['course']
@@ -1208,14 +1211,16 @@ class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
             self.storage['students'] = Account.students.enrolled().debtors(course)
         else:
             self.storage['students'] = Account.students.enrolled().current(course)
+            if self.storage['group'] > 0:
+                self.storage['students'] = self.storage['students'].filter(group=self.storage['group'])
+            if self.storage['subgroup'] > 0:
+                self.storage['students'] = self.storage['students'].filter(subgroup=self.storage['subgroup'])
         bool(self.storage['students'])  # evaluate now
         return Assignment.objects.for_course_table(course, self.storage['students'])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['course'] = self.storage['course']
-        context['students'] = self.storage['students']
-        context['debts'] = self.storage['debts']
+        context.update(self.storage)
         return context
 
 
