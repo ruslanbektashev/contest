@@ -480,15 +480,15 @@ for (let i = 0; i < formsNumber; i++) {
     const scoreInputElem = form.querySelector('#id_score');
     const statusInputElem = form.querySelector('#id_status');
 
-    form.onmouseover = (e) => {
-        button.hidden = false;
-    };
+    // form.onmouseover = (e) => {
+    //     button.hidden = false;
+    // };
 
-    form.onmouseout = (e) => {
-        if (scoreInputElem !== document.activeElement) {
-            button.hidden = true;
-        }
-    };
+    // form.onmouseout = (e) => {
+    //     if (scoreInputElem !== document.activeElement) {
+    //         button.hidden = true;
+    //     }
+    // };
 
     form.onsubmit = async (e) => {
         e.preventDefault();
