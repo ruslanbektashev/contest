@@ -60,10 +60,12 @@
 <a href="{% url 'contests:assignment-update' assignment.id %}?partial=1" class="btn btn-block btn-light border mb-3"><i class="fa fa-pencil fa-fw"></i> Изменить оценку</a>
 {% endif %}
 {% if perms.contests.add_submission and request.user == assignment.user %}
-{% if assignment.submission_limit > assignment.get_submissions.count %}
-<a href="{% url 'contests:submission-create' assignment.problem.id %}?from_assignment=1" class="btn btn-block btn-info mb-3"><i class="fa fa-file-o fa-fw"></i> Отправить решение</a>
-{% else %}
+{% if assignment.deadline is not None and assignment.deadline <= current_time %}
+<button class="btn btn-block btn-secondary mb-3" disabled>Время приема посылок истекло</button>
+{% elif assignment.submission_limit <= assignment.get_submissions.count %}
 <button class="btn btn-block btn-secondary mb-3" disabled>Все попытки потрачены</button>
+{% else %}
+<a href="{% url 'contests:submission-create' assignment.problem.id %}?from_assignment=1" class="btn btn-block btn-info mb-3"><i class="fa fa-file-o fa-fw"></i> Отправить решение</a>
 {% endif %}
 {% endif %}
 {% if perms.contests.view_assignment_table and assignment.remark %}
