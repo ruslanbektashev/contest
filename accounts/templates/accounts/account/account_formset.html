@@ -49,17 +49,17 @@
                 {% render_form_errors form %}
                 {% render_field form.user %}
                 {% with WIDGET_ERROR_CLASS="is-invalid" %}
-                    <td style="z-index: 20; left:0; position: sticky; background-color: white;">{% render_field form.last_name class+="form-control" %}</td>
-                    <td>{% render_field form.first_name class+="form-control" %}</td>
-                    <td>{% render_field form.patronymic class+="form-control" %}</td>
-                    <td>{% render_field form.email class+="form-control" %}</td>
-                    <td>{% render_field form.faculty class+="form-control selectpicker" data-container="body" %}</td>
+                    <td style="z-index: 20; left:0; position: sticky; background-color: white;">{% render_field form.last_name class+="form-control rounded-0" %}</td>
+                    <td>{% render_field form.first_name class+="form-control rounded-0" %}</td>
+                    <td>{% render_field form.patronymic class+="form-control rounded-0" %}</td>
+                    <td>{% render_field form.email class+="form-control rounded-0" %}</td>
+                    <td>{% render_field form.faculty class+="form-control selectpicker" data-style="btn-light rounded-0" data-container="body" %}</td>
                     {% if type == 1 %}
-                    <td>{% render_field form.level class+="form-control selectpicker" data-container="body" %}</td>
-                    <td>{% render_field form.group class+="form-control selectpicker" data-container="body" %}</td>
-                    <td>{% render_field form.subgroup class+="form-control selectpicker" data-container="body" %}</td>
-                    <td>{% render_field form.admission_year class+="form-control selectpicker" data-container="body" %}</td>
-                    <td>{% render_field form.record_book_id class+="form-control" %}</td>
+                    <td>{% render_field form.level class+="form-control selectpicker" data-style="btn-light rounded-0" data-container="body" %}</td>
+                    <td>{% render_field form.group class+="form-control selectpicker" data-style="btn-light rounded-0" data-container="body" %}</td>
+                    <td>{% render_field form.subgroup class+="form-control selectpicker" data-style="btn-light rounded-0" data-container="body" %}</td>
+                    <td>{% render_field form.admission_year class+="form-control selectpicker" data-style="btn-light rounded-0" data-container="body" %}</td>
+                    <td>{% render_field form.record_book_id class+="form-control rounded-0" %}</td>
                     <td class="text-center">
                         <div class="custom-control custom-switch mt-2">
                             {% render_field form.enrolled class+="custom-control-input" %}
@@ -73,10 +73,10 @@
                         </div>
                     </td>
                     {% else %}
-                    <td>{% render_field form.department class+="form-control" %}</td>
-                    <td>{% render_field form.degree class+="form-control" %}</td>
-                    <td>{% render_field form.position class+="form-control" %}</td>
-                    <td>{% render_field form.type class+="form-control selectpicker" %}</td>
+                    <td>{% render_field form.department class+="form-control rounded-0" %}</td>
+                    <td>{% render_field form.degree class+="form-control rounded-0" %}</td>
+                    <td>{% render_field form.position class+="form-control rounded-0" %}</td>
+                    <td>{% render_field form.type class+="form-control selectpicker" data-style="btn-light rounded-0" data-container="body" %}</td>
                     {% endif %}
                     <td class="text-center">
                         <div class="custom-control custom-switch mt-2">
