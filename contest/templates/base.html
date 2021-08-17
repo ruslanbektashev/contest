@@ -109,6 +109,12 @@
 <div class="footer text-center mt-3">
     <div class="container">
         <p class="copyright">Филиал МГУ им. М.В. Ломоносова в г. Ташкент &copy; {% now "Y" %}</p>
+        <div class="mb-2">Размер шрифта:</div>
+        <div id="global-font-size" class="btn-group btn-group-sm mb-3" role="group">
+            <button type="button" class="btn btn-light" value="">Обычный</button>
+            <button type="button" class="btn btn-light" value="0.95rem">Средний</button>
+            <button type="button" class="btn btn-light" value="1.02rem">Большой</button>
+        </div>
     </div>
 </div>
 {% endblock footer %}
@@ -133,6 +139,40 @@
     function closeTooltips() {
         $('[data-toggle="tooltip"]').tooltip('hide');
     }
+    document.addEventListener("DOMContentLoaded", () => {
+        const fontSizeButtons = document.getElementById('global-font-size').querySelectorAll('button');
+
+        const updateFontSizeButtons = (fontSize) => {
+            fontSizeButtons.forEach((elem, n) => {
+                if (elem.value === fontSize) {
+                    elem.classList.add('active');
+                    elem.checked = true;
+                } else {
+                    elem.classList.remove('active');
+                    checked = false;
+                }
+            });
+        };
+
+        const body = document.getElementsByTagName('body')[0];
+        const fontSize = localStorage.getItem('font-size');
+
+        if (fontSize !== null) {
+            body.style.fontSize = fontSize;
+        } else {
+            body.style.removeProperty('font-size');
+        }
+        updateFontSizeButtons(fontSize);
+
+        fontSizeButtons.forEach((elem, n) => {
+            elem.onclick = (e) => {
+                const fontSize = elem.value;
+                body.style.fontSize = fontSize;
+                localStorage.setItem('font-size', fontSize);
+                updateFontSizeButtons(fontSize);
+            };
+        });
+    });
 </script>
 {% block javascript %}
 {% endblock javascript %}
