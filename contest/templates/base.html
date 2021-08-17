@@ -141,7 +141,8 @@
     }
     document.addEventListener("DOMContentLoaded", () => {
         const fontSizeButtons = document.getElementById('global-font-size').querySelectorAll('button');
-
+        const body = document.getElementsByTagName('body')[0];
+        const fontSize = localStorage.getItem('font-size');
         const updateFontSizeButtons = (fontSize) => {
             fontSizeButtons.forEach((elem, n) => {
                 if (elem.value === fontSize) {
@@ -153,17 +154,12 @@
                 }
             });
         };
-
-        const body = document.getElementsByTagName('body')[0];
-        const fontSize = localStorage.getItem('font-size');
-
         if (fontSize !== null) {
             body.style.fontSize = fontSize;
         } else {
             body.style.removeProperty('font-size');
         }
         updateFontSizeButtons(fontSize);
-
         fontSizeButtons.forEach((elem, n) => {
             elem.onclick = (e) => {
                 const fontSize = elem.value;
