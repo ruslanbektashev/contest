@@ -141,7 +141,12 @@
     document.addEventListener("DOMContentLoaded", () => {
         const fontSizeButtons = document.getElementById('global-font-size').querySelectorAll('button');
         const body = document.getElementsByTagName('body')[0];
-        const fontSize = localStorage.getItem('font-size');
+        let fontSize = localStorage.getItem('font-size');
+
+        if (fontSize === null) {
+            fontSize = "";
+        }
+        
         const updateFontSizeButtons = (fontSize) => {
             fontSizeButtons.forEach((elem, n) => {
                 if (elem.value === fontSize) {

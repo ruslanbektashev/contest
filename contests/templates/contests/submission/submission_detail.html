@@ -68,10 +68,7 @@
 </div>
 {% if not submission.problem.type == 'Program' or not submission.problem.is_testable %}
 {% if perms.contests.change_submission %}
-<button class="btn btn-light btn-block border mb-3" type="button" id="main-submission-update-button" data-toggle="collapse" data-target="#main-submission-update" aria-expanded="false" aria-controls="main-submission-update" aria-pressed="false">
-    Изменить оценку
-</button>
-<form action="{% url 'contests:api-submission-update' submission.id %}" id="main-submission-update" method="POST" class="form-horizontal collapse card">
+<form action="{% url 'contests:api-submission-update' submission.id %}" id="main-submission-update" method="POST" class="form-horizontal card">
     <div class="card-body">
         {% csrf_token %}
         {% render_form_errors form %}
@@ -230,6 +227,9 @@
                 <small>{{ sub_form.instance.score }}</small>
                 {% endif %}
             {% endif %}
+            <a class="ml-3" href="{{ sub_form.instance.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}">
+                <i class="fa fa-edit fa-fw fa-lg" data-toggle="tooltip" data-placement="left" title="Изменить статус или оценку"></i>
+            </a>
             <a class="collapse-toggle ml-3" href data-toggle="collapse" data-target="#sub_submission_{{ sub_form.instance.id }}" aria-expanded="{% if sub_form.instance.status != 'OK' %}true{% else %}false{% endif %}" aria-controls="sub_submission_{{ sub_form.instance.id }}">
                 <i class="fa fa-angle-{% if sub_form.instance.status != 'OK' %}up{% else %}down{% endif %} fa-lg"></i>
             </a>
