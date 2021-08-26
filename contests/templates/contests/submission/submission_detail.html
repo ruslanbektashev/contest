@@ -221,6 +221,9 @@
                             style="border: none; background-color: transparent; width: 50px;"
                         >
                     </small>
+                    <button hidden id="submission-update-button-{{ forloop.counter0 }}" class="ml-3" style="border: none; background-color: transparent; padding: 0;">
+                        <a href><i class="fa fa-floppy-o fa-lg" data-toggle="tooltip" data-placement="left" title="Сохранить оценку"></i></a>
+                    </button>
                 </form>
                 {% else %}
                 <small class="ml-3 mr-1">Оценка: </small>
@@ -480,15 +483,9 @@ for (let i = 0; i < formsNumber; i++) {
     const scoreInputElem = form.querySelector('#id_score');
     const statusInputElem = form.querySelector('#id_status');
 
-    // form.onmouseover = (e) => {
-    //     button.hidden = false;
-    // };
-
-    // form.onmouseout = (e) => {
-    //     if (scoreInputElem !== document.activeElement) {
-    //         button.hidden = true;
-    //     }
-    // };
+    form.onchange = scoreInputElem.onkeyup = () => {
+        button.hidden = false;
+    }
 
     form.onsubmit = async (e) => {
         e.preventDefault();
@@ -503,7 +500,7 @@ for (let i = 0; i < formsNumber; i++) {
             console.log(result);
 
             const subSubmission = result.updated.find((value) => value.id === subSubmissionId);
-            const statusElem = document.getElementById('status-' + i)
+            const statusElem = document.getElementById('status-' + i);
 
             if ('updated' in result) {
                 updateMainSubmission(result);
@@ -511,6 +508,7 @@ for (let i = 0; i < formsNumber; i++) {
                 statusElem.innerHTML = subSubmission.status;
                 statusElem.classList.remove('status-success', 'status-info', 'status-warning', 'status-danger', 'status-secondary', 'status-primary');
                 statusElem.classList.add('status-' + subSubmission.color);
+                statusElem.setAttribute('title', subSubmission.status_display);
 
                 statusInputElem.setAttribute('value', subSubmission.status);
 
