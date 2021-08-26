@@ -234,7 +234,7 @@
                 <i class="fa fa-angle-{% if sub_form.instance.status != 'OK' %}up{% else %}down{% endif %} fa-lg"></i>
             </a>
         </div>
-        <div class="collapse {% if sub_form.instance.status != 'OK' %}show{% endif %}" id="sub_submission_{{ sub_form.instance.id }}" aria-labelledby="heading_{{ sub_form.instance.id }}" data-parent="#subSubmissionsAccordion">
+        <div class="collapse {% if sub_form.instance.status != 'OK' %}show{% endif %}" id="sub_submission_{{ sub_form.instance.id }}" aria-labelledby="heading_{{ sub_form.instance.id }}">
             <div class="card-body">
                 {{ sub_form.instance.problem.description|safe }}
                 <h6 class="text-muted">Ответ:</h6>
