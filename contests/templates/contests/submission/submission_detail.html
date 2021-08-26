@@ -76,7 +76,7 @@
         {% render_field form.status class+="form-control selectpicker" data-dropup-auto="false" %}
         {% render_field form.score class+="form-control" %}
         {% endwith %}
-        <button class="btn btn-light btn-block border">Сохранить</button>
+        <button id="main-submission-update-button" class="btn btn-light btn-block border">Сохранить основную посылку</button>
     </div>
 </form>
 {% endif %}
@@ -208,7 +208,6 @@
                         {% if sub_form.status.value != None %} value="{{ sub_form.status.value|stringformat:'s' }}"{% endif %}
                         style="border: none; background-color: transparent; width: 50px;"
                     >
-                    <button hidden id="submission-update-button-{{ forloop.counter0 }}" class="btn btn-light btn-sm border mr-3">Сохранить</button>
                     <small class="mr-1">Оценка: </small>
                     <small>
                         <input
@@ -425,6 +424,7 @@ var footprintChart = new Chart(
 const progressBar = document.getElementById('progress-bar');
 const formsNumber = {% if forms %}{{ forms|length }}{% else %}0{% endif %};
 const mainForm = document.getElementById('main-submission-update');
+const mainFormButton = document.getElementById('main-submission-update-button');
 const mainStatusSelectElem = mainForm.querySelector('#id_status');
 const statusOptions = Array.from(mainStatusSelectElem.options);
 
@@ -455,6 +455,11 @@ const updateMainSubmission = (data) => {
         progressBar.classList.add('bg-' + mainSubmission.color);
         adjustProgressBarMessageColor(mainSubmission.score);
     }
+};
+
+mainForm.querySelector('#id_score').onkeyup = mainForm.onchange = () => {
+    mainFormButton.classList.remove('btn-light');
+    mainFormButton.classList.add('btn-primary');
 };
 
 mainForm.onsubmit = async (e) => {
