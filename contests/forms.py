@@ -112,7 +112,7 @@ class AttachmentForm(forms.ModelForm):
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
-        fields = ['leaders', 'faculty', 'title_official', 'title_unofficial', 'description', 'level']
+        fields = ['faculty', 'title_official', 'title_unofficial', 'description', 'level']
 
 
 """================================================== CourseLeader =================================================="""
