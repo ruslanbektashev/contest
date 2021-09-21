@@ -9959,12 +9959,12 @@ label {
 }
 
 .status-primary {
-  background-color: #337ab7;
+  background-color: #AFE1AF;
 }
 
 .status-primary[href]:hover,
 .status-primary[href]:focus {
-  background-color: #286090;
+  background-color: #50C878;
 }
 
 .status-success {

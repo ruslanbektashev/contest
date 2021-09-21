@@ -8,6 +8,7 @@ Assignment = apps.get_model('contests', 'Assignment')
 
 STATE_COLORS = {
     'OK': 'success',
+    'PS': 'primary',
     'TF': 'warning',
     'TR': 'warning',
     'WA': 'warning',
@@ -25,8 +26,8 @@ STATE_COLORS = {
     'UN': 'default',
     '5':  'success',
     5:    'success',
-    '4':  'success',
-    4:    'success',
+    '4':  'primary',
+    4:    'primary',
     '3':  'warning',
     3:    'warning',
     '2':  'danger',
