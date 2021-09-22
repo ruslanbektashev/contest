@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views accounts contests markdown static %}
+{% load views accounts contests tutorial markdown static %}
 
 {% block title %}
 Курс
@@ -24,7 +24,7 @@
         <a href="{% url 'contests:submission-list' course.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Посылки"><i class="fa fa-tasks fa-fw"></i></a>
         {% endif %}
         {% if perms.contests.change_course %}
-        <a href="{% url 'contests:course-update' course.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
+        <a id="btn_course_update" href="{% url 'contests:course-update' course.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
         {% endif %}
         {% if perms.contests.delete_course %}
         <span class="dropdown show">
@@ -69,7 +69,7 @@
             <div class="card-body">
                 {% include 'list.html' with lst=course.contest_set.all mb=0 warn_if_empty="Разделы еще не добавлены" %}
                 {% if perms.contests.add_contest %}
-                <a href="{% url 'contests:contest-create' course.id %}" class="btn btn-block btn-light">
+                <a id="btn_contest_create" href="{% url 'contests:contest-create' course.id %}" class="btn btn-block btn-light">
                     <i class="fa fa-plus fa-fw"></i> Добавить раздел
                 </a>
                 {% endif %}
@@ -124,4 +124,58 @@
 
 {% block javascript %}
 <script src="{% static 'MathJax/es5/tex-chtml.js' %}" type="text/javascript"></script>
+<script>
+driver.defineSteps([
+    {% if not request.user|have_passed_step:'contests:course-detail/course_description' %}
+    {
+        view: 'contests:course-detail',
+        step: 'course_description',
+        element: '#collapseOne',
+        popover: {
+            title: "Описание",
+            description: "Описание курса - это поверхностное описание целей, задач, тем и разделов курса. " +
+                "Вы можете изменить или дополнить описание курса",
+            position: 'bottom'
+        }
+    },
+    {% endif %}
+    {% if not request.user|have_passed_step:'contests:course-detail/course_update_button' %}
+    {
+        view: 'contests:course-detail',
+        step: 'course_update_button',
+        element: '#btn_course_update',
+        popover: {
+            title: "Редактирование",
+            description: "Чтобы перейти на страницу редактирования курса, кликните по этой кнопке",
+            position: 'left'
+        }
+    },
+    {% endif %}
+    {% if not request.user|have_passed_step:'contests:course-detail/course_contests' %}
+    {
+        view: 'contests:course-detail',
+        step: 'course_contests',
+        element: '#collapseTwo',
+        popover: {
+            title: "Разделы",
+            description: "Список разделов - это структурное разделение курса на небольшие части, содержащие одну или несколько тем. " +
+                "У раздела в Контесте тоже есть описание с возможностью прикрепления изображений, текстовых файлов, документов <strong>Microsoft Word</strong>, <strong>Excel</strong>, <strong>PowerPoint</strong> и др. ",
+            position: 'top'
+        }
+    },
+    {% endif %}
+    {% if not request.user|have_passed_step:'contests:course-detail/course_contest_create_button' %}
+    {
+        view: 'contests:course-detail',
+        step: 'course_contest_create_button',
+        element: '#btn_contest_create',
+        popover: {
+            title: "Добавить раздел",
+            description: "Начать добавление разделов к этому курсу можно нажав на кнопку &laquo;Добавить раздел&raquo;",
+            position: 'top'
+        }
+    },
+    {% endif %}
+])
+</script>
 {% endblock javascript %}

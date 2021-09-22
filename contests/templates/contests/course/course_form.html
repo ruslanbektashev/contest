@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views forms %}
+{% load views forms tutorial %}
 
 {% block title %}
 Курс
@@ -22,9 +22,13 @@
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {{ form.media }}
+    <div id="field_title_official">
     {% render_field form.title_official class+="form-control" %}
+    </div>
+    <div id="field_title_unofficial">
     {% render_field form.title_unofficial class+="form-control" %}
-    <div class="form-group">
+    </div>
+    <div id="field_description" class="form-group">
         <label for="{{ field.id_for_label }}">
             {{ form.description.label }}{{ form.description.label_suffix }}
         </label>
@@ -41,9 +45,99 @@
             {{ form.description }}
         </div>
     </div>
+    <div id="field_faculty">
     {% render_field form.faculty class+="form-control selectpicker" %}
+    </div>
+    <div id="field_level">
     {% render_field form.level class+="form-control selectpicker" %}
+    </div>
     {% endwith %}
+    <div id="form_submit_button">
     {% render_submit_button value="Сохранить" %}
+    </div>
 </form>
 {% endblock content %}
+
+{% block javascript %}
+<script>
+driver.defineSteps([
+    {% if not request.user|have_passed_step:'contests:course-create/field_title_official' %}
+    {
+        view: 'contests:course-create',
+        step: 'field_title_official',
+        element: '#field_title_official',
+        popover: {
+            title: "Официальное название",
+            description: "Официальное название курса будет использовано для автоматического заполнения отчетных документов. " +
+                "<br>Это поле обязательное. Введите официальное название Вашего курса и нажмите &laquo;Далее&raquo;",
+            position: 'bottom',
+            className: 'driver-popover-md'
+        }
+    },
+    {% endif %}
+    {% if not request.user|have_passed_step:'contests:course-create/field_title_unofficial' %}
+    {
+        view: 'contests:course-create',
+        step: 'field_title_unofficial',
+        element: '#field_title_unofficial',
+        popover: {
+            title: "Неофициальное название",
+            description: "Неофициальное название курса будет использовано для отображения курса в Контесте для студентов и преподавателей. " +
+                "<br>Это поле может быть пустым. Если Вы оставите поле незаполненным, то при отображении курса в Контесте будет использовано его официальное название",
+            position: 'bottom',
+            className: 'driver-popover-md'
+        }
+    },
+    {% endif %}
+    {% if not request.user|have_passed_step:'contests:course-create/field_description' %}
+    {
+        view: 'contests:course-create',
+        step: 'field_description',
+        element: '#field_description',
+        popover: {
+            title: "Описание",
+            description: "В описание курса можно добавлять изображения" +
+                "",
+            position: 'top'
+        }
+    },
+    {% endif %}
+    {% if not request.user|have_passed_step:'contests:course-create/field_faculty' %}
+    {
+        view: 'contests:course-create',
+        step: 'field_faculty',
+        element: '#field_faculty',
+        popover: {
+            title: "Факультет",
+            description: "Это поле устанавливается автоматически",
+            position: 'bottom'
+        }
+    },
+    {% endif %}
+    {% if not request.user|have_passed_step:'contests:course-create/field_level' %}
+    {
+        view: 'contests:course-create',
+        step: 'field_level',
+        element: '#field_level',
+        popover: {
+            title: "Уровень",
+            description: "Выберите семестр, в котором начинается курс. Если курс годичный, то выберите первый семестр курса",
+            position: 'bottom'
+        }
+    },
+    {% endif %}
+    {% if not request.user|have_passed_step:'contests:course-create/form_submit_button' %}
+    {
+        view: 'contests:course-create',
+        step: 'form_submit_button',
+        element: '#form_submit_button',
+        popover: {
+            title: "Сохранение",
+            description: "Когда заполните необходимые поля, нажмите на кнопку &laquo;Сохранить&raquo;",
+            position: 'top'
+        }
+    },
+    {% endif %}
+])
+</script>
+{% endblock javascript %}

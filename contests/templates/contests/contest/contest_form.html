@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views forms static %}
+{% load views forms static tutorial %}
 
 {% block title %}
 Раздел
@@ -25,8 +25,10 @@
     {% render_field form.course %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {{ form.media }}
+    <div id="field_title">
     {% render_field form.title class+="form-control" %}
-    <div class="form-group">
+    </div>
+    <div id="field_description" class="form-group">
         <label for="{{ field.id_for_label }}">
             {{ form.description.label }}{{ form.description.label_suffix }}
         </label>
@@ -43,13 +45,19 @@
             {{ form.description }}
         </div>
     </div>
+    <div id="field_number">
     {% render_field form.number class+="form-control" %}
+    </div>
     {% endwith %}
     {% endif %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    <div id="field_files">
     {% render_field form.files class+="custom-file-input" %}
+    </div>
     {% endwith %}
+    <div id="form_submit_button">
     {% render_submit_button value="Сохранить" %}
+    </div>
 </form>
 {% endblock content %}
 
@@ -59,5 +67,79 @@
 $(function () {
     bsCustomFileInput.init()
 });
+</script>
+<script>
+driver.defineSteps([
+    {% if not request.user|have_passed_step:'contests:contest-create/field_title' %}
+    {
+        view: 'contests:contest-create',
+        step: 'field_title',
+        element: '#field_title',
+        popover: {
+            title: " ",
+            description: "Заголовок будет отображаться в списке разделов курса. " +
+                "<br>Это поле обязательное и запонено по умолчанию. " +
+                "Введите предпочитаемый заголовок раздела и нажмите &laquo;Далее&raquo;",
+            position: 'bottom',
+            className: 'driver-popover-md'
+        }
+    },
+    {% endif %}
+    {% if not request.user|have_passed_step:'contests:contest-create/field_description' %}
+    {
+        view: 'contests:contest-create',
+        step: 'field_description',
+        element: '#field_description',
+        popover: {
+            title: " ",
+            description: "В описание раздела можно добавлять изображения" +
+                "",
+            position: 'top'
+        }
+    },
+    {% endif %}
+    {% if not request.user|have_passed_step:'contests:contest-create/field_number' %}
+    {
+        view: 'contests:contest-create',
+        step: 'field_number',
+        element: '#field_number',
+        popover: {
+            title: " ",
+            description: "Номер раздела определяет порядок отображения столбцов с заданиями в таблице заданий курса. " +
+                "<br>Это поле обязательное и заполнено по умолчанию. Номер раздела должен быть уникальным в данном курсе",
+            position: 'bottom'
+        }
+    },
+    {% endif %}
+    {% if not request.user|have_passed_step:'contests:contest-create/field_files' %}
+    {
+        view: 'contests:contest-create',
+        step: 'field_files',
+        element: '#field_files',
+        popover: {
+            title: " ",
+            description: "Вы можете прикрепить к разделу файлы следующих типов: " +
+                "<ul>" +
+                "<li>текстовые .txt</li>" +
+                "<li><strong>Microsoft Word</strong> .doc/.docx</li>" +
+                "<li><strong>Excel</strong> .xls/.xlsx</li>" +
+                "<li><strong>PowerPoint</strong> .ppt/.pptx</li>",
+            position: 'bottom'
+        }
+    },
+    {% endif %}
+    {% if not request.user|have_passed_step:'contests:contest-create/form_submit_button' %}
+    {
+        view: 'contests:contest-create',
+        step: 'form_submit_button',
+        element: '#form_submit_button',
+        popover: {
+            title: "Сохранение",
+            description: "Когда заполните необходимые поля, нажмите на кнопку &laquo;Сохранить&raquo;",
+            position: 'top'
+        }
+    },
+    {% endif %}
+])
 </script>
 {% endblock javascript %}

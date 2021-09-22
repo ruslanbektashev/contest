@@ -24,4 +24,6 @@ urlpatterns = [
         ])),
         path('list/', views.ReportList.as_view(), name='report-list'),
     ])),
+    path('tutorial/step/pass/', views.TutorialStepPassCreateAPI.as_view(), name='api-tutorial-step-pass-create'),
+    path('tutorial/reset/<int:user_id>/<str:view>/', views.TutorialResetAPI.as_view(), name='api-tutorial-reset')
 ]

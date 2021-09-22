@@ -59,3 +59,20 @@ class Report(CRUDEntry):
 
     def __str__(self):
         return self.title or (str(self.text[:64]) + (str(self.text[64:]) and '...'))
+
+
+"""================================================ TutorialStepPass ================================================"""
+
+
+class TutorialStepPass(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Владелец")
+    view = models.CharField(max_length=100, verbose_name="Вью")
+    step = models.CharField(max_length=100, verbose_name="Шаг")
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+
+    class Meta:
+        verbose_name = "Шаг руководства"
+        verbose_name_plural = "Шаги руководства"
+
+    def __str__(self):
+        return "{}: {}/{}".format(self.user.account, self.view, self.step)

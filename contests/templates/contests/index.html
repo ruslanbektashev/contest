@@ -1,17 +1,37 @@
-{% extends 'base.html' %}
-{% load views contests %}
+{% extends 'base_wide.html' %}
+{% load views contests static tutorial %}
+
+
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<div class="row">
+<legend>
+    Главная
+    <span class="pull-right">
+        {% if perms.contests.add_course %}
+        <a id="btn_course_create" href="{% url 'contests:course-create' %}" class="text-success" data-toggle="tooltip" data-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
+        {% endif %}
+        <a href="{% url 'contests:course-list' %}" data-toggle="tooltip" data-placement="top" title="Все курсы"><i class="fa fa-book fa-fw"></i></a>
+        {% if perms.contests.view_submission_list %}
+        <a href="{% url 'contests:submission-list' %}" data-toggle="tooltip" data-placement="top" title="Все посылки"><i class="fa fa-tasks fa-fw"></i></a>
+        {% endif %}
+        {% if perms.accounts.change_account %}
+        <a href="{% url 'accounts:account-list' %}" data-toggle="tooltip" data-placement="top" title="Пользователи"><i class="fa fa-users fa-fw"></i></a>
+        {% endif %}
+        {% if perms.accounts.view_filter %}
+        <a href="{% url 'contests:filter-table' %}" data-toggle="tooltip" data-placement="top" title="Фильтры"><i class="fa fa-bookmark fa-fw"></i></a>
+        {% endif %}
+    </span>
+</legend>
+<div id="contest_index_row" class="row">
     {% for course in courses %}
     <div class="col-12 col-md-6 mb-3">
-        <div class="card shadow-sm">
+        <div id="course_card_{{ forloop.counter }}" class="card shadow-sm">
             <div class="card-header">
-                <a href="{% url 'contests:course-detail' course.id %}">{{ course }}</a>
+                <a id="course_card_{{ forloop.counter }}_link" href="{% url 'contests:course-detail' course.id %}">{{ course }}</a>
             </div>
             {% with latest_submissions=course.get_latest_submissions|slice:':3' %}
             <table class="table table-sm {% if not latest_submissions %}table-borderless{% endif %} mb-1" data-toggle="tooltip" data-placement="bottom" title="Последние посылки по заданиям" style="min-height: 98px;">
@@ -30,7 +50,7 @@
                     </tr>
                     {% empty %}
                     <tr><td colspan="3" class="text-center">&nbsp;</td></tr>
-                    <tr><td colspan="3" class="text-center">нет посылок</td></tr>
+                    <tr><td colspan="3" class="text-center text-muted">нет посылок</td></tr>
                     <tr><td colspan="3" class="text-center">&nbsp;</td></tr>
                     {% endfor %}
                 </tbody>
@@ -46,35 +66,73 @@
 </div>
 {% endblock content %}
 
-{% block submenu %}
-<div class="list-group mb-3">
-    <a class="list-group-item list-group-item-action" href="{% url 'contests:course-list' %}">
-        <i class="fa fa-book fa-fw"></i> Все курсы
-    </a>
-    {% if perms.contests.view_submission_list %}
-    <a href="{% url 'contests:submission-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
+{% block javascript %}
+<script>
+driver.defineSteps([
+    {% if not request.user|have_passed_step:'contests:index/contest_logo' %}
+    {
+        view: 'contests:index',
+        step: 'contest_logo',
+        element: '#contest_logo',
+        popover: {
+            title: "Добро пожаловать в Контест!",
+            description: "Это пошаговое руководство познакомит Вас с основными возможностями сайта. " +
+                "<br>Для навигации используйте кнопки &laquo;Далее&raquo; и &laquo;Назад&raquo;. " +
+                "<br>Вы можете в любой момент остановить руководство, нажав на кнопку &laquo;Закрыть&raquo;",
+            position: 'bottom',
+            className: 'driver-popover-md'
+        }
+    },
     {% endif %}
-    {% if perms.accounts.change_account %}
-    {% if perms.accounts.add_faculty %}
-    <a class="list-group-item list-group-item-action dropdown-toggle {% if perms.accounts.view_filter %}border-bottom-0{% endif %}" href="#" role="button" id="account_list_menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="display: flex; justify-content: space-between; align-items: center;">
-        <span><i class="fa fa-users fa-fw"></i> Пользователи</span>
-    </a>
-    <div class="dropdown-menu shadow-sm" aria-labelledby="account_list_menu">
-    {% for faculty in faculties %}
-        <a class="dropdown-item" href="{% url 'accounts:account-list' %}?faculty_id={{ faculty.id }}">{{ faculty }}</a>
-    {% endfor %}
-    </div>
-    {% else %}
-    <a href="{% url 'accounts:account-list' %}" class="list-group-item list-group-item-action"><i class="fa fa-users fa-fw"></i> Пользователи</a>
+    {% if not request.user|have_passed_step:'contests:index/contest_main' %}
+    {
+        view: 'contests:index',
+        step: 'contest_main',
+        element: '#contest_main_container',
+        popover: {
+            title: "Главная",
+            description: "На главной странице будет располагаться сводная информация о Ваших курсах",
+            position: 'mid-center',
+            className: 'driver-popover-shadow'
+        }
+    },
     {% endif %}
+    {% if not request.user|have_passed_step:'contests:index/contest_course_create_button' %}
+    {
+        view: 'contests:index',
+        step: 'contest_course_create_button',
+        element: '#btn_course_create',
+        popover: {
+            title: " ",
+            description: "Если у Вас еще нет курсов в Контесте, то Вы можете добавить их перейдя по этой ссылке",
+            position: 'bottom'
+        }
+    },
     {% endif %}
-    {% if perms.accounts.view_filter %}
-    <a href="{% url 'contests:filter-table' %}" class="list-group-item list-group-item-action"><i class="fa fa-bookmark fa-fw"></i> Фильтры</a>
+    {% if not request.user|have_passed_step:'contests:index/contest_course_card' %}
+    {
+        view: 'contests:index',
+        step: 'contest_course_card',
+        element: '#course_card_1',
+        popover: {
+            title: " ",
+            description: "Это карточка курса - в ней отображаются последние посылки решений к задачам данного курса. Ссылки в нижней части карточки помогут быстро перейти к списку всех посылок и таблице заданий",
+            position: 'bottom',
+        }
+    },
     {% endif %}
-</div>
-<div class="list-group mb-3">
-    {% if perms.contests.add_course %}
-    <a href="{% url 'contests:course-create' %}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Добавить курс</a>
+    {% if not request.user|have_passed_step:'contests:index/contest_course_card_link' %}
+    {
+        view: 'contests:index',
+        step: 'contest_course_card_link',
+        element: '#course_card_1_link',
+        popover: {
+            title: " ",
+            description: "Чтобы добавить Ваши учебные материалы к этому курсу, перейдите по ссылке на страницу курса",
+            position: 'bottom',
+        }
+    },
     {% endif %}
-</div>
-{% endblock submenu %}
+]);
+</script>
+{% endblock javascript %}

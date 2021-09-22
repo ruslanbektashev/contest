@@ -1,15 +1,17 @@
 from operator import attrgetter
 
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
+from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
+from django.views import View
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView
 from markdown import markdown
 
 from contest.mixins import LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin
-from support.models import Question, Report
+from support.models import Question, Report, TutorialStepPass
 from accounts.models import Activity
 
 
@@ -151,3 +153,42 @@ class ReportList(LoginRequiredMixin, ListView):
         if not self.request.user.has_perm('support.change_report'):
             return Report.objects.filter(owner=self.request.user)
         return super().get_queryset()
+
+
+"""================================================ TutorialStepPass ================================================"""
+
+
+class TutorialStepPassCreateAPI(LoginRequiredMixin, View):
+    http_method_names = ['post']
+
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        return JsonResponse({'status': 'http_method_not_allowed'})
+
+    def post(self, request, *args, **kwargs):
+        response = {'status': 'ok'}
+        view, step = request.POST.get('view'), request.POST.get('step')
+        _, created = TutorialStepPass.objects.get_or_create(user=request.user, view=view, step=step)
+        if not created:
+            response['status'] = 'exists'
+        return JsonResponse(response)
+
+    def handle_no_permission(self):
+        return JsonResponse({'status': 'access_denied'})
+
+
+class TutorialResetAPI(LoginRequiredMixin, PermissionRequiredMixin, View):
+    http_method_names = ['get']
+    permission_required = 'support.delete_tutorialsteppass'
+
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        return JsonResponse({'status': 'http_method_not_allowed'})
+
+    def get(self, request, *args, **kwargs):
+        passed_tutorial_steps = TutorialStepPass.objects.filter(user_id=kwargs['user_id'])
+        if kwargs['view'] != '__all__':
+            passed_tutorial_steps = passed_tutorial_steps.filter(view=kwargs['view'])
+        passed_tutorial_steps.delete()
+        return JsonResponse({'status': 'reset'})
+
+    def handle_no_permission(self):
+        return JsonResponse({'status': 'access_denied'})
