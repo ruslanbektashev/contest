@@ -204,8 +204,8 @@ class CreditReportForm(forms.Form):
 
 
 class ContestPartialForm(AttachmentForm):
-    FILES_SIZE_LIMIT = 10 * 1024 * 1024
-    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf']
+    FILES_SIZE_LIMIT = 50 * 1024 * 1024
+    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.pdf']
 
     class Meta:
         model = Contest
@@ -223,8 +223,8 @@ class ContestForm(ContestPartialForm):
 
 
 class ProblemAttachmentForm(AttachmentForm):
-    FILES_SIZE_LIMIT = 10 * 1024 * 1024
-    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf']
+    FILES_SIZE_LIMIT = 50 * 1024 * 1024
+    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.pdf']
 
     class Meta:
         model = Problem
