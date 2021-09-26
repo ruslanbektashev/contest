@@ -14,7 +14,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Обсуждение задачи {{ problem.title }} <span class="text-muted pull-right">№{{ problem.number }}</span></legend>
+<legend>Обсуждение задачи <span class="text-muted">№{{ problem.number }}</span> {{ problem.title }}</legend>
 <div class="btn-group btn-block mb-3">
     <a class="btn btn-light border col-6" href="{% url 'contests:problem-detail' problem.id %}">
         <i class="fa fa-chevron-left fa-fw"></i> Вернуться к задаче

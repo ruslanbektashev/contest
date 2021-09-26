@@ -13,6 +13,7 @@
 
 {% block content %}
 <legend>
+    <span class="text-muted">№{{ contest.number }}</span>
     {{ contest.title }}
     <span class="pull-right">
         {% if perms.contests.add_problem %}
