@@ -221,15 +221,15 @@ class Account(models.Model):
 
     @property
     def is_student(self):
-        return self.user.groups.filter(name="Студент").exists()
+        return self.type == 1  # self.user.groups.filter(name="Студент").exists()
 
     @property
     def is_moderator(self):
-        return self.user.groups.filter(name="Модератор").exists()
+        return self.type == 2  # self.user.groups.filter(name="Модератор").exists()
 
     @property
     def is_instructor(self):
-        return self.user.groups.filter(name="Преподаватель").exists()
+        return self.type == 3  # self.user.groups.filter(name="Преподаватель").exists()
 
     @property
     def owner(self):
