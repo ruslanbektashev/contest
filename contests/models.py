@@ -163,6 +163,12 @@ class CourseLeader(models.Model):
     def __str__(self):
         return "{} преподает {}".format(self.leader, self.course)
 
+    def save(self, *args, **kwargs):
+        created = self._state.adding
+        super().save(*args, **kwargs)
+        if created:
+            Filter.objects.get_or_create(user=self.leader, course=self.course)
+
 
 """===================================================== Credit ====================================================="""
 

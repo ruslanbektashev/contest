@@ -24,10 +24,10 @@
     </span>
 </legend>
 <div class="row my-3">
-    <div class="col-3">
+    <div class="col-sm-12 col-md-3">
         {% include 'accounts/account/account_card.html' with image=True %}
     </div>
-    <div class="col-9">
+    <div class="col-sm-12 col-md-9">
         <table class="table table-borderless table-sm">
             <tr><td class="text-right" style="width: 30%;">e-mail</td><td>{% if account.email %}<a href="mailto:{{ account.email }}">{{ account.email }}</a>{% elif perms.auth.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}<a href="{% url 'accounts:account-update' account.user_id %}" class="text-danger" >укажите e-mail</a>{% else %}-{% endif %}</td></tr>
             <tr><td class="text-right" style="width: 30%;">Факультет</td><td>{{ account.faculty }}</td></tr>

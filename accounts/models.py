@@ -42,7 +42,7 @@ class AccountQuerySet(models.QuerySet):
             new_password = User.objects.make_random_password()
             student.user.set_password(new_password)
             student.user.save()
-            credentials.append([student.last_name, student.first_name, student.username, new_password])
+            credentials.append([student.account.get_full_name(), student.username, new_password])
         return credentials
 
 
@@ -89,7 +89,7 @@ class StaffManager(models.Manager):
         return super().get_queryset().filter(type__gt=1).select_related('user')
 
     def create_set(self, faculty, level, type, admission_year, names):
-        new_accounts, credentials = [], []
+        new_users_data, new_accounts, credentials = [], [], []
         for name in names:
             first_name = name[1].lower()
             last_name = name[0].lower()
@@ -97,16 +97,32 @@ class StaffManager(models.Manager):
             username = transliterate(last_name)
             if User.objects.filter(username=username).exists():
                 username = transliterate(first_name[0]) + username
+            if User.objects.filter(username=username).exists():
+                raise ValueError("Невозможно зарегистрировать пользователя {}: "
+                                 "username {} занято".format(last_name.capitalize(), username))
             password = User.objects.make_random_password()
-            user = User.objects.create_user(username, password=password, first_name=first_name.capitalize(),
-                                            last_name=last_name.capitalize())
-            group_name = "Преподаватель" if type > 2 else "Модератор"
-            group, _ = Group.objects.get_or_create(name=group_name)
+            new_users_data.append({
+                'username': username,
+                'password': password,
+                'first_name': first_name.capitalize(),
+                'last_name': last_name.capitalize(),
+                'patronymic': patronymic
+            })
+
+        group_name = "Преподаватель" if type > 2 else "Модератор"
+        group, _ = Group.objects.get_or_create(name=group_name)
+
+        for new_user_data in new_users_data:
+            user = User.objects.create_user(username=new_user_data['username'], password=new_user_data['password'],
+                                            first_name=new_user_data['first_name'], last_name=new_user_data['last_name'])
             user.groups.add(group)
-            new_account = Account(user_id=user.id, faculty=faculty, patronymic=patronymic, level=level, type=type,
-                                  admission_year=admission_year, enrolled=False)
+            new_account = Account(user_id=user.id, faculty=faculty, patronymic=new_user_data['patronymic'], level=level,
+                                  type=type, admission_year=admission_year, enrolled=False)
             new_accounts.append(new_account)
-            credentials.append([name[0], name[1], username, password])
+            user_initials = "{} {} {}".format(new_user_data['last_name'], new_user_data['first_name'],
+                                              new_user_data['patronymic']).strip()
+            credentials.append([user_initials, new_user_data['username'], new_user_data['password']])
+
         return self.bulk_create(new_accounts), credentials
 
 

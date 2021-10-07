@@ -179,17 +179,21 @@ class AccountCreateSet(LoginRedirectPermissionRequiredMixin, FormView):
         return kwargs
 
     def form_valid(self, form):
-        if form.cleaned_data['type'] == 1:
-            _, self.request.session['credentials'] = Account.students.create_set(form.cleaned_data['faculty'],
-                                                                                 form.cleaned_data['level'],
-                                                                                 form.cleaned_data['admission_year'],
-                                                                                 form.cleaned_data['names'])
-        else:
-            _, self.request.session['credentials'] = Account.staff.create_set(form.cleaned_data['faculty'],
-                                                                              form.cleaned_data['level'],
-                                                                              form.cleaned_data['type'],
-                                                                              form.cleaned_data['admission_year'],
-                                                                              form.cleaned_data['names'])
+        try:
+            if form.cleaned_data['type'] == 1:
+                _, self.request.session['credentials'] = Account.students.create_set(form.cleaned_data['faculty'],
+                                                                                     form.cleaned_data['level'],
+                                                                                     form.cleaned_data['admission_year'],
+                                                                                     form.cleaned_data['names'])
+            else:
+                _, self.request.session['credentials'] = Account.staff.create_set(form.cleaned_data['faculty'],
+                                                                                  form.cleaned_data['level'],
+                                                                                  form.cleaned_data['type'],
+                                                                                  form.cleaned_data['admission_year'],
+                                                                                  form.cleaned_data['names'])
+        except ValueError as e:
+            form.add_error('names', str(e))
+            return self.form_invalid(form)
         self.storage['faculty'] = form.cleaned_data['faculty']
         self.storage['level'] = form.cleaned_data['level']
         self.storage['type'] = form.cleaned_data['type']
