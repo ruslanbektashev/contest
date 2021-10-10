@@ -91,27 +91,25 @@ class StaffManager(models.Manager):
     def create_set(self, faculty, level, type, admission_year, names):
         new_users_data, new_accounts, credentials = [], [], []
         for name in names:
-            first_name = name[1].lower()
-            last_name = name[0].lower()
-            patronymic = name[2].lower().capitalize() if len(name) > 2 else ""
-            username = transliterate(last_name)
+            first_name = name[1]
+            last_name = name[0]
+            patronymic = name[2] if len(name) > 2 else ""
+            username = transliterate(last_name.lower())
             if User.objects.filter(username=username).exists():
-                username = transliterate(first_name[0]) + username
+                username = transliterate(first_name[0].lower()) + username
             if User.objects.filter(username=username).exists():
                 raise ValueError("Невозможно зарегистрировать пользователя {}: "
-                                 "username {} занято".format(last_name.capitalize(), username))
+                                 "username {} занято".format(last_name, username))
             password = User.objects.make_random_password()
             new_users_data.append({
                 'username': username,
                 'password': password,
-                'first_name': first_name.capitalize(),
-                'last_name': last_name.capitalize(),
+                'first_name': first_name,
+                'last_name': last_name,
                 'patronymic': patronymic
             })
-
         group_name = "Преподаватель" if type > 2 else "Модератор"
         group, _ = Group.objects.get_or_create(name=group_name)
-
         for new_user_data in new_users_data:
             user = User.objects.create_user(username=new_user_data['username'], password=new_user_data['password'],
                                             first_name=new_user_data['first_name'], last_name=new_user_data['last_name'])
@@ -122,7 +120,6 @@ class StaffManager(models.Manager):
             user_initials = "{} {} {}".format(new_user_data['last_name'], new_user_data['first_name'],
                                               new_user_data['patronymic']).strip()
             credentials.append([user_initials, new_user_data['username'], new_user_data['password']])
-
         return self.bulk_create(new_accounts), credentials
 
 
@@ -132,6 +129,13 @@ class StudentManager(models.Manager):
 
     def create_set(self, faculty, level, admission_year, names):
         group_prefix = transliterate(faculty.group_prefix.lower())
+        group_names = ["Студент"]
+        groups = []
+        if faculty.group_prefix:
+            group_names.append(faculty.group_prefix + str(admission_year)[2:])
+        for group_name in group_names:
+            group, _ = Group.objects.get_or_create(name=group_name)
+            groups.append(group)
         new_accounts, credentials = [], []
         i = 1
         for name in names:
@@ -142,20 +146,16 @@ class StudentManager(models.Manager):
                 suffix = str(i).zfill(2)
             username = prefix + suffix
             password = User.objects.make_random_password()
-            first_name = name[1].lower().capitalize()
-            last_name = name[0].lower().capitalize()
-            patronymic = name[2].lower().capitalize() if len(name) > 2 else ""
+            first_name = name[1]
+            last_name = name[0]
+            patronymic = name[2] if len(name) > 2 else ""
             user = User.objects.create_user(username, password=password, first_name=first_name, last_name=last_name)
-            groups = ["Студент"]
-            if faculty.group_prefix:
-                groups.append(faculty.group_prefix + str(admission_year)[2:])
-            for group_name in groups:
-                group, _ = Group.objects.get_or_create(name=group_name)
-                user.groups.add(group)
+            user.groups.add(*groups)
             new_account = Account(user_id=user.id, faculty=faculty, patronymic=patronymic, level=level,
                                   admission_year=admission_year)
             new_accounts.append(new_account)
-            credentials.append([last_name, first_name, username, password])
+            user_initials = "{} {} {}".format(last_name, first_name, patronymic).strip()
+            credentials.append([user_initials, username, password])
             i += 1
         return self.bulk_create(new_accounts), credentials
 
@@ -174,14 +174,14 @@ class Account(models.Model):
     )
     GROUP_DEFAULT = 1
     LEVEL_CHOICES = (
-        (1, "1 курс, 1 семестр"),
-        (2, "1 курс, 2 семестр"),
-        (3, "2 курс, 1 семестр"),
-        (4, "2 курс, 2 семестр"),
-        (5, "3 курс, 1 семестр"),
-        (6, "3 курс, 2 семестр"),
-        (7, "4 курс, 1 семестр"),
-        (8, "4 курс, 2 семестр"),
+        (1, "1 курс, I семестр"),
+        (2, "1 курс, II семестр"),
+        (3, "2 курс, III семестр"),
+        (4, "2 курс, IV семестр"),
+        (5, "3 курс, V семестр"),
+        (6, "3 курс, VI семестр"),
+        (7, "4 курс, VII семестр"),
+        (8, "4 курс, VIII семестр"),
     )
     LEVEL_DEFAULT = 1
     LEVEL_MIN = 1

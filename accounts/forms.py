@@ -1,3 +1,5 @@
+import re
+
 from html.entities import name2codepoint
 from html.parser import HTMLParser
 
@@ -113,15 +115,18 @@ class AccountSetForm(forms.ModelForm):
         names = sorted(self.cleaned_data['names'].split('\r\n'))
         cleaned_names = []
         for name in names:
-            name = name.split()
-            if len(name) < 2:
-                raise ValidationError("Неверный формат списка имен", code='wrong_format')
-            l = min(len(name), 3)
+            initials = name.split()
+            if len(initials) < 2:
+                raise ValidationError("Неверный формат списка инициалов: {}. "
+                                      "Фамилия и Имя должны присутствовать в каждой строке списка".format(name),
+                                      code='wrong_format')
+            l = min(len(initials), 3)
             for i in range(l):
-                if not name[i].isalpha():
-                    raise ValidationError("Фамилия, Имя и Отчество должны состоять только из букв", code='not_a_letter')
-                name[i].lower().capitalize()
-            cleaned_names.append(name)
+                if not re.match(r'^[А-Яа-я-]*$', initials[i]):
+                    raise ValidationError("Недопустимый инициал: {}. "
+                                          "Фамилия, Имя и Отчество должны состоять из букв русского алфавита "
+                                          "и символов тире \"-\"".format(initials[i]), code='wrong_character')
+            cleaned_names.append(initials)
         return cleaned_names
 
 

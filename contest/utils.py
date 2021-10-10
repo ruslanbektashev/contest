@@ -67,9 +67,9 @@ def under_development(view):
 
 
 def transliterate(string):
-    alphabet_ru_a = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
+    alphabet_ru_a = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя-'
     alphabet_ru_s = 'жйхцчшщыюя'
-    translit_en_a = 'abvgdee_zi_klmnoprstuf________e__'
+    translit_en_a = 'abvgdee_zi_klmnoprstuf________e___'
     translit_en_s = ['zh', 'y', 'kh', 'ts', 'ch', 'sh', 'sh', 'y', 'yu', 'ya']
     transtable = {ord(c): p for c, p in zip(alphabet_ru_a, translit_en_a)}
     transtable.update({ord(c): p for c, p in zip(alphabet_ru_s, translit_en_s)})
