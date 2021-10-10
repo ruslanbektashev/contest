@@ -17,9 +17,9 @@ class FacultyAdmin(admin.ModelAdmin):
 
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'user', 'faculty', 'level', 'admission_year')
+    list_display = ('__str__', 'user', 'date_joined', 'last_login', 'faculty', 'level', 'admission_year')
     list_filter = ('department', 'faculty', 'level', 'type', 'admission_year', 'enrolled', 'graduated')
-    filter_horizontal = ('comments_read',)
+    # filter_horizontal = ('comments_read',)
     search_fields = ('user__last_name', 'user__first_name')
     fieldsets = (
         ('Пользователь', {
