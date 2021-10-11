@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
 
-from accounts.models import Account, Faculty
+from accounts.models import Account
 from contest.widgets import BootstrapCheckboxSelect, BootstrapRadioSelect
 from contests.models import (Assignment, Attachment, Contest, Course, CourseLeader, Event, FNTest, Filter, Option,
                              Problem, SubProblem, Submission, SubmissionPattern, UTTest)
@@ -32,10 +32,9 @@ class AccountSelectMultiple(forms.SelectMultiple):
 
     def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
         option = super().create_option(name, value, label, selected, index, subindex, attrs)
-        displays = dict(Account.LEVEL_CHOICES)
         if self.option_attrs is not None:
             for data_attr, values in self.option_attrs.items():
-                option['attrs'][data_attr] = displays[values[option['value']]]
+                option['attrs'][data_attr] = values[option['value']]
         return option
 
 
@@ -144,8 +143,11 @@ class CreditSetForm(forms.Form):
         runner_ups = Account.students.enrolled().allowed(course).filter(credit_id=None)
         self.fields['runner_ups'].queryset = runner_ups.order_by('-level', 'user__last_name', 'user__first_name')
         self.fields['runner_ups'].initial = runner_ups.filter(level__in=[course.level - 1, course.level])
-        option_attrs = {'data-subtext': dict(self.fields['runner_ups'].queryset.values_list('pk', 'level'))}
-        option_attrs['data-subtext'][''] = ''
+        option_subtext_data = self.fields['runner_ups'].queryset.values_list('pk', 'level', 'faculty__short_name')
+        level_displays = dict(Account.LEVEL_CHOICES)
+        option_subtext_data = {pk: "{}, {}".format(faculty, level_displays[level]) for pk, level, faculty in option_subtext_data}
+        option_subtext_data[''] = ''
+        option_attrs = {'data-subtext': option_subtext_data}
         self.fields['runner_ups'].widget = AccountSelectMultiple(choices=self.fields['runner_ups'].choices,
                                                                  option_attrs=option_attrs)
 

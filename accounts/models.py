@@ -57,7 +57,7 @@ class StudentQuerySet(AccountQuerySet):
                     .annotate(credit_score=models.Subquery(subquery.values('score'))))
 
     def allowed(self, course):
-        return self.with_credits(course).filter(level__lte=course.level)
+        return self.with_credits(course).filter(level__lte=course.level, faculty=course.faculty)
 
     def current(self, course):
         return self.allowed(course).exclude(credit_id=None)
