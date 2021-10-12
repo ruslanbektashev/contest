@@ -42,7 +42,7 @@ class AccountQuerySet(models.QuerySet):
             new_password = User.objects.make_random_password()
             student.user.set_password(new_password)
             student.user.save()
-            credentials.append([student.account.get_full_name(), student.username, new_password])
+            credentials.append([student.get_full_name(), student.username, new_password])
         return credentials
 
 
