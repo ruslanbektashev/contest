@@ -9,6 +9,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('attachment/<int:pk>/delete', views.AttachmentDelete.as_view(), name='attachment-delete'),
     path('course/<int:course_id>/start', views.CourseStart.as_view(), name='course-start'),
+    path('course/<int:course_id>/finish', views.CourseFinish.as_view(), name='course-finish'),
     path('course/', include([
         path('create', views.CourseCreate.as_view(), name='course-create'),
         path('<int:pk>/', include([

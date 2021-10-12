@@ -114,6 +114,23 @@ class CourseForm(forms.ModelForm):
         fields = ['faculty', 'title_official', 'title_unofficial', 'description', 'level']
 
 
+class CourseFinishForm(forms.Form):
+    level_ups = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите студентов")
+
+    def __init__(self, course, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        level_ups = Account.students.enrolled().current(course).filter(credit_score__gte=3)
+        self.fields['level_ups'].queryset = level_ups.order_by('-level', 'user__last_name', 'user__first_name')
+        self.fields['level_ups'].initial = level_ups.filter(credit_score__gte=3)
+        option_subtext_data = self.fields['level_ups'].queryset.values_list('pk', 'level', 'faculty__short_name')
+        level_displays = dict(Account.LEVEL_CHOICES)
+        option_subtext_data = {pk: "{}, {}".format(faculty, level_displays[level]) for pk, level, faculty in option_subtext_data}
+        option_subtext_data[''] = ''
+        option_attrs = {'data-subtext': option_subtext_data}
+        self.fields['level_ups'].widget = AccountSelectMultiple(choices=self.fields['level_ups'].choices,
+                                                                 option_attrs=option_attrs)
+
+
 """================================================== CourseLeader =================================================="""
 
 

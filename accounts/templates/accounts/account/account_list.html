@@ -100,7 +100,7 @@
                 </th>
                 {% endif %}
                 <th class="text-right" style="width: 4%;">№</th>
-                <th class="text-center">Фамилия, Имя</th>
+                <th class="text-center">Ф.И.О.</th>
                 {% if sort == 2 %}
                     <th class="text-center" style="width: 10%;">Баллы</th>
                 {% endif %}
@@ -158,7 +158,7 @@ document.getElementById('check_all').addEventListener('click', function (e) {
         value.checked = e.target.checked;
     });
     toggleToolbar();
-})
+});
 document.getElementsByName('accounts').forEach(function (e) {
     e.addEventListener('click', toggleToolbar);
 });

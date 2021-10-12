@@ -26,11 +26,12 @@ from accounts.models import Account, Activity, Faculty
 from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin,
                             PaginatorMixin)
 from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, AssignmentUpdatePartialForm,
-                            ContestForm, ContestPartialForm, CourseForm, CourseLeaderForm, CreditReportForm,
-                            CreditSetForm, EventForm, FNTestForm, OptionBaseFormSet, OptionForm, ProblemCommonForm,
-                            ProblemProgramForm, ProblemAttachmentForm, ProblemRollbackResultsForm, ProblemTestForm,
-                            SubmissionProgramForm, SubmissionFilesForm, SubmissionMossForm, SubmissionOptionsForm,
-                            SubmissionPatternForm, SubmissionTextForm, SubmissionUpdateForm, UTTestForm)
+                            ContestForm, ContestPartialForm, CourseFinishForm, CourseForm, CourseLeaderForm,
+                            CreditReportForm, CreditSetForm, EventForm, FNTestForm, OptionBaseFormSet, OptionForm,
+                            ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm, ProblemRollbackResultsForm,
+                            ProblemTestForm, SubmissionProgramForm, SubmissionFilesForm, SubmissionMossForm,
+                            SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm, SubmissionUpdateForm,
+                            UTTestForm)
 from contests.models import (Assignment, Attachment, Contest, Course, CourseLeader, Credit, Event, Execution, FNTest,
                              Filter, IOTest, Lecture, Option, Problem, SubProblem, Submission, SubmissionPattern,
                              UTTest)
@@ -278,6 +279,40 @@ class CourseStart(LoginRedirectPermissionRequiredMixin, FormView):
         form = self.get_form()
         if form.is_valid():
             Credit.objects.create_set(request.user, self.storage['course'], form.cleaned_data['runner_ups'])
+            return self.form_valid(form)
+        return self.form_invalid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['course'] = self.storage['course']
+        return context
+
+    def get_success_url(self):
+        return reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
+
+
+class CourseFinish(LoginRedirectPermissionRequiredMixin, FormView):
+    form_class = CourseFinishForm
+    template_name = 'contests/course/course_finish_form.html'
+    permission_required = 'accounts.change_account'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['course'] = self.storage['course']
+        return kwargs
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            form.cleaned_data['level_ups'].level_up()
             return self.form_valid(form)
         return self.form_invalid(form)
 
