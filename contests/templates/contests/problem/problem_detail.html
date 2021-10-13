@@ -41,7 +41,7 @@
         <span class="dropdown show">
             <a href="#" class="text-decoration-none" role="button" id="dropdownMoreMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
             <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownMoreMenuLink">
-                <a href="{% url 'contests:problem-delete' problem.id %}" class="dropdown-item"><i class="fa fa-trash fa-fw"></i> Удалить</a>
+                <a href="{% url 'contests:problem-delete' problem.id %}" class="dropdown-item text-danger"><i class="fa fa-trash-o fa-fw"></i> Удалить</a>
             </span>
         </span>
         {% endif %}
@@ -92,7 +92,7 @@
                             <i class="fa fa-edit fa-fw fa-lg"></i>
                         </a>
                         <a href="{% url 'contests:subproblem-delete' subproblem.id %}" class="card-link text-danger ml-2" data-toggle="tooltip" data-placement="top" title="Удалить из теста" style="position: relative; top: -0.08rem;">
-                            <i class="fa fa-remove fa-fw fa-lg"></i>
+                            <i class="fa fa-trash-o fa-fw fa-lg"></i>
                         </a>
                         {% endif %}
                     </div>

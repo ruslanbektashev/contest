@@ -119,7 +119,7 @@ class CourseFinishForm(forms.Form):
 
     def __init__(self, course, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        level_ups = Account.students.enrolled().current(course).filter(credit_score__gte=3)
+        level_ups = Account.students.enrolled().current(course).filter(credit_score__gte=1)
         self.fields['level_ups'].queryset = level_ups.order_by('-level', 'user__last_name', 'user__first_name')
         self.fields['level_ups'].initial = level_ups.filter(credit_score__gte=3)
         option_subtext_data = self.fields['level_ups'].queryset.values_list('pk', 'level', 'faculty__short_name')
@@ -128,7 +128,7 @@ class CourseFinishForm(forms.Form):
         option_subtext_data[''] = ''
         option_attrs = {'data-subtext': option_subtext_data}
         self.fields['level_ups'].widget = AccountSelectMultiple(choices=self.fields['level_ups'].choices,
-                                                                 option_attrs=option_attrs)
+                                                                option_attrs=option_attrs)
 
 
 """================================================== CourseLeader =================================================="""

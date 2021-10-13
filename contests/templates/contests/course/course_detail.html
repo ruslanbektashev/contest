@@ -30,7 +30,7 @@
         <span class="dropdown show">
             <a href="#" class="text-decoration-none" role="button" id="dropdownMoreMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
             <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownMoreMenuLink">
-                <a href="{% url 'contests:course-delete' course.id %}" class="dropdown-item"><i class="fa fa-trash fa-fw"></i> Удалить</a>
+                <a href="{% url 'contests:course-delete' course.id %}" class="dropdown-item text-danger"><i class="fa fa-trash-o fa-fw"></i> Удалить</a>
             </span>
         </span>
         {% endif %}
@@ -93,34 +93,6 @@
     {% endfor %}
 </div>
 {% endblock content %}
-
-{% block submenu %}
-<div class="list-group mb-3">
-    {% if perms.account.add_subscription %}
-        {% if request.user.id in subscribers_ids %}
-            <div class="dropdown show">
-                <a class="list-group-item list-group-item-action rounded dropdown-toggle" href="#" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="display: flex; justify-content: space-between; align-items: center;">
-                    <span><i class="fa fa-bell-slash fa-fw"></i> Отписаться</span>
-                </a>
-                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                    <a class="dropdown-item" href="{% url 'accounts:subscription-delete' subscription_id %}?previous_url={{ request.path }}">от курса</a>
-                    <a class="dropdown-item" href="{% url 'accounts:subscription-delete' subscription_id %}?previous_url={{ request.path }}&cascade=1">от курса и разделов</a>
-                </div>
-            </div>
-        {% else %}
-            <div class="dropdown show">
-                <a class="list-group-item list-group-item-action rounded dropdown-toggle" href="#" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="display: flex; justify-content: space-between; align-items: center;">
-                    <span><i class="fa fa-bell fa-fw"></i> Подписаться</span>
-                </a>
-                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                    <a class="dropdown-item" href="{% url 'accounts:subscription-create' 'course' course.id %}?previous_url={{ request.path }}">на курс</a>
-                    <a class="dropdown-item" href="{% url 'accounts:subscription-create' 'course' course.id %}?previous_url={{ request.path }}&cascade=1">на курс и разделы</a>
-                </div>
-            </div>
-        {% endif %}
-    {% endif %}
-</div>
-{% endblock submenu %}
 
 {% block javascript %}
 <script src="{% static 'MathJax/es5/tex-chtml.js' %}" type="text/javascript"></script>

@@ -37,7 +37,7 @@
         <a href="{% url 'contests:submission-moss' submission.id %}" class="text-secondary text-decoration-none" data-toggle="tooltip" data-placement="left" title="MOSS"><i class="fa fa-maxcdn fa-fw"></i></a>
     {% endif %}
     {% if perms.contests.delete_submission %}
-        <a href="{% url 'contests:submission-delete' submission.id %}{% if from_assignment %}?from_assignment=1{% endif %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить посылку" style="position: relative; top: -0.08rem;"><i class="fa fa-times fa-fw"></i></a>
+        <a href="{% url 'contests:submission-delete' submission.id %}{% if from_assignment %}?from_assignment=1{% endif %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить посылку" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
     {% endif %}
     </span>
 </legend>
