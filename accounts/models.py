@@ -635,14 +635,17 @@ class Comment(models.Model):
             return self.object
         elif model == 'problem':
             return self.object.contest
-        elif model == 'assignment' or 'submission':
+        elif model == 'assignment' or model == 'submission':
             return self.object.problem.contest
         else:
             return None
 
     def _notify_users(self, created=False):
         comment_subscribers_ids = Subscription.objects.filter(object_type=ContentType.objects.get(model='comment')).values_list('user', flat=True)
-        parent_object_subscribers_ids = self.parent_object.subscription_set.values_list('user_id', flat=True)
+        if self.parent_object is not None:
+            parent_object_subscribers_ids = self.parent_object.subscription_set.values_list('user_id', flat=True)
+        else:
+            parent_object_subscribers_ids = []
         user_ids = list(set(comment_subscribers_ids) & set(parent_object_subscribers_ids))
         if self.object.owner_id not in user_ids:
             user_ids_set = set(user_ids)

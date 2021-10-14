@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
-from accounts.models import Activity
+from accounts.models import Activity, Comment
 from contest.abstract import CRUDEntry
 
 """==================================================== Question ===================================================="""
@@ -59,6 +60,25 @@ class Report(CRUDEntry):
 
     def __str__(self):
         return self.title or (str(self.text[:64]) + (str(self.text[64:]) and '...'))
+
+
+"""=================================================== Discussion ==================================================="""
+
+
+class Discussion(CRUDEntry):
+    topic = models.CharField(max_length=100, verbose_name="Тема")
+
+    comment_set = GenericRelation(Comment, content_type_field='object_type')
+
+    class Meta:
+        verbose_name = "Обсуждение"
+        verbose_name_plural = "Обсуждения"
+
+    def get_discussion_url(self):
+        return self.get_absolute_url()
+
+    def __str__(self):
+        return self.topic
 
 
 """================================================ TutorialStepPass ================================================"""

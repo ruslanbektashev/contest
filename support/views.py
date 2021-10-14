@@ -1,36 +1,34 @@
-from operator import attrgetter
-
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.views import View
-from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView
+from django.views.generic import DetailView, CreateView, TemplateView, UpdateView, DeleteView, ListView
 from markdown import markdown
 
-from contest.mixins import LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin
-from support.models import Question, Report, TutorialStepPass
+from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin,
+                            PaginatorMixin)
+from support.models import Discussion, Question, Report, TutorialStepPass
 from accounts.models import Activity
 
 
-class Support(LoginRequiredMixin, ListView):
-    model = Question
+class Support(LoginRequiredMixin, TemplateView):
     template_name = 'support/index.html'
-    context_object_name = 'questions'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        reports = Report.objects.filter(closed=False) if self.request.user.has_perm('support.change_report') else Report.objects.filter(Q(owner=self.request.user) & Q(closed=False))
-        context.update({
-            'reports': sorted(reports, key=attrgetter('date_created'), reverse=True)
-        })
+        if self.request.user.has_perm('support.change_question'):
+            context['questions'] = Question.objects.filter(answer='')
+        else:
+            context['questions'] = Question.objects.filter(Q(is_published=True) | Q(owner=self.request.user))
+        if self.request.user.has_perm('support.change_report'):
+            context['reports'] = Report.objects.filter(closed=False)
+        else:
+            context['reports'] = Report.objects.filter(Q(owner=self.request.user) & Q(closed=False))
+        context['discussion'] = Discussion.objects.get(id=1)
         return context
-
-    def get_queryset(self):
-        questions = Question.objects.filter(answer='') if self.request.user.has_perm('support.change_question') else Question.objects.filter(Q(is_published=True) | Q(owner=self.request.user))
-        return questions
 
 
 """==================================================== Question ===================================================="""
@@ -153,6 +151,22 @@ class ReportList(LoginRequiredMixin, ListView):
         if not self.request.user.has_perm('support.change_report'):
             return Report.objects.filter(owner=self.request.user)
         return super().get_queryset()
+
+
+"""=================================================== Discussion ==================================================="""
+
+
+class DiscussionDetail(LoginRedirectPermissionRequiredMixin, PaginatorMixin, DetailView):
+    model = Discussion
+    template_name = 'support/discussion/discussion_detail.html'
+    permission_required = 'support.view_discussion'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        comments = self.object.comment_set.actual()
+        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
+            self.paginate_queryset(comments)
+        return context
 
 
 """================================================ TutorialStepPass ================================================"""
