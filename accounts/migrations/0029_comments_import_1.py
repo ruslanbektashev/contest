@@ -4,9 +4,17 @@ import os
 import sys
 
 from django.conf import settings
+from django.contrib.auth.management import create_permissions
 from django.db import migrations, models
 
 COMMENTS_PATH = 'additional_tools/comments.json'
+
+
+def ensure_permissions_exist(apps, schema_editor):
+    for app_config in apps.get_app_configs():
+        app_config.models_module = True
+        create_permissions(app_config, verbosity=0)
+        app_config.models_module = None
 
 
 def import_comments(apps, schema_editor):
@@ -63,5 +71,6 @@ class Migration(migrations.Migration):
             name='date_created',
             field=models.DateTimeField(auto_now_add=False, verbose_name='Дата создания'),
         ),
+        migrations.RunPython(ensure_permissions_exist, migrations.RunPython.noop, elidable=True),
         migrations.RunPython(import_comments, delete_comments, elidable=True)
     ] if 'test' not in sys.argv[1:] else []
