@@ -1,8 +1,9 @@
+import os.path
+
 from contests.templatetags.contests import colorize
 from datetime import date, datetime
 
 from markdown import markdown
-from mimetypes import guess_type
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer, TextLexer
@@ -48,8 +49,8 @@ class AttachmentDetail(DetailView):
             attachment = self.object.attachment_set.get(id=kwargs.get('attachment_id'))
         except Attachment.DoesNotExist:
             raise Http404("Attachment with id = %s does not exist." % kwargs.get('attachment_id'))
-        attachment_file_type, _ = guess_type(attachment.file.path)
-        if 'x-c' not in attachment_file_type:
+        attachment_ext = os.path.splitext(attachment.file.path)[1]
+        if attachment_ext not in ('.c', '.cpp', '.h', '.hpp'):
             return HttpResponseRedirect(attachment.file.url)
         context = self.get_context_data(object=self.object, attachment=attachment)
         return self.render_to_response(context)
