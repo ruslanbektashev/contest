@@ -122,7 +122,7 @@ class AccountSetForm(forms.ModelForm):
                                       code='wrong_format')
             l = min(len(initials), 3)
             for i in range(l):
-                if not re.match(r'^[А-Яа-я-]*$', initials[i]):
+                if not re.match(r'^[а-яА-ЯёЁ-]*$', initials[i]):
                     raise ValidationError("Недопустимый инициал: {}. "
                                           "Фамилия, Имя и Отчество должны состоять из букв русского алфавита "
                                           "и символов тире \"-\"".format(initials[i]), code='wrong_character')
