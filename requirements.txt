@@ -1,9 +1,10 @@
 Django==2.2.24
-Markdown==3.1.1
-Pygments==2.7.4
-Pillow==7.2.0
-celery==4.3.0
-mosspy==1.0.8
-django-pagedown==2.0.3
-django-ckeditor==6.0.0
+django-pagedown==2.2.1
+django-ckeditor==6.1.0
+Markdown==3.3.4
+Pygments==2.10.0
+Pillow==8.4.0
+mysqlclient==2.0.3  # mysql_config not found? install libmysqlclient-dev (ubuntu) or similar
+celery==5.2.0
+mosspy==1.0.9
 python-docx==0.8.11
