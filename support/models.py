@@ -84,11 +84,18 @@ class Discussion(CRUDEntry):
 """================================================ TutorialStepPass ================================================"""
 
 
+class TutorialStepPassQuerySet(models.QuerySet):
+    def is_step_passed(self, user, view, step):
+        return self.filter(user=user, view=view).filter(models.Q(step='__all__') | models.Q(step=step)).exists()
+
+
 class TutorialStepPass(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Владелец")
     view = models.CharField(max_length=100, verbose_name="Вью")
     step = models.CharField(max_length=100, verbose_name="Шаг")
     date_created = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+
+    objects = TutorialStepPassQuerySet.as_manager()
 
     class Meta:
         verbose_name = "Шаг руководства"

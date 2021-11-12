@@ -14,4 +14,4 @@ def have_passed_step(user, step_key):
         if user.date_joined.year < 2021 and user.id != 52:
             return True
     view, step = step_key.split('/')
-    return TutorialStepPass.objects.filter(user=user, view=view, step=step).exists()
+    return TutorialStepPass.objects.is_step_passed(user, view, step)

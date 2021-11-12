@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.views import View
-from django.views.generic import DetailView, CreateView, TemplateView, UpdateView, DeleteView, ListView
+from django.views.generic import DetailView, CreateView, RedirectView, TemplateView, UpdateView, DeleteView, ListView
 from markdown import markdown
 
 from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin,
@@ -170,6 +170,17 @@ class DiscussionDetail(LoginRedirectPermissionRequiredMixin, PaginatorMixin, Det
 
 
 """================================================ TutorialStepPass ================================================"""
+
+
+class TutorialReset(LoginRequiredMixin, PermissionRequiredMixin, RedirectView):
+    permission_required = 'support.delete_tutorialsteppass'
+
+    def get_redirect_url(self, *args, **kwargs):
+        passed_tutorial_steps = TutorialStepPass.objects.filter(user_id=self.request.user.id)
+        if kwargs['view'] != '__all__':
+            passed_tutorial_steps = passed_tutorial_steps.filter(view=kwargs['view'])
+        passed_tutorial_steps.delete()
+        return self.request.GET.get('from')
 
 
 class TutorialStepPassCreateAPI(LoginRequiredMixin, View):
