@@ -108,12 +108,19 @@
 {% block footer %}
 <div class="footer text-center mt-3">
     <div class="container">
-        <p class="copyright">Филиал МГУ им. М.В. Ломоносова в г. Ташкент &copy; {% now "Y" %}</p>
-        <div id="global-font-size" class="btn-group btn-group-sm mb-3" role="group" data-toggle="tooltip" data-placement="left" title="Размер шрифта">
-            <button type="button" class="btn btn-light" value="">А</button>
-            <button type="button" class="btn btn-light" value="0.95rem" style="font-size: 0.95rem;">А</button>
-            <button type="button" class="btn btn-light" value="1.02rem" style="font-size: 1.02rem;">А</button>
+        <div class="btn-toolbar justify-content-center">
+            {% if perms.support.delete_tutorialsteppass %}
+            <div class="btn-group btn-group mb-3 mr-3" role="group">
+                <a href="{% url 'support:tutorial-reset' request.resolver_match.app_name|add:":"|add:request.resolver_match.url_name %}?from={{ request.path }}" class="btn btn-light border" data-toggle="tooltip" data-placement="left" title="Пройти руководство на этой странице"><i class="fa fa-book"></i> Руководство</a>
+            </div>
+            {% endif %}
+            <div id="global-font-size" class="btn-group btn-group mb-3" role="group" data-toggle="tooltip" data-placement="right" title="Размер шрифта">
+                <button type="button" class="btn btn-light border" value="">А</button>
+                <button type="button" class="btn btn-light border" value="0.95rem" style="font-size: 0.95rem;">А</button>
+                <button type="button" class="btn btn-light border" value="1.02rem" style="font-size: 1.02rem;">А</button>
+            </div>
         </div>
+        <p class="copyright">Филиал МГУ им. М.В. Ломоносова в г. Ташкент &copy; {% now "Y" %}</p>
     </div>
 </div>
 {% endblock footer %}
@@ -146,7 +153,7 @@
         if (fontSize === null) {
             fontSize = "";
         }
-        
+
         const updateFontSizeButtons = (fontSize) => {
             fontSizeButtons.forEach((elem, n) => {
                 if (elem.value === fontSize) {
@@ -218,6 +225,22 @@ let driver = new Driver({
             });
         }
     },
+    onReset: function (element) {
+        let view = '{{ request.resolver_match.app_name }}:{{ request.resolver_match.url_name }}';
+        let step = '__all__';
+        let step_id = view + '/' + step;
+        if (localStorage.getItem(step_id) !== '1') {
+            localStorage.setItem(step_id, '1');
+            let step_form = new FormData();
+            step_form.append('csrfmiddlewaretoken', csrftoken);
+            step_form.append('view', view);
+            step_form.append('step', step);
+            fetch('/support/tutorial/step/pass/', {
+                method: 'POST',
+                body: step_form
+            });
+        }
+    }
 });
 
 function startJourney() {
