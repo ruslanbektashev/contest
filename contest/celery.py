@@ -6,6 +6,6 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'contest.settings')
 
 app = Celery('contest')
 
-app.conf.update(result_backend='rpc://', task_track_started=True)
+app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.autodiscover_tasks()
