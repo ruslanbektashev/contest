@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views forms static tutorial %}
+{% load views forms tutorial static %}
 
 {% block title %}
 Раздел
@@ -70,9 +70,9 @@ $(function () {
 </script>
 <script>
 driver.defineSteps([
-    {% if not request.user|have_passed_step:'contests:contest-create/field_title' %}
+    {% if not request|have_passed_step:'field_title' %}
     {
-        view: 'contests:contest-create',
+        view: '{% tutorial_step_view request %}',
         step: 'field_title',
         element: '#field_title',
         popover: {
@@ -85,9 +85,9 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:contest-create/field_description' %}
+    {% if not request|have_passed_step:'field_description' %}
     {
-        view: 'contests:contest-create',
+        view: '{% tutorial_step_view request %}',
         step: 'field_description',
         element: '#field_description',
         popover: {
@@ -98,9 +98,9 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:contest-create/field_number' %}
+    {% if not request|have_passed_step:'field_number' %}
     {
-        view: 'contests:contest-create',
+        view: '{% tutorial_step_view request %}',
         step: 'field_number',
         element: '#field_number',
         popover: {
@@ -111,9 +111,9 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:contest-create/field_files' %}
+    {% if not request|have_passed_step:'field_files' %}
     {
-        view: 'contests:contest-create',
+        view: '{% tutorial_step_view request %}',
         step: 'field_files',
         element: '#field_files',
         popover: {
@@ -128,9 +128,9 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:contest-create/form_submit_button' %}
+    {% if not request|have_passed_step:'form_submit_button' %}
     {
-        view: 'contests:contest-create',
+        view: '{% tutorial_step_view request %}',
         step: 'form_submit_button',
         element: '#form_submit_button',
         popover: {

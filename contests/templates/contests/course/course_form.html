@@ -61,9 +61,9 @@
 {% block javascript %}
 <script>
 driver.defineSteps([
-    {% if not request.user|have_passed_step:'contests:course-create/field_title_official' %}
+    {% if not request|have_passed_step:'field_title_official' %}
     {
-        view: 'contests:course-create',
+        view: '{% tutorial_step_view request %}',
         step: 'field_title_official',
         element: '#field_title_official',
         popover: {
@@ -75,9 +75,9 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:course-create/field_title_unofficial' %}
+    {% if not request|have_passed_step:'field_title_unofficial' %}
     {
-        view: 'contests:course-create',
+        view: '{% tutorial_step_view request %}',
         step: 'field_title_unofficial',
         element: '#field_title_unofficial',
         popover: {
@@ -89,9 +89,9 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:course-create/field_description' %}
+    {% if not request|have_passed_step:'field_description' %}
     {
-        view: 'contests:course-create',
+        view: '{% tutorial_step_view request %}',
         step: 'field_description',
         element: '#field_description',
         popover: {
@@ -102,9 +102,9 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:course-create/field_faculty' %}
+    {% if not request|have_passed_step:'field_faculty' %}
     {
-        view: 'contests:course-create',
+        view: '{% tutorial_step_view request %}',
         step: 'field_faculty',
         element: '#field_faculty',
         popover: {
@@ -114,9 +114,9 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:course-create/field_level' %}
+    {% if not request|have_passed_step:'field_level' %}
     {
-        view: 'contests:course-create',
+        view: '{% tutorial_step_view request %}',
         step: 'field_level',
         element: '#field_level',
         popover: {
@@ -126,9 +126,9 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:course-create/form_submit_button' %}
+    {% if not request|have_passed_step:'form_submit_button' %}
     {
-        view: 'contests:course-create',
+        view: '{% tutorial_step_view request %}',
         step: 'form_submit_button',
         element: '#form_submit_button',
         popover: {
