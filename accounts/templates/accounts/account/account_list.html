@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views forms contests %}
+{% load views forms contests tutorial %}
 
 {% block title %}
 Пользователи
@@ -15,15 +15,15 @@
     {% if type == 1 %}Студенты{% else %}Сотрудники{% endif %}{% if graduated %}: выпускники{% elif enrolled == False %}: отчисленные{% endif %}
     <span class="pull-right">
     {% if perms.accounts.change_account %}
-        <a href="{% url 'accounts:account-update-set' %}{{ request|get_query_string }}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Перейти в режим редактирования"><i class="fa fa-edit fa-fw"></i></a>
+        <a href="{% url 'accounts:account-update-set' %}{{ request|get_query_string }}" id="account_list_update_set" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Перейти в режим редактирования"><i class="fa fa-edit fa-fw"></i></a>
     {% endif %}
     {% if perms.accounts.add_account %}
-        <a href="{% url 'accounts:account-create-set' %}?faculty_id={{ faculty.id }}" class="text-success text-decoration-none" data-toggle="tooltip" data-placement="top" title="Добавить пользователей"><i class="fa fa-plus fa-fw"></i></a>
+        <a href="{% url 'accounts:account-create-set' %}?faculty_id={{ faculty.id }}" id="account_list_create_set" class="text-success text-decoration-none" data-toggle="tooltip" data-placement="top" title="Добавить пользователей"><i class="fa fa-plus fa-fw"></i></a>
     {% endif %}
     </span>
 </legend>
 <form>
-    <div class="form-row">
+    <div id="account_list_filters" class="form-row">
         <div class="col-6 col-md-2">
             <select id="type_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
                 <option value="{% get_full_path_with_updated_query_string request type=1 %}" {% if type == 1 %}selected{% endif %}>Студенты</option>
@@ -88,7 +88,7 @@
     {% csrf_token %}
     {% render_form_errors form %}
     {% render_field_errors form.accounts %}
-    <table class="table table-bordered table-sm table-hover">
+    <table id="account_list_table" class="table table-bordered table-sm table-hover">
         <thead>
             <tr>
                 {% if sort != 2 %}
@@ -162,6 +162,60 @@ document.getElementById('check_all').addEventListener('click', function (e) {
 document.getElementsByName('accounts').forEach(function (e) {
     e.addEventListener('click', toggleToolbar);
 });
+</script>
+<script>
+driver.defineSteps([
+    {% if request.user.account.is_moderator %}
+    {% if not request|have_passed_step:'account_list_table' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'account_list_table',
+        element: '#account_list_table',
+        popover: {
+            title: "__tutorial__",
+            description: "__tutorial__",
+            position: 'top'
+        }
+    },
+    {% endif %}
+    {% if not request|have_passed_step:'account_list_filters' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'account_list_filters',
+        element: '#account_list_filters',
+        popover: {
+            title: "__tutorial__",
+            description: "__tutorial__",
+            position: 'bottom'
+        }
+    },
+    {% endif %}
+    {% if not request|have_passed_step:'account_list_update_set' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'account_list_update_set',
+        element: '#account_list_update_set',
+        popover: {
+            title: "__tutorial__",
+            description: "__tutorial__",
+            position: 'left'
+        }
+    },
+    {% endif %}
+    {% if not request|have_passed_step:'account_list_create_set' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'account_list_create_set',
+        element: '#account_list_create_set',
+        popover: {
+            title: "__tutorial__",
+            description: "__tutorial__",
+            position: 'left'
+        }
+    },
+    {% endif %}
+    {% endif %}
+]);
 </script>
 {% endblock javascript %}
 
