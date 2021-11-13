@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 
-from accounts.models import Account, Activity, Comment, Faculty, Message, Chat, Announcement, Subscription
+from accounts.models import Account, Activity, Comment, Faculty, Message, Chat, Announcement, Notification, Subscription
 
 
 @admin.register(Permission)
@@ -159,4 +159,31 @@ class SubscriptionAdmin(admin.ModelAdmin):
         ('Пользователь', {
             'fields': ('user',)
         }),
+    )
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'is_read', 'is_deleted', 'date_created')
+    list_editable = ('is_read', 'is_deleted')
+    search_fields = ('action', 'recipient__last_name', 'recipient__first_name')
+    fieldsets = (
+        ('Субъект', {
+            'fields': ('subject_type', 'subject_id')
+        }),
+        ('Объект', {
+            'fields': ('object_type', 'object_id')
+        }),
+        ('Связь', {
+            'fields': ('reference_type', 'reference_id')
+        }),
+        ('Ссылки', {
+            'fields': ('recipient',)
+        }),
+        ('Детали', {
+            'fields': ('action', 'is_read', 'is_deleted')
+        }),
+        ('Даты', {
+            'fields': ('date_created',)
+        })
     )

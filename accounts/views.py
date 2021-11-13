@@ -19,9 +19,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.contenttypes.models import ContentType
 
 from accounts.templatetags.comments import get_comment_query_string
-from accounts.forms import (AccountPartialForm, AccountForm, AccountListForm, AccountSetForm, ActivityMarkForm,
+from accounts.forms import (AccountPartialForm, AccountListForm, AccountSetForm, ActivityMarkForm,
                             CommentForm, ManageSubscriptionsForm, StaffForm, StudentForm)
-from accounts.models import Account, Activity, Comment, Faculty, Message, Chat, Announcement, Subscription
+from accounts.models import Account, Activity, Comment, Faculty, Message, Chat, Announcement, Notification, Subscription
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
 from contest.templatetags.views import get_query_string, get_updated_query_string
@@ -116,6 +116,19 @@ def mark_activities_as_read(request):
     if unread_activities_ids:
         unread_activities = Activity.objects.filter(id__in=unread_activities_ids, recipient=request.user)
         unread_activities.mark_as_read()
+    return JsonResponse({'status': 'ok'})
+
+
+@csrf_exempt
+def mark_notifications_as_read(request):
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except:
+        return JsonResponse({'status': 'bad_request'})
+    unread_notifications_ids = data.get('unread_notifications_ids', None)
+    if unread_notifications_ids:
+        unread_notifications = Notification.objects.filter(id__in=unread_notifications_ids, recipient=request.user)
+        unread_notifications.mark_as_read()
     return JsonResponse({'status': 'ok'})
 
 
@@ -734,3 +747,18 @@ class AnnouncementList(LoginRequiredMixin, ListView):
             return super().get_queryset().all()
         else:
             return super().get_queryset().filter(group__in=self.request.user.groups.all())
+
+
+"""================================================== Notification =================================================="""
+
+
+class NotificationList(LoginRequiredMixin, PaginatorMixin, ListView):
+    model = Notification
+    template_name = 'accounts/notification/notification_list.html'
+    paginate_by = 30
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        notifications = super().get_queryset().filter(recipient=self.request.user).actual()
+        context['paginator'], context['page_obj'], context['notifications'], context['is_paginated'] = self.paginate_queryset(notifications)
+        return context
