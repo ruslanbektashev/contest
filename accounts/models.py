@@ -512,7 +512,7 @@ class Activity(models.Model):
     )
     DEFAULT_LEVEL = 2
 
-    recipient = models.ForeignKey(User, related_name='notifications', on_delete=models.CASCADE)
+    recipient = models.ForeignKey(User, related_name='activities', on_delete=models.CASCADE)
     subject_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     subject_id = models.PositiveIntegerField()
     subject = GenericForeignKey(ct_field='subject_type', fk_field='subject_id')
@@ -820,3 +820,119 @@ class Announcement(CRUDEntry):
 
     def __str__(self):
         return "%s" % self.title
+
+
+"""================================================== Notification =================================================="""
+
+
+def make_notification(recipients, subject, action, object=None, reference=None, level=None, date_created=None):
+    if isinstance(recipients, Group):
+        recipient_ids = recipients.user_set.all().values_list('id', flat=True)
+    elif isinstance(recipients, models.QuerySet) or isinstance(recipients, list):
+        recipient_ids = recipients
+    else:
+        recipient_ids = [recipients.id]
+    optional = dict()
+    if level:
+        optional['level'] = level
+    if date_created:
+        optional['date_created'] = date_created
+    new_notifications = []
+    for recipient_id in recipient_ids:
+        if isinstance(subject, User) and subject.id == recipient_id:
+            continue
+        notification = Notification(subject_type=ContentType.objects.get_for_model(subject),
+                            subject_id=subject.id,
+                            recipient_id=recipient_id,
+                            action=action,
+                            **optional)
+        if object:
+            notification.object_type = ContentType.objects.get_for_model(object)
+            notification.object_id = object.id
+        if reference:
+            notification.reference_type = ContentType.objects.get_for_model(reference)
+            notification.reference_id = reference.id
+        new_notifications.append(notification)
+    return new_notifications
+
+
+class NotificationQuerySet(models.QuerySet):
+    def actual(self):
+        return self.filter(is_deleted=False)
+
+    def unread(self):
+        return self.actual().filter(is_read=False)
+
+    def mark_as_deleted(self):
+        return self.actual().update(is_deleted=True)
+
+    def mark_as_read(self):
+        return self.unread().update(is_read=True)
+
+
+class NotificationManager(models.Manager):
+    def notify_group(self, group_name, **kwargs):
+        try:
+            group = Group.objects.get(name=group_name)
+        except Group.DoesNotExist:
+            return
+        new_notifications = make_activities(group, **kwargs)
+        self.bulk_create(new_notifications)
+
+    def notify_user(self, user, **kwargs):
+        if isinstance(user, str):
+            try:
+                user = User.objects.get(username=user)
+            except User.DoesNotExist:
+                return
+        new_activities = make_activities(user, **kwargs)
+        self.bulk_create(new_activities)
+
+    def notify_users(self, users, **kwargs):
+        new_activities = make_activities(users, **kwargs)
+        self.bulk_create(new_activities)
+
+
+class Notification(models.Model):
+    recipient = models.ForeignKey(User, related_name='notifications', verbose_name="Получатель", on_delete=models.CASCADE)
+    subject_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    subject_id = models.PositiveIntegerField()
+    subject = GenericForeignKey(ct_field='subject_type', fk_field='subject_id')
+    object_type = models.ForeignKey(ContentType, related_name='+', blank=True, null=True, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField(blank=True, null=True)
+    object = GenericForeignKey(ct_field='object_type')
+    reference_type = models.ForeignKey(ContentType, related_name='+', blank=True, null=True, on_delete=models.CASCADE)
+    reference_id = models.PositiveIntegerField(blank=True, null=True)
+    reference = GenericForeignKey(ct_field='reference_type', fk_field='reference_id')
+
+    action = models.CharField(max_length=255, verbose_name="Описание действия")
+    is_read = models.BooleanField(default=False, verbose_name="Прочитано?")
+    is_deleted = models.BooleanField(default=False, verbose_name="Удалено?")
+
+    date_created = models.DateTimeField(default=timezone.now, verbose_name="Дата создания")
+
+    objects = ActivityManager.from_queryset(ActivityQuerySet)()
+
+    class Meta:
+        ordering = ('-date_created',)
+        verbose_name = "Оповещение"
+        verbose_name_plural = "Оповещения"
+
+    def __str__(self):
+        context = {
+            'recipient': self.recipient.account,
+            'action': self.action,
+            'object': '',
+            'slash': '',
+            'reference': ''
+        }
+        if self.object:
+            context['object'] = self.object
+        if self.reference:
+            context['slash'] = ' / '
+            context['reference'] = self.reference
+        if isinstance(self.subject, User):
+            context['subject'] = self.subject.last_name
+        else:
+            context['subject'] = self.subject
+        return "{subject} {action} {object}{slash}{reference}".format(**context)
