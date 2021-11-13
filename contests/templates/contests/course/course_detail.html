@@ -88,7 +88,7 @@
 <div class="row">
     {% for leader in course.leaders.all %}
     <div class="col-12 col-md-4">
-        {% include 'accounts/account/account_card.html' with account=leader.account %}
+        {% include 'accounts/account/account_card.html' with account=leader.account link=True %}
     </div>
     {% endfor %}
 </div>

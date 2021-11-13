@@ -14,7 +14,7 @@ class TaskProgress {
     onProgress(json) {
         this.progress_bar_element.classList.remove('bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-secondary', 'bg-primary');
         this.progress_bar_element.classList.add('bg-info');
-        if (this.progress_bar_element.style.width.slice(0, -1) <= json.progress) {
+        if (json.progress > 0) {
             this.progress_bar_element.style.width = json.progress + '%';
             if (json.progress <= 50 && this.progress_bar_message_element.style.color === 'white') {
                 this.progress_bar_message_element.style.color = 'black';
