@@ -105,9 +105,9 @@
 <script src="{% static 'MathJax/es5/tex-chtml.js' %}" type="text/javascript"></script>
 <script>
 driver.defineSteps([
-    {% if not request.user|have_passed_step:'contests:contest-detail/contest_detail' %}
+    {% if not request|have_passed_step:'contest_detail' %}
     {
-        view: 'contests:contest-detail',
+        view: '{% tutorial_step_view request %}',
         step: 'contest_detail',
         element: '#collapseOne',
         popover: {
@@ -118,9 +118,9 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:contest-detail/contest_update_button' %}
+    {% if not request|have_passed_step:'contest_update_button' %}
     {
-        view: 'contests:contest-detail',
+        view: '{% tutorial_step_view request %}',
         step: 'contest_update_button',
         element: '#btn_contest_update',
         popover: {
@@ -130,9 +130,9 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:contest-detail/contest_problems' %}
+    {% if not request|have_passed_step:'contest_problems' %}
     {
-        view: 'contests:contest-detail',
+        view: '{% tutorial_step_view request %}',
         step: 'contest_problems',
         element: '#collapseTwo',
         popover: {
@@ -150,9 +150,9 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:contest-detail/contest_problem_create_button' %}
+    {% if not request|have_passed_step:'contest_problem_create_button' %}
     {
-        view: 'contests:contest-detail',
+        view: '{% tutorial_step_view request %}',
         step: 'contest_problem_create_button',
         element: '#btn_problem_create',
         popover: {
