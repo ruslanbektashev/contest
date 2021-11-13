@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views forms %}
+{% load views forms tutorial %}
 
 {% block title %}
 Регистрация
@@ -17,12 +17,105 @@
     {% csrf_token %}
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    <div id="field_faculty">
     {% render_field form.faculty class+="form-control selectpicker" %}
+    </div>
+    <div id="field_level">
     {% render_field form.level class+="form-control selectpicker" %}
+    </div>
+    <div id="field_type">
     {% render_field form.type class+="form-control selectpicker" %}
+    </div>
+    <div id="field_admission_year">
     {% render_field form.admission_year class+="form-control selectpicker" %}
+    </div>
+    <div id="field_names">
     {% render_field form.names class+="form-control" placeholder="в формате: Фамилия Имя Отчество" %}
+    </div>
     {% endwith %}
+    <div id="form_submit_button">
     {% render_submit_button value="Зарегистрировать" %}
+    </div>
 </form>
 {% endblock content %}
+
+{% block javascript %}
+<script>
+driver.defineSteps([
+    {% if request.user.account.is_moderator %}
+    {% if not request|have_passed_step:'field_faculty' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'field_faculty',
+        element: '#field_faculty',
+        popover: {
+            title: "__tutorial__",
+            description: "__tutorial__",
+            position: 'bottom'
+        }
+    },
+    {% endif %}
+    {% if not request|have_passed_step:'field_level' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'field_level',
+        element: '#field_level',
+        popover: {
+            title: "__tutorial__",
+            description: "__tutorial__",
+            position: 'bottom'
+        }
+    },
+    {% endif %}
+    {% if not request|have_passed_step:'field_type' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'field_type',
+        element: '#field_type',
+        popover: {
+            title: "__tutorial__",
+            description: "__tutorial__",
+            position: 'bottom'
+        }
+    },
+    {% endif %}
+    {% if not request|have_passed_step:'field_admission_year' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'field_admission_year',
+        element: '#field_admission_year',
+        popover: {
+            title: "__tutorial__",
+            description: "__tutorial__",
+            position: 'bottom'
+        }
+    },
+    {% endif %}
+    {% if not request|have_passed_step:'field_names' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'field_names',
+        element: '#field_names',
+        popover: {
+            title: "__tutorial__",
+            description: "__tutorial__",
+            position: 'top'
+        }
+    },
+    {% endif %}
+    {% if not request|have_passed_step:'form_submit_button' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'form_submit_button',
+        element: '#form_submit_button',
+        popover: {
+            title: "__tutorial__",
+            description: "__tutorial__",
+            position: 'top'
+        }
+    },
+    {% endif %}
+    {% endif %}
+]);
+</script>
+{% endblock %}

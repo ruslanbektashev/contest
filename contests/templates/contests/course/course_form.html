@@ -61,6 +61,7 @@
 {% block javascript %}
 <script>
 driver.defineSteps([
+    {% if request.user.account.is_instructor %}
     {% if not request|have_passed_step:'field_title_official' %}
     {
         view: '{% tutorial_step_view request %}',
@@ -137,6 +138,7 @@ driver.defineSteps([
             position: 'top'
         }
     },
+    {% endif %}
     {% endif %}
 ])
 </script>

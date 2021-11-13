@@ -12,14 +12,14 @@
     Главная
     <span class="pull-right">
         {% if perms.contests.add_course %}
-        <a id="btn_course_create" href="{% url 'contests:course-create' %}" class="text-success" data-toggle="tooltip" data-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
+        <a href="{% url 'contests:course-create' %}" id="btn_course_create" class="text-success" data-toggle="tooltip" data-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
         {% endif %}
         <a href="{% url 'contests:course-list' %}" data-toggle="tooltip" data-placement="top" title="Все курсы"><i class="fa fa-book fa-fw"></i></a>
         {% if perms.contests.view_submission_list %}
         <a href="{% url 'contests:submission-list' %}" data-toggle="tooltip" data-placement="top" title="Все посылки"><i class="fa fa-tasks fa-fw"></i></a>
         {% endif %}
         {% if perms.accounts.change_account %}
-        <a href="{% url 'accounts:account-list' %}" data-toggle="tooltip" data-placement="top" title="Пользователи"><i class="fa fa-users fa-fw"></i></a>
+        <a href="{% url 'accounts:account-list' %}" id="btn_account_list" data-toggle="tooltip" data-placement="top" title="Пользователи"><i class="fa fa-users fa-fw"></i></a>
         {% endif %}
         {% if perms.accounts.view_filter %}
         <a href="{% url 'contests:filter-table' %}" data-toggle="tooltip" data-placement="top" title="Фильтры"><i class="fa fa-bookmark fa-fw"></i></a>
@@ -96,6 +96,7 @@ driver.defineSteps([
         }
     },
     {% endif %}
+    {% if request.user.account.is_instructor %}
     {% if not request|have_passed_step:'contest_main' %}
     {
         view: '{% tutorial_step_view request %}',
@@ -144,6 +145,21 @@ driver.defineSteps([
             position: 'bottom',
         }
     },
+    {% endif %}
+    {% endif %}
+    {% if request.user.account.is_moderator %}
+    {% if not request|have_passed_step:'button_account_list' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'button_account_list',
+        element: '#btn_account_list',
+        popover: {
+            title: "__tutorial__",
+            description: "__tutorial__",
+            position: 'left',
+        }
+    },
+    {% endif %}
     {% endif %}
 ]);
 </script>
