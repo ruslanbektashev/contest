@@ -142,7 +142,8 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
         self.storage = {}
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['year'] = int(request.GET.get('year') or get_study_years_list(request.user.account)[0][0])
+        if request.user.is_authenticated:
+            self.storage['year'] = int(request.GET.get('year') or get_study_years_list(request.user.account)[0][0])
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
@@ -180,9 +181,10 @@ class AccountCreateSet(LoginRedirectPermissionRequiredMixin, FormView):
         self.storage = {}
 
     def dispatch(self, request, *args, **kwargs):
-        faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
-        self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
-        self.storage['level'] = int(request.GET.get('level') or 1)
+        if request.user.is_authenticated:
+            faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
+            self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
+            self.storage['level'] = int(request.GET.get('level') or 1)
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -258,17 +260,18 @@ class AccountUpdateSet(LoginRedirectPermissionRequiredMixin, FormView):
         self.storage = {}
 
     def dispatch(self, request, *args, **kwargs):
-        faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
-        self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
-        self.storage['level'] = int(request.GET.get('level') or 1)
-        self.storage['type'] = int(request.GET.get('type') or 1)
-        enrolled, graduated = request.GET.get('enrolled'), request.GET.get('graduated')
-        self.storage['enrolled'] = True
-        self.storage['graduated'] = False
-        if enrolled is not None and enrolled == '0':
-            self.storage['enrolled'] = False
-        if graduated is not None and graduated == '1':
-            self.storage['graduated'] = True
+        if request.user.is_authenticated:
+            faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
+            self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
+            self.storage['level'] = int(request.GET.get('level') or 1)
+            self.storage['type'] = int(request.GET.get('type') or 1)
+            enrolled, graduated = request.GET.get('enrolled'), request.GET.get('graduated')
+            self.storage['enrolled'] = True
+            self.storage['graduated'] = False
+            if enrolled is not None and enrolled == '0':
+                self.storage['enrolled'] = False
+            if graduated is not None and graduated == '1':
+                self.storage['graduated'] = True
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
@@ -364,9 +367,10 @@ class AccountCredentials(LoginRedirectPermissionRequiredMixin, TemplateView):
         self.storage = {}
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['credentials'] = self.request.session.pop('credentials', None)
-        faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
-        self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
+        if request.user.is_authenticated:
+            self.storage['credentials'] = self.request.session.pop('credentials', None)
+            faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
+            self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
