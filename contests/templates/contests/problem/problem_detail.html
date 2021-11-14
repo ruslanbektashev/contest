@@ -153,7 +153,9 @@
                 </a>
                 {% endif %}
                 {% endif %}
-                {% render_attachment_list problem %}
+                <div class="w-100">
+                    {% render_attachment_list problem %}
+                </div>
                 {% if perms.contests.change_problem %}
                 <a href="{% url 'contests:problem-update' problem.id %}?add_files=1" class="btn btn-block btn-light">
                     <i class="fa fa-files-o fa-fw"></i> Добавить файлы
@@ -178,7 +180,9 @@
                 <div class="w-100">
                     {{ problem.contest.description|markdown|safe }}
                 </div>
-                {% render_attachment_list problem.contest %}
+                <div class="w-100">
+                    {% render_attachment_list problem.contest %}
+                </div>
             </div>
         </div>
     </div>

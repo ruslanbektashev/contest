@@ -61,7 +61,9 @@
                 <div class="w-100">
                     {{ contest.description|markdown|safe }}
                 </div>
-                {% render_attachment_list contest %}
+                <div class="w-100">
+                    {% render_attachment_list contest %}
+                </div>
                 {% if perms.contests.change_contest %}
                 <a href="{% url 'contests:contest-update' contest.id %}?add_files=1" class="btn btn-block btn-light">
                     <i class="fa fa-files-o fa-fw"></i> Добавить файлы
