@@ -825,7 +825,7 @@ class Announcement(CRUDEntry):
 """================================================== Notification =================================================="""
 
 
-def make_notification(recipients, subject, action, object=None, reference=None, level=None, date_created=None):
+def make_notifications(recipients, subject, action, object=None, reference=None, level=None, date_created=None):
     if isinstance(recipients, Group):
         recipient_ids = recipients.user_set.all().values_list('id', flat=True)
     elif isinstance(recipients, models.QuerySet) or isinstance(recipients, list):
@@ -876,7 +876,7 @@ class NotificationManager(models.Manager):
             group = Group.objects.get(name=group_name)
         except Group.DoesNotExist:
             return
-        new_notifications = make_activities(group, **kwargs)
+        new_notifications = make_notifications()(group, **kwargs)
         self.bulk_create(new_notifications)
 
     def notify_user(self, user, **kwargs):
@@ -885,12 +885,12 @@ class NotificationManager(models.Manager):
                 user = User.objects.get(username=user)
             except User.DoesNotExist:
                 return
-        new_activities = make_activities(user, **kwargs)
-        self.bulk_create(new_activities)
+        new_notifications = make_notifications(user, **kwargs)
+        self.bulk_create(new_notifications)
 
     def notify_users(self, users, **kwargs):
-        new_activities = make_activities(users, **kwargs)
-        self.bulk_create(new_activities)
+        new_notifications = make_notifications(users, **kwargs)
+        self.bulk_create(new_notifications)
 
 
 class Notification(models.Model):
