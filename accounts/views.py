@@ -1,12 +1,10 @@
 import json
-import locale
 import datetime
 
 from django.forms import modelformset_factory
 from markdown import markdown
 
 from django.apps import apps
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
@@ -47,8 +45,8 @@ def get_study_years_list(account):
 
 def get_year_month_submissions_solutions_comments_count_list(user, year):
     Assignment = apps.get_model('contests', 'Assignment')
-    locale.setlocale(locale.LC_ALL, "ru_RU")
-    settings.USE_TZ = False
+    # locale.setlocale(locale.LC_ALL, "ru_RU")
+    # settings.USE_TZ = False
     academic_year_start_month = 9
     today = datetime.datetime.today()
     all_time = not year
@@ -86,8 +84,8 @@ def get_year_month_submissions_solutions_comments_count_list(user, year):
             problems_count,
             Comment.objects.filter(author=user, date_created__year=day.year, date_created__month=day.month).count(),
         ))
-    settings.USE_TZ = True
-    locale.setlocale(locale.LC_ALL, "en_US")
+    # settings.USE_TZ = True
+    # locale.setlocale(locale.LC_ALL, "en_US")
     return result
 
 
