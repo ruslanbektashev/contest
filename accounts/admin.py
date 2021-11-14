@@ -175,7 +175,7 @@ class NotificationAdmin(admin.ModelAdmin):
             'fields': ('object_type', 'object_id')
         }),
         ('Связь', {
-            'fields': ('reference_type', 'reference_id')
+            'fields': ('reference_type', 'reference_id', 'relation')
         }),
         ('Ссылки', {
             'fields': ('recipient',)
