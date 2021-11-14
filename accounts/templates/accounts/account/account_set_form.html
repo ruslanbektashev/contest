@@ -50,7 +50,9 @@ driver.defineSteps([
         element: '#field_faculty',
         popover: {
             title: " ",
-            description: "Выберите из списка факультет добавляемых пользователей.",
+            description: "Выберите факультет добавляемых пользователей.<br>" +
+                "Доступны факультеты &laquo;ПМиИ&raquo;, &laquo;Психология&raquo;, &laquo;Филология&raquo; и &laquo;РиСО&raquo;.<br>" +
+                "По умолчанию установлен факультет пользователя-модератора.",
             position: 'bottom'
         }
     },
@@ -62,7 +64,9 @@ driver.defineSteps([
         element: '#field_level',
         popover: {
             title: " ",
-            description: "Выберите из списка курс и семестр добавляемых пользователей.",
+            description: "Выберите уровень обучения добавляемых пользователей.<br>" +
+                "Доступны курсы с 1 по 4, семестры с I по VIII.<br>" +
+                "По умолчанию установлен 1 курс, I семестр.",
             position: 'bottom'
         }
     },
@@ -74,7 +78,10 @@ driver.defineSteps([
         element: '#field_type',
         popover: {
             title: " ",
-            description: "Выберите из списка группу для добавляемых пользователей.",
+            description: "Выберите группу добавляемых пользователей.<br>" +
+                "Доступны группы &laquo;студент&raquo;, &laquo;преподаватель&raquo;, &laquo;модератор&raquo;.<br>"+
+                "Модераторы могут создавать, редактировать и удалять профили остальных пользователей.<br>" +
+                "По умолчанию установлена группа &laquo;студент&raquo;.",
             position: 'bottom'
         }
     },
@@ -86,7 +93,8 @@ driver.defineSteps([
         element: '#field_admission_year',
         popover: {
             title: " ",
-            description: "Выберите из списка год поступления добавляемых пользователей.",
+            description: "Выберите год поступления добавляемых пользователей.<br>" +
+                "По умолчанию установлен текущий год.",
             position: 'bottom'
         }
     },
@@ -98,7 +106,7 @@ driver.defineSteps([
         element: '#field_names',
         popover: {
             title: " ",
-            description: "Задайте данные добавляемых пользователей в указанном формате.",
+            description: "Введите данные о добавляемых пользователях в указанном формате.",
             position: 'top'
         }
     },
