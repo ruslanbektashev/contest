@@ -502,7 +502,6 @@ for (let i = 0; i < formsNumber; i++) {
 
         if (response.status === 200) {
             const result = await response.json();
-            console.log(result);
 
             const subSubmission = result.updated.find((value) => value.id === subSubmissionId);
             const statusElem = document.getElementById('status-' + i);

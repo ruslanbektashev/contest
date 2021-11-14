@@ -23,45 +23,49 @@
     </span>
 </legend>
 <form>
-    <div id="account_list_filters" class="form-row">
-        <div class="col-6 col-md-2">
-            <select id="type_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
-                <option value="{% get_full_path_with_updated_query_string request type=1 %}" {% if type == 1 %}selected{% endif %}>Студенты</option>
-                <option value="{% get_full_path_with_updated_query_string request type=2 %}" {% if type == 2 %}selected{% endif %}>Модераторы</option>
-                <option value="{% get_full_path_with_updated_query_string request type=3 %}" {% if type == 3 %}selected{% endif %}>Преподаватели</option>
-            </select>
-            <label for="type_select"></label>
+    <div class="form-row">
+        <div id="account_list_filters" class="col-12 col-md-8">
+            <div class="form-row">
+                <div class="col-6 col-md-3">
+                    <select id="type_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+                        <option value="{% get_full_path_with_updated_query_string request type=1 %}" {% if type == 1 %}selected{% endif %}>Студенты</option>
+                        <option value="{% get_full_path_with_updated_query_string request type=2 %}" {% if type == 2 %}selected{% endif %}>Модераторы</option>
+                        <option value="{% get_full_path_with_updated_query_string request type=3 %}" {% if type == 3 %}selected{% endif %}>Преподаватели</option>
+                    </select>
+                    <label for="type_select"></label>
+                </div>
+                {% if perms.accounts.add_faculty %}
+                <div class="col-6 col-md-3">
+                    <select id="faculty_select" name="faculty" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+                        {% for fct_id, fct_display in faculty_choices %}
+                        <option value="{% get_full_path_with_updated_query_string request faculty_id=fct_id %}" {% if faculty.id == fct_id %}selected{% endif %}>{{ fct_display }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="faculty_select"></label>
+                </div>
+                {% endif %}
+                {% if type == 1 %}
+                <div class="col-6 col-md-3">
+                    <select id="student_type_select" name="student_type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+                        <option value="{% get_full_path_with_updated_query_string request enrolled=1 graduated=0 %}" {% if enrolled == True and graduated == False %}selected{% endif %}>Учащиеся</option>
+                        <option value="{% get_full_path_with_updated_query_string request enrolled=0 graduated=1 %}" {% if enrolled == False and graduated == True %}selected{% endif %}>Выпускники</option>
+                        <option value="{% get_full_path_with_updated_query_string request enrolled=0 graduated=0 %}" {% if enrolled == False and graduated == False %}selected{% endif %}>Отчисленные</option>
+                    </select>
+                    <label for="student_type_select"></label>
+                </div>
+                {% if enrolled == True %}
+                <div class="col-6 col-md-3">
+                    <select id="level_select" name="level" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+                        {% for lvl, lvl_display in level_choices %}
+                        <option value="{% get_full_path_with_updated_query_string request level=lvl enrolled=1 graduated=0 type=1 %}" {% if level == lvl %}selected{% endif %}>{{ lvl_display }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="level_select"></label>
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
         </div>
-        {% if perms.accounts.add_faculty %}
-        <div class="col-6 col-md-2">
-            <select id="faculty_select" name="faculty" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
-                {% for fct_id, fct_display in faculty_choices %}
-                <option value="{% get_full_path_with_updated_query_string request faculty_id=fct_id %}" {% if faculty.id == fct_id %}selected{% endif %}>{{ fct_display }}</option>
-                {% endfor %}
-            </select>
-            <label for="faculty_select"></label>
-        </div>
-        {% endif %}
-        {% if type == 1 %}
-        <div class="col-6 col-md-2">
-            <select id="student_type_select" name="student_type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
-                <option value="{% get_full_path_with_updated_query_string request enrolled=1 graduated=0 %}" {% if enrolled == True and graduated == False %}selected{% endif %}>Учащиеся</option>
-                <option value="{% get_full_path_with_updated_query_string request enrolled=0 graduated=1 %}" {% if enrolled == False and graduated == True %}selected{% endif %}>Выпускники</option>
-                <option value="{% get_full_path_with_updated_query_string request enrolled=0 graduated=0 %}" {% if enrolled == False and graduated == False %}selected{% endif %}>Отчисленные</option>
-            </select>
-            <label for="student_type_select"></label>
-        </div>
-        {% if enrolled == True %}
-        <div class="col-6 col-md-2">
-            <select id="level_select" name="level" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
-                {% for lvl, lvl_display in level_choices %}
-                <option value="{% get_full_path_with_updated_query_string request level=lvl enrolled=1 graduated=0 type=1 %}" {% if level == lvl %}selected{% endif %}>{{ lvl_display }}</option>
-                {% endfor %}
-            </select>
-            <label for="level_select"></label>
-        </div>
-        {% endif %}
-        {% endif %}
         {% if perms.accounts.change_account %}
         <div class="col-12 col-md-4 ml-auto mb-3 mb-md-0">
             <div class="pull-right">
@@ -172,9 +176,25 @@ driver.defineSteps([
         step: 'account_list_table',
         element: '#account_list_table',
         popover: {
-            title: "__tutorial__",
-            description: "__tutorial__",
+            title: "Список пользователей",
+            description: "Это список всех пользователей выбранной группы.<br>" +
+                "Выберите несколько пользователей из списка.",
             position: 'top'
+        }
+    },
+    {% endif %}
+    {% if not request|have_passed_step:'account_list_form_actions' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'account_list_form_actions',
+        element: '#account_list_form_actions',
+        popover: {
+            title: "Действия с пользователями",
+            description: "Здесь Вы можете:<br>" +
+                "Изменять пароль для выбранных пользователей.<br>" +
+                "Повышать и понижать уровень обучения студентов на один семестр.<br>" +
+                "Помечать студентов как отчисленных, восстановленных и закончивших обучение.",
+            position: 'bottom'
         }
     },
     {% endif %}
@@ -184,8 +204,8 @@ driver.defineSteps([
         step: 'account_list_filters',
         element: '#account_list_filters',
         popover: {
-            title: "__tutorial__",
-            description: "__tutorial__",
+            title: "Фильтр списка пользователей",
+            description: "Здесь Вы можете выбирать, какую группу пользователей отображать. Для каждой группы также доступны дополнительные критерии.",
             position: 'bottom'
         }
     },
@@ -196,8 +216,8 @@ driver.defineSteps([
         step: 'account_list_update_set',
         element: '#account_list_update_set',
         popover: {
-            title: "__tutorial__",
-            description: "__tutorial__",
+            title: " ",
+            description: "С помощью этой кнопки Вы можете перейти к редактированию пользователей.",
             position: 'left'
         }
     },
@@ -208,8 +228,8 @@ driver.defineSteps([
         step: 'account_list_create_set',
         element: '#account_list_create_set',
         popover: {
-            title: "__tutorial__",
-            description: "__tutorial__",
+            title: " ",
+            description: "С помощью этой кнопки Вы можете добавить новых пользователей.",
             position: 'left'
         }
     },

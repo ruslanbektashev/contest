@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from accounts.models import Account, make_activities, Activity, Announcement
+from accounts.models import Account, Faculty, make_activities, Activity, Announcement
 
 
 class AccountViewsTest(TestCase):
@@ -14,13 +14,14 @@ class AccountViewsTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        faculty = Faculty.objects.create(name="Test Fac")
         admin = User.objects.create_superuser(cls.admin, 'admin@localhost', cls.admin)
-        Account.objects.create(user=admin)
+        Account.objects.create(user=admin, faculty=faculty)
         student = User.objects.create_user(cls.student, 'student@localhost', cls.student)
-        Account.objects.create(user=student)
+        Account.objects.create(user=student, faculty=faculty)
         for i in range(1, cls.accounts_num + 1):
             user = User.objects.create_user(cls.student + '_%s' % i, 'student_%s@localhost' % i, cls.student + '_%s' % i)
-            account = Account.objects.create(user=user)
+            account = Account.objects.create(user=user, faculty=faculty)
             cls.accounts.append(account)
 
     """=================================================== Detail ==================================================="""
@@ -151,10 +152,12 @@ class ActivityViewsTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        faculty = Faculty.objects.create(name="Test Fac")
         admin = User.objects.create_superuser(cls.admin, 'admin@localhost', cls.admin)
-        Account.objects.create(user=admin)
+        faculty = Faculty.objects.create(name="Test Fac")
+        Account.objects.create(user=admin, faculty=faculty)
         student = User.objects.create_user(cls.student, 'student@localhost', cls.student)
-        Account.objects.create(user=student)
+        Account.objects.create(user=student, faculty=faculty)
         new_activities = []
         for i in range(1, cls.activities_num + 1):
             new_activities += make_activities(admin, student, "Test Activity %s" % i)
@@ -191,10 +194,11 @@ class AnnouncementViewsTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        faculty = Faculty.objects.create(name="Test Fac")
         admin = User.objects.create_superuser(cls.admin, 'admin@localhost', cls.admin)
-        Account.objects.create(user=admin)
+        Account.objects.create(user=admin, faculty=faculty)
         student = User.objects.create_user(cls.student, 'student@localhost', cls.student)
-        Account.objects.create(user=student)
+        Account.objects.create(user=student, faculty=faculty)
         for i in range(1, cls.announcements_num + 1):
             announcement = Announcement.objects.create(owner=admin, title="Test Announcement %s" % i,
                                                        text="Test Text %s" % i)

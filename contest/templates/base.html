@@ -33,6 +33,11 @@
                     <a class="nav-link" href="{% url 'schedule:schedule-list' %}">Расписание</a>
                 </li>
                 <li>
+                    {% with request.user.notifications.unread.count as notification_count %}
+                    <a class="nav-link" href="{% url 'accounts:notification-list' %}">Оповещения {% if notification_count %} <span id="unread_notifications_count" class="badge badge-pill badge-primary align-middle">{{ notification_count }}</span>{% endif %}</a>
+                    {% endwith %}
+                </li>
+                <li>
                     <a class="nav-link" href="{% url 'support:index' %}">Помощь</a>
                 </li>
                 <li>
@@ -53,9 +58,6 @@
                     </a>
                     <div aria-labelledby="navbarDropdown" class="dropdown-menu shadow-sm">
                         <a class="dropdown-item" href="{{ request.user.account.get_absolute_url }}"><i class="fa fa-user-o fa-fw"></i> Профиль</a>
-                        {% with request.user.notifications.unread.count as notification_count %}
-                        <a class="dropdown-item" href="{% url 'accounts:activity-list' %}"><i class="fa fa-bell-o fa-fw"></i> Оповещения{% if notification_count %} <span id="unread_activities_count" class="badge badge-pill badge-secondary align-middle">{{ notification_count }}</span>{% endif %}</a>
-                        {% endwith %}
                         {% with request.user.received_messages.unread.count as messages_count %}
                         <a class="dropdown-item" href="{% url 'accounts:chat-list' %}"><i class="fa fa-envelope-o fa-fw"></i> Сообщения{% if messages_count %} <span class="badge badge-pill badge-secondary align-middle">{{ messages_count }}</span>{% endif %}</a>
                         {% endwith %}

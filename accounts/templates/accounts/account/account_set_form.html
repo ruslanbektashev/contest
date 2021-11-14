@@ -49,8 +49,10 @@ driver.defineSteps([
         step: 'field_faculty',
         element: '#field_faculty',
         popover: {
-            title: "__tutorial__",
-            description: "__tutorial__",
+            title: " ",
+            description: "Выберите факультет добавляемых пользователей.<br>" +
+                "Доступны факультеты &laquo;ПМиИ&raquo;, &laquo;Психология&raquo;, &laquo;Филология&raquo; и &laquo;РиСО&raquo;.<br>" +
+                "По умолчанию установлен факультет пользователя-модератора.",
             position: 'bottom'
         }
     },
@@ -61,8 +63,10 @@ driver.defineSteps([
         step: 'field_level',
         element: '#field_level',
         popover: {
-            title: "__tutorial__",
-            description: "__tutorial__",
+            title: " ",
+            description: "Выберите уровень обучения добавляемых пользователей.<br>" +
+                "Доступны курсы с 1 по 4, семестры с I по VIII.<br>" +
+                "По умолчанию установлен 1 курс, I семестр.",
             position: 'bottom'
         }
     },
@@ -73,8 +77,11 @@ driver.defineSteps([
         step: 'field_type',
         element: '#field_type',
         popover: {
-            title: "__tutorial__",
-            description: "__tutorial__",
+            title: " ",
+            description: "Выберите группу добавляемых пользователей.<br>" +
+                "Доступны группы &laquo;студент&raquo;, &laquo;преподаватель&raquo;, &laquo;модератор&raquo;.<br>"+
+                "Модераторы могут создавать, редактировать и удалять профили остальных пользователей.<br>" +
+                "По умолчанию установлена группа &laquo;студент&raquo;.",
             position: 'bottom'
         }
     },
@@ -85,8 +92,9 @@ driver.defineSteps([
         step: 'field_admission_year',
         element: '#field_admission_year',
         popover: {
-            title: "__tutorial__",
-            description: "__tutorial__",
+            title: " ",
+            description: "Выберите год поступления добавляемых пользователей.<br>" +
+                "По умолчанию установлен текущий год.",
             position: 'bottom'
         }
     },
@@ -97,8 +105,8 @@ driver.defineSteps([
         step: 'field_names',
         element: '#field_names',
         popover: {
-            title: "__tutorial__",
-            description: "__tutorial__",
+            title: " ",
+            description: "Введите данные о добавляемых пользователях в указанном формате.",
             position: 'top'
         }
     },
@@ -109,8 +117,8 @@ driver.defineSteps([
         step: 'form_submit_button',
         element: '#form_submit_button',
         popover: {
-            title: "__tutorial__",
-            description: "__tutorial__",
+            title: " ",
+            description: "Регистрация всех указанных выше пользователей.",
             position: 'top'
         }
     },

@@ -1,4 +1,5 @@
 import math
+import enum
 from statistics import mean
 
 from django.apps import apps
@@ -512,7 +513,7 @@ class Activity(models.Model):
     )
     DEFAULT_LEVEL = 2
 
-    recipient = models.ForeignKey(User, related_name='notifications', on_delete=models.CASCADE)
+    recipient = models.ForeignKey(User, related_name='activities', on_delete=models.CASCADE)
     subject_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     subject_id = models.PositiveIntegerField()
     subject = GenericForeignKey(ct_field='subject_type', fk_field='subject_id')
@@ -820,3 +821,109 @@ class Announcement(CRUDEntry):
 
     def __str__(self):
         return "%s" % self.title
+
+
+"""================================================== Notification =================================================="""
+
+
+class NotificationQuerySet(models.QuerySet):
+    def actual(self):
+        return self.filter(is_deleted=False)
+
+    def unread(self):
+        return self.actual().filter(is_read=False)
+
+    def mark_as_deleted(self):
+        return self.actual().update(is_deleted=True)
+
+    def mark_as_read(self):
+        return self.unread().update(is_read=True)
+
+
+class NotificationManager(models.Manager):
+    class Recipients(enum.Enum):
+        COURSE_LEADERS = 1
+
+    def notify(self, recipients, subject, action, object=None, relation=None, reference=None, date_created=None):
+        if isinstance(recipients, str):
+            group = Group.objects.get(name=recipients)
+            recipient_ids = group.user_set.all().values_list('id', flat=True)
+        elif isinstance(recipients, Group):
+            recipient_ids = recipients.user_set.all().values_list('id', flat=True)
+        elif isinstance(recipients, models.QuerySet) or isinstance(recipients, list):
+            recipient_ids = recipients
+        elif isinstance(recipients, User):
+            recipient_ids = [recipients.id]
+        else:
+            raise ValueError
+        optional = dict()
+        if relation:
+            optional['relation'] = relation
+        if date_created:
+            optional['date_created'] = date_created
+        new_notifications = []
+        for recipient_id in recipient_ids:
+            if isinstance(subject, User) and subject.id == recipient_id:
+                continue
+            notification = Notification(subject_type=ContentType.objects.get_for_model(subject),
+                                subject_id=subject.id,
+                                recipient_id=recipient_id,
+                                action=action,
+                                **optional)
+            if object:
+                notification.object_type = ContentType.objects.get_for_model(object)
+                notification.object_id = object.id
+            if reference:
+                notification.reference_type = ContentType.objects.get_for_model(reference)
+                notification.reference_id = reference.id
+            new_notifications.append(notification)
+        self.bulk_create(new_notifications)
+
+
+class Notification(models.Model):
+    recipient = models.ForeignKey(User, related_name='notifications', verbose_name="Получатель", on_delete=models.CASCADE)
+    subject_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    subject_id = models.PositiveIntegerField()
+    subject = GenericForeignKey(ct_field='subject_type', fk_field='subject_id')
+    object_type = models.ForeignKey(ContentType, related_name='+', blank=True, null=True, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField(blank=True, null=True)
+    object = GenericForeignKey(ct_field='object_type')
+    reference_type = models.ForeignKey(ContentType, related_name='+', blank=True, null=True, on_delete=models.CASCADE)
+    reference_id = models.PositiveIntegerField(blank=True, null=True)
+    reference = GenericForeignKey(ct_field='reference_type', fk_field='reference_id')
+
+    action = models.CharField(max_length=255, verbose_name="Описание действия")
+    relation = models.CharField(max_length=255, blank=True, verbose_name="Описание связи")
+    is_read = models.BooleanField(default=False, verbose_name="Прочитано?")
+    is_deleted = models.BooleanField(default=False, verbose_name="Удалено?")
+
+    date_created = models.DateTimeField(default=timezone.now, verbose_name="Дата создания")
+
+    objects = ActivityManager.from_queryset(ActivityQuerySet)()
+
+    class Meta:
+        ordering = ('-date_created',)
+        verbose_name = "Оповещение"
+        verbose_name_plural = "Оповещения"
+
+    def __str__(self):
+        context = {
+            'recipient': self.recipient.account,
+            'action': self.action,
+            'object': '',
+            'slash': '',
+            'relation': '',
+            'reference': ''
+        }
+        if self.object:
+            context['object'] = self.object
+        if self.reference:
+            context['slash'] = ' / '
+            context['reference'] = self.reference
+        if self.relation:
+            context['relation'] = " {} ".format(self.relation)
+        if isinstance(self.subject, User):
+            context['subject'] = self.subject.last_name
+        else:
+            context['subject'] = self.subject
+        return "{subject} {action} {object}{slash}{relation}{reference}".format(**context)

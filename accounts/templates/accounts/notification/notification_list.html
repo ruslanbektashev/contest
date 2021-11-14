@@ -1,0 +1,78 @@
+{% extends 'base_wide.html' %}
+{% load views accounts humanize static %}
+
+{% block title %}
+Оповещения
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Оповещения" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>
+    Оповещения
+</legend>
+<div id="notifications" class="notification-list list-group  mb-3">
+    {% if notifications %}
+    {% now 'Y' as current_year %}
+    {% for notification in notifications %}
+    <li class="notification-list-item list-group-item d-flex {% if not notification.is_read %}bg-light" data-unread=true{% else %}"{% endif %} data-id={{ notification.id }}>
+    <span class="notification-body mr-auto">
+        {% if notification.subject.username %}
+        <a href="{{ notification.subject.account.get_absolute_url }}">{{ notification.subject.account }}</a>
+        {% elif notification.subject %}
+        <a href="{{ notification.subject.get_absolute_url }}"> {{ notification.subject }}</a>
+        {% endif %}
+        {{ notification.action }}
+        {% if notification.object %}
+        <a href="{{ notification.object.get_absolute_url }}"> {{ notification.object }}</a>
+        {% endif %}
+        {% if notification.reference %}
+        / <a href="{{ notification.reference.get_absolute_url }}"> {{ notification.reference }}</a>
+        {% endif %}
+    </span>
+    <span class="text-muted text-right" style="width: 25%;">
+        {% if notification.date_created|date:'Y' == current_year %}
+        {{ notification.date_created|naturaltime_if_lt_week_ago:'j E в H:i' }}
+        {% else %}
+        {{ notification.date_created|naturaltime_if_lt_week_ago:'j E Y г. в H:i' }}
+        {% endif %}
+    </span>
+    </li>
+    {% endfor %}
+    {% else %}
+    <div class="alert alert-info mb-3" role="alert">
+        Оповещений нет
+    </div>
+    {% endif %}
+</div>
+{% if page_obj.has_next %}
+<a class="notification-list-more btn btn-block btn-link" href="?page={{ page_obj.next_page_number }}">еще</a>
+{% endif %}
+
+{% endblock content %}
+
+{% block javascript %}
+<script src="{% static 'waypoints/lib/jquery.waypoints.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'waypoints/lib/shortcuts/infinite.min.js' %}" type="text/javascript"></script>
+<script>
+    var infinite = new Waypoint.Infinite({
+        element: $('.notification-list')[0],
+        items: '.notification-list-item',
+        more: '.notification-list-more'
+    });
+</script>
+<script type="text/javascript" src="{% static 'js/notifications.js' %}"></script>
+<script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+        const watcher = new ReadWatcher("{% url 'accounts:mark-notifications-as-read' %}");
+        if(parseInt('{% unread_notifications_count request.user %}') > 0) {
+            window.addEventListener('scroll', watcher, false);
+            document.getElementById('notifications').addEventListener('mouseover', watcher, false);
+            setTimeout(watcher.markNotificationsAsRead.bind(watcher), 1000);
+        }
+    });
+    </script>
+{% endblock javascript %}

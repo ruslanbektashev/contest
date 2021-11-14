@@ -118,8 +118,9 @@ class CourseCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
-        self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
+        if request.user.is_authenticated:
+            faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
+            self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
         return super().dispatch(request, *args, **kwargs)
 
     def get_initial(self):
@@ -156,8 +157,9 @@ class CourseList(LoginRequiredMixin, ListView):
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
-        self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
+        if request.user.is_authenticated:
+            faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
+            self.storage['faculty'] = get_object_or_404(Faculty, id=faculty_id)
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
@@ -1231,14 +1233,15 @@ class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
-        course_leader_queryset = CourseLeader.objects.filter(course=self.storage['course'], leader=request.user)
-        course_leader = course_leader_queryset.get() if course_leader_queryset.exists() else None
-        default_group = course_leader.group if course_leader is not None else 0
-        default_subgroup = course_leader.subgroup if course_leader is not None else 0
-        self.storage['group'] = int(request.GET.get('group') or default_group)
-        self.storage['subgroup'] = int(request.GET.get('subgroup') or default_subgroup)
-        self.storage['debts'] = bool(request.GET.get('debts'))
+        if request.user.is_authenticated:
+            self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
+            course_leader_queryset = CourseLeader.objects.filter(course=self.storage['course'], leader=request.user)
+            course_leader = course_leader_queryset.get() if course_leader_queryset.exists() else None
+            default_group = course_leader.group if course_leader is not None else 0
+            default_subgroup = course_leader.subgroup if course_leader is not None else 0
+            self.storage['group'] = int(request.GET.get('group') or default_group)
+            self.storage['subgroup'] = int(request.GET.get('subgroup') or default_subgroup)
+            self.storage['debts'] = bool(request.GET.get('debts'))
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
@@ -1383,36 +1386,37 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        problem = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
-        try:
-            self.storage['assignment'] = Assignment.objects.get(user=self.request.user, problem=problem)
-        except Assignment.DoesNotExist:
-            self.storage['assignment'] = None
-        if problem.type == 'Test':
-            self.storage['main_problem'] = problem
-            sub_problem_id = request.GET.get("sub_problem")
-            main_submission_id = kwargs.pop('submission_id', None)
-            sub_problem = None
-            if main_submission_id:
-                main_submission = get_object_or_404(Submission, id=main_submission_id)
-                self.storage['main_submission'] = main_submission
-                pending_sub_problems = problem.sub_problems.exclude(submission__in=main_submission.sub_submissions.all())
-                if sub_problem_id and sub_problem_id.isdigit():
-                    sub_problem = pending_sub_problems.filter(id=sub_problem_id).first()
-                if sub_problem is None:
-                    sub_problem = pending_sub_problems.first()
-                if sub_problem is None:
-                    self.storage['main_submission_complete'] = True
-                    return HttpResponseRedirect(self.get_success_url())
-                self.storage['problem'] = sub_problem
+        if request.user.is_authenticated:
+            problem = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
+            try:
+                self.storage['assignment'] = Assignment.objects.get(user=self.request.user, problem=problem)
+            except Assignment.DoesNotExist:
+                self.storage['assignment'] = None
+            if problem.type == 'Test':
+                self.storage['main_problem'] = problem
+                sub_problem_id = request.GET.get("sub_problem")
+                main_submission_id = kwargs.pop('submission_id', None)
+                sub_problem = None
+                if main_submission_id:
+                    main_submission = get_object_or_404(Submission, id=main_submission_id)
+                    self.storage['main_submission'] = main_submission
+                    pending_sub_problems = problem.sub_problems.exclude(submission__in=main_submission.sub_submissions.all())
+                    if sub_problem_id and sub_problem_id.isdigit():
+                        sub_problem = pending_sub_problems.filter(id=sub_problem_id).first()
+                    if sub_problem is None:
+                        sub_problem = pending_sub_problems.first()
+                    if sub_problem is None:
+                        self.storage['main_submission_complete'] = True
+                        return HttpResponseRedirect(self.get_success_url())
+                    self.storage['problem'] = sub_problem
+                else:
+                    if sub_problem_id and sub_problem_id.isdigit():
+                        sub_problem = problem.sub_problems.filter(id=sub_problem_id).first()
+                    if sub_problem is None:
+                        sub_problem = problem.sub_problems.first()
+                    self.storage['problem'] = sub_problem
             else:
-                if sub_problem_id and sub_problem_id.isdigit():
-                    sub_problem = problem.sub_problems.filter(id=sub_problem_id).first()
-                if sub_problem is None:
-                    sub_problem = problem.sub_problems.first()
-                self.storage['problem'] = sub_problem
-        else:
-            self.storage['problem'] = problem
+                self.storage['problem'] = problem
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
