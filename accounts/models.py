@@ -876,7 +876,7 @@ class NotificationManager(models.Manager):
             group = Group.objects.get(name=group_name)
         except Group.DoesNotExist:
             return
-        new_notifications = make_notifications()(group, **kwargs)
+        new_notifications = make_notifications(group, **kwargs)
         self.bulk_create(new_notifications)
 
     def notify_user(self, user, **kwargs):
