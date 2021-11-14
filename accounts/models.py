@@ -1,4 +1,5 @@
 import math
+import enum
 from statistics import mean
 
 from django.apps import apps
@@ -825,42 +826,6 @@ class Announcement(CRUDEntry):
 """================================================== Notification =================================================="""
 
 
-def make_notifications(recipients, subject, action, object=None, reference=None, level=None, date_created=None):
-    if isinstance(recipients, str):
-        group = Group.objects.get(name=recipients)
-        recipient_ids = group.user_set.all().values_list('id', flat=True)
-    elif isinstance(recipients, Group):
-        recipient_ids = recipients.user_set.all().values_list('id', flat=True)
-    elif isinstance(recipients, models.QuerySet) or isinstance(recipients, list):
-        recipient_ids = recipients
-    elif isinstance(recipients, User):
-        recipient_ids = [recipients.id]
-    else:
-        raise ValueError
-    optional = dict()
-    if level:
-        optional['level'] = level
-    if date_created:
-        optional['date_created'] = date_created
-    new_notifications = []
-    for recipient_id in recipient_ids:
-        if isinstance(subject, User) and subject.id == recipient_id:
-            continue
-        notification = Notification(subject_type=ContentType.objects.get_for_model(subject),
-                            subject_id=subject.id,
-                            recipient_id=recipient_id,
-                            action=action,
-                            **optional)
-        if object:
-            notification.object_type = ContentType.objects.get_for_model(object)
-            notification.object_id = object.id
-        if reference:
-            notification.reference_type = ContentType.objects.get_for_model(reference)
-            notification.reference_id = reference.id
-        new_notifications.append(notification)
-    return new_notifications
-
-
 class NotificationQuerySet(models.QuerySet):
     def actual(self):
         return self.filter(is_deleted=False)
@@ -876,8 +841,42 @@ class NotificationQuerySet(models.QuerySet):
 
 
 class NotificationManager(models.Manager):
-    def notify(self, recipients, subject, action, **kwargs):
-        new_notifications = make_notifications(recipients, subject, action, **kwargs)
+    class Recipients(enum.Enum):
+        COURSE_LEADERS = 1
+
+    def notify(self, recipients, subject, action, object=None, relation=None, reference=None, date_created=None):
+        if isinstance(recipients, str):
+            group = Group.objects.get(name=recipients)
+            recipient_ids = group.user_set.all().values_list('id', flat=True)
+        elif isinstance(recipients, Group):
+            recipient_ids = recipients.user_set.all().values_list('id', flat=True)
+        elif isinstance(recipients, models.QuerySet) or isinstance(recipients, list):
+            recipient_ids = recipients
+        elif isinstance(recipients, User):
+            recipient_ids = [recipients.id]
+        else:
+            raise ValueError
+        optional = dict()
+        if relation:
+            optional['relation'] = relation
+        if date_created:
+            optional['date_created'] = date_created
+        new_notifications = []
+        for recipient_id in recipient_ids:
+            if isinstance(subject, User) and subject.id == recipient_id:
+                continue
+            notification = Notification(subject_type=ContentType.objects.get_for_model(subject),
+                                subject_id=subject.id,
+                                recipient_id=recipient_id,
+                                action=action,
+                                **optional)
+            if object:
+                notification.object_type = ContentType.objects.get_for_model(object)
+                notification.object_id = object.id
+            if reference:
+                notification.reference_type = ContentType.objects.get_for_model(reference)
+                notification.reference_id = reference.id
+            new_notifications.append(notification)
         self.bulk_create(new_notifications)
 
 
@@ -894,6 +893,7 @@ class Notification(models.Model):
     reference = GenericForeignKey(ct_field='reference_type', fk_field='reference_id')
 
     action = models.CharField(max_length=255, verbose_name="Описание действия")
+    relation = models.CharField(max_length=255, blank=True, verbose_name="Описание связи")
     is_read = models.BooleanField(default=False, verbose_name="Прочитано?")
     is_deleted = models.BooleanField(default=False, verbose_name="Удалено?")
 
@@ -912,6 +912,7 @@ class Notification(models.Model):
             'action': self.action,
             'object': '',
             'slash': '',
+            'relation': '',
             'reference': ''
         }
         if self.object:
@@ -919,8 +920,10 @@ class Notification(models.Model):
         if self.reference:
             context['slash'] = ' / '
             context['reference'] = self.reference
+        if self.relation:
+            context['relation'] = " {} ".format(self.relation)
         if isinstance(self.subject, User):
             context['subject'] = self.subject.last_name
         else:
             context['subject'] = self.subject
-        return "{subject} {action} {object}{slash}{reference}".format(**context)
+        return "{subject} {action} {object}{slash}{relation}{reference}".format(**context)
