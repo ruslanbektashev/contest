@@ -63,7 +63,9 @@
         </div>
         <div id="collapseOne" class="collapse show" aria-labelledby="problem_description">
             <div class="card-body">
-                {{ problem.description|markdown|safe }}
+                <div class="w-100">
+                    {{ problem.description|markdown|safe }}
+                </div>
                 {% if problem.type == 'Options' %}
                 <h6 class="text-muted">Варианты ответа:</h6>
                 <ul class="list-group list-group mb-3">
@@ -173,7 +175,9 @@
         </div>
         <div id="collapseThree" class="collapse show" aria-labelledby="contest_description">
             <div class="card-body">
-                {{ problem.contest.description|markdown|safe }}
+                <div class="w-100">
+                    {{ problem.contest.description|markdown|safe }}
+                </div>
                 {% render_attachment_list problem.contest %}
             </div>
         </div>
