@@ -63,7 +63,9 @@
         </div>
         <div id="collapseOne" class="collapse show" aria-labelledby="problem_description">
             <div class="card-body">
-                {{ problem.description|markdown|safe }}
+                <div class="w-100">
+                    {{ problem.description|markdown|safe }}
+                </div>
                 {% if problem.type == 'Options' %}
                 <h6 class="text-muted">Варианты ответа:</h6>
                 <ul class="list-group list-group mb-3">
@@ -151,7 +153,9 @@
                 </a>
                 {% endif %}
                 {% endif %}
-                {% render_attachment_list problem %}
+                <div class="w-100 mt-3">
+                    {% render_attachment_list problem %}
+                </div>
                 {% if perms.contests.change_problem %}
                 <a href="{% url 'contests:problem-update' problem.id %}?add_files=1" class="btn btn-block btn-light">
                     <i class="fa fa-files-o fa-fw"></i> Добавить файлы
@@ -173,8 +177,12 @@
         </div>
         <div id="collapseThree" class="collapse show" aria-labelledby="contest_description">
             <div class="card-body">
-                {{ problem.contest.description|markdown|safe }}
-                {% render_attachment_list problem.contest %}
+                <div class="w-100">
+                    {{ problem.contest.description|markdown|safe }}
+                </div>
+                <div class="w-100 mt-3">
+                    {% render_attachment_list problem.contest %}
+                </div>
             </div>
         </div>
     </div>

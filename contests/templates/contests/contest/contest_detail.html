@@ -58,8 +58,12 @@
         </div>
         <div id="collapseOne" class="collapse show" aria-labelledby="contest_description">
             <div class="card-body">
-                {{ contest.description|markdown|safe }}
-                {% render_attachment_list contest %}
+                <div class="w-100">
+                    {{ contest.description|markdown|safe }}
+                </div>
+                <div class="w-100 mt-3">
+                    {% render_attachment_list contest %}
+                </div>
                 {% if perms.contests.change_contest %}
                 <a href="{% url 'contests:contest-update' contest.id %}?add_files=1" class="btn btn-block btn-light">
                     <i class="fa fa-files-o fa-fw"></i> Добавить файлы
