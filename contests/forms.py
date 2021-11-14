@@ -264,7 +264,7 @@ class ProblemForm(ProblemAttachmentForm):
         if self.cleaned_data['score_for_5'] > self.cleaned_data['score_max']:
             raise ValidationError("Критерии не могут быть больше максимального балла",
                                   code='criteria_exceeds_score_max')
-        return self.cleaned_data
+        return super().clean()
 
 
 class ProblemProgramForm(ProblemForm):
