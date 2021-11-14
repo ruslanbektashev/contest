@@ -1665,6 +1665,7 @@ class SubmissionList(LoginRedirectPermissionRequiredMixin, ListView):
         else:
             course_ids = self.request.user.filter_set.values_list('course_id')
             queryset = (queryset.filter(problem__contest__course_id__in=course_ids)
+                        .filter(problem__contest__course__faculty=self.request.user.account.faculty)
                         .select_related('problem__contest__course'))
         return queryset
 

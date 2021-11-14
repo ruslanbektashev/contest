@@ -5,13 +5,12 @@ from support.models import TutorialStepPass
 register = template.Library()
 
 
+@register.simple_tag()
+def tutorial_step_view(request):
+    return "{}:{}".format(request.resolver_match.app_name, request.resolver_match.url_name)
+
+
 @register.filter
-def have_passed_step(user, step_key):
-    # temporary solution
-    if not user.is_superuser:
-        if user.account.is_student:
-            return True
-        if user.date_joined.year < 2021 and user.id != 52:
-            return True
-    view, step = step_key.split('/')
-    return TutorialStepPass.objects.is_step_passed(user, view, step)
+def have_passed_step(request, step):
+    view = tutorial_step_view(request)
+    return TutorialStepPass.objects.is_step_passed(request.user, view, step)

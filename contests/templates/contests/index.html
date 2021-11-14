@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views contests static tutorial %}
+{% load views contests tutorial static %}
 
 
 
@@ -12,14 +12,14 @@
     Главная
     <span class="pull-right">
         {% if perms.contests.add_course %}
-        <a id="btn_course_create" href="{% url 'contests:course-create' %}" class="text-success" data-toggle="tooltip" data-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
+        <a href="{% url 'contests:course-create' %}" id="btn_course_create" class="text-success" data-toggle="tooltip" data-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
         {% endif %}
         <a href="{% url 'contests:course-list' %}" data-toggle="tooltip" data-placement="top" title="Все курсы"><i class="fa fa-book fa-fw"></i></a>
         {% if perms.contests.view_submission_list %}
         <a href="{% url 'contests:submission-list' %}" data-toggle="tooltip" data-placement="top" title="Все посылки"><i class="fa fa-tasks fa-fw"></i></a>
         {% endif %}
         {% if perms.accounts.change_account %}
-        <a href="{% url 'accounts:account-list' %}" data-toggle="tooltip" data-placement="top" title="Пользователи"><i class="fa fa-users fa-fw"></i></a>
+        <a href="{% url 'accounts:account-list' %}" id="btn_account_list" data-toggle="tooltip" data-placement="top" title="Пользователи"><i class="fa fa-users fa-fw"></i></a>
         {% endif %}
         {% if perms.accounts.view_filter %}
         <a href="{% url 'contests:filter-table' %}" data-toggle="tooltip" data-placement="top" title="Фильтры"><i class="fa fa-bookmark fa-fw"></i></a>
@@ -69,9 +69,9 @@
 {% block javascript %}
 <script>
 driver.defineSteps([
-    {% if not request.user|have_passed_step:'contests:index/contest_logo' %}
+    {% if not request|have_passed_step:'contest_logo' %}
     {
-        view: 'contests:index',
+        view: '{% tutorial_step_view request %}',
         step: 'contest_logo',
         element: '#contest_logo',
         popover: {
@@ -84,9 +84,22 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:index/contest_main' %}
+    {% if not request|have_passed_step:'contest_tutorial_reset' %}
     {
-        view: 'contests:index',
+        view: '{% tutorial_step_view request %}',
+        step: 'contest_tutorial_reset',
+        element: '#contest_tutorial_reset',
+        popover: {
+            title: " ",
+            description: "Если Вы случайно закрыли руководство или хотите пройти его заново, нажмите на эту кнопку",
+            position: 'top'
+        }
+    },
+    {% endif %}
+    {% if request.user.account.is_instructor %}
+    {% if not request|have_passed_step:'contest_main' %}
+    {
+        view: '{% tutorial_step_view request %}',
         step: 'contest_main',
         element: '#contest_main_container',
         popover: {
@@ -97,9 +110,9 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:index/contest_course_create_button' %}
+    {% if not request|have_passed_step:'contest_course_create_button' %}
     {
-        view: 'contests:index',
+        view: '{% tutorial_step_view request %}',
         step: 'contest_course_create_button',
         element: '#btn_course_create',
         popover: {
@@ -109,9 +122,9 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:index/contest_course_card' %}
+    {% if not request|have_passed_step:'contest_course_card' %}
     {
-        view: 'contests:index',
+        view: '{% tutorial_step_view request %}',
         step: 'contest_course_card',
         element: '#course_card_1',
         popover: {
@@ -121,9 +134,9 @@ driver.defineSteps([
         }
     },
     {% endif %}
-    {% if not request.user|have_passed_step:'contests:index/contest_course_card_link' %}
+    {% if not request|have_passed_step:'contest_course_card_link' %}
     {
-        view: 'contests:index',
+        view: '{% tutorial_step_view request %}',
         step: 'contest_course_card_link',
         element: '#course_card_1_link',
         popover: {
@@ -132,6 +145,21 @@ driver.defineSteps([
             position: 'bottom',
         }
     },
+    {% endif %}
+    {% endif %}
+    {% if request.user.account.is_moderator %}
+    {% if not request|have_passed_step:'button_account_list' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'button_account_list',
+        element: '#btn_account_list',
+        popover: {
+            title: "__tutorial__",
+            description: "__tutorial__",
+            position: 'left',
+        }
+    },
+    {% endif %}
     {% endif %}
 ]);
 </script>
