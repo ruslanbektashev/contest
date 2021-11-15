@@ -1,11 +1,11 @@
 <ul class="list-group w-100">
     {% for attachment in attachments %}
     <li class="list-group-item d-flex">
-        <a class="mr-auto text-truncate" href="{% url path_name obj.id attachment.id %}">
+        <a class="mr-auto text-truncate" href="{% url path_name obj.id attachment.id %}" target="_blank">
             <samp>{{ attachment.filename }}</samp>
         </a>
         <span class="text-muted text-nowrap mr-2">{{ attachment.date_created }}</span>
-        <a href="{{ attachment.file.url }}" data-toggle="tooltip" data-placement="top" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
+        <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}" data-toggle="tooltip" data-placement="top" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
         {% if perms.contests.delete_attachment %}
         <a href="{% url 'contests:attachment-delete' attachment.id %}" class="text-danger ml-2" data-toggle="tooltip" data-placement="top" title="Удалить"><i class="fa fa-trash-o fa-fw"></i></a>
         {% endif %}

@@ -55,19 +55,24 @@ class AttachmentForm(forms.ModelForm):
         model = Attachment
         fields = []
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['files'].help_text = ("Можно загрузить до {} файлов. Размер каждого файла не должен превышать {}"
+                                          .format(self.FILES_MAX, filesizeformat(self.FILES_SIZE_LIMIT)))
+
     def clean_files(self):
         if not self.files and self.FILES_MIN == 0:
             return self.files
         elif not self.files:
             raise ValidationError(
-                'Выберите хотя бы %(files_min)i файл для посылки',
+                'Выберите хотя бы %(files_min)i файл для загрузки',
                 code='not_enough_files',
                 params={'files_min': self.FILES_MIN}
             )
         files = self.files.getlist('files')
         if len(files) > self.FILES_MAX:
             raise ValidationError(
-                'Слишком много файлов. Допустимо посылать не более %(files_max)i',
+                'Слишком много файлов. Допустимо загружать не более %(files_max)i',
                 code='too_many_files',
                 params={'files_max': self.FILES_MAX}
             )
@@ -223,8 +228,10 @@ class CreditReportForm(forms.Form):
 
 
 class ContestPartialForm(AttachmentForm):
-    FILES_SIZE_LIMIT = 50 * 1024 * 1024
-    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.pdf']
+    FILES_SIZE_LIMIT = 64 * 1024 * 1024
+    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+                                '.pdf', '.aac', '.flac', '.mp3', '.wav', '.wma', '.webm', '.mkv', '.avi', '.mov',
+                                '.wmv', '.mp4']
 
     class Meta:
         model = Contest
@@ -242,8 +249,10 @@ class ContestForm(ContestPartialForm):
 
 
 class ProblemAttachmentForm(AttachmentForm):
-    FILES_SIZE_LIMIT = 50 * 1024 * 1024
-    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.pdf']
+    FILES_SIZE_LIMIT = 64 * 1024 * 1024
+    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+                                '.pdf', '.aac', '.flac', '.mp3', '.wav', '.wma', '.webm', '.mkv', '.avi', '.mov',
+                                '.wmv', '.mp4']
 
     class Meta:
         model = Problem
