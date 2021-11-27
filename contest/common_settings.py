@@ -113,6 +113,8 @@ CELERY_RESULT_BACKEND = 'db+mysql://celery:celery@localhost/celery'
 CELERY_RESULT_ACCEPT_CONTENT = ['json']
 CELERY_TASK_TRACK_STARTED = True
 
+FILE_UPLOAD_PERMISSIONS = 0o660
+
 MEDIA_ROOT = os.path.join(BASE_DIR, 'upload/')
 MEDIA_URL = '/upload/'
 
