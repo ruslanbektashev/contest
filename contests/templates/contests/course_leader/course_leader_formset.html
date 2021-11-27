@@ -12,7 +12,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Преподаватели курса</legend>
+<legend>{{ course }}</legend>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {{ formset.management_form }}

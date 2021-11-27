@@ -90,6 +90,12 @@
     <div class="col-12 col-md-4">
         {% include 'accounts/account/account_card.html' with account=leader.account link=True %}
     </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            Ведущие преподаватели на этом курсе не назначены. {% if perms.contests.change_course %}Вы можете это <a href="{% url 'contests:course-update-leaders' course.id %}">исправить</a>.{% endif %}
+        </div>
+    </div>
     {% endfor %}
 </div>
 {% endblock content %}
