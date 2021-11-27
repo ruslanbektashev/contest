@@ -73,12 +73,15 @@ class StudentQuerySet(AccountQuerySet):
         return self.filter(level__gt=Account.LEVEL_MIN).update(level=models.F('level') - 1)
 
     def enroll(self):
+        User.objects.filter(id__in=list(self.values_list('user_id', flat=True))).update(is_active=True)
         return self.update(enrolled=True, graduated=False)
 
     def expel(self):
+        User.objects.filter(id__in=list(self.values_list('user_id', flat=True))).update(is_active=False)
         return self.update(enrolled=False, graduated=False)
 
     def graduate(self):
+        User.objects.filter(id__in=list(self.values_list('user_id', flat=True))).update(is_active=False)
         return self.update(enrolled=False, graduated=True)
 
     def get_distinct_groups(self):
