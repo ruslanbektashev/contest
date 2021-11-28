@@ -42,9 +42,10 @@ class AccountSelectMultiple(forms.SelectMultiple):
 
 
 class AttachmentForm(forms.ModelForm):
+    FILE_SIZE_LIMIT = 1024 * 1024
     FILES_MAX = 10
     FILES_MIN = 0
-    FILES_SIZE_LIMIT = 1024 * 1024
+    FILES_SIZE_LIMIT = -1
     FILES_ALLOWED_NAMES = tuple()
     FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt']
 
@@ -58,7 +59,13 @@ class AttachmentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['files'].help_text = ("Можно загрузить до {} файлов. Размер каждого файла не должен превышать {}"
-                                          .format(self.FILES_MAX, filesizeformat(self.FILES_SIZE_LIMIT)))
+                                          .format(self.FILES_MAX, filesizeformat(self.FILE_SIZE_LIMIT)))
+
+    def get_files_size_limit(self):
+        if self.FILES_SIZE_LIMIT == -1:
+            return self.FILES_MAX * self.FILE_SIZE_LIMIT
+        else:
+            return self.FILES_SIZE_LIMIT
 
     def clean_files(self):
         if not self.files and self.FILES_MIN == 0:
@@ -77,12 +84,13 @@ class AttachmentForm(forms.ModelForm):
                 params={'files_max': self.FILES_MAX}
             )
         else:
+            files_size = 0
             for file in files:
-                if file.size > self.FILES_SIZE_LIMIT:
+                if file.size > self.FILE_SIZE_LIMIT:
                     raise ValidationError(
-                        'Размер каждого файла не должен превышать %(files_size_limit)s',
+                        'Размер каждого файла не должен превышать %(file_size_limit)s',
                         code='large_file',
-                        params={'files_size_limit': filesizeformat(self.FILES_SIZE_LIMIT)}
+                        params={'file_size_limit': filesizeformat(self.FILE_SIZE_LIMIT)}
                     )
                 filename = os.path.splitext(file.name)
                 if not filename[1].lower() in self.FILES_ALLOWED_EXTENSIONS:
@@ -92,6 +100,14 @@ class AttachmentForm(forms.ModelForm):
                             code='invalid_extension',
                             params={'files_allowed_extensions': ', '.join(self.FILES_ALLOWED_EXTENSIONS)}
                         )
+                files_size += file.size
+            files_size_limit = self.get_files_size_limit()
+            if files_size > files_size_limit:
+                raise ValidationError(
+                    'Размер всех файлов не должен превышать %(files_size_limit)s',
+                    code='large_files',
+                    params={'files_size_limit': filesizeformat(files_size_limit)}
+                )
         return files
 
     def save(self, commit=True):
@@ -228,7 +244,8 @@ class CreditReportForm(forms.Form):
 
 
 class ContestPartialForm(AttachmentForm):
-    FILES_SIZE_LIMIT = 64 * 1024 * 1024
+    FILE_SIZE_LIMIT = 256 * 1024 * 1024
+    FILES_SIZE_LIMIT = 640 * 1024 * 1024
     FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
                                 '.pdf', '.aac', '.flac', '.mp3', '.wav', '.wma', '.webm', '.mkv', '.avi', '.mov',
                                 '.wmv', '.mp4']
@@ -249,7 +266,8 @@ class ContestForm(ContestPartialForm):
 
 
 class ProblemAttachmentForm(AttachmentForm):
-    FILES_SIZE_LIMIT = 64 * 1024 * 1024
+    FILE_SIZE_LIMIT = 256 * 1024 * 1024
+    FILES_SIZE_LIMIT = 640 * 1024 * 1024
     FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
                                 '.pdf', '.aac', '.flac', '.mp3', '.wav', '.wma', '.webm', '.mkv', '.avi', '.mov',
                                 '.wmv', '.mp4']
@@ -565,7 +583,7 @@ class SubmissionOptionsForm(SubmissionForm):
 
 
 class SubmissionFilesForm(SubmissionAttachmentForm):
-    FILES_SIZE_LIMIT = 10 * 1024 * 1024
+    FILE_SIZE_LIMIT = 10 * 1024 * 1024
     FILES_ALLOWED_EXTENSIONS = ['.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf', '.png', '.jpg', '.jpeg']
 
     class Meta:
