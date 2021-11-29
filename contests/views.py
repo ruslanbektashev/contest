@@ -170,6 +170,12 @@ class CourseList(LoginRequiredMixin, ListView):
             courses = Course.objects.filter(faculty=self.storage['faculty'])
         return courses
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['faculties'] = Faculty.objects.all()
+        context['faculty'] = self.storage['faculty']
+        return context
+
 
 """================================================== CourseLeader =================================================="""
 
