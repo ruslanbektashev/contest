@@ -111,6 +111,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 CELERY_RESULT_BACKEND = 'db+mysql://celery:celery@localhost/celery'
 CELERY_RESULT_ACCEPT_CONTENT = ['json']
+CELERY_DATABASE_SHORT_LIVED_SESSIONS = True
 CELERY_TASK_TRACK_STARTED = True
 
 FILE_UPLOAD_PERMISSIONS = 0o640
