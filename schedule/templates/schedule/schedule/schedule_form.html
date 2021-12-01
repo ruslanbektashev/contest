@@ -54,7 +54,7 @@
     {% for form in attachment_formset %}
     <div class="form-row">
         <div class="form-group col-md-4 col-sm-12">
-        {% with form.name as field %}
+        {% with field=form.name %}
             <div class="input-group">
                 {% with is_invalid=field.errors|yesno:"is-invalid," %}
                 {% render_field field class+="form-control" placeholder=field.label class+=is_invalid %}
@@ -76,7 +76,7 @@
         {% endwith %}
         </div>
         <div class="form-group col-md-8 col-sm-12">
-        {% with form.file as field %}
+        {% with field=form.file %}
             <div class="input-group {% if field.errors %}is-invalid{% endif %}">
                 <div class="custom-file">
                     {% with is_invalid=field.errors|yesno:"is-invalid," %}

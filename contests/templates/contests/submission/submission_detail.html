@@ -320,7 +320,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 <script>
-var infinite = new Waypoint.Infinite({
+let infinite = new Waypoint.Infinite({
     element: $('.comment-list')[0],
     items: '.comment-list-item',
     more: '.comment-list-more'
@@ -417,6 +417,7 @@ var footprintChart = new Chart(
 
 </script>
 {% endif %}
+{% if not submission.problem.type == 'Program' or not submission.problem.is_testable %}
 {% if perms.contests.change_submission %}
 <!-- Submission Update -->
 <script>
@@ -522,5 +523,6 @@ for (let i = 0; i < formsNumber; i++) {
     };
 }
 </script>
+{% endif %}
 {% endif %}
 {% endblock javascript %}
