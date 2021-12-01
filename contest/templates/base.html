@@ -33,11 +33,6 @@
                     <a class="nav-link" href="{% url 'schedule:schedule-list' %}">Расписание</a>
                 </li>
                 <li>
-                    {% with notification_count=request.user.notifications.unread.count %}
-                    <a class="nav-link" href="{% url 'accounts:notification-list' %}">Оповещения {% if notification_count %} <span id="unread_notifications_count" class="badge badge-pill badge-primary align-middle">{{ notification_count }}</span>{% endif %}</a>
-                    {% endwith %}
-                </li>
-                <li>
                     <a class="nav-link" href="{% url 'support:index' %}">Помощь</a>
                 </li>
                 <li>
@@ -48,6 +43,11 @@
                     <a class="nav-link" href="{% url 'admin:index' %}">Админка</a>
                 </li>
                 {% endif %}
+                <li>
+                    {% with notification_count=request.user.notifications.unread.count %}
+                    <a class="nav-link" href="{% url 'accounts:notification-list' %}">Оповещения {% if notification_count %} <span id="unread_notifications_count" class="badge badge-pill badge-secondary align-middle" style="position: relative; top: -0.08rem;">{{ notification_count }}</span>{% endif %}</a>
+                    {% endwith %}
+                </li>
                 {% endif %}
             </ul>
             <ul class="navbar-nav ml-auto mt-2 mt-lg-0">

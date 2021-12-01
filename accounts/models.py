@@ -869,10 +869,10 @@ class NotificationManager(models.Manager):
             if isinstance(subject, User) and subject.id == recipient_id:
                 continue
             notification = Notification(subject_type=ContentType.objects.get_for_model(subject),
-                                subject_id=subject.id,
-                                recipient_id=recipient_id,
-                                action=action,
-                                **optional)
+                                        subject_id=subject.id,
+                                        recipient_id=recipient_id,
+                                        action=action,
+                                        **optional)
             if object:
                 notification.object_type = ContentType.objects.get_for_model(object)
                 notification.object_id = object.id

@@ -22,7 +22,7 @@ class ReadWatcher {
             this.unread_notifications_ids = [];
             fetch(this.mark_notifications_as_read_url, this.options).then(response => {});
         }
-        setTimeout(this.marknotificationsAsRead.bind(this), 1000);
+        setTimeout(this.markNotificationsAsRead.bind(this), 1000);
     }
 
     isInViewPoint(element) {
