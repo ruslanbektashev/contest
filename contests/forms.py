@@ -375,7 +375,7 @@ class ProblemTestForm(ProblemForm):
 
 
 class ProblemRollbackResultsForm(forms.Form):
-    submissions = forms.ModelMultipleChoiceField(Submission.objects.none(), label="Посылки")
+    submissions = forms.ModelMultipleChoiceField(Submission.objects.none(), required=False, label="Посылки")
 
     def __init__(self, *args, problem_id, **kwargs):
         super().__init__(*args, **kwargs)

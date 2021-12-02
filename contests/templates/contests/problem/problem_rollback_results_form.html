@@ -25,7 +25,12 @@
     <table class="table table-sm table-hover">
         <thead>
             <tr>
-                <th class="text-center" style="width: 4%;"><input id="check_all" type="checkbox"></th>
+                <th class="text-center" style="width: 4%;">
+                    <div class="custom-control custom-checkbox" data-toggle="tooltip" data-placement="top" title="Выбрать все посылки">
+                        <input id="check_all" type="checkbox" class="custom-control-input">
+                        <label for="check_all" class="custom-control-label ml-2"></label>
+                    </div>
+                </th>
                 <th class="text-center" style="width: 13%;">Дата</th>
                 <th class="text-center">Студент</th>
                 <th class="text-center" style="width: 18%;">Задание</th>
@@ -35,7 +40,12 @@
         <tbody>
             {% for submission in form.submissions.field.queryset %}
             <tr>
-                <td class="text-center"><input type="checkbox" class="check" name="submissions" value="{{ submission.id }}"></td>
+                <td class="text-center">
+                    <div class="custom-control custom-checkbox">
+                        <input id="check_{{ submission.id }}" type="checkbox" class="custom-control-input check" name="submissions" value="{{ submission.id }}">
+                        <label for="check_{{ submission.id }}" class="custom-control-label ml-2"></label>
+                    </div>
+                </td>
                 <td class="text-center">{{ submission.date_created|date:'d b Y' }}</td>
                 <td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>
                 <td class="text-center">
@@ -74,8 +84,11 @@
 
 {% block javascript %}
 <script type="text/javascript">
-$("#check_all").click(function () {
-    $(".check").prop('checked', $(this).prop('checked'));
+document.getElementById('check_all').addEventListener('click', function (e) {
+    let checkboxes = document.getElementsByName('submissions');
+    checkboxes.forEach(function (value) {
+        value.checked = e.target.checked;
+    });
 });
 </script>
 {% endblock javascript %}

@@ -26,9 +26,13 @@
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.title class+="form-control" %}
     {% render_field form.compile_args class+="form-control" %}
-    {% render_field form.compile_args_override class+="form-control" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" %}
+    {% render_field form.compile_args_override class+="custom-control-input" %}
+    {% endwith %}
     {% render_field form.launch_args class+="form-control" %}
-    {% render_field form.launch_args_override class+="form-control" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" %}
+    {% render_field form.launch_args_override class+="custom-control-input" %}
+    {% endwith %}
     {% render_field form.input class+="form-control" %}
     {% render_field form.output class+="form-control" %}
     {% endwith %}
