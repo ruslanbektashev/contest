@@ -68,14 +68,3 @@
         more: '.activity-list-more'
     });
 </script>
-<script type="text/javascript" src="{% static 'js/activities.js' %}"></script>
-<script type="text/javascript">
-    document.addEventListener("DOMContentLoaded", function(event) {
-        let watcher = new ReadWatcher("{% url 'accounts:mark-activities-as-read' %}");
-        if(parseInt('{% unread_activities_count request.user %}') > 0) {
-            window.addEventListener('scroll', watcher, false);
-        }
-        setTimeout(watcher.markActivitiesAsRead.bind(watcher), 1000);
-    });
-    </script>
-{% endblock javascript %}

@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from accounts.models import Account, Faculty, make_activities, Activity, Announcement
+from accounts.models import Account, Faculty, Announcement, Notification
 
 
 class AccountViewsTest(TestCase):
@@ -145,44 +145,41 @@ class AccountViewsTest(TestCase):
         self.assertEqual(resp.status_code, 200)
 
 
-class ActivityViewsTest(TestCase):
+class NotificationViewsTest(TestCase):
     admin = 'admin'
     student = 'student'
-    activities_num = 5
+    notifications_num = 5
 
     @classmethod
     def setUpTestData(cls):
         faculty = Faculty.objects.create(name="Test Fac")
         admin = User.objects.create_superuser(cls.admin, 'admin@localhost', cls.admin)
-        faculty = Faculty.objects.create(name="Test Fac")
         Account.objects.create(user=admin, faculty=faculty)
         student = User.objects.create_user(cls.student, 'student@localhost', cls.student)
         Account.objects.create(user=student, faculty=faculty)
-        new_activities = []
-        for i in range(1, cls.activities_num + 1):
-            new_activities += make_activities(admin, student, "Test Activity %s" % i)
-        Activity.objects.bulk_create(new_activities)
+        for i in range(1, cls.notifications_num + 1):
+            Notification.objects.notify(admin, student, "Test Notification %s" % i)
 
     """==================================================== List ===================================================="""
 
     def test_list_view_requires_login(self):
-        url = '/accounts/activity/list'
+        url = '/accounts/notification/list'
         resp = self.client.get(url)
         self.assertRedirects(resp, settings.LOGIN_URL + '?next=' + url)
 
     def test_list_view_accessible_by_url(self):
         self.client.login(username=self.admin, password=self.admin)
-        resp = self.client.get('/accounts/activity/list')
+        resp = self.client.get('/accounts/notification/list')
         self.assertEqual(resp.status_code, 200)
 
     def test_list_view_contains_all_activities(self):
         self.client.login(username=self.admin, password=self.admin)
-        resp = self.client.get('/accounts/activity/list')
-        self.assertEqual(len(resp.context['activities']), self.activities_num)
+        resp = self.client.get('/accounts/notification/list')
+        self.assertEqual(len(resp.context['notifications']), self.notifications_num)
 
     def test_list_view_accessible_by_name(self):
         self.client.login(username=self.admin, password=self.admin)
-        resp = self.client.get(reverse('accounts:activity-list'))
+        resp = self.client.get(reverse('accounts:notification-list'))
         self.assertEqual(resp.status_code, 200)
 
 
