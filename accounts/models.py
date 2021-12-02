@@ -348,7 +348,9 @@ class Account(models.Model):
         return reverse('accounts:account-detail', kwargs={'pk': self.pk})
 
     def mark_comments_as_read(self, comments):
-        Activity.objects.filter(recipient=self.user, object_type=ContentType.objects.get_for_model(Comment), object_id__in=comments.values_list('id', flat=True)).mark_as_read()
+        # mark corresponding notifications as read
+        # Notification.objects.filter(recipient=self.user, object_type=ContentType.objects.get_for_model(Comment),
+        #                             object_id__in=comments.values_list('id', flat=True)).mark_as_read()
         self.comments_read.add(*comments)
 
     def unread_comments_count(self, obj):
@@ -631,37 +633,32 @@ class Comment(models.Model):
         self._notify_users(created)
 
     @property
-    def parent_object(self):
+    def related_course(self):
         model = self.object_type.model
         if model == 'course':
             return self.object
         elif model == 'contest':
-            return self.object
+            return self.object.course
         elif model == 'problem':
-            return self.object.contest
+            return self.object.contest.course
         elif model == 'assignment' or model == 'submission':
-            return self.object.problem.contest
+            return self.object.problem.contest.course
         else:
             return None
 
     def _notify_users(self, created=False):
-        comment_subscribers_ids = Subscription.objects.filter(object_type=ContentType.objects.get(model='comment')).values_list('user', flat=True)
-        if self.parent_object is not None:
-            parent_object_subscribers_ids = self.parent_object.subscription_set.values_list('user_id', flat=True)
-        else:
-            parent_object_subscribers_ids = []
-        user_ids = list(set(comment_subscribers_ids) & set(parent_object_subscribers_ids))
-        if self.object.owner_id not in user_ids:
-            user_ids_set = set(user_ids)
-            user_ids_set.add(self.object.owner_id)
-            user_ids = list(user_ids_set)
-        action = "оставил комментарий" if created else "изменил комментарий"
-        if self.id != self.parent_id:
-            user = Comment.objects.get(id=self.parent_id).author
-            Activity.objects.notify_user(user, subject=self.author, action="ответил на ваш комментарий", object=self, reference=self.object)
-            if user.id in user_ids:
-                user_ids.remove(user.id)
-        Activity.objects.notify_users(user_ids, subject=self.author, action=action, object=self, reference=self.object)
+        course = self.related_course
+        if course is not None:
+            course_leaders = course.leaders.values_list('id', flat=True)
+            action = "оставил" if created else "изменил"
+            Notification.objects.notify(course_leaders, subject=self.author, action=action + " комментарий",
+                                        object=self, reference=self.object)
+            if self.id != self.parent_id:
+                parent_comment = Comment.objects.get(id=self.parent_id)
+                if parent_comment.author != self.author:
+                    Notification.objects.notify(parent_comment.author, subject=self.author,
+                                                action=action + " ответ на Ваш комментарий", object=self,
+                                                reference=self.object)
 
     def _set_thread(self):
         parent = Comment.objects.get(id=self.parent_id)
@@ -815,12 +812,8 @@ class Announcement(CRUDEntry):
     def save(self, *args, **kwargs):
         created = self._state.adding
         super().save(*args, **kwargs)
-        if created:
-            user_ids = Subscription.objects.filter(object_type=ContentType.objects.get(model='announcement')).values_list('user', flat=True)
-            if self.group is not None:
-                group_user_ids = User.objects.filter(groups__name=self.group.name).values_list('id', flat=True)
-                user_ids = list(set(user_ids) & set(group_user_ids))
-            Activity.objects.notify_users(user_ids, subject=self.owner, action="добавил объявление", object=self)
+        action = "добавил объявление" if created else "изменил объявление"
+        Notification.objects.notify(self.group, subject=self.owner, action=action, object=self)
 
     def __str__(self):
         return "%s" % self.title
@@ -902,7 +895,7 @@ class Notification(models.Model):
 
     date_created = models.DateTimeField(default=timezone.now, verbose_name="Дата создания")
 
-    objects = ActivityManager.from_queryset(ActivityQuerySet)()
+    objects = NotificationManager.from_queryset(NotificationQuerySet)()
 
     class Meta:
         ordering = ('-date_created',)

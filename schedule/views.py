@@ -7,7 +7,6 @@ from django.views.generic import CreateView, DetailView, ListView, DeleteView
 from contest.mixins import LoginRedirectMixin, LoginRedirectPermissionRequiredMixin
 from schedule.forms import ScheduleForm, ScheduleAttachmentForm, ScheduleAttachmentBaseFormSet
 from schedule.models import Schedule, ScheduleAttachment
-from accounts.models import Activity
 
 
 class ScheduleDetail(LoginRedirectMixin, DetailView):
@@ -16,7 +15,9 @@ class ScheduleDetail(LoginRedirectMixin, DetailView):
 
     def get(self, request, *args, **kwargs):
         object = self.get_object()
-        Activity.objects.filter(recipient=request.user, object_type=ContentType.objects.get_for_model(object), object_id=object.id).mark_as_read()
+        # TODO: mark corresponding notifications as read
+        # Notification.objects.filter(recipient=request.user, object_type=ContentType.objects.get_for_model(object),
+        #                             object_id=object.id).mark_as_read()
         return super().get(request, *args, **kwargs)
 
 

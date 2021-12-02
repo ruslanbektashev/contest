@@ -27,7 +27,6 @@ urlpatterns = [
     ])),
     path('activity/', include([
         path('list', views.ActivityList.as_view(), name='activity-list'),
-        path('mark', views.ActivityMark.as_view(), name='activity-mark'),
         path('settings', views.ManageSubscriptions.as_view(), name='activity-settings'),
     ])),
     path('comment/', include([
@@ -50,7 +49,6 @@ urlpatterns = [
         path('list', views.AnnouncementList.as_view(), name='announcement-list'),
     ])),
     path('mark_comments_as_read', views.mark_comments_as_read, name='mark-comments-as-read'),
-    path('mark_activities_as_read', views.mark_activities_as_read, name='mark-activities-as-read'),
     path('mark_notifications_as_read', views.mark_notifications_as_read, name='mark-notifications-as-read'),
     path('notification/', include([
         path('list', views.NotificationList.as_view(), name='notification-list'),

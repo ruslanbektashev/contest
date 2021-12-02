@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
-from accounts.models import Activity, Comment
+from accounts.models import Comment, Notification
 from contest.abstract import CRUDEntry
 
 """==================================================== Question ===================================================="""
@@ -27,9 +27,9 @@ class Question(CRUDEntry):
         created = self._state.adding
         super().save(*args, **kwargs)
         if created and self.addressee:
-            Activity.objects.notify_user(self.addressee, subject=self.owner, action="задал вопрос", object=self)
-        if not created:
-            Activity.objects.notify_user(self.owner, subject=self, action="обновлен вопрос")
+            Notification.objects.notify(self.addressee, subject=self.owner, action="задал вопрос", object=self)
+        if not created and self.answer:
+            Notification.objects.notify(self.owner, subject=self, action="обновлен")
 
     def __str__(self):
         return "%s" % self.question
@@ -54,9 +54,9 @@ class Report(CRUDEntry):
         super().save(*args, **kwargs)
         if created:
             user_ids = User.objects.filter(is_superuser=True).values_list('id', flat=True)
-            Activity.objects.notify_users(user_ids, subject=self.owner, action="отправил сообщение об ошибке", object=self)
-        if not created:
-            Activity.objects.notify_user(self.owner, subject=self, action="обновлен статус сообщения")
+            Notification.objects.notify(user_ids, subject=self.owner, action="отправил сообщение об ошибке", object=self)
+        if not created and self.closed:
+            Notification.objects.notify(self.owner, subject=self, action="обновлен статус сообщения")
 
     def __str__(self):
         return self.title or (str(self.text[:64]) + (str(self.text[64:]) and '...'))

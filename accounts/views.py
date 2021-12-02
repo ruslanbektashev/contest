@@ -17,8 +17,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.contenttypes.models import ContentType
 
 from accounts.templatetags.comments import get_comment_query_string
-from accounts.forms import (AccountPartialForm, AccountListForm, AccountSetForm, ActivityMarkForm,
-                            CommentForm, ManageSubscriptionsForm, StaffForm, StudentForm)
+from accounts.forms import (AccountPartialForm, AccountListForm, AccountSetForm, CommentForm, ManageSubscriptionsForm,
+                            StaffForm, StudentForm)
 from accounts.models import Account, Activity, Comment, Faculty, Message, Chat, Announcement, Notification, Subscription
 from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
                             PaginatorMixin)
@@ -101,19 +101,6 @@ def mark_comments_as_read(request):
         unread_comments = Comment.objects.filter(id__in=unread_comments_ids).exclude(author=request.user)
         unread_comments = unread_comments.exclude(id__in=account.comments_read.values_list('id', flat=True))
         account.mark_comments_as_read(unread_comments)
-    return JsonResponse({'status': 'ok'})
-
-
-@csrf_exempt
-def mark_activities_as_read(request):
-    try:
-        data = json.loads(request.body.decode('utf-8'))
-    except:
-        return JsonResponse({'status': 'bad_request'})
-    unread_activities_ids = data.get('unread_activities_ids', None)
-    if unread_activities_ids:
-        unread_activities = Activity.objects.filter(id__in=unread_activities_ids, recipient=request.user)
-        unread_activities.mark_as_read()
     return JsonResponse({'status': 'ok'})
 
 
@@ -549,26 +536,6 @@ class ActivityList(LoginRequiredMixin, PaginatorMixin, ListView):
         return context
 
 
-class ActivityMark(LoginRequiredMixin, FormView):
-    form_class = ActivityMarkForm
-    http_method_names = ['post']
-    template_name = 'accounts/activity/activity_list.html'
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        if form.is_valid():
-            mark = request.POST.get('mark')
-            choices = form.cleaned_data['choices']
-            if mark == 'read':
-                choices.mark_as_read()
-            elif mark == 'delete':
-                choices.mark_as_deleted()
-        return self.form_valid(form)
-
-    def get_success_url(self):
-        return reverse('accounts:activity-list')
-
-
 """==================================================== Comment ====================================================="""
 
 
@@ -705,7 +672,9 @@ class AnnouncementDetail(LoginRedirectPermissionRequiredMixin, DetailView):
 
     def get(self, request, *args, **kwargs):
         object = self.get_object()
-        Activity.objects.filter(recipient=request.user, object_type=ContentType.objects.get_for_model(object), object_id=object.id).mark_as_read()
+        # TODO: mark corresponding notifications as read
+        # Notification.objects.filter(recipient=request.user, object_type=ContentType.objects.get_for_model(object),
+        #                             object_id=object.id).mark_as_read()
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):

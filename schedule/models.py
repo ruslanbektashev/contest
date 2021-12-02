@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from django.template.defaultfilters import date
 from django.utils import timezone
 
-from accounts.models import Activity, Subscription
+from accounts.models import Subscription, Notification
 from contest.abstract import CRUDEntry
 from contests.templatetags.events import iso_to_gregorian
 
@@ -46,8 +46,9 @@ class Schedule(CRUDEntry):
         created = self._state.adding
         super().save(*args, **kwargs)
         if created:
-            user_ids = Subscription.objects.filter(object_type=ContentType.objects.get(model='schedule')).values_list('user', flat=True)
-            Activity.objects.notify_users(user_ids, subject=self.owner, action="добавил расписание", object=self)
+            # TODO: notify related users
+            # Notification.objects.notify()
+            pass
 
     def __str__(self):
         return "{} - {}".format(date(self.date_from, 'd E Y'), date(self.date_to, 'd E Y'))

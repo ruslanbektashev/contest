@@ -11,7 +11,6 @@ from markdown import markdown
 from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin,
                             PaginatorMixin)
 from support.models import Discussion, Question, Report, TutorialStepPass
-from accounts.models import Activity
 
 
 class Support(LoginRequiredMixin, TemplateView):
@@ -40,8 +39,11 @@ class QuestionDetail(LoginRequiredMixin, DetailView):
 
     def get(self, request, *args, **kwargs):
         object = self.get_object()
-        Activity.objects.filter(recipient=request.user, object_type=ContentType.objects.get_for_model(object), object_id=object.id).mark_as_read()
-        Activity.objects.filter(recipient=request.user, subject_type=ContentType.objects.get_for_model(object), subject_id=object.id).mark_as_read()
+        # TODO: mark corresponding notifications as read
+        # Notification.objects.filter(recipient=request.user, object_type=ContentType.objects.get_for_model(object),
+        #                             object_id=object.id).mark_as_read()
+        # Notification.objects.filter(recipient=request.user, subject_type=ContentType.objects.get_for_model(object),
+        #                             subject_id=object.id).mark_as_read()
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -100,8 +102,11 @@ class ReportDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
 
     def get(self, request, *args, **kwargs):
         object = self.get_object()
-        Activity.objects.filter(recipient=request.user, object_type=ContentType.objects.get_for_model(object), object_id=object.id).mark_as_read()
-        Activity.objects.filter(recipient=request.user, subject_type=ContentType.objects.get_for_model(object), subject_id=object.id).mark_as_read()
+        # TODO: mark corresponding notifications as read
+        # Notification.objects.filter(recipient=request.user, object_type=ContentType.objects.get_for_model(object),
+        #                             object_id=object.id).mark_as_read()
+        # Notification.objects.filter(recipient=request.user, subject_type=ContentType.objects.get_for_model(object),
+        #                             subject_id=object.id).mark_as_read()
         return super().get(request, *args, **kwargs)
 
 

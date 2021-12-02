@@ -23,7 +23,7 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from django.views.generic.edit import BaseCreateView, BaseDeleteView, BaseUpdateView
 from django.views.generic.list import BaseListView
 
-from accounts.models import Account, Activity, Faculty
+from accounts.models import Account, Faculty
 from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin,
                             PaginatorMixin)
 from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, AssignmentUpdatePartialForm,
@@ -1335,9 +1335,10 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
     def get(self, request, *args, **kwargs):
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
             self.object = self.get_object()
-        Activity.objects.filter(recipient=request.user,
-                                object_type=ContentType.objects.get_for_model(self.object),
-                                object_id=self.object.id).mark_as_read()
+        # TODO: mark corresponding notification as read
+        # Notification.objects.filter(recipient=request.user,
+        #                             object_type=ContentType.objects.get_for_model(self.object),
+        #                             object_id=self.object.id).mark_as_read()
         context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
 
@@ -1463,7 +1464,6 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
             self.object.save()
         if self.object.problem.type == 'Options':
             self.object.update_options_score()
-        Activity.objects.on_submission_created(self.object)
         return HttpResponseRedirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):

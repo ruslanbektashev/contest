@@ -20,7 +20,7 @@ from django.urls import reverse
 
 from contest.abstract import CDEntry, CRDEntry, CRUDEntry
 from contest.utils import transliterate
-from accounts.models import Account, Comment, Activity, Faculty, Subscription
+from accounts.models import Account, Comment, Faculty, Subscription, Notification
 
 try:
     from tools.sandbox import Sandbox
@@ -875,7 +875,6 @@ class Assignment(CRUDEntry):
         if self.score < score:
             self.score = min(score, self.score_max)
             self.save()
-            Activity.objects.on_assignment_updated(self)
 
     def get_discussion_url(self):
         return reverse('contests:assignment-discussion', kwargs={'pk': self.pk})
@@ -1081,14 +1080,12 @@ class Submission(CRDEntry):
     def save(self, *args, **kwargs):
         created = self._state.adding
         super().save(*args, **kwargs)
-        if created and self.main_submission is None:
-            submission_subscribers_ids = Subscription.objects.filter(object_type=ContentType.objects.get(model='submission')).values_list('user', flat=True)
-            contest_subscribers_ids = self.problem.contest.subscription_set.values_list('user_id', flat=True)
-            user_ids = list(set(submission_subscribers_ids) & set(contest_subscribers_ids))
-            Activity.objects.notify_users(user_ids, subject=self.owner, action="отправил посылку", object=self)
-
         if created and self.problem.type in ['Program'] or not created:
             self.update_assignment()
+        if created and self.main_submission is None:
+            course_leaders = self.problem.contest.course.leaders.values_list('id', flat=True)
+            Notification.objects.notify(course_leaders, subject=self.owner, action="отправил посылку", object=self,
+                                        relation="к задаче", reference=self.problem)
 
     def __str__(self):
         return "Посылка от %s к задаче %s" % (self.owner.account, self.problem)

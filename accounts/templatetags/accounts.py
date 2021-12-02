@@ -4,7 +4,7 @@ from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.template.defaultfilters import date
 from django.utils import timezone
 
-from accounts.models import Activity, Notification
+from accounts.models import Notification
 
 register = template.Library()
 
@@ -12,11 +12,6 @@ register = template.Library()
 @register.simple_tag()
 def unread_comments_count(account, obj):
     return account.unread_comments_count(obj) if hasattr(obj, 'comment_set') else 0
-
-
-@register.simple_tag()
-def unread_activities_count(user):
-    return Activity.objects.filter(recipient=user, is_read=False).count()
 
 
 @register.simple_tag()

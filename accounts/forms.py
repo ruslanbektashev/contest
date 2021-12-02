@@ -8,7 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from accounts.models import Account, Activity, Comment
+from accounts.models import Account, Comment
 from accounts.templatetags.markdown import markdown
 from accounts.widgets import CommentWidget
 from contest.widgets import BootstrapCheckboxSelect
@@ -128,10 +128,6 @@ class AccountSetForm(forms.ModelForm):
                                           "и символов тире \"-\"".format(initials[i]), code='wrong_character')
             cleaned_names.append(initials)
         return cleaned_names
-
-
-class ActivityMarkForm(forms.Form):
-    choices = forms.ModelMultipleChoiceField(queryset=Activity.objects.all())
 
 
 class MarkdownValidationParser(HTMLParser):
