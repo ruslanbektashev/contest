@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views %}
 
 {% block title %}
@@ -11,7 +11,17 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ submission_pattern }}</legend>
+<legend>
+    {{ submission_pattern }}
+    <span class="pull-right">
+        {% if perms.contests.change_submission_pattern %}
+        <a href="{% url 'contests:submission-pattern-update' submission_pattern.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Редактировать шаблон посылки"><i class="fa fa-edit fa-fw"></i></a>
+        {% endif %}
+        {% if perms.contests.delete_submission_pattern %}
+        <a href="{% url 'contests:submission-pattern-delete' submission_pattern.id %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить шаблон посылки" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
+        {% endif %}
+    </span>
+</legend>
 <div>
     <h6>Описание:</h6>
     <div class="alert alert-secondary">
@@ -24,14 +34,3 @@
     {% include 'list.html' with lst=submission_pattern.problems.all title="Задачи:" %}
 </div>
 {% endblock content %}
-
-{% block submenu %}
-<div class="list-group mb-3">
-    {% if perms.contests.change_submission_pattern %}
-    <a href="{% url 'contests:submission-pattern-update' submission_pattern.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать шаблон посылки</a>
-    {% endif %}
-    {% if perms.contests.delete_submission_pattern %}
-    <a href="{% url 'contests:submission-pattern-delete' submission_pattern.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить шаблон посылки</a>
-    {% endif %}
-</div>
-{% endblock submenu %}

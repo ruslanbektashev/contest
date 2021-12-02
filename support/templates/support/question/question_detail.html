@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views comments %}
 
 {% block title %}
@@ -13,8 +13,27 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ question.question }}</legend>
-<p>{{ answer|safe }}</p>
+<legend>
+    Вопрос {{ question.id }}
+    <span class="pull-right">
+        {% if perms.support.change_question %}
+        <a href="{% url 'support:question-update' question.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Редактировать вопрос"><i class="fa fa-edit fa-fw"></i></a>
+        {% endif %}
+        {% if perms.support.delete_question %}
+        <a href="{% url 'support:question-delete' question.id %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить вопрос" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
+        {% endif %}
+    </span>
+</legend>
+<div class="alert alert-secondary">
+    <h5 class="alert-heading">Вопрос</h5>
+    <hr>
+    {{ question }}
+</div>
+<div class="alert alert-info">
+    <h5 class="alert-heading">Ответ</h5>
+    <hr>
+    {{ answer|safe }}
+</div>
 <p>
     {% if perms.support.change_question or question.owner == request.user %}
     От: <a href="{{ question.owner.account.get_absolute_url }}">{{ question.owner.account }}</a><br>
@@ -33,14 +52,3 @@
     {% endif %}
 </div>
 {% endblock content %}
-
-{% block submenu %}
-<div class="list-group mb-3">
-    {% if perms.support.change_question %}
-    <a href="{% url 'support:question-update' question.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать вопрос</a>
-    {% endif %}
-    {% if perms.support.delete_question %}
-    <a href="{% url 'support:question-delete' question.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить вопрос</a>
-    {% endif %}
-</div>
-{% endblock submenu %}

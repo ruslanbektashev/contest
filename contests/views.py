@@ -925,7 +925,7 @@ class UTTestDetail(LoginRedirectPermissionRequiredMixin, DetailView):
 
 
 class UTTestAttachment(LoginRequiredMixin, AttachmentDetail):
-    model = Problem
+    model = UTTest
     template_name = 'contests/uttest/uttest_attachment.html'
 
 

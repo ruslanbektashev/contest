@@ -1,8 +1,8 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views %}
 
 {% block title %}
-Тест
+FN-Тест
 {% endblock title %}
 
 {% block breadcrumbs %}
@@ -11,18 +11,20 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ fntest }}</legend>
-<p>Обработчик: <code>{{ fntest.handler }}</code></p>
+<legend>
+    {{ fntest }}
+    <span class="pull-right">
+        {% if perms.contests.change_fntest %}
+        <a href="{% url 'contests:fntest-update' fntest.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Редактировать FN-тест"><i class="fa fa-edit fa-fw"></i></a>
+        {% endif %}
+        {% if perms.contests.delete_fntest %}
+        <a href="{% url 'contests:fntest-delete' fntest.id %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить FN-тест" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
+        {% endif %}
+    </span>
+</legend>
+<h6>Обработчик:</h6>
+<div class="alert alert-light">
+    <code>{{ fntest.handler }}</code>
+</div>
 {% include 'list.html' with lst=fntest.problems.all title="Задачи:" %}
 {% endblock content %}
-
-{% block submenu %}
-<div class="list-group mb-3">
-    {% if perms.contests.change_fntest %}
-    <a href="{% url 'contests:fntest-update' fntest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать FN-тест</a>
-    {% endif %}
-    {% if perms.contests.delete_fntest %}
-    <a href="{% url 'contests:fntest-delete' fntest.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить FN-тест</a>
-    {% endif %}
-</div>
-{% endblock submenu %}

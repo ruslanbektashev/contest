@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views accounts %}
 
 {% block title %}
@@ -13,10 +13,20 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ report }}</legend>
-<p>
+<legend>
+    {{ report }}
+    <span class="pull-right">
+        {% if perms.support.change_report or request.user.id == report.owner.id %}
+        <a href="{% url 'support:report-update' report.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Редактировать сообщение"><i class="fa fa-edit fa-fw"></i></a>
+        {% endif %}
+        {% if perms.support.delete_report %}
+        <a href="{% url 'support:report-delete' report.id %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить сообщение" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
+        {% endif %}
+    </span>
+</legend>
+<div class="alert alert-warning">
     {{ report.text }}
-</p>
+</div>
 <p>
     {% if perms.support.change_report or report.owner == request.user %}
     От: <a href="{{ report.owner.account.get_absolute_url }}">{{ report.owner.account }}</a><br>
@@ -25,14 +35,3 @@
     Отправлено: {{ report.date_created|date }}
 </p>
 {% endblock content %}
-
-{% block submenu %}
-<div class="list-group mb-3">
-    {% if perms.support.change_report or request.user.id == report.owner.id %}
-    <a href="{% url 'support:report-update' report.id %}" class="list-group-item list-group-item-action"><i class="fa fa-edit fa-fw"></i> Редактировать сообщение</a>
-    {% endif %}
-    {% if perms.support.delete_report %}
-    <a href="{% url 'support:report-delete' report.id %}" class="list-group-item list-group-item-action"><i class="fa fa-trash-o fa-fw"></i> Удалить сообщение</a>
-    {% endif %}
-</div>
-{% endblock submenu %}

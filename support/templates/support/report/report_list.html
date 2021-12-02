@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_wide.html' %}
 {% load views views %}
 
 {% block title %}
@@ -12,7 +12,12 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Сообщения об ошибках</legend>
+<legend>
+    Сообщения об ошибках
+    <span class="pull-right">
+        <a href="{% url 'support:report-create' %}?from={{ request.path }}" class="text-success text-decoration-none" data-toggle="tooltip" data-placement="left" title="Сообщить об ошибке"><i class="fa fa-plus fa-fw"></i></a>
+    </span>
+</legend>
 {% if reports %}
 <div class="list-group mb-3">
     {% for report in reports %}
@@ -34,9 +39,3 @@
 </div>
 {% endif %}
 {% endblock content %}
-
-{% block submenu %}
-<div class="list-group mb-3">
-    <a href="{% url 'support:report-create' %}?from={{ request.path }}" class="list-group-item list-group-item-action"><i class="fa fa-plus fa-fw"></i> Сообщить об ошибке</a>
-</div>
-{% endblock submenu %}
