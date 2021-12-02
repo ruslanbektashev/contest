@@ -812,8 +812,9 @@ class Announcement(CRUDEntry):
     def save(self, *args, **kwargs):
         created = self._state.adding
         super().save(*args, **kwargs)
-        action = "добавил объявление" if created else "изменил объявление"
-        Notification.objects.notify(self.group, subject=self.owner, action=action, object=self)
+        if self.group is not None:
+            action = "добавил объявление" if created else "изменил объявление"
+            Notification.objects.notify(self.group, subject=self.owner, action=action, object=self)
 
     def __str__(self):
         return "%s" % self.title
