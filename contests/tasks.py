@@ -9,14 +9,14 @@ from contests.observers import TaskProgressObserver
 from contests.models import Submission
 
 
-@app.task(bind=True, soft_time_limit=600, time_limit=660)
-def evaluate_submission(self, submission_id, user_id):
+@app.task(bind=True, time_limit=2400)
+def evaluate_submission(self, submission_id, user_id, sandbox_type):
     submission = Submission.objects.get(id=submission_id)
     user = User.objects.get(id=user_id)
 
     observer = TaskProgressObserver(self)
     try:
-        submission.evaluate(user, observer)
+        submission.evaluate(observer, user, sandbox_type)
     except SoftTimeLimitExceeded:
         submission.update('TL')
 

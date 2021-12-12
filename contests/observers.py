@@ -9,15 +9,15 @@ class TaskProgressObserver:
         pass
 
     def set_progress(self, state, current, total):
-        percent = 0
+        percentage = 0
         if total > 0:
-            percent = (Decimal(current) / Decimal(total)) * Decimal(100)
-            percent = float(round(percent, 2))
+            percentage = (Decimal(current) / Decimal(total)) * Decimal(100)
+            percentage = float(round(percentage, 2))
         self.task.update_state(
             state=state,
             meta={
                 'current': current,
                 'total': total,
-                'percent': percent,
+                'progress': percentage,
             }
         )

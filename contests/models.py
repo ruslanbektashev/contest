@@ -17,16 +17,17 @@ from django.core.validators import validate_comma_separated_integer_list, MinVal
 from django.db import models
 from django.dispatch import receiver
 from django.urls import reverse
+from django.utils import timezone
 
 from contest.abstract import CDEntry, CRDEntry, CRUDEntry
 from contest.utils import transliterate
 from accounts.models import Account, Comment, Faculty, Subscription, Notification
 
 try:
-    from tools.sandbox import Sandbox
+    from tools.sandbox import get_sandbox_class
     from tools.utility import Status, diff
 except ImportError:
-    from contest.utils import Sandbox, Status, diff
+    from contest.utils import get_sandbox_class, Status, diff
 
 
 """=================================================== Attachment ==================================================="""
@@ -550,12 +551,12 @@ class Problem(CRUDEntry):
     def get_tests(self):
         return list(self.iotest_set.all()) + list(self.uttest_set.all()) + list(self.fntest_set.all())
 
-    def do_test(self, submission, observer):
+    def run_tests(self, submission, observer, user, sandbox_type):
         state, executions = Status.UN, []
         for test in self.get_tests():
             stats = {}
             try:
-                state, stats = test.run(submission.files, observer, self)
+                state, stats = test.run(submission, observer, self, user=user, sandbox_type=sandbox_type)
             except Exception as e:
                 state, stats['exception'] = Status.EX, str(e)
             executions.append((test, stats))
@@ -676,10 +677,12 @@ class IOTest(BasicTest):
         verbose_name = "IO-тест"
         verbose_name_plural = "IO-тесты"
 
-    def run(self, sources, observer, _):
-        root = os.path.dirname(sources[0])
+    def run(self, submission, observer, _, user=None, sandbox_type='subprocess'):
+        sources = submission.files
+        workdir = os.path.dirname(sources[0])
         state, stats = Status.UN, {}
-        with Sandbox(root) as sandbox:
+        Sandbox = get_sandbox_class(sandbox_type)
+        with Sandbox(workdir) as sandbox:
             executable = sandbox.path('exe')
             observer.set_progress('Компилируем', 5, 100)
             state = sandbox.compile(sources, executable, language=self.problem.language, args=self.get_compile_args(),
@@ -713,10 +716,12 @@ class UTTest(BasicTest):
     def files(self):
         return [attachment.file.path for attachment in self.attachment_set.all()]
 
-    def run(self, sources, observer, _):
-        root = os.path.dirname(sources[0])
+    def run(self, submission, observer, _, user=None, sandbox_type='subprocess'):
+        sources = submission.files
+        workdir = os.path.dirname(sources[0])
         state, stats = Status.UN, {}
-        with Sandbox(root) as sandbox:
+        Sandbox = get_sandbox_class(sandbox_type)
+        with Sandbox(workdir) as sandbox:
             test_sources = sandbox.fetch(self.files)
             executable = sandbox.path('exe')
             observer.set_progress('Компилируем', 5, 100)
@@ -765,10 +770,10 @@ class FNTest(CRUDEntry):
         verbose_name = "FN-тест"
         verbose_name_plural = "FN-тесты"
 
-    def run(self, sources, observer, problem):
+    def run(self, submission, observer, problem, user=None, sandbox_type='subprocess'):
         module_name, function_name = self.handler.split('.')
         module = importlib.import_module('tools.problems.' + module_name)
-        return getattr(module, function_name)(sources, observer, problem, self)
+        return getattr(module, function_name)(submission, observer, problem, self, sandbox_type=sandbox_type)
 
     def __str__(self):
         return "%s" % self.title
@@ -1030,18 +1035,18 @@ class Submission(CRDEntry):
     def inspect(self, observer):
         return Status.OK
 
-    def test(self, observer):
-        return self.problem.do_test(self, observer)
+    def test(self, observer, user, sandbox_type):
+        return self.problem.run_tests(self, observer, user, sandbox_type)
 
     def update(self, state):
         self.task_id = None
         self.status = str(state)
         self.save()
 
-    def evaluate(self, user, observer):
+    def evaluate(self, observer, user, sandbox_type):
         state = self.inspect(observer)
         if state == Status.OK:
-            state = self.test(observer)
+            state = self.test(observer, user, sandbox_type)
         self.update(state)
 
     def update_assignment(self):
@@ -1099,6 +1104,10 @@ class ExecutionManager(models.Manager):
         self.filter(submission=submission).delete()
         new_executions = []
         for test, stats in executions:
+            if 'date_created' not in stats:
+                stats['date_created'] = timezone.now()
+            elif timezone.is_naive(stats['date_created']):
+                stats['date_created'] = timezone.make_aware(stats['date_created'])
             new_execution = Execution(submission=submission, test_type=ContentType.objects.get_for_model(type(test)),
                                       test_id=test.id, **stats)
             new_executions.append(new_execution)
@@ -1131,7 +1140,7 @@ class Execution(models.Model):
 
     exception = models.TextField(default="", verbose_name="Исключение")
 
-    date_created = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    date_created = models.DateTimeField(verbose_name="Дата создания")
 
     objects = ExecutionManager()
 

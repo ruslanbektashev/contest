@@ -18,14 +18,14 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, DeleteView, DetailView, FormView, ListView, UpdateView
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, View
 from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from django.views.generic.edit import BaseCreateView, BaseDeleteView, BaseUpdateView
 from django.views.generic.list import BaseListView
 
 from accounts.models import Account, Faculty
 from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin,
-                            PaginatorMixin)
+                            PaginatorMixin, OwnershipOrPermissionRequiredMixin)
 from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, AssignmentUpdatePartialForm,
                             ContestForm, ContestPartialForm, CourseFinishForm, CourseForm, CourseLeaderForm,
                             CreditReportForm, CreditSetForm, EventForm, FNTestForm, OptionBaseFormSet, OptionForm,
@@ -1592,50 +1592,74 @@ class SubmissionMoss(LoginRedirectPermissionRequiredMixin, SingleObjectMixin, Fo
         return reverse('contests:submission-detail', kwargs={'pk': self.kwargs['pk']})
 
 
-class SubmissionEvaluate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView):
-    model = Submission
+class SubmissionEvaluateAPI(LoginRequiredMixin, PermissionRequiredMixin, View):
     http_method_names = ['get']
     permission_required = 'contests.evaluate_submission'
+
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        return JsonResponse({'status': 'http_method_not_allowed'})
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
+        self.storage['sandbox_type'] = request.GET.get('sandbox', 'subprocess')
         return super().dispatch(request, *args, **kwargs)
 
+    def get_object(self):
+        return Submission.objects.get(pk=self.kwargs.get('pk'))
+
     def get(self, request, *args, **kwargs):
-        if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
-            self.object = self.get_object()
-        if self.object.problem.type == 'Program' and self.object.problem.is_testable:
-            task = evaluate_submission.delay(self.object.pk, request.user.id)
-            self.object.task_id = task.id
-            self.object.save()
-        return HttpResponseRedirect(self.get_success_url())
+        submission = self.get_object()
+        if submission.problem.type == 'Program' and submission.problem.is_testable:
+            task = evaluate_submission.delay(submission.pk, request.user.id, **self.storage)
+            submission.task_id = task.id
+            submission.save()
+            return JsonResponse({'status': 'task_queued', 'task_id': task.id})
+        return JsonResponse({'status': 'ignored'})
 
-    def get_success_url(self):
-        return reverse('contests:submission-detail', kwargs={'pk': self.object.pk})
-
-
-def submission_get_progress(request, task_id):
-    progress = TaskProgress(task_id)
-    return JsonResponse(progress.get_info())
+    def handle_no_permission(self):
+        return JsonResponse({'status': 'access_denied'})
 
 
-class SubmissionClearTask(LoginRedirectOwnershipOrPermissionRequiredMixin, BaseUpdateView):
-    model = Submission
+class SubmissionProgressAPI(LoginRequiredMixin, OwnershipOrPermissionRequiredMixin, View):
     http_method_names = ['get']
     permission_required = 'contests.evaluate_submission'
 
-    def get(self, request, *args, **kwargs):
-        if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
-            self.object = self.get_object()
-        self.object.task_id = None
-        self.object.save()
-        return HttpResponseRedirect(self.get_success_url())
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        return JsonResponse({'status': 'http_method_not_allowed'})
 
-    def get_success_url(self):
-        return reverse('contests:submission-detail', kwargs={'pk': self.object.pk})
+    def get_object(self):
+        return Submission.objects.get(pk=self.kwargs.get('pk'))
+
+    def get(self, request, *args, **kwargs):
+        task_id = self.kwargs.get('task_id')
+        progress = TaskProgress(task_id)
+        return JsonResponse(progress.get_info())
+
+    def handle_no_permission(self):
+        return JsonResponse({'status': 'access_denied'})
+
+
+class SubmissionClearTaskAPI(LoginRequiredMixin, PermissionRequiredMixin, View):
+    http_method_names = ['get']
+    permission_required = 'contests.evaluate_submission'
+
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        return JsonResponse({'status': 'http_method_not_allowed'})
+
+    def get_object(self):
+        return Submission.objects.get(pk=self.kwargs.get('pk'))
+
+    def get(self, request, *args, **kwargs):
+        submission = self.get_object()
+        submission.task_id = None
+        submission.save()
+        return JsonResponse({'status': 'task_cleared'})
+
+    def handle_no_permission(self):
+        return JsonResponse({'status': 'access_denied'})
 
 
 class SubmissionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):

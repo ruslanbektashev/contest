@@ -26,9 +26,14 @@ class TaskProgress:
                 'complete': False,
                 'success': None
             }
+        progress = 0
+        try:
+            progress = self.result.info.get('progress', 0)
+        except AttributeError:
+            pass
         return {
             'state': self.result.state,
-            'progress': self.result.info['percent'],
+            'progress': progress,
             'complete': False,
             'success': None
         }

@@ -33,6 +33,9 @@
 <legend>
     {{ submission.short_title }}
     <span class="pull-right">
+    {% if request.user.is_superuser and submission.task_id %}
+        <a href="{% url 'contests:api-submission-clear-task' submission.id %}" class="text-secondary text-decoration-none" data-toggle="tooltip" data-placement="left" title="Стереть таску"><i class="fa fa-eraser fa-fw"></i></a>
+    {% endif %}
     {% if perms.contests.moss_submission and submission.problem.type == 'Program' %}
         <a href="{% url 'contests:submission-moss' submission.id %}" class="text-secondary text-decoration-none" data-toggle="tooltip" data-placement="left" title="MOSS"><i class="fa fa-maxcdn fa-fw"></i></a>
     {% endif %}
@@ -80,14 +83,26 @@
     </div>
 </form>
 {% endif %}
-{% elif submission.is_un %}
-<a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_assignment %}?from_assignment=1{% endif %}" class="btn btn-light btn-block border mb-3">Проверить</a>
-{% elif perms.contests.evaluate_submission %}
-<a href="{% url 'contests:submission-evaluate' submission.id %}{% if from_assignment %}?from_assignment=1{% endif %}" class="btn btn-light btn-block border mb-3">Проверить еще раз</a>
+{% elif submission.is_un or perms.contests.evaluate_submission %}
+<button id="btn_submission_evaluate" class="btn btn-light btn-block border mb-3"
+        data-evaluate-url="{% url 'contests:api-submission-evaluate' submission.id %}"
+        data-progress-url-base="/submission/{{ submission.id }}/get/progress/"
+        data-executions-url="{% url 'contests:submission-get-executions' submission.id %}"
+        data-submission-id="{{ submission.id }}" data-sandbox-type="docker">Проверить{% if perms.contests.evaluate_submission %} еще раз{% endif %}</button>
+{% if request.user.is_superuser %}
+<div class="btn-block btn-group btn-group-toggle mt-0 mb-3" data-toggle="buttons">
+    <label class="btn btn-outline-secondary active">
+        <input type="radio" name="sandbox_type" value="subprocess" autocomplete="off" checked> subprocess
+    </label>
+    <label class="btn btn-outline-secondary">
+        <input type="radio" name="sandbox_type" value="docker" autocomplete="off"> docker
+    </label>
+</div>
+{% endif %}
 {% endif %}
 {% if submission.problem.type == 'Test' and submission.owner.id == request.user.id and submission.sub_submissions.all|length < submission.problem.sub_problems.all|length %}
     {% if submission.assignment is None or submission.assignment.deadline and submission.assignment.deadline > current_time %}
-        <a href="{% url 'contests:sub-submission-create' submission.problem.id submission.id %}" class="btn btn-light btn-block border mb-3">Продолжить решать</a>
+        <a href="{% url 'contests:sub-submission-create' submission.problem.id submission.id %}" class="btn btn-light btn-block border mb-3">Продолжить решение</a>
     {% endif %}
 {% endif %}
 <div class="accordion mb-3" id="execution_list">
@@ -327,12 +342,42 @@ let infinite = new Waypoint.Infinite({
 });
 </script>
 <script type="text/javascript">
+let btn_submission_evaluate = document.getElementById('btn_submission_evaluate');
+if (btn_submission_evaluate) {
+    let evaluate_url = btn_submission_evaluate.getAttribute('data-evaluate-url');
+    let progress_url_base = btn_submission_evaluate.getAttribute('data-progress-url-base');
+    let executions_url = btn_submission_evaluate.getAttribute('data-executions-url');
+    let progress_bar = new TaskProgress(progress_url_base, executions_url, 1000, 5);
+    btn_submission_evaluate.addEventListener('click', function (event) {
+        if (event.detail === 1 && progress_bar.task_id === '') {
+            let sandbox_type = '';
+            let sandbox_type_checkbox = document.getElementsByName('sandbox_type');
+            for (let i = 0; i < sandbox_type_checkbox.length; i++) {
+                if (sandbox_type_checkbox[i].checked) {
+                    sandbox_type = sandbox_type_checkbox[i].value;
+                    break;
+                }
+            }
+            let evaluate_url_q = evaluate_url;
+            if (sandbox_type) {
+                let evaluate_url_params = new URLSearchParams({sandbox: sandbox_type});
+                evaluate_url_q += "?" + evaluate_url_params.toString();
+            }
+            fetch(evaluate_url_q, {cache: "no-store"})
+                .then(response => response.json())
+                .then(json => {
+                    if (json.status === 'task_queued') {
+                        progress_bar.startPolling(json.task_id);
+                    }
+                });
+        }
+    });
 {% if submission.task_id %}
-$(function () {
-    let bar = new TaskProgress("{% url 'contests:submission-get-progress' submission.task_id %}", "{% url 'contests:submission-get-executions' submission.id %}");
-    bar.poll();
-});
+    document.addEventListener("DOMContentLoaded", function() {
+        progress_bar.startPolling("{{ submission.task_id }}");
+    });
 {% endif %}
+}
 </script>
 <script>
 const adjustProgressBarMessageColor = (score) => {

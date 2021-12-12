@@ -55,8 +55,8 @@ def diff(output, correct, precision=None, check_format=False):
     return False
 
 
-class Sandbox:
-    pass
+def get_sandbox_class(based_on=''):
+    return object
 
 
 def under_development(view):
