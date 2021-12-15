@@ -163,7 +163,7 @@ class CourseList(LoginRequiredMixin, ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        if self.request.user.account.is_instructor and not self.request.user.has_perm('contests.add_faculty'):
+        if not self.request.user.has_perm('contests.add_faculty'):
             course_ids = self.request.user.filter_set.values_list('course', flat=True)
             courses = Course.objects.filter(id__in=course_ids)
         else:

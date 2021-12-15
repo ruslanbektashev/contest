@@ -19,7 +19,7 @@
     {% endif %}
     </span>
 </legend>
-{% if request.user.account.is_instructor %}
+{% if not request.user.account.is_student %}
 {% if perms.accounts.add_faculty %}
 <div class="mb-3">
     <div class="btn-group btn-group-sm" role="group" aria-label="Факультет">
