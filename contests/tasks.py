@@ -10,7 +10,7 @@ from contests.models import Submission
 
 
 @app.task(bind=True, time_limit=2400)
-def evaluate_submission(self, submission_id, user_id, sandbox_type):
+def evaluate_submission(self, submission_id, user_id, sandbox_type='subprocess'):
     submission = Submission.objects.get(id=submission_id)
     user = User.objects.get(id=user_id)
 
