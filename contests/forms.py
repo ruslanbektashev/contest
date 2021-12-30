@@ -38,6 +38,14 @@ class AccountSelectMultiple(forms.SelectMultiple):
         return option
 
 
+class MediaAttachmentMixin:
+    FILE_SIZE_LIMIT = 256 * 1024 * 1024
+    FILES_SIZE_LIMIT = 640 * 1024 * 1024
+    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+                                '.pdf', '.aac', '.flac', '.mp3', '.wav', '.wma', '.webm', '.mkv', '.avi', '.mov',
+                                '.wmv', '.mp4', '.zip']
+
+
 """=================================================== Attachment ==================================================="""
 
 
@@ -243,13 +251,7 @@ class CreditReportForm(forms.Form):
 """==================================================== Contest ====================================================="""
 
 
-class ContestPartialForm(AttachmentForm):
-    FILE_SIZE_LIMIT = 256 * 1024 * 1024
-    FILES_SIZE_LIMIT = 640 * 1024 * 1024
-    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-                                '.pdf', '.aac', '.flac', '.mp3', '.wav', '.wma', '.webm', '.mkv', '.avi', '.mov',
-                                '.wmv', '.mp4']
-
+class ContestPartialForm(MediaAttachmentMixin, AttachmentForm):
     class Meta:
         model = Contest
         fields = []
@@ -265,13 +267,7 @@ class ContestForm(ContestPartialForm):
 """==================================================== Problem ====================================================="""
 
 
-class ProblemAttachmentForm(AttachmentForm):
-    FILE_SIZE_LIMIT = 256 * 1024 * 1024
-    FILES_SIZE_LIMIT = 640 * 1024 * 1024
-    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-                                '.pdf', '.aac', '.flac', '.mp3', '.wav', '.wma', '.webm', '.mkv', '.avi', '.mov',
-                                '.wmv', '.mp4']
-
+class ProblemAttachmentForm(MediaAttachmentMixin, AttachmentForm):
     class Meta:
         model = Problem
         fields = []
