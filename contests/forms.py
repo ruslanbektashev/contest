@@ -43,7 +43,7 @@ class MediaAttachmentMixin:
     FILES_SIZE_LIMIT = 640 * 1024 * 1024
     FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
                                 '.pdf', '.aac', '.flac', '.mp3', '.wav', '.wma', '.webm', '.mkv', '.avi', '.mov',
-                                '.wmv', '.mp4', '.zip']
+                                '.wmv', '.mp4', '.zip', '.djvu', '.sav']
 
 
 """=================================================== Attachment ==================================================="""
