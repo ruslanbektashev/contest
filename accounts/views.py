@@ -39,7 +39,7 @@ def nextmonth(year, month):
 def get_study_years_list(account):
     today = datetime.datetime.today()
     current_year = today.year if today.month >= 9 else today.year - 1
-    years = [(current_year - i, str(current_year - i) + '-' + str(current_year - i + 1) + ' учебный год') for i in range(current_year - account.admission_year + 1)]
+    years = [(current_year - i, str(current_year - i) + '-' + str(current_year - i + 1) + ' учебный год') for i in range(current_year - account.admission_year + 1 or 1)]
     return years
 
 
@@ -122,15 +122,6 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
     template_name = 'accounts/account/account_detail.html'
     permission_required = 'accounts.view_account'
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = {}
-
-    def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            self.storage['year'] = int(request.GET.get('year') or get_study_years_list(request.user.account)[0][0])
-        return super().dispatch(request, *args, **kwargs)
-
     def get(self, request, *args, **kwargs):
         if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
             self.object = self.get_object()
@@ -139,20 +130,22 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        years_list = get_study_years_list(self.object)
-        years_list.append((0, 'Все время'))
-        context['assignments'] = (self.object.user.assignment_set
-                                  .select_related('problem', 'problem__contest', 'problem__contest__course')
-                                  .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
-        context['credits'] = self.object.user.credit_set.select_related('course').order_by('course')
-        context['comments_count'] = Comment.objects.filter(author=self.object.user).count()
-        context['questions_count'] = Question.objects.filter(owner=self.object.user).count()
-        context['reports_count'] = Report.objects.filter(owner=self.object.user).count()
-        context['submissions_count'] = Submission.objects.filter(owner=self.object.user).count()
-        context['problems_count'] = self.object.solved_problems_count
-        context['year_month_submissions_solutions_comments'] = get_year_month_submissions_solutions_comments_count_list(self.object.user, self.storage['year'])
-        context['years'] = years_list
-        context.update(self.storage)
+        if self.object.is_student:
+            context['assignments'] = (self.object.user.assignment_set
+                                      .select_related('problem', 'problem__contest', 'problem__contest__course')
+                                      .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
+            context['credits'] = self.object.user.credit_set.select_related('course').order_by('course')
+            context['comments_count'] = Comment.objects.filter(author=self.object.user).count()
+            context['questions_count'] = Question.objects.filter(owner=self.object.user).count()
+            context['reports_count'] = Report.objects.filter(owner=self.object.user).count()
+            context['submissions_count'] = Submission.objects.filter(owner=self.object.user).count()
+            context['problems_count'] = self.object.solved_problems_count
+            years_list = get_study_years_list(self.object)
+            years_list.append((0, 'Все время'))
+            year = int(self.request.GET.get('year') or years_list[0][0])
+            context['year_month_submissions_solutions_comments'] = get_year_month_submissions_solutions_comments_count_list(self.object.user, year)
+            context['years'] = years_list
+            context['year'] = year
         return context
 
 
