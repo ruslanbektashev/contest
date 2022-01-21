@@ -175,7 +175,8 @@ class CourseLeaderForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['course'].initial = course
         self.fields['leader'].queryset = User.objects.filter(groups__name="Преподаватель",
-                                                             account__faculty=course.faculty)
+                                                             account__faculty=course.faculty).order_by('last_name',
+                                                                                                       'first_name')
 
 
 """===================================================== Credit ====================================================="""

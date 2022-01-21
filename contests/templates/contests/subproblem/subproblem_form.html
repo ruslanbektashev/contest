@@ -7,8 +7,8 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
-{% breadcrumb subproblem.problem.contest.course subproblem.problem.contest.course %}
-{% breadcrumb subproblem.problem.contest subproblem.problem.contest %}
+{% breadcrumb subproblem.course subproblem.course %}
+{% breadcrumb subproblem.contest subproblem.contest %}
 {% if subproblem %}
 {% breadcrumb subproblem.problem subproblem.problem %}
 {% breadcrumb subproblem.sub_problem %}

@@ -7,8 +7,8 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
-{% breadcrumb assignment.problem.contest.course assignment.problem.contest.course %}
-{% breadcrumb "Задания" 'contests:assignment-table' assignment.problem.contest.course.id %}
+{% breadcrumb assignment.course assignment.course %}
+{% breadcrumb "Задания" 'contests:assignment-table' assignment.course.id %}
 {% breadcrumb assignment assignment %}
 {% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}

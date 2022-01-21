@@ -9,8 +9,8 @@
 {% breadcrumb "Главная" 'contests:index' %}
 {% if from_assignment and assignment %}
 {% if perms.contests.view_assignment_table %}
-{% breadcrumb problem.contest.course problem.contest.course %}
-{% breadcrumb "Задания" 'contests:assignment-table' problem.contest.course_id %}
+{% breadcrumb problem.course problem.course %}
+{% breadcrumb "Задания" 'contests:assignment-table' problem.course.id %}
 {% else %}
 {% breadcrumb "Мои задания" 'contests:assignment-list' %}
 {% endif %}
@@ -19,7 +19,7 @@
 {% breadcrumb main_submission.short_title main_submission query_string='?from_assignment=1' %}
 {% endif %}
 {% else %}
-{% breadcrumb problem.contest.course problem.contest.course %}
+{% breadcrumb problem.course problem.course %}
 {% breadcrumb problem.contest problem.contest %}
 {% breadcrumb problem problem %}
 {% if main_submission %}

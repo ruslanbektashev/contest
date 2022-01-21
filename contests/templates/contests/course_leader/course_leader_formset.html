@@ -36,7 +36,7 @@
                     {% endif %}
                     {% render_field form.course %}
                     {% with WIDGET_ERROR_CLASS="is-invalid" %}
-                    <td>{% render_field form.leader class+="form-control selectpicker" data-container="body" %}</td>
+                    <td>{% render_field form.leader class+="form-control selectpicker" data-container="body" data-live-search="true" %}</td>
                     <td>{% render_field form.group class+="form-control selectpicker" data-container="body" %}</td>
                     <td>{% render_field form.subgroup class+="form-control selectpicker" data-container="body" %}</td>
                     <td class="text-center">

@@ -145,6 +145,8 @@ def get_problem_icon(problem):
         return "fa-check-square-o"
     elif problem.type == 'Program':
         return "fa-file-code-o"
+    elif problem.type == 'Verbal':
+        return "fa-microphone"
     elif problem.type == 'Test':
         return "fa-folder-o"
     else:
@@ -175,7 +177,7 @@ def get_assignment_style(assignment):
 def render_assignment_user_table(context, assignments, credits):
     for credit in credits:
         for assignment in assignments:
-            if assignment.problem.contest.course_id == credit.course_id:
+            if assignment.contest.course_id == credit.course_id:
                 assignment.credit = credit
     context['assignments'] = assignments
     return context

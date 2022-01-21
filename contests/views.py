@@ -1192,12 +1192,12 @@ class AssignmentUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         if not self.storage['partial']:
-            kwargs['course'] = self.object.problem.contest.course
+            kwargs['course'] = self.object.course
         return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['course'] = self.object.problem.contest.course
+        context['course'] = self.object.course
         context['partial'] = self.storage['partial']
         return context
 
@@ -1208,7 +1208,7 @@ class AssignmentDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
     permission_required = 'contests.delete_assignment'
 
     def get_success_url(self):
-        return reverse('contests:assignment-table', kwargs={'course_id': self.object.problem.contest.course_id})
+        return reverse('contests:assignment-table', kwargs={'course_id': self.object.course.id})
 
 
 class AssignmentUserTable(LoginRequiredMixin, ListView):

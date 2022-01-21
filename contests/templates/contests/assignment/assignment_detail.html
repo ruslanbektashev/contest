@@ -8,8 +8,8 @@
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% if perms.contests.view_assignment_table %}
-{% breadcrumb assignment.problem.contest.course assignment.problem.contest.course %}
-{% breadcrumb "Задания" 'contests:assignment-table' assignment.problem.contest.course.id %}
+{% breadcrumb assignment.course assignment.course %}
+{% breadcrumb "Задания" 'contests:assignment-table' assignment.course.id %}
 {% else %}
 {% breadcrumb "Мои задания" 'contests:assignment-list' %}
 {% endif %}

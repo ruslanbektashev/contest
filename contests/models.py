@@ -453,6 +453,7 @@ class Problem(CRUDEntry):
     TYPE_CHOICES = (
         ('Program', "Способ ответа: программа"),
         ('Text', "Способ ответа: текст"),
+        ('Verbal', "Способ ответа: устно"),
         ('Files', "Способ ответа: файлы"),
         ('Options', "Способ ответа: варианты"),
         ('Test', "Тест"),
@@ -514,6 +515,10 @@ class Problem(CRUDEntry):
         verbose_name_plural = "Задачи"
 
     @property
+    def course(self):
+        return self.contest.course
+
+    @property
     def files(self):
         return [attachment.file.path for attachment in self.attachment_set.all()]
 
@@ -529,7 +534,7 @@ class Problem(CRUDEntry):
                 score = 4
             elif submission.status in ['TF', 'TR', 'WA', 'NA']:
                 score = 3
-                if self.contest.course.level in (6, 7):
+                if self.course.level in (6, 7):
                     passed = list(submission.execution_set.values_list('test_is_passed', flat=True).order_by())
                     if passed.count(True) not in (2, 3, 4):
                         score = 2
@@ -867,6 +872,14 @@ class Assignment(CRUDEntry):
         verbose_name = "Задание"
         verbose_name_plural = "Задания"
 
+    @property
+    def course(self):
+        return self.problem.contest.course
+
+    @property
+    def contest(self):
+        return self.problem.contest
+
     def get_latest_submission(self):
         return self.problem.get_latest_submission_by(self.user)
 
@@ -988,6 +1001,14 @@ class Submission(CRDEntry):
         verbose_name_plural = "Посылки"
 
     @property
+    def course(self):
+        return self.problem.contest.course
+
+    @property
+    def contest(self):
+        return self.problem.contest
+
+    @property
     def short_title(self):
         return "П{}осылка {}".format("" if self.main_submission is None else "одп", self.id)
 
@@ -1088,7 +1109,7 @@ class Submission(CRDEntry):
         if created and self.problem.type in ['Program'] or not created:
             self.update_assignment()
         if created and self.main_submission is None:
-            course_leaders = self.problem.contest.course.leaders.values_list('id', flat=True)
+            course_leaders = self.course.leaders.values_list('id', flat=True)
             Notification.objects.notify(course_leaders, subject=self.owner, action="отправил посылку", object=self,
                                         relation="к задаче", reference=self.problem)
 

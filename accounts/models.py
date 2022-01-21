@@ -502,7 +502,7 @@ class ActivityManager(models.Manager):
         pass
 
     def on_submission_created(self, submission):
-        if submission.problem.contest.course.level in (6, 7):
+        if submission.course.level in (6, 7):
             self.notify_user('sbr',
                              subject=submission.owner, action="отправил решение задачи", object=submission.problem,
                              level=2)
