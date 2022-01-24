@@ -137,6 +137,12 @@ label {
     padding: 0;
 }
 
-.django-ckeditor-widget{
+.django-ckeditor-widget {
     width: 100%;
+}
+
+table {
+    @include media-breakpoint-up(lg) {
+        table-layout: fixed;
+    }
 }

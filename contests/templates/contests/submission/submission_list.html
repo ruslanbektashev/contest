@@ -12,18 +12,18 @@
 
 {% block content %}
 <legend>Посылки{% if course %} <span class="text-muted pull-right">{{ course }}</span>{% endif %}</legend>
-<div class="table-responsive">
+<div class="table-responsive-lg">
     <table id="p" class="table table-bordered table-sm">
         <thead>
             <tr>
-                <th class="text-center" style="width: 15%;">Дата</th>
-                <th>Студент</th>
+                <th class="text-truncate text-center" style="width: 15%;">Дата</th>
+                <th class="text-truncate">Студент</th>
                 {% if not course %}
-                <th>Курс</th>
+                <th class="text-truncate">Курс</th>
                 {% endif %}
-                <th>Раздел</th>
-                <th style="width: 6%;">Задача</th>
-                <th class="text-center" style="width: 6%;">Статус</th>
+                <th class="text-truncate">Раздел</th>
+                <th class="text-truncate" style="width: 6%;">Задача</th>
+                <th class="text-truncate text-center" style="width: 6%;">Статус</th>
             </tr>
         </thead>
         <tbody>
@@ -31,7 +31,7 @@
             {% for submission in page_obj %}
             <tr>
                 <td class="text-center text-nowrap" data-toggle="tooltip" data-placement="bottom" title="{{ submission.date_created|naturaltime }}">{% if submission.date_created|date:'Y' == current_year %}{{ submission.date_created|date:'d b в H:i' }}{% else %}{{ submission.date_created|date:'d b y г. в H:i' }}{% endif %}</td>
-                <td class="text-nowrap"><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>
+                <td class="text-truncate text-nowrap"><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>
                 {% if not course %}
                 <td class="text-truncate"><a href="{{ submission.course.get_absolute_url }}">{{ submission.course }}</a></td>
                 {% endif %}

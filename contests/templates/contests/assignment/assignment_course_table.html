@@ -1,12 +1,12 @@
 {% load contests %}
-<div class="table-responsive">
+<div class="table-responsive-lg">
     <table class="table table-bordered table-sm table-hover">
         <thead>
             <tr>
                 <th class="text-right" style="width: 4%;">№</th>
-                <th>Студент</th>
+                <th style="width: 25%;">Студент</th>
                 {% for contest in contests %}
-                <th class="lake">
+                <th class="lake text-truncate">
                     <a href="{{ contest.get_absolute_url }}" data-toggle="tooltip" data-placement="top" title="{{ contest }}">{{ contest.number }}</a>
                     <a href="{% url 'contests:assignment-randomize' course.id %}?contest_id={{ contest.id }}{% if debts %}&debts=1{% endif %}" class="numtus status-info pebble" data-toggle="tooltip" data-placement="top" title="Распределить задания случайно в этом разделе"><i class="fa fa-random"></i></a>
                 </th>
@@ -18,9 +18,9 @@
             {% for row in table %}
             <tr>
                 <td class="text-right text-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
-                <td><a href="{{ row.student.get_absolute_url }}">{{ row.student }}</a></td>
+                <td class="text-truncate"><a href="{{ row.student.get_absolute_url }}">{{ row.student }}</a></td>
                 {% for col in row.columns %}
-                <td class="msu-problem-set lake">
+                <td class="msu-problem-set lake text-truncate">
                     {% for assignment in col.assignments %}
                     <a href="{% url 'contests:assignment-detail' assignment.id %}" class="numtus status-{% get_assignment_style assignment %}" data-toggle="tooltip" data-placement="bottom" title="{{ assignment.remark }}">
                         {{ assignment.problem.number }}<sup>{{ assignment.remark.0 }}</sup>
