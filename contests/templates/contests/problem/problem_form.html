@@ -48,6 +48,65 @@
             {{ form.description }}
         </div>
     </div>
+    {% endwith %}
+
+    {% if type == 'Options' %}
+    <h5 class="mb-3">Варианты ответа</h5>
+    {{ formset.management_form }}
+    {% if formset.non_form_errors %}
+    <div class="form-group">
+        <div class="alert alert-danger">
+            {% for error in formset.non_form_errors %}
+            {{ error }}<br>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    <div id="formset_wrapper">
+        {% for form in formset %}
+        {% for hidden in form.hidden_fields %}
+        {{ hidden }}
+        {% endfor %}
+        <div class="card mb-3">
+            <div class="card-body">
+                {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+                {% render_field form.text class+="form-control" %}
+                {% endwith %}
+                <div class="custom-control custom-control-inline custom-checkbox">
+                    {% render_field form.is_correct class+="custom-control-input" %}
+                    <label class="custom-control-label" for="{{ form.is_correct.id_for_label }}">{{ form.is_correct.label }}</label>
+                </div>
+                <div class="custom-control custom-control-inline custom-checkbox">
+                    {% render_field form.DELETE class+="custom-control-input" %}
+                    <label class="custom-control-label" for="{{ form.DELETE.id_for_label }}">{{ form.DELETE.label }}</label>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="emptyform_wrapper" class="d-none">
+        <div class="card mb-3">
+            <div class="card-body">
+                {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+                {% render_field formset.empty_form.text class+="form-control" %}
+                {% endwith %}
+                <div class="custom-control custom-control-inline custom-checkbox">
+                    {% render_field formset.empty_form.is_correct class+="custom-control-input" %}
+                    <label class="custom-control-label" for="{{ formset.empty_form.is_correct.id_for_label }}">{{ formset.empty_form.is_correct.label }}</label>
+                </div>
+                <div class="custom-control custom-control-inline custom-checkbox">
+                    {% render_field formset.empty_form.DELETE class+="custom-control-input" %}
+                    <label class="custom-control-label" for="{{ formset.empty_form.DELETE.id_for_label }}">{{ formset.empty_form.DELETE.label }}</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="button" class="btn btn-block btn-light border mb-3" value="Добавить ещё вариант" id="add_more">
+    {% endif %}
+
+    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.number class+="form-control" %}
     {% if type != 'Test' %}
     {% render_field form.score_max class+="form-control" %}
@@ -145,62 +204,6 @@
     {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.files class+="custom-file-input" %}
     {% endwith %}
-
-    {% if type == 'Options' %}
-    <h5 class="mb-3">Варианты ответа</h5>
-    {{ formset.management_form }}
-    {% if formset.non_form_errors %}
-    <div class="form-group">
-        <div class="alert alert-danger">
-            {% for error in formset.non_form_errors %}
-            {{ error }}<br>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-    <div id="formset_wrapper">
-        {% for form in formset %}
-        {% for hidden in form.hidden_fields %}
-        {{ hidden }}
-        {% endfor %}
-        <div class="card mb-3">
-            <div class="card-body">
-                {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-                {% render_field form.text class+="form-control" %}
-                {% endwith %}
-                <div class="custom-control custom-control-inline custom-checkbox">
-                    {% render_field form.is_correct class+="custom-control-input" %}
-                    <label class="custom-control-label" for="{{ form.is_correct.id_for_label }}">{{ form.is_correct.label }}</label>
-                </div>
-                <div class="custom-control custom-control-inline custom-checkbox">
-                    {% render_field form.DELETE class+="custom-control-input" %}
-                    <label class="custom-control-label" for="{{ form.DELETE.id_for_label }}">{{ form.DELETE.label }}</label>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-
-    <div id="emptyform_wrapper" class="d-none">
-        <div class="card mb-3">
-            <div class="card-body">
-                {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-                {% render_field formset.empty_form.text class+="form-control" %}
-                {% endwith %}
-                <div class="custom-control custom-control-inline custom-checkbox">
-                    {% render_field formset.empty_form.is_correct class+="custom-control-input" %}
-                    <label class="custom-control-label" for="{{ formset.empty_form.is_correct.id_for_label }}">{{ formset.empty_form.is_correct.label }}</label>
-                </div>
-                <div class="custom-control custom-control-inline custom-checkbox">
-                    {% render_field formset.empty_form.DELETE class+="custom-control-input" %}
-                    <label class="custom-control-label" for="{{ formset.empty_form.DELETE.id_for_label }}">{{ formset.empty_form.DELETE.label }}</label>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <input type="button" class="btn btn-light border mb-3" value="Добавить ещё вариант" id="add_more">
-    {% endif %}
 
     {% render_submit_button value="Сохранить" %}
 </form>
