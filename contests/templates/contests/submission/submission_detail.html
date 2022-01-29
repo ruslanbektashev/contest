@@ -308,7 +308,7 @@
 </div>
 {% endif %}
 <legend>Комментарии</legend>
-{% render_comments submission comments %}
+{% include 'accounts/comment/comment_list.html' with obj=submission %}
 {% endblock content %}
 
 {% block javascript %}

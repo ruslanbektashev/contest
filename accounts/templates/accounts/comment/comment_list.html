@@ -1,5 +1,7 @@
 {% load views accounts comments markdown humanize static %}
+{% if not without_form %}
 {% render_comment_form obj %}
+{% endif %}
 {% if page_obj.has_previous %}
 <a class="btn btn-block btn-link mb-4" href="?page=1"><i class="fa fa-ellipsis-h fa-lg"></i></a>
 {% endif %}

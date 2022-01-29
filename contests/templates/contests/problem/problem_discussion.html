@@ -24,7 +24,7 @@
         <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
     </a>
 </div>
-{% render_comments problem comments %}
+{% include 'accounts/comment/comment_list.html' with obj=problem %}
 {% endblock content %}
 
 {% block javascript %}

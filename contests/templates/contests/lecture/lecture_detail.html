@@ -16,7 +16,7 @@
 <div>
     <p>{{ description|safe }}</p>
 </div>
-{% render_comments lecture %}
+{% include 'accounts/comment/comment_list.html' with obj=lecture %}
 {% endblock content %}
 
 {% block submenu %}

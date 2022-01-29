@@ -28,13 +28,6 @@ def render_comment_form(context, obj, parent=None, form=None):
     return context
 
 
-@register.inclusion_tag('accounts/comment/comment_list.html', takes_context=True)
-def render_comments(context, obj, comments):
-    context['obj'] = obj
-    context['comments'] = comments
-    return context
-
-
 @register.filter
 def model_name(instance):
     return instance._meta.model_name

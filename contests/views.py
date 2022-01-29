@@ -1058,8 +1058,11 @@ class AssignmentDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         submissions = self.object.get_submissions()
-        context['paginator'], context['page_obj'], context['submissions'], context['is_paginated'] = \
+        context['submission_paginator'], context['submission_page_obj'], context['submissions'], context['submission_is_paginated'] = \
             self.paginate_queryset(submissions)
+        comments = self.object.comment_set.actual()
+        context['comment_paginator'], context['comment_page_obj'], context['comments'], context['comment_is_paginated'] = \
+            self.paginate_queryset(comments)
         context['current_time'] = timezone.now()
         return context
 
