@@ -527,12 +527,18 @@ class SubmissionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
     def clean(self):
+        if self.assignment is None and not self.owner.is_superuser:
+            raise ValidationError("Посылку можно отправить к задаче только по заданию. "
+                                  "Этой задачи нет среди Ваших заданий.", code='no_assignment')
         if self.problem.is_testable:
             last_submission = self.problem.get_latest_submission_by(self.owner)
             if last_submission and last_submission.is_un:
                 raise ValidationError("Последнее присланное решение еще не проверено",
                                       code='last_submission_is_un')
         if self.assignment is not None:
+            if not self.assignment.credit_incomplete and not self.owner.is_superuser:
+                raise ValidationError("Невозможно отправить посылку к задаче завершенного курса",
+                                      code='assignment_credit_complete')
             if self.assignment.deadline is not None and self.assignment.deadline < timezone.now():
                 raise ValidationError("Время приема посылок по Вашему заданию истекло",
                                       code='assignment_deadline_reached')

@@ -146,8 +146,8 @@
                     </tr>
                     {% endif %}
                 </table>
-                {% if request.user.account.is_student or request.user.is_superuser %}
                 {% if perms.contests.add_submission %}
+                {% if assignment and assignment.credit_incomplete or request.user.is_superuser %}
                 <a href="{% url 'contests:submission-create' problem.id %}" class="btn btn-block btn-info mb-2">
                     <i class="fa fa-file-o fa-fw"></i> Отправить решение
                 </a>

@@ -569,6 +569,10 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['latest_submission'] = self.object.get_latest_submission_by(self.request.user)
+        try:
+            context['assignment'] = Assignment.objects.get(user=self.request.user, problem=self.object)
+        except Assignment.DoesNotExist:
+            context['assignment'] = None
         if self.request.user.has_perm('contests.view_submission_list'):
             submissions = self.object.submission_set.all()
         else:
