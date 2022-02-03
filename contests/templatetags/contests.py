@@ -178,7 +178,7 @@ def render_assignment_user_table(context, assignments, credits):
     for credit in credits:
         for assignment in assignments:
             if assignment.contest.course_id == credit.course_id:
-                assignment.credit = credit
+                assignment.attached_credit = credit
     context['assignments'] = assignments
     return context
 
