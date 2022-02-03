@@ -43,10 +43,6 @@
         {% endif %}
     </span>
 </legend>
-<a class="btn btn-light btn-block border mb-3" href="{% url 'contests:contest-discussion' contest.id %}">
-    {% unread_comments_count request.user.account contest as ucc %}
-    <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
-</a>
 <div class="accordion mb-3" id="contest_details">
     <div class="card">
         <div class="card-header" id="contest_description">
@@ -105,6 +101,20 @@
         </div>
     </div>
 </div>
+<div class="row mb-3">
+    <div class="col-12 col-md-6">
+        <div class="col-12 text-muted text-left">Факультет: {{ contest.course.faculty }}</div>
+        <div class="col-12 text-muted text-left">Порядковый номер: {{ contest.number }}</div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="col-12 text-muted text-left text-md-right">Добавлен: {{ contest.date_created|date:'d E Y г.' }}</div>
+        <div class="col-12 text-muted text-left text-md-right">Добавил(а): <a href="{{ contest.owner.account.get_absolute_url }}" class="text-muted">{{ contest.owner.account }}</a></div>
+    </div>
+</div>
+<a class="btn btn-light btn-block border mb-3" href="{% url 'contests:contest-discussion' contest.id %}">
+    {% unread_comments_count request.user.account contest as ucc %}
+    <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+</a>
 {% endblock content %}
 
 {% block javascript %}

@@ -36,10 +36,6 @@
         {% endif %}
     </span>
 </legend>
-<a class="btn btn-light btn-block border mb-3" href="{% url 'contests:course-discussion' course.id %}">
-    {% unread_comments_count request.user.account course as ucc %}
-    <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
-</a>
 <div class="accordion mb-3" id="course_details">
     <div class="card">
         <div class="card-header" id="course_description">
@@ -77,6 +73,25 @@
         </div>
     </div>
 </div>
+<div class="row mb-3">
+    {% if course.title_unofficial and course.title_unofficial != course.title_official %}
+    <div class="col-12">
+        <div class="col-12 text-muted">Официальное название курса: {{ course.title_official }}</div>
+    </div>
+    {% endif %}
+    <div class="col-12 col-md-6">
+        <div class="col-12 text-muted text-left">Факультет: {{ course.faculty }}</div>
+        <div class="col-12 text-muted text-left">Уровень: {{ course.get_level_display }}</div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="col-12 text-muted text-left text-md-right">Добавлен: {{ course.date_created|date:'d E Y г.' }}</div>
+        <div class="col-12 text-muted text-left text-md-right">Добавил(а): <a href="{{ course.owner.account.get_absolute_url }}" class="text-muted">{{ course.owner.account }}</a></div>
+    </div>
+</div>
+<a class="btn btn-light btn-block border mb-3" href="{% url 'contests:course-discussion' course.id %}">
+    {% unread_comments_count request.user.account course as ucc %}
+    <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+</a>
 <legend>
     Преподаватели
     <span class="pull-right">
