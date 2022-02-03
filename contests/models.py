@@ -873,6 +873,17 @@ class Assignment(CRUDEntry):
         verbose_name_plural = "Задания"
 
     @property
+    def credit_incomplete(self):
+        return self.credit is not None and self.credit.score < 3
+
+    @property
+    def credit(self):
+        try:
+            return Credit.objects.get(user=self.user, course=self.course)
+        except Credit.DoesNotExist:
+            return None
+
+    @property
     def course(self):
         return self.problem.contest.course
 
