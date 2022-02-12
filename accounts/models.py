@@ -175,6 +175,7 @@ class Account(models.Model):
     GROUP_CHOICES = (
         (1, "1"),
         (2, "2"),
+        (3, "3"),
     )
     GROUP_DEFAULT = 1
     LEVEL_CHOICES = (
