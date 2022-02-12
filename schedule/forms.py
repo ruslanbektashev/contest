@@ -40,9 +40,9 @@ class ScheduleForm(forms.ModelForm):
 
 
 class ScheduleAttachmentForm(forms.ModelForm):
-    FILE_SIZE_LIMIT = 1024 * 1024
+    FILE_SIZE_LIMIT = 10 * 1024 * 1024
     FILE_ALLOWED_NAMES = tuple()
-    FILE_ALLOWED_EXTENSIONS = ['.htm']
+    FILE_ALLOWED_EXTENSIONS = ['.htm', '.pdf']
 
     class Meta:
         model = ScheduleAttachment

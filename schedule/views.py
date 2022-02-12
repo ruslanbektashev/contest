@@ -1,3 +1,5 @@
+import os.path
+
 from django.contrib.contenttypes.models import ContentType
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
@@ -92,6 +94,14 @@ class ScheduleList(LoginRedirectMixin, ListView):
 class ScheduleAttachmentDetail(LoginRedirectMixin, DetailView):
     model = ScheduleAttachment
     template_name = 'schedule/scheduleattachment/schedule_attachment_detail.html'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if 'pdf' in os.path.splitext(self.object.file.path)[1].lower():
+            return HttpResponseRedirect(self.object.file.url)
+        else:
+            context = self.get_context_data(object=self.object)
+            return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
