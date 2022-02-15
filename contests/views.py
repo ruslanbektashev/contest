@@ -1163,14 +1163,10 @@ class UTTestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         return super().dispatch(request, *args, **kwargs)
 
     def has_ownership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.problem.course.owner_id == self.request.user.id
+        return self.storage['problem'].course.owner_id == self.request.user.id
 
     def has_leadership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.problem.course.leaders.filter(id=self.request.user.id).exists()
+        return self.storage['problem'].course.leaders.filter(id=self.request.user.id).exists()
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
