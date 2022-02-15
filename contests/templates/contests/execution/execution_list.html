@@ -1,4 +1,4 @@
-{% load contests %}
+{% load views contests %}
 {% for execution in executions %}
 <div class="card">
     <div class="card-header d-flex">
@@ -8,7 +8,7 @@
         <span class="badge badge-danger p-1 mr-2 align-self-center" data-toggle="tooltip" data-placement="top" title="Тест провален"><i class="fa fa-times fa-fw"></i></span>
         {% endif %}
         <span class="mr-auto">
-            {% if perms.contests.view_submission and execution.test %}
+            {% if perms.contests.view_submission and execution.test or request|has_leader_permission:course and execution.test %}
             <a href="{{ execution.test.get_absolute_url }}">{{ execution.test }}</a>
             {% else %}
             Тест {{ forloop.counter }}
@@ -37,15 +37,17 @@
             <span class="badge badge-secondary">Вывод компилятора в stderr:</span>
             <pre class="alert alert-secondary">{{ execution.compilation_stderr|remove_pwd }}</pre>
             {% endif %}
-            {% if perms.contests.view_submission and execution.execution_stdout %}
+            {% if execution.execution_stdout %}
+            {% if perms.contests.view_submission or request|has_leader_permission:course %}
             <span data-toggle="tooltip" data-placement="right" title="Отображается только для преподавателя" class="badge badge-warning"><i class="fa fa-lock fa-fw"></i>Вывод программы в stdout:</span>
             <pre class="alert alert-secondary">{{ execution.execution_stdout }}</pre>
             {% endif %}
+            {% endif %}
             {% if execution.execution_stderr %}
-                {% if perms.contests.view_submission or not execution.test_is_passed %}
+            {% if perms.contests.view_submission or request|has_leader_permission:course or not execution.test_is_passed %}
             <span class="badge badge-secondary">Вывод программы в stderr:</span>
             <pre class="alert alert-secondary">{{ execution.execution_stderr|remove_pwd }}</pre>
-                {% endif %}
+            {% endif %}
             {% endif %}
             {% if execution.test_input %}
             <span class="badge badge-secondary">Входные данные:</span>
@@ -63,9 +65,11 @@
             <span class="badge badge-secondary">Сводка:</span>
             <pre class="alert alert-secondary">{{ execution.test_summary|linebreaksbr }}</pre>
             {% endif %}
-            {% if perms.contests.view_submission and execution.exception %}
+            {% if execution.exception %}
+            {% if perms.contests.view_submission or request|has_leader_permission:course %}
             <span data-toggle="tooltip" data-placement="right" title="Отображается только для преподавателя" class="badge badge-warning">Исключение: <i class="fa fa-lock fa-fw"></i></span>
             <pre class="alert alert-secondary">{{ execution.exception }}</pre>
+            {% endif %}
             {% endif %}
         </div>
     </div>

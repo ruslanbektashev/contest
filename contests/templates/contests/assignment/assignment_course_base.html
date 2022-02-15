@@ -15,8 +15,10 @@
 <legend>
     Таблица заданий {% if debts %}должников{% endif %}
     <span id="assignment_table_controls" class="pull-right">
-        <a id="assignment_table_controls_add" href="{% url 'contests:assignment-create' course.id %}{% if debts %}?debts=1{% endif %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Назначить новое задание"><i class="fa fa-plus fa-fw"></i></a>
+        {% if perms.contests.add_assignment or request|has_leader_permission:course %}
+        <a id="assignment_table_controls_add" href="{% url 'contests:assignment-create' course.id %}{% if debts %}?debts=1{% endif %}" class="text-decoration-none text-success" data-toggle="tooltip" data-placement="left" title="Назначить новое задание"><i class="fa fa-plus fa-fw"></i></a>
         <a id="assignment_table_controls_random" href="{% url 'contests:assignment-randomize' course.id %}{% if debts %}?debts=1{% endif %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Распределить задания случайно"><i class="fa fa-random fa-fw"></i></a>
+        {% endif %}
         {% if debts %}
         <a href="{% url 'contests:assignment-table' course.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Перейти к таблице"><i class="fa fa-table fa-fw"></i></a>
         {% else %}
@@ -25,8 +27,12 @@
         {% if perms.accounts.change_account %}
         <a id="assignment_table_controls_finish" href="{% url 'contests:course-finish' course.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Завершить курс"><i class="fa fa-stop fa-fw"></i></a>
         {% endif %}
+        {% if perms.contests.add_credit or request|has_leader_permission:course %}
         <a id="assignment_table_controls_start" href="{% url 'contests:course-start' course.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Начать курс"><i class="fa fa-play fa-fw"></i></a>
+        {% endif %}
+        {% if perms.contests.report_credit or request|has_leader_permission:course %}
         <a id="assignment_table_controls_report" href="{% url 'contests:credit-report' course.id %}{% if debts %}?debts=1{% endif %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Создать ведомость"><i class="fa fa-file-word-o fa-fw"></i></a>
+        {% endif %}
         <!--<span class="dropdown show">
             <a href="#" class="text-decoration-none" role="button" id="dropdownMoreMenuLink" data-toggle="dropdown" data-flip="false" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
             <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownMoreMenuLink">

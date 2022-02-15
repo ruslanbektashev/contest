@@ -1,30 +1,31 @@
-from django.contrib.auth.mixins import AccessMixin, PermissionRequiredMixin
+from django.contrib.auth.mixins import AccessMixin, LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.views import redirect_to_login
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
 
 class LoginRedirectMixin(AccessMixin):
+    raise_exception = True
+
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect_to_login(self.request.get_full_path(), self.get_login_url(), self.get_redirect_field_name())
         return super().dispatch(request, *args, **kwargs)
 
 
-class LoginRedirectPermissionRequiredMixin(LoginRedirectMixin, PermissionRequiredMixin):
-    raise_exception = True
-
-
-class OwnershipOrPermissionRequiredMixin(PermissionRequiredMixin):
+class OwnershipOrMixin:
     def has_ownership(self):
-        self.object = self.get_object()
-        return self.object.owner.pk == self.request.user.pk
+        raise NotImplementedError("OwnershipOrMixin: has_ownership method must be defined!")
 
     def has_permission(self):
-        return super().has_permission() or self.has_ownership()
+        return self.has_ownership() or super().has_permission()
 
 
-class LoginRedirectOwnershipOrPermissionRequiredMixin(LoginRedirectMixin, OwnershipOrPermissionRequiredMixin):
-    raise_exception = True
+class LeadershipOrMixin:
+    def has_leadership(self):
+        raise NotImplementedError("LeadershipOrMixin: has_leadership method must be defined!")
+
+    def has_permission(self):
+        return self.has_leadership() or super().has_permission()
 
 
 class PaginatorMixin:

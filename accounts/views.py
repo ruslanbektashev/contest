@@ -1,27 +1,28 @@
 import json
-import datetime
 
-from django.forms import modelformset_factory
 from markdown import markdown
 
 from django.apps import apps
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
+from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
+from django.template.defaultfilters import date
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
+from django.utils.datetime_safe import datetime
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView, TemplateView
 from django.views.generic.edit import BaseUpdateView
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.contenttypes.models import ContentType
 
-from accounts.templatetags.comments import get_comment_query_string
 from accounts.forms import (AccountPartialForm, AccountListForm, AccountSetForm, CommentForm, ManageSubscriptionsForm,
                             StaffForm, StudentForm)
 from accounts.models import Account, Activity, Comment, Faculty, Message, Chat, Announcement, Notification, Subscription
-from contest.mixins import (LoginRedirectPermissionRequiredMixin, LoginRedirectOwnershipOrPermissionRequiredMixin,
-                            PaginatorMixin)
+from accounts.templatetags.comments import get_comment_query_string
+from contest.mixins import (LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin)
 from contest.templatetags.views import get_query_string, get_updated_query_string
 from contests.models import Contest, Course, Problem, Submission
 from support.models import Question, Report
@@ -37,7 +38,7 @@ def nextmonth(year, month):
 
 
 def get_study_years_list(account):
-    today = datetime.datetime.today()
+    today = datetime.today()
     current_year = today.year if today.month >= 9 else today.year - 1
     years = [(current_year - i, str(current_year - i) + '-' + str(current_year - i + 1) + ' учебный год') for i in range(current_year - account.admission_year + 1 or 1)]
     return years
@@ -45,14 +46,12 @@ def get_study_years_list(account):
 
 def get_year_month_submissions_solutions_comments_count_list(user, year):
     Assignment = apps.get_model('contests', 'Assignment')
-    # locale.setlocale(locale.LC_ALL, "ru_RU")
-    # settings.USE_TZ = False
     academic_year_start_month = 9
-    today = datetime.datetime.today()
+    today = timezone.localdate()
     all_time = not year
     if all_time:
         year = user.account.admission_year
-    day = datetime.datetime(year, academic_year_start_month, 1)
+    day = datetime(year, academic_year_start_month, 1)
     submissions = user.submission_set.filter(date_created__year=day.year, date_created__month=day.month)
     problem_ids = submissions.values_list('problem', flat=True).distinct().order_by()
     problems_count = 0
@@ -63,13 +62,13 @@ def get_year_month_submissions_solutions_comments_count_list(user, year):
             counted_problem_ids.append(problem_id)
     result = [(
         day.year,
-        day.strftime("%B"),
+        date(day, 'F'),
         submissions.count(),
         problems_count,
         Comment.objects.filter(author=user, date_created__year=day.year, date_created__month=day.month).count(),
     )]
-    while (not all_time and (day.year != today.year and day.month != academic_year_start_month - 1 or day.year == today.year and day.month != today.month)) or (all_time and day < datetime.datetime(today.year, today.month, 1)):
-        day = datetime.datetime(*nextmonth(year=day.year, month=day.month), 1)
+    while (not all_time and (day.year != today.year and day.month != academic_year_start_month - 1 or day.year == today.year and day.month != today.month)) or (all_time and day < datetime(today.year, today.month, 1)):
+        day = datetime(*nextmonth(year=day.year, month=day.month), 1)
         submissions = user.submission_set.filter(date_created__year=day.year, date_created__month=day.month)
         problem_ids = submissions.values_list('problem', flat=True).distinct().order_by()
         problems_count = 0
@@ -79,13 +78,11 @@ def get_year_month_submissions_solutions_comments_count_list(user, year):
                 counted_problem_ids.append(problem_id)
         result.append((
             day.year,
-            day.strftime("%B"),
+            date(day, 'F'),
             submissions.count(),
             problems_count,
             Comment.objects.filter(author=user, date_created__year=day.year, date_created__month=day.month).count(),
         ))
-    # settings.USE_TZ = True
-    # locale.setlocale(locale.LC_ALL, "en_US")
     return result
 
 
@@ -117,16 +114,15 @@ def mark_notifications_as_read(request):
     return JsonResponse({'status': 'ok'})
 
 
-class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
+class AccountDetail(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, DetailView):
     model = Account
     template_name = 'accounts/account/account_detail.html'
     permission_required = 'accounts.view_account'
 
-    def get(self, request, *args, **kwargs):
-        if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
             self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-        return self.render_to_response(context)
+        return self.object.user_id == self.request.user.id
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -149,7 +145,7 @@ class AccountDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView)
         return context
 
 
-class AccountCreateSet(LoginRedirectPermissionRequiredMixin, FormView):
+class AccountCreateSet(LoginRedirectMixin, PermissionRequiredMixin, FormView):
     form_class = AccountSetForm
     template_name = 'accounts/account/account_set_form.html'
     permission_required = 'accounts.add_account'
@@ -204,20 +200,15 @@ class AccountCreateSet(LoginRedirectPermissionRequiredMixin, FormView):
                                                                                   type=self.storage['type'])
 
 
-class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView):
+class AccountUpdate(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
     model = Account
     template_name = 'accounts/account/account_form.html'
     permission_required = 'accounts.change_account'
 
-    def get(self, request, *args, **kwargs):
-        if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
             self.object = self.get_object()
-        return super(BaseUpdateView, self).get(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        if not hasattr(self, 'object'):  # self.object may be set in LoginRedirectOwnershipOrPermissionRequiredMixin
-            self.object = self.get_object()
-        return super(BaseUpdateView, self).post(request, *args, **kwargs)
+        return self.object.user_id == self.request.user.id
 
     def get_form_class(self):
         if self.request.user.has_perm('accounts.change_account'):
@@ -229,7 +220,7 @@ class AccountUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView)
             return AccountPartialForm
 
 
-class AccountUpdateSet(LoginRedirectPermissionRequiredMixin, FormView):
+class AccountUpdateSet(LoginRedirectMixin, PermissionRequiredMixin, FormView):
     template_name = 'accounts/account/account_formset.html'
     permission_required = 'accounts.change_account'
 
@@ -336,7 +327,7 @@ class AccountFormList(AccountUpdateSet):
         return self.request.get_full_path()
 
 
-class AccountCredentials(LoginRedirectPermissionRequiredMixin, TemplateView):
+class AccountCredentials(LoginRedirectMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'accounts/account/account_credentials.html'
     permission_required = 'accounts.add_account'
 
@@ -358,37 +349,35 @@ class AccountCredentials(LoginRedirectPermissionRequiredMixin, TemplateView):
         return context
 
 
-class AccountCourseResults(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
+class AccountCourseResults(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, DetailView):
     model = Account
     template_name = 'accounts/account/account_course_results.html'
     permission_required = 'accounts.view_account'
 
-    def get(self, request, *args, **kwargs):
+    def has_ownership(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        context = self.get_context_data(object=self.object, **kwargs)
-        return self.render_to_response(context)
+        return self.object.user_id == self.request.user.id
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['course'] = Course.objects.get(id=kwargs.pop('course_id'))
-        context['assignments'] = (self.object.user.assignment_set.filter(problem__contest__course=context['course']).select_related('problem', 'problem__contest').order_by('problem__contest__course', 'problem__contest', 'date_created'))
-        context['credit'] = self.object.user.credit_set.get(course=context['course'])
-        context['additional_submissions'] = self.object.user.submission_set.filter(problem__contest__course=context['course'], assignment__isnull=True).select_related('problem', 'problem__contest').order_by('problem__contest', 'problem')
-        context['course_submissions_score'] = self.object.course_submissions_score(context['course'])
+        context['course'] = course = Course.objects.get(id=self.kwargs.get('course_id'))
+        context['assignments'] = (self.object.user.assignment_set.filter(problem__contest__course=course)
+                                  .select_related('problem', 'problem__contest')
+                                  .order_by('problem__contest__course', 'problem__contest', 'date_created'))
+        context['credit'] = self.object.user.credit_set.get(course=course)
+        context['additional_submissions'] = (self.object.user.submission_set.filter(problem__contest__course=course,
+                                                                                    assignment__isnull=True)
+                                             .select_related('problem', 'problem__contest')
+                                             .order_by('problem__contest', 'problem'))
+        context['course_submissions_score'] = self.object.course_submissions_score(course)
         return context
 
 
-class AccountAssignmentList(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
+class AccountAssignmentList(LoginRedirectMixin, PermissionRequiredMixin, DetailView):
     model = Account
     template_name = 'accounts/account/account_assignment_list.html'
     permission_required = 'accounts.view_account'
-
-    def get(self, request, *args, **kwargs):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        context = self.get_context_data(object=self.object, **kwargs)
-        return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -399,21 +388,21 @@ class AccountAssignmentList(LoginRedirectOwnershipOrPermissionRequiredMixin, Det
         return context
 
 
-class AccountProblemSubmissionList(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
+class AccountProblemSubmissionList(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, DetailView):
     model = Account
     template_name = 'accounts/account/account_problem_submissions.html'
     permission_required = 'accounts.view_account'
 
-    def get(self, request, *args, **kwargs):
+    def has_ownership(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        context = self.get_context_data(object=self.object, **kwargs)
-        return self.render_to_response(context)
+        return self.object.user_id == self.request.user.id
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['problem'] = Problem.objects.get(id=kwargs.pop('problem_id'))
-        context['submissions'] = (self.object.user.submission_set.filter(problem=context['problem']).order_by('date_created'))
+        context['problem'] = Problem.objects.get(id=self.kwargs.get('problem_id'))
+        context['submissions'] = (self.object.user.submission_set.filter(problem=context['problem'])
+                                  .order_by('date_created'))
         return context
 
 
@@ -532,7 +521,7 @@ class ActivityList(LoginRequiredMixin, PaginatorMixin, ListView):
 """==================================================== Comment ====================================================="""
 
 
-class CommentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+class CommentCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
     model = Comment
     form_class = CommentForm
     template_name = 'accounts/comment/comment_reply.html'
@@ -569,7 +558,7 @@ class CommentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return self.object.object.get_discussion_url() + '#comment_' + str(self.object.pk)
 
 
-class CommentUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView):
+class CommentUpdate(LoginRedirectMixin, PermissionRequiredMixin, UpdateView):
     model = Comment
     form_class = CommentForm
     template_name = 'accounts/comment/comment_update.html'
@@ -580,7 +569,7 @@ class CommentUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView)
         return self.object.object.get_discussion_url() + get_comment_query_string(page) + '#comment_' + str(self.object.pk)
 
 
-class CommentDelete(LoginRedirectOwnershipOrPermissionRequiredMixin, DeleteView):
+class CommentDelete(LoginRedirectMixin, PermissionRequiredMixin, DeleteView):
     model = Comment
     template_name = 'accounts/comment/comment_delete.html'
     permission_required = 'accounts.delete_comment'
@@ -605,7 +594,7 @@ class CommentDelete(LoginRedirectOwnershipOrPermissionRequiredMixin, DeleteView)
 """==================================================== Message ====================================================="""
 
 
-class MessageCreate(LoginRedirectPermissionRequiredMixin, PaginatorMixin, CreateView):
+class MessageCreate(LoginRedirectMixin, PermissionRequiredMixin, PaginatorMixin, CreateView):
     model = Message
     fields = ['text']
     template_name = 'accounts/message/message_form.html'
@@ -658,7 +647,7 @@ class ChatList(LoginRequiredMixin, ListView):
 """================================================== Announcement =================================================="""
 
 
-class AnnouncementDetail(LoginRedirectPermissionRequiredMixin, DetailView):
+class AnnouncementDetail(LoginRedirectMixin, PermissionRequiredMixin, DetailView):
     model = Announcement
     template_name = 'accounts/announcement/announcement_detail.html'
     permission_required = 'accounts.view_announcement'
@@ -676,7 +665,7 @@ class AnnouncementDetail(LoginRedirectPermissionRequiredMixin, DetailView):
         return context
 
 
-class AnnouncementCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+class AnnouncementCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
     model = Announcement
     fields = ['group', 'title', 'text']
     template_name = 'accounts/announcement/announcement_form.html'
@@ -687,14 +676,14 @@ class AnnouncementCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class AnnouncementUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class AnnouncementUpdate(LoginRedirectMixin, PermissionRequiredMixin, UpdateView):
     model = Announcement
     fields = ['group', 'title', 'text']
     template_name = 'accounts/announcement/announcement_form.html'
     permission_required = 'accounts.change_announcement'
 
 
-class AnnouncementDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class AnnouncementDelete(LoginRedirectMixin, PermissionRequiredMixin, DeleteView):
     model = Announcement
     success_url = reverse_lazy('accounts:announcement-list')
     template_name = 'accounts/announcement/announcement_delete.html'

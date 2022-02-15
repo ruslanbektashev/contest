@@ -656,6 +656,14 @@ class BasicTest(CRUDEntry):
     class Meta(CRUDEntry.Meta):
         abstract = True
 
+    @property
+    def course(self):
+        return self.problem.contest.course
+
+    @property
+    def contest(self):
+        return self.problem.contest
+
     def get_compile_args(self):
         compile_args = self.compile_args.split()
         if self.compile_args_override:

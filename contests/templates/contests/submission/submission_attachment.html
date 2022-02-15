@@ -8,7 +8,7 @@
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% if from_assignment and submission.get_assignment %}
-{% if perms.contests.view_assignment_table %}
+{% if perms.contests.view_assignment_table or request|has_leader_permission:submission.course %}
 {% breadcrumb submission.course submission.course %}
 {% breadcrumb "Задания" 'contests:assignment-table' submission.course.id %}
 {% else %}

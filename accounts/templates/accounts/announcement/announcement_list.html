@@ -23,13 +23,11 @@
 <div class="card{% if forloop.counter > 1 %} mt-3{% endif %}">
     <div class="card-header d-flex align-items-center">
         <span class="text-primary mr-auto">{{ announcement.title }}</span>
-        {% if perms.contests.change_announcement and perms.contests.delete_announcement %}
-        <a href="{% url 'accounts:announcement-update' announcement.id %}" class="card-link" data-toggle="tooltip" data-placement="left" title="Редактировать объявление">
-            <i class="fa fa-edit fa-lg fa-fw"></i>
-        </a>
-        <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="card-link text-danger ml-2" data-toggle="tooltip" data-placement="top" title="Удалить объявление" style="position: relative; top: -0.08rem;">
-            <i class="fa fa-trash-o fa-lg fa-fw"></i>
-        </a>
+        {% if perms.accounts.change_announcement %}
+        <a href="{% url 'accounts:announcement-update' announcement.id %}" class="card-link" data-toggle="tooltip" data-placement="left" title="Редактировать объявление"><i class="fa fa-edit fa-lg fa-fw"></i></a>
+        {% endif %}
+        {% if perms.accounts.delete_announcement %}
+        <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="card-link text-danger ml-2" data-toggle="tooltip" data-placement="top" title="Удалить объявление" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-lg fa-fw"></i></a>
         {% endif %}
     </div>
     <div class="card-body">

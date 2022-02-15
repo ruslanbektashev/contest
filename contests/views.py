@@ -1,8 +1,6 @@
 import os.path
 
-from contests.templatetags.contests import colorize
 from datetime import date, datetime
-
 from markdown import markdown
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
@@ -24,8 +22,8 @@ from django.views.generic.edit import BaseCreateView, BaseDeleteView, BaseUpdate
 from django.views.generic.list import BaseListView
 
 from accounts.models import Account, Faculty
-from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin,
-                            PaginatorMixin, OwnershipOrPermissionRequiredMixin)
+from contest.mixins import (LoginRedirectMixin, OwnershipOrMixin, LeadershipOrMixin, PaginatorMixin)
+from contest.templatetags.views import has_leader_permission
 from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, AssignmentUpdatePartialForm,
                             ContestForm, ContestPartialForm, CourseFinishForm, CourseForm, CourseLeaderForm,
                             CreditReportForm, CreditSetForm, EventForm, FNTestForm, OptionBaseFormSet, OptionForm,
@@ -38,6 +36,7 @@ from contests.models import (Assignment, Attachment, Contest, Course, CourseLead
                              UTTest)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
+from contests.templatetags.contests import colorize
 
 """=================================================== Attachment ==================================================="""
 
@@ -67,10 +66,20 @@ class AttachmentDetail(DetailView):
         return context
 
 
-class AttachmentDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class AttachmentDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
     model = Attachment
     template_name = 'contests/attachment/attachment_delete.html'
     permission_required = 'contests.delete_attachment'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return hasattr(self.object.object, 'course') and self.object.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return hasattr(self.object.object, 'course') and self.object.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_success_url(self):
         return self.object.object.get_absolute_url()
@@ -79,19 +88,12 @@ class AttachmentDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 """===================================================== Course ====================================================="""
 
 
-class CourseDetail(LoginRequiredMixin, DetailView):
+class CourseDetail(LoginRedirectMixin, DetailView):
     model = Course
     template_name = 'contests/course/course_detail.html'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['subscribers_ids'] = self.object.subscription_set.all().values_list('user', flat=True)
-        if self.request.user.id in context['subscribers_ids']:
-            context['subscription_id'] = self.object.subscription_set.get(user=self.request.user).id
-        return context
 
-
-class CourseDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
+class CourseDiscussion(LoginRedirectMixin, PaginatorMixin, DetailView):
     model = Course
     template_name = 'contests/course/course_discussion.html'
     paginate_by = 30
@@ -101,13 +103,10 @@ class CourseDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         comments = self.object.comment_set.actual()
         context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
             self.paginate_queryset(comments)
-        context['subscribers_ids'] = self.object.subscription_set.all().values_list('user', flat=True)
-        if self.request.user.id in context['subscribers_ids']:
-            context['subscription_id'] = self.object.subscription_set.get(user=self.request.user).id
         return context
 
 
-class CourseCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
     model = Course
     form_class = CourseForm
     template_name = 'contests/course/course_form.html'
@@ -133,21 +132,36 @@ class CourseCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class CourseUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
     model = Course
     form_class = CourseForm
     template_name = 'contests/course/course_form.html'
     permission_required = 'contests.change_course'
 
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.owner_id == self.request.user.id
 
-class CourseDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.leaders.filter(id=self.request.user.id).exists()
+
+
+class CourseDelete(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
     model = Course
     success_url = reverse_lazy('contests:course-list')
     template_name = 'contests/course/course_delete.html'
     permission_required = 'contests.delete_course'
 
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.owner_id == self.request.user.id
 
-class CourseList(LoginRequiredMixin, ListView):
+
+class CourseList(LoginRedirectMixin, ListView):
     model = Course
     template_name = 'contests/course/course_list.html'
     context_object_name = 'courses'
@@ -180,7 +194,7 @@ class CourseList(LoginRequiredMixin, ListView):
 """================================================== CourseLeader =================================================="""
 
 
-class CourseUpdateLeaders(LoginRedirectPermissionRequiredMixin, FormView):
+class CourseUpdateLeaders(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, FormView):
     template_name = 'contests/course_leader/course_leader_formset.html'
     permission_required = 'contests.change_course'
 
@@ -191,6 +205,9 @@ class CourseUpdateLeaders(LoginRedirectPermissionRequiredMixin, FormView):
     def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('pk'))
         return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['course'].owner_id == self.request.user.id
 
     def get_queryset(self):
         return CourseLeader.objects.filter(course=self.storage['course'])
@@ -223,10 +240,10 @@ class CourseUpdateLeaders(LoginRedirectPermissionRequiredMixin, FormView):
 """===================================================== Credit ====================================================="""
 
 
-class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
+class CreditReport(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, FormView):
     form_class = CreditReportForm
     template_name = 'contests/credit/credit_report.html'
-    permission_required = 'contests.add_credit'
+    permission_required = 'contests.report_credit'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -235,6 +252,12 @@ class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
     def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
         return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['course'].owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -266,7 +289,7 @@ class CreditReport(LoginRedirectPermissionRequiredMixin, FormView):
         return context
 
 
-class CourseStart(LoginRedirectPermissionRequiredMixin, FormView):
+class CourseStart(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, FormView):
     form_class = CreditSetForm
     template_name = 'contests/course/course_start_form.html'
     permission_required = 'contests.add_credit'
@@ -278,6 +301,12 @@ class CourseStart(LoginRedirectPermissionRequiredMixin, FormView):
     def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
         return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['course'].owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -300,7 +329,7 @@ class CourseStart(LoginRedirectPermissionRequiredMixin, FormView):
         return reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
 
 
-class CourseFinish(LoginRedirectPermissionRequiredMixin, FormView):
+class CourseFinish(LoginRedirectMixin, PermissionRequiredMixin, FormView):
     form_class = CourseFinishForm
     template_name = 'contests/course/course_finish_form.html'
     permission_required = 'accounts.change_account'
@@ -334,20 +363,40 @@ class CourseFinish(LoginRedirectPermissionRequiredMixin, FormView):
         return reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
 
 
-class CreditUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
     model = Credit
     fields = ['score']
     template_name = 'contests/credit/credit_form.html'
     permission_required = 'contests.change_credit'
 
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
+
     def get_success_url(self):
         return reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
 
 
-class CreditDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class CreditDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
     model = Credit
     template_name = 'contests/credit/credit_delete.html'
     permission_required = 'contests.delete_credit'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_success_url(self):
         return reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
@@ -356,7 +405,7 @@ class CreditDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 """===================================================== Filter ====================================================="""
 
 
-class FilterCreate(LoginRedirectPermissionRequiredMixin, BaseCreateView):
+class FilterCreate(LoginRedirectMixin, PermissionRequiredMixin, BaseCreateView):
     model = Filter
     http_method_names = ['get']
     success_url = reverse_lazy('contests:filter-table')
@@ -370,7 +419,7 @@ class FilterCreate(LoginRedirectPermissionRequiredMixin, BaseCreateView):
         return HttpResponseRedirect(self.success_url)
 
 
-class FilterDelete(LoginRedirectPermissionRequiredMixin, BaseDeleteView):
+class FilterDelete(LoginRedirectMixin, PermissionRequiredMixin, BaseDeleteView):
     model = Filter
     http_method_names = ['get']
     success_url = reverse_lazy('contests:filter-table')
@@ -380,7 +429,7 @@ class FilterDelete(LoginRedirectPermissionRequiredMixin, BaseDeleteView):
         return self.delete(request, *args, **kwargs)
 
 
-class FilterTable(LoginRedirectPermissionRequiredMixin, TemplateView):
+class FilterTable(LoginRedirectMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'contests/filter/filter_table.html'
     permission_required = 'contests.view_filter'
 
@@ -411,7 +460,7 @@ class FilterTable(LoginRedirectPermissionRequiredMixin, TemplateView):
 """===================================================== Lecture ===================================================="""
 
 
-class LectureDetail(LoginRequiredMixin, DetailView):
+class LectureDetail(LoginRedirectMixin, DetailView):
     model = Lecture
     template_name = 'contests/lecture/lecture_detail.html'
 
@@ -421,7 +470,7 @@ class LectureDetail(LoginRequiredMixin, DetailView):
         return context
 
 
-class LectureCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+class LectureCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
     model = Lecture
     fields = ['title', 'description']
     template_name = 'contests/lecture/lecture_form.html'
@@ -446,7 +495,7 @@ class LectureCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return context
 
 
-class LectureUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class LectureUpdate(LoginRedirectMixin, PermissionRequiredMixin, UpdateView):
     model = Lecture
     fields = ['title', 'description']
     template_name = 'contests/lecture/lecture_form.html'
@@ -458,7 +507,7 @@ class LectureUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         return context
 
 
-class LectureDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class LectureDelete(LoginRedirectMixin, PermissionRequiredMixin, DeleteView):
     model = Lecture
     template_name = 'contests/lecture/lecture_delete.html'
     permission_required = 'contests.delete_lecture'
@@ -470,19 +519,12 @@ class LectureDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 """===================================================== Contest ===================================================="""
 
 
-class ContestDetail(LoginRequiredMixin, DetailView):
+class ContestDetail(LoginRedirectMixin, DetailView):
     model = Contest
     template_name = 'contests/contest/contest_detail.html'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['subscribers_ids'] = self.object.subscription_set.all().values_list('user', flat=True)
-        if self.request.user.id in context['subscribers_ids']:
-            context['subscription_id'] = self.object.subscription_set.get(user=self.request.user).id
-        return context
 
-
-class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
+class ContestDiscussion(LoginRedirectMixin, PaginatorMixin, DetailView):
     model = Contest
     template_name = 'contests/contest/contest_discussion.html'
     paginate_by = 30
@@ -495,12 +537,12 @@ class ContestDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         return context
 
 
-class ContestAttachment(LoginRequiredMixin, AttachmentDetail):
+class ContestAttachment(LoginRedirectMixin, AttachmentDetail):
     model = Contest
     template_name = 'contests/contest/contest_attachment.html'
 
 
-class ContestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+class ContestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
     model = Contest
     form_class = ContestForm
     template_name = 'contests/contest/contest_form.html'
@@ -513,6 +555,12 @@ class ContestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
         return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['course'].owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
 
     def get_initial(self):
         initial = super().get_initial()
@@ -531,10 +579,20 @@ class ContestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return context
 
 
-class ContestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class ContestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
     model = Contest
     template_name = 'contests/contest/contest_form.html'
     permission_required = 'contests.change_contest'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_form_class(self):
         if self.request.GET.get('add_files') == '1':
@@ -549,10 +607,20 @@ class ContestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         return context
 
 
-class ContestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class ContestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
     model = Contest
     template_name = 'contests/contest/contest_delete.html'
     permission_required = 'contests.delete_contest'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_success_url(self):
         return reverse('contests:course-detail', kwargs={'pk': self.object.course_id})
@@ -561,7 +629,7 @@ class ContestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 """===================================================== Problem ===================================================="""
 
 
-class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
+class ProblemDetail(LoginRedirectMixin, PaginatorMixin, DetailView):
     model = Problem
     template_name = 'contests/problem/problem_detail.html'
     paginate_by = 10
@@ -573,7 +641,7 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
             context['assignment'] = Assignment.objects.get(user=self.request.user, problem=self.object)
         except Assignment.DoesNotExist:
             context['assignment'] = None
-        if self.request.user.has_perm('contests.view_submission_list'):
+        if self.request.user.has_perm('contests.view_submission_list') or has_leader_permission(self.request, self.object.course):
             submissions = self.object.submission_set.all()
         else:
             submissions = self.object.submission_set.filter(owner_id=self.request.user.id)
@@ -584,7 +652,7 @@ class ProblemDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         return context
 
 
-class ProblemDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
+class ProblemDiscussion(LoginRedirectMixin, PaginatorMixin, DetailView):
     model = Problem
     template_name = 'contests/problem/problem_discussion.html'
     paginate_by = 30
@@ -597,15 +665,29 @@ class ProblemDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         return context
 
 
-class ProblemAttachment(LoginRequiredMixin, AttachmentDetail):
+class ProblemAttachment(LoginRedirectMixin, AttachmentDetail):
     model = Problem
     template_name = 'contests/problem/problem_attachment.html'
 
 
-class ProblemRollbackResults(LoginRedirectPermissionRequiredMixin, FormView):
+class ProblemRollbackResults(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, FormView):
     form_class = ProblemRollbackResultsForm
     template_name = 'contests/problem/problem_rollback_results_form.html'
     permission_required = 'contests.change_problem'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['problem'] = get_object_or_404(Problem, id=self.kwargs.get('pk'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['problem'].course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['problem'].course.leaders.filter(id=self.request.user.id).exists()
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -625,14 +707,14 @@ class ProblemRollbackResults(LoginRedirectPermissionRequiredMixin, FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['problem'] = get_object_or_404(Problem, id=self.kwargs.get('pk'))
+        context['problem'] = self.storage['problem']
         return context
 
     def get_success_url(self):
         return get_object_or_404(Problem, id=self.kwargs.get('pk')).get_absolute_url()
 
 
-class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
     model = Problem
     template_name = 'contests/problem/problem_form.html'
     permission_required = 'contests.add_problem'
@@ -654,6 +736,12 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
                 formset = OptionFormSet(data=request.POST, files=request.FILES)
             self.storage['formset'] = formset
         return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['contest'].course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['contest'].course.leaders.filter(id=self.request.user.id).exists()
 
     def get_form_class(self):
         if self.storage['type'] == 'Program':
@@ -702,7 +790,7 @@ class ProblemCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return reverse('contests:contest-detail', kwargs={'pk': self.object.contest_id})
 
 
-class ProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
     model = Problem
     template_name = 'contests/problem/problem_form.html'
     permission_required = 'contests.change_problem'
@@ -723,6 +811,16 @@ class ProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
                 formset = OptionFormSet(data=request.POST, files=request.FILES, instance=problem)
             self.storage['formset'] = formset
         return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_form_class(self):
         if self.request.GET.get('add_files') == '1':
@@ -756,10 +854,20 @@ class ProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         return context
 
 
-class ProblemDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class ProblemDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
     model = Problem
     template_name = 'contests/problem/problem_delete.html'
     permission_required = 'contests.delete_problem'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_success_url(self):
         return reverse('contests:contest-detail', kwargs={'pk': self.object.contest_id})
@@ -768,20 +876,40 @@ class ProblemDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 """=================================================== SubProblem ==================================================="""
 
 
-class SubProblemUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class SubProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
     model = SubProblem
     fields = ['number']
     template_name = 'contests/subproblem/subproblem_form.html'
     permission_required = 'contests.change_subproblem'
 
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.leaders.filter(id=self.request.user.id).exists()
+
     def get_success_url(self):
         return reverse('contests:problem-detail', kwargs={'pk': self.object.problem_id})
 
 
-class SubProblemDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class SubProblemDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
     model = SubProblem
     template_name = 'contests/subproblem/subproblem_delete.html'
     permission_required = 'contests.delete_subproblem'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_success_url(self):
         return reverse('contests:problem-detail', kwargs={'pk': self.object.problem_id})
@@ -790,14 +918,29 @@ class SubProblemDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 """=============================================== SubmissionPattern ================================================"""
 
 
-class SubmissionPatternDetail(LoginRedirectPermissionRequiredMixin, DetailView):
+class SubmissionPatternDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DetailView):
     model = SubmissionPattern
     context_object_name = 'submission_pattern'
     template_name = 'contests/submission_pattern/submission_pattern_detail.html'
     permission_required = 'contests.view_submission_pattern'
 
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problems.first().course.owner_id == self.request.user.id
 
-class SubmissionPatternCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problems.first().course.leaders.filter(id=self.request.user.id).exists()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['course'] = self.object.problems.first().course
+        return context
+
+
+class SubmissionPatternCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
     model = SubmissionPattern
     form_class = SubmissionPatternForm
     template_name = 'contests/submission_pattern/submission_pattern_form.html'
@@ -810,6 +953,12 @@ class SubmissionPatternCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     def dispatch(self, request, *args, **kwargs):
         self.storage['problem'] = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
         return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['problem'].course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['problem'].course.leaders.filter(id=self.request.user.id).exists()
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -827,12 +976,22 @@ class SubmissionPatternCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return context
 
 
-class SubmissionPatternUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class SubmissionPatternUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
     model = SubmissionPattern
     form_class = SubmissionPatternForm
     context_object_name = 'submission_pattern'
     template_name = 'contests/submission_pattern/submission_pattern_form.html'
     permission_required = 'contests.change_submission_pattern'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problems.first().course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problems.first().course.leaders.filter(id=self.request.user.id).exists()
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -840,11 +999,21 @@ class SubmissionPatternUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         return kwargs
 
 
-class SubmissionPatternDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class SubmissionPatternDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
     model = SubmissionPattern
     context_object_name = 'submission_pattern'
     template_name = 'contests/submission_pattern/submission_pattern_delete.html'
     permission_required = 'contests.delete_submission_pattern'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problems.first().course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problems.first().course.leaders.filter(id=self.request.user.id).exists()
 
     def get_success_url(self):
         return reverse('contests:submission-pattern-detail', kwargs={'pk': self.object.problem_id})
@@ -853,13 +1022,23 @@ class SubmissionPatternDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 """===================================================== IOTest ====================================================="""
 
 
-class IOTestDetail(LoginRedirectPermissionRequiredMixin, DetailView):
+class IOTestDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DetailView):
     model = IOTest
     template_name = 'contests/iotest/iotest_detail.html'
     permission_required = 'contests.view_iotest'
 
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.owner_id == self.request.user.id
 
-class IOTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.leaders.filter(id=self.request.user.id).exists()
+
+
+class IOTestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
     model = IOTest
     fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input',
               'output']
@@ -874,6 +1053,12 @@ class IOTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage['problem'] = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
         return super().dispatch(request, *args, **kwargs)
 
+    def has_ownership(self):
+        return self.storage['problem'].course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['problem'].course.leaders.filter(id=self.request.user.id).exists()
+
     def form_valid(self, form):
         form.instance.owner = self.request.user
         form.instance.problem = self.storage['problem']
@@ -888,15 +1073,25 @@ class IOTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         if Submission.objects.to_rollback(self.object.problem_id).exists():
             return reverse('contests:problem-rollback-results', kwargs={'pk': self.object.problem_id})
         else:
-            super().get_success_url()
+            return super().get_success_url()
 
 
-class IOTestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class IOTestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
     model = IOTest
     fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input',
               'output']
     template_name = 'contests/iotest/iotest_form.html'
     permission_required = 'contests.change_iotest'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -907,13 +1102,23 @@ class IOTestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         if Submission.objects.to_rollback(self.object.problem_id).exists():
             return reverse('contests:problem-rollback-results', kwargs={'pk': self.object.problem_id})
         else:
-            super().get_success_url()
+            return super().get_success_url()
 
 
-class IOTestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class IOTestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
     model = IOTest
     template_name = 'contests/iotest/iotest_delete.html'
     permission_required = 'contests.delete_iotest'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_success_url(self):
         return reverse('contests:problem-detail', kwargs={'pk': self.object.problem_id})
@@ -922,18 +1127,28 @@ class IOTestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 """===================================================== UTTest ====================================================="""
 
 
-class UTTestDetail(LoginRedirectPermissionRequiredMixin, DetailView):
+class UTTestDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DetailView):
     model = UTTest
     template_name = 'contests/uttest/uttest_detail.html'
     permission_required = 'contests.view_uttest'
 
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.owner_id == self.request.user.id
 
-class UTTestAttachment(LoginRequiredMixin, AttachmentDetail):
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.leaders.filter(id=self.request.user.id).exists()
+
+
+class UTTestAttachment(LoginRedirectMixin, AttachmentDetail):
     model = UTTest
     template_name = 'contests/uttest/uttest_attachment.html'
 
 
-class UTTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+class UTTestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
     model = UTTest
     form_class = UTTestForm
     template_name = 'contests/uttest/uttest_form.html'
@@ -947,6 +1162,12 @@ class UTTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage['problem'] = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
         return super().dispatch(request, *args, **kwargs)
 
+    def has_ownership(self):
+        return self.storage['problem'].course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['problem'].course.leaders.filter(id=self.request.user.id).exists()
+
     def form_valid(self, form):
         form.instance.owner = self.request.user
         form.instance.problem = self.storage['problem']
@@ -961,14 +1182,24 @@ class UTTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         if Submission.objects.to_rollback(self.object.problem_id).exists():
             return reverse('contests:problem-rollback-results', kwargs={'pk': self.object.problem_id})
         else:
-            super().get_success_url()
+            return super().get_success_url()
 
 
-class UTTestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class UTTestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
     model = UTTest
     form_class = UTTestForm
     template_name = 'contests/uttest/uttest_form.html'
     permission_required = 'contests.change_uttest'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -979,13 +1210,23 @@ class UTTestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         if Submission.objects.to_rollback(self.object.problem_id).exists():
             return reverse('contests:problem-rollback-results', kwargs={'pk': self.object.problem_id})
         else:
-            super().get_success_url()
+            return super().get_success_url()
 
 
-class UTTestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class UTTestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
     model = UTTest
     template_name = 'contests/uttest/uttest_delete.html'
     permission_required = 'contests.delete_uttest'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problem.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_success_url(self):
         return reverse('contests:problem-detail', kwargs={'pk': self.object.problem_id})
@@ -994,13 +1235,28 @@ class UTTestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 """===================================================== FNTest ====================================================="""
 
 
-class FNTestDetail(LoginRedirectPermissionRequiredMixin, DetailView):
+class FNTestDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DetailView):
     model = FNTest
     template_name = 'contests/fntest/fntest_detail.html'
     permission_required = 'contests.view_fntest'
 
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problems.first().course.owner_id == self.request.user.id
 
-class FNTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problems.first().course.leaders.filter(id=self.request.user.id).exists()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['course'] = self.object.problems.first().course
+        return context
+
+
+class FNTestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
     model = FNTest
     form_class = FNTestForm
     template_name = 'contests/fntest/fntest_form.html'
@@ -1013,6 +1269,12 @@ class FNTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
     def dispatch(self, request, *args, **kwargs):
         self.storage['problem'] = get_object_or_404(Problem, id=kwargs.pop('problem_id'))
         return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['problem'].course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['problem'].course.leaders.filter(id=self.request.user.id).exists()
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -1030,11 +1292,21 @@ class FNTestCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return context
 
 
-class FNTestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class FNTestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
     model = FNTest
     form_class = FNTestForm
     template_name = 'contests/fntest/fntest_form.html'
     permission_required = 'contests.change_fntest'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problems.first().course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problems.first().course.leaders.filter(id=self.request.user.id).exists()
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -1042,10 +1314,20 @@ class FNTestUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         return kwargs
 
 
-class FNTestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class FNTestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
     model = FNTest
     template_name = 'contests/fntest/fntest_delete.html'
     permission_required = 'contests.delete_fntest'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problems.first().course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.problems.first().course.leaders.filter(id=self.request.user.id).exists()
 
     def get_success_url(self):
         return reverse('contests:problem-detail', kwargs={'pk': self.object.problem_id})
@@ -1054,10 +1336,21 @@ class FNTestDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
 """=================================================== Assignment ==================================================="""
 
 
-class AssignmentDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
+class AssignmentDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, PaginatorMixin, DetailView):
     model = Assignment
     template_name = 'contests/assignment/assignment_detail.html'
+    permission_required = 'contests.view_assignment'
     paginate_by = 10
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.user_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1071,10 +1364,21 @@ class AssignmentDetail(LoginRequiredMixin, PaginatorMixin, DetailView):
         return context
 
 
-class AssignmentDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
+class AssignmentDiscussion(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, PaginatorMixin, DetailView):
     model = Assignment
     template_name = 'contests/assignment/assignment_discussion.html'
+    permission_required = 'contests.view_assignment'
     paginate_by = 30
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.user_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1084,7 +1388,7 @@ class AssignmentDiscussion(LoginRequiredMixin, PaginatorMixin, DetailView):
         return context
 
 
-class AssignmentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+class AssignmentCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
     model = Assignment
     form_class = AssignmentForm
     template_name = 'contests/assignment/assignment_form.html'
@@ -1098,6 +1402,12 @@ class AssignmentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
         self.storage['debts'] = bool(request.GET.get('debts'))
         return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['course'].owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
 
     def get(self, request, *args, **kwargs):
         contest_id, user_id = request.GET.get('contest_id'), request.GET.get('user_id')
@@ -1127,7 +1437,7 @@ class AssignmentCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return success_url
 
 
-class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
+class AssignmentCreateRandomSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, FormView):
     form_class = AssignmentSetForm
     template_name = 'contests/assignment/assignment_random_set_form.html'
     permission_required = 'contests.add_assignment'
@@ -1143,6 +1453,12 @@ class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
         if contest_id:
             self.storage['contest'] = get_object_or_404(Contest, id=contest_id, course=self.storage['course'])
         return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['course'].owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
 
     def get_initial(self):
         initial = super().get_initial()
@@ -1177,7 +1493,7 @@ class AssignmentCreateRandomSet(LoginRedirectPermissionRequiredMixin, FormView):
         return success_url
 
 
-class AssignmentUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class AssignmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
     model = Assignment
     template_name = 'contests/assignment/assignment_form.html'
     permission_required = 'contests.change_assignment'
@@ -1189,6 +1505,16 @@ class AssignmentUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
     def dispatch(self, request, *args, **kwargs):
         self.storage['partial'] = int(request.GET.get('partial') or 0)
         return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_form_class(self):
         if self.storage['partial']:
@@ -1209,16 +1535,26 @@ class AssignmentUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         return context
 
 
-class AssignmentDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class AssignmentDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
     model = Assignment
     template_name = 'contests/assignment/assignment_delete.html'
     permission_required = 'contests.delete_assignment'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_success_url(self):
         return reverse('contests:assignment-table', kwargs={'course_id': self.object.course.id})
 
 
-class AssignmentUserTable(LoginRequiredMixin, ListView):
+class AssignmentUserTable(LoginRedirectMixin, ListView):
     model = Assignment
     template_name = 'contests/assignment/assignment_user_base.html'
     context_object_name = 'assignments'
@@ -1235,7 +1571,7 @@ class AssignmentUserTable(LoginRequiredMixin, ListView):
         return context
 
 
-class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
+class AssignmentCourseTable(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, ListView):
     model = Assignment
     template_name = 'contests/assignment/assignment_course_base.html'
     context_object_name = 'assignments'
@@ -1256,6 +1592,12 @@ class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
             self.storage['subgroup'] = int(request.GET.get('subgroup') or default_subgroup)
             self.storage['debts'] = bool(request.GET.get('debts'))
         return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['course'].owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
 
     def get_queryset(self):
         course = self.storage['course']
@@ -1279,7 +1621,7 @@ class AssignmentCourseTable(LoginRedirectPermissionRequiredMixin, ListView):
 """=================================================== Submission ==================================================="""
 
 
-class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, PaginatorMixin, UpdateView):
+class SubmissionDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, PaginatorMixin, UpdateView):
     model = Submission
     form_class = SubmissionUpdateForm
     sub_form_class = SubmissionUpdateForm
@@ -1304,6 +1646,16 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
                 else:
                     raise Http404("sub_submission_id must contain only digits")
         return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id or self.object.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_form(self, form_class=None):
         sub_form_class = self.sub_form_class
@@ -1368,9 +1720,19 @@ class SubmissionDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, Paginato
         return success_url
 
 
-class SubmissionDownload(LoginRedirectPermissionRequiredMixin, BaseDetailView):
+class SubmissionDownload(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, BaseDetailView):
     model = Submission
     permission_required = 'contests.download_submission'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -1379,10 +1741,20 @@ class SubmissionDownload(LoginRedirectPermissionRequiredMixin, BaseDetailView):
         return response
 
 
-class SubmissionAttachment(LoginRedirectPermissionRequiredMixin, AttachmentDetail):
+class SubmissionAttachment(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, AttachmentDetail):
     model = Submission
     template_name = 'contests/submission/submission_attachment.html'
     permission_required = 'contests.view_submission'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1390,7 +1762,7 @@ class SubmissionAttachment(LoginRedirectPermissionRequiredMixin, AttachmentDetai
         return context
 
 
-class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+class SubmissionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
     model = Submission
     template_name = 'contests/submission/submission_form.html'
     permission_required = 'contests.add_submission'
@@ -1507,11 +1879,21 @@ class SubmissionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return success_url
 
 
-class SubmissionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class SubmissionUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
     model = Submission
     form_class = SubmissionUpdateForm
     template_name = 'contests/submission/submission_update_form.html'
     permission_required = 'contests.change_submission'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1568,11 +1950,21 @@ class SubmissionUpdateAPI(LoginRequiredMixin, PermissionRequiredMixin, BaseUpdat
         return JsonResponse({'status': 'access_denied'})
 
 
-class SubmissionMoss(LoginRedirectPermissionRequiredMixin, SingleObjectMixin, FormView):
+class SubmissionMoss(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, SingleObjectMixin, FormView):
     model = Submission
     form_class = SubmissionMossForm
     template_name = 'contests/submission/submission_moss_form.html'
     permission_required = 'contests.moss_submission'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -1599,12 +1991,9 @@ class SubmissionMoss(LoginRedirectPermissionRequiredMixin, SingleObjectMixin, Fo
         return reverse('contests:submission-detail', kwargs={'pk': self.kwargs['pk']})
 
 
-class SubmissionEvaluateAPI(LoginRequiredMixin, PermissionRequiredMixin, View):
+class SubmissionEvaluateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
     http_method_names = ['get']
     permission_required = 'contests.evaluate_submission'
-
-    def http_method_not_allowed(self, request, *args, **kwargs):
-        return JsonResponse({'status': 'http_method_not_allowed'})
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1613,6 +2002,19 @@ class SubmissionEvaluateAPI(LoginRequiredMixin, PermissionRequiredMixin, View):
     def dispatch(self, request, *args, **kwargs):
         self.storage['sandbox_type'] = request.GET.get('sandbox', 'subprocess')
         return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
+
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        return JsonResponse({'status': 'http_method_not_allowed'})
 
     def get_object(self):
         return Submission.objects.get(pk=self.kwargs.get('pk'))
@@ -1630,9 +2032,19 @@ class SubmissionEvaluateAPI(LoginRequiredMixin, PermissionRequiredMixin, View):
         return JsonResponse({'status': 'access_denied'})
 
 
-class SubmissionProgressAPI(LoginRequiredMixin, OwnershipOrPermissionRequiredMixin, View):
+class SubmissionProgressAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
     http_method_names = ['get']
     permission_required = 'contests.evaluate_submission'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def http_method_not_allowed(self, request, *args, **kwargs):
         return JsonResponse({'status': 'http_method_not_allowed'})
@@ -1649,9 +2061,19 @@ class SubmissionProgressAPI(LoginRequiredMixin, OwnershipOrPermissionRequiredMix
         return JsonResponse({'status': 'access_denied'})
 
 
-class SubmissionClearTaskAPI(LoginRequiredMixin, PermissionRequiredMixin, View):
+class SubmissionClearTaskAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
     http_method_names = ['get']
     permission_required = 'contests.evaluate_submission'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def http_method_not_allowed(self, request, *args, **kwargs):
         return JsonResponse({'status': 'http_method_not_allowed'})
@@ -1669,10 +2091,20 @@ class SubmissionClearTaskAPI(LoginRequiredMixin, PermissionRequiredMixin, View):
         return JsonResponse({'status': 'access_denied'})
 
 
-class SubmissionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class SubmissionDelete(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
     model = Submission
     template_name = 'contests/submission/submission_delete.html'
     permission_required = 'contests.delete_submission'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1691,18 +2123,33 @@ class SubmissionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
         return success_url
 
 
-class SubmissionList(LoginRedirectPermissionRequiredMixin, ListView):
+class SubmissionList(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, ListView):
     model = Submission
     template_name = 'contests/submission/submission_list.html'
     context_object_name = 'submissions'
-    paginate_by = 20
     permission_required = 'contests.view_submission_list'
+    paginate_by = 20
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        course_id = self.kwargs.get('course_id', None)
+        if course_id:
+            self.storage['course'] = get_object_or_404(Course, id=course_id)
+        return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return 'course' in self.storage and self.storage['course'].owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return 'course' in self.storage and self.storage['course'].leaders.filter(id=self.request.user.id).exists()
 
     def get_queryset(self):
-        course_id = self.kwargs.get('course_id', None)
         queryset = super().get_queryset().select_related('owner', 'problem', 'problem__contest')
-        if course_id:
-            queryset = queryset.filter(problem__contest__course_id=course_id)
+        if 'course' in self.storage:
+            queryset = queryset.filter(problem__contest__course_id=self.storage['course'].id)
         else:
             course_ids = self.request.user.filter_set.values_list('course_id')
             queryset = (queryset.filter(problem__contest__course_id__in=course_ids)
@@ -1712,13 +2159,11 @@ class SubmissionList(LoginRedirectPermissionRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        course_id = self.kwargs.get('course_id', None)
-        if course_id:
-            context['course'] = get_object_or_404(Course, id=course_id)
+        context.update(self.storage)
         return context
 
 
-class SubmissionBackup(LoginRedirectPermissionRequiredMixin, BaseListView):
+class SubmissionBackup(LoginRedirectMixin, PermissionRequiredMixin, BaseListView):
     model = Submission
     permission_required = 'contests.download_submission'
 
@@ -1750,7 +2195,7 @@ class SubmissionBackup(LoginRedirectPermissionRequiredMixin, BaseListView):
 """=================================================== Execution ===================================================="""
 
 
-class ExecutionList(LoginRequiredMixin, ListView):
+class ExecutionList(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, ListView):
     model = Execution
     template_name = 'contests/execution/execution_list.html'
     context_object_name = 'executions'
@@ -1760,22 +2205,33 @@ class ExecutionList(LoginRequiredMixin, ListView):
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['submission_id'] = kwargs.get('pk')
+        self.storage['submission'] = get_object_or_404(Submission, id=kwargs.get('pk'))
         return super().dispatch(request, *args, **kwargs)
 
+    def has_ownership(self):
+        return self.storage['submission'].owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['submission'].course.leaders.filter(id=self.request.user.id).exists()
+
     def get_queryset(self):
-        return Execution.objects.filter(submission_id=self.storage['submission_id'])
+        return Execution.objects.filter(submission_id=self.storage['submission'].id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['course'] = self.storage['submission'].course
+        return context
 
 
 """===================================================== Event ======================================================"""
 
 
-class EventDetail(LoginRequiredMixin, DetailView):
+class EventDetail(LoginRedirectMixin, DetailView):
     model = Event
     template_name = 'contests/event/event_detail.html'
 
 
-class EventCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+class EventCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
     model = Event
     form_class = EventForm
     template_name = 'contests/event/event_form.html'
@@ -1812,7 +2268,7 @@ class EventCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return reverse('contests:event-schedule') + '?year=' + str(iso_date[0]) + '&week=' + str(iso_date[1])
 
 
-class EventUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class EventUpdate(LoginRedirectMixin, PermissionRequiredMixin, UpdateView):
     model = Event
     form_class = EventForm
     template_name = 'contests/event/event_form.html'
@@ -1827,14 +2283,14 @@ class EventUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
         return kwargs
 
 
-class EventDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class EventDelete(LoginRedirectMixin, PermissionRequiredMixin, DeleteView):
     model = Event
     success_url = reverse_lazy('contests:event-list')
     template_name = 'contests/event/event_delete.html'
     permission_required = 'contests.delete_event'
 
 
-class EventSchedule(LoginRequiredMixin, ListView):
+class EventSchedule(LoginRedirectMixin, ListView):
     model = Event
     template_name = 'contests/event/event_schedule.html'
     context_object_name = 'events'
@@ -1875,7 +2331,7 @@ class EventSchedule(LoginRequiredMixin, ListView):
 
 @login_required
 def index(request):
-    if request.user.has_perm('contests.view_assignment_table'):
+    if request.user.has_perm('contests.add_course'):
         course_ids = request.user.filter_set.values_list('course_id')
         faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
         courses = Course.objects.filter(faculty_id=faculty_id, id__in=course_ids)

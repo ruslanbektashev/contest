@@ -7,8 +7,8 @@ UT-Тест
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
-{% breadcrumb uttest.problem.course uttest.problem.course %}
-{% breadcrumb uttest.problem.contest uttest.problem.contest %}
+{% breadcrumb uttest.course uttest.course %}
+{% breadcrumb uttest.contest uttest.contest %}
 {% breadcrumb uttest.problem uttest.problem %}
 {% breadcrumb uttest %}
 {% endblock breadcrumbs %}
@@ -17,10 +17,10 @@ UT-Тест
 <legend>
     {{ uttest }}
     <span class="pull-right">
-        {% if perms.contests.change_uttest %}
+        {% if perms.contests.change_uttest or request|has_leader_permission:uttest.course %}
         <a href="{% url 'contests:uttest-update' uttest.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Редактировать UT-тест"><i class="fa fa-edit fa-fw"></i></a>
         {% endif %}
-        {% if perms.contests.delete_uttest %}
+        {% if perms.contests.delete_uttest or request|has_leader_permission:uttest.course %}
         <a href="{% url 'contests:uttest-delete' uttest.id %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить UT-тест" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
         {% endif %}
     </span>
@@ -49,5 +49,5 @@ UT-Тест
         </td>
     </tr>
 </table>
-{% render_attachment_list uttest %}
+{% render_attachment_list uttest uttest.course %}
 {% endblock content %}

@@ -7,7 +7,7 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
-{% if perms.contests.view_assignment_table %}
+{% if perms.contests.view_assignment_table or request|has_leader_permission:assignment.course %}
 {% breadcrumb assignment.course assignment.course %}
 {% breadcrumb "Задания" 'contests:assignment-table' assignment.course.id %}
 {% else %}

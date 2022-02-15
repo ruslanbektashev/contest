@@ -31,6 +31,21 @@ def render_submission_progress(submission, title):
     return {'progress': score, 'title': title}
 
 
+@register.filter()
+def has_owner_permission(request, course):
+    return course.owner_id == request.user.id
+
+
+@register.filter()
+def has_leader_permission(request, course):
+    return course.leaders.filter(id=request.user.id).exists() or course.owner_id == request.user.id
+
+
+@register.filter()
+def has_student_permission(request, user):
+    return user.id == request.user.id
+
+
 @register.simple_tag()
 def get_updated_query_string(request, **kwargs):
     _GET = request.GET.copy()
