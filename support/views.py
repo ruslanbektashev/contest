@@ -8,8 +8,7 @@ from django.views import View
 from django.views.generic import DetailView, CreateView, RedirectView, TemplateView, UpdateView, DeleteView, ListView
 from markdown import markdown
 
-from contest.mixins import (LoginRedirectOwnershipOrPermissionRequiredMixin, LoginRedirectPermissionRequiredMixin,
-                            PaginatorMixin)
+from contest.mixins import (LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin)
 from support.models import Discussion, Question, Report, TutorialStepPass
 
 
@@ -52,7 +51,7 @@ class QuestionDetail(LoginRequiredMixin, DetailView):
         return context
 
 
-class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+class QuestionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
     model = Question
     fields = ['question', 'addressee', 'answer', 'is_published', 'redirect_comment']
     template_name = 'support/question/question_form.html'
@@ -68,14 +67,14 @@ class QuestionCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class QuestionUpdate(LoginRedirectPermissionRequiredMixin, UpdateView):
+class QuestionUpdate(LoginRedirectMixin, PermissionRequiredMixin, UpdateView):
     model = Question
     fields = ['question', 'addressee', 'answer', 'is_published', 'redirect_comment']
     template_name = 'support/question/question_form.html'
     permission_required = 'support.change_question'
 
 
-class QuestionDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class QuestionDelete(LoginRedirectMixin, PermissionRequiredMixin, DeleteView):
     model = Question
     success_url = reverse_lazy('support:question-list')
     template_name = 'support/question/question_delete.html'
@@ -95,7 +94,7 @@ class QuestionList(LoginRequiredMixin, ListView):
 """===================================================== Report ====================================================="""
 
 
-class ReportDetail(LoginRedirectOwnershipOrPermissionRequiredMixin, DetailView):
+class ReportDetail(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, DetailView):
     model = Report
     template_name = 'support/report/report_detail.html'
     permission_required = 'support.view_report'
@@ -132,19 +131,29 @@ class ReportCreate(LoginRequiredMixin, CreateView):
         return self.storage['from_url'] or reverse('support:report-list')
 
 
-class ReportUpdate(LoginRedirectOwnershipOrPermissionRequiredMixin, UpdateView):
+class ReportUpdate(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
     model = Report
     fields = ['title', 'text', 'closed']
     success_url = reverse_lazy('support:report-list')
     template_name = 'support/report/report_form.html'
     permission_required = 'support.change_report'
 
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.owner_id == self.request.user.id
 
-class ReportDelete(LoginRedirectOwnershipOrPermissionRequiredMixin, DeleteView):
+
+class ReportDelete(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
     model = Report
     success_url = reverse_lazy('support:report-list')
     template_name = 'support/report/report_delete.html'
     permission_required = 'support.delete_report'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.owner_id == self.request.user.id
 
 
 class ReportList(LoginRequiredMixin, ListView):
@@ -161,7 +170,7 @@ class ReportList(LoginRequiredMixin, ListView):
 """=================================================== Discussion ==================================================="""
 
 
-class DiscussionDetail(LoginRedirectPermissionRequiredMixin, PaginatorMixin, DetailView):
+class DiscussionDetail(LoginRedirectMixin, PermissionRequiredMixin, PaginatorMixin, DetailView):
     model = Discussion
     template_name = 'support/discussion/discussion_detail.html'
     permission_required = 'support.view_discussion'

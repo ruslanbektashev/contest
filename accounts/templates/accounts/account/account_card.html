@@ -4,7 +4,7 @@
     {% include 'accounts/account/account_image.html' with last_name=account.last_name first_name=account.first_name %}
     {% endif %}
     <div class="card-body">
-        <h5 class="card-title">{% if link and perms.accounts.change_account %}<a href="{{ account.get_absolute_url }}">{% endif %}<strong>{{ account.get_full_name }}</strong>{% if link %}</a>{% endif %}</h5>
+        <h5 class="card-title">{% if link and perms.accounts.view_account %}<a href="{{ account.get_absolute_url }}">{% endif %}<strong>{{ account.get_full_name }}</strong>{% if link %}</a>{% endif %}</h5>
         <p class="card-text">{{ account.degree }}{% if account.degree and account.position %},{% endif %} {{ account.position }}{% if account.department %}<br>{% endif %}{{ account.department }}</p>
     </div>
 </div>

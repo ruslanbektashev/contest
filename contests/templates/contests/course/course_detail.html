@@ -14,19 +14,19 @@
 <legend>
     {{ course }}
     <span class="pull-right">
-        {% if perms.contests.add_contest %}
+        {% if perms.contests.add_contest or request|has_leader_permission:course %}
         <a href="{% url 'contests:contest-create' course.id %}" class="text-decoration-none text-success" data-toggle="tooltip" data-placement="left" title="Добавить раздел"><i class="fa fa-plus fa-fw"></i></a>
         {% endif %}
-        {% if perms.contests.view_assignment_table %}
+        {% if perms.contests.view_assignment_table or request|has_leader_permission:course %}
         <a href="{% url 'contests:assignment-table' course.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Таблица заданий"><i class="fa fa-table fa-fw"></i></a>
         {% endif %}
-        {% if perms.contests.view_submission_list %}
+        {% if perms.contests.view_submission_list or request|has_leader_permission:course %}
         <a href="{% url 'contests:submission-list' course.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Посылки"><i class="fa fa-tasks fa-fw"></i></a>
         {% endif %}
-        {% if perms.contests.change_course %}
+        {% if perms.contests.change_course or request|has_leader_permission:course %}
         <a id="btn_course_update" href="{% url 'contests:course-update' course.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
         {% endif %}
-        {% if perms.contests.delete_course %}
+        {% if perms.contests.delete_course or request|has_owner_permission:course %}
         <span class="dropdown show">
             <a href="#" class="text-decoration-none" role="button" id="dropdownMoreMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
             <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownMoreMenuLink">
@@ -64,7 +64,7 @@
         <div id="collapseTwo" class="collapse show" aria-labelledby="course_contests">
             <div class="card-body">
                 {% include 'list.html' with lst=course.contest_set.all mb=0 warn_if_empty="Разделы еще не добавлены" %}
-                {% if perms.contests.add_contest %}
+                {% if perms.contests.add_contest or request|has_leader_permission:course %}
                 <a id="btn_contest_create" href="{% url 'contests:contest-create' course.id %}" class="btn btn-block btn-light">
                     <i class="fa fa-plus fa-fw"></i> Добавить раздел
                 </a>

@@ -16,7 +16,7 @@
     <span class="text-muted">№{{ contest.number }}</span>
     {{ contest.title }}
     <span class="pull-right">
-        {% if perms.contests.add_problem %}
+        {% if perms.contests.add_problem or request|has_leader_permission:contest.course %}
         <span class="dropdown show" data-toggle="tooltip" data-placement="left" title="Добавить задачу">
             <a href="#" class="text-decoration-none text-success" role="button" id="dropdownAddProblemMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-plus fa-fw"></i></a>
             <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownAddProblemMenuLink">
@@ -30,10 +30,10 @@
             </span>
         </span>
         {% endif %}
-        {% if perms.contests.change_contest %}
+        {% if perms.contests.change_contest or request|has_leader_permission:contest.course %}
         <a id="btn_contest_update" href="{% url 'contests:contest-update' contest.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
         {% endif %}
-        {% if perms.contests.delete_contest %}
+        {% if perms.contests.delete_contest or request|has_leader_permission:contest.course %}
         <span class="dropdown show">
             <a href="#" class="text-decoration-none" role="button" id="dropdownMoreMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
             <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownMoreMenuLink">
@@ -59,9 +59,9 @@
                     {{ contest.description|markdown|safe }}
                 </div>
                 <div class="w-100 mt-3">
-                    {% render_attachment_list contest %}
+                    {% render_attachment_list contest contest.course %}
                 </div>
-                {% if perms.contests.change_contest %}
+                {% if perms.contests.change_contest or request|has_leader_permission:contest.course %}
                 <a href="{% url 'contests:contest-update' contest.id %}?add_files=1" class="btn btn-block btn-light">
                     <i class="fa fa-files-o fa-fw"></i> Добавить файлы
                 </a>
@@ -81,7 +81,7 @@
         <div id="collapseTwo" class="collapse show" aria-labelledby="contest_problems">
             <div class="card-body" style="min-height: 300px;">
                 {% include 'problem_list.html' with problems=contest.problem_set.all %}
-                {% if perms.contests.add_problem %}
+                {% if perms.contests.add_problem or request|has_leader_permission:contest.course %}
                 <div class="dropdown" data-boundary="viewport">
                     <button id="btn_problem_create" class="btn btn-block btn-light" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="viewport">
                         <i class="fa fa-plus fa-fw"></i> Добавить задачу

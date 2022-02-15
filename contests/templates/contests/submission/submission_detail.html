@@ -8,7 +8,7 @@
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% if from_assignment and submission.get_assignment %}
-{% if perms.contests.view_assignment_table %}
+{% if perms.contests.view_assignment_table or request|has_leader_permission:submission.course %}
 {% breadcrumb submission.course submission.course %}
 {% breadcrumb "Задания" 'contests:assignment-table' submission.course.id %}
 {% else %}
@@ -36,10 +36,12 @@
     {% if request.user.is_superuser and submission.task_id %}
         <a href="{% url 'contests:api-submission-clear-task' submission.id %}" class="text-secondary text-decoration-none" data-toggle="tooltip" data-placement="left" title="Стереть таску"><i class="fa fa-eraser fa-fw"></i></a>
     {% endif %}
-    {% if perms.contests.moss_submission and submission.problem.type == 'Program' %}
+    {% if submission.problem.type == 'Program' %}
+    {% if perms.contests.moss_submission or request|has_leader_permission:submission.course %}
         <a href="{% url 'contests:submission-moss' submission.id %}" class="text-secondary text-decoration-none" data-toggle="tooltip" data-placement="left" title="MOSS"><i class="fa fa-maxcdn fa-fw"></i></a>
     {% endif %}
-    {% if perms.contests.delete_submission %}
+    {% endif %}
+    {% if perms.contests.delete_submission or request|has_leader_permission:submission.course %}
         <a href="{% url 'contests:submission-delete' submission.id %}{% if from_assignment %}?from_assignment=1{% endif %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить посылку" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
     {% endif %}
     </span>
@@ -70,7 +72,7 @@
     </span>
 </div>
 {% if not submission.problem.type == 'Program' or not submission.problem.is_testable %}
-{% if perms.contests.change_submission %}
+{% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
 <form action="{% url 'contests:api-submission-update' submission.id %}" id="main-submission-update" method="POST" class="form-horizontal card">
     <div class="card-body">
         {% csrf_token %}
@@ -83,12 +85,12 @@
     </div>
 </form>
 {% endif %}
-{% elif submission.is_un or perms.contests.evaluate_submission %}
+{% elif submission.is_un or perms.contests.evaluate_submission or request|has_leader_permission:submission.course %}
 <button id="btn_submission_evaluate" class="btn btn-light btn-block border mb-3"
         data-evaluate-url="{% url 'contests:api-submission-evaluate' submission.id %}"
         data-progress-url-base="/submission/{{ submission.id }}/get/progress/"
         data-executions-url="{% url 'contests:submission-get-executions' submission.id %}"
-        data-submission-id="{{ submission.id }}" data-sandbox-type="docker">Проверить{% if perms.contests.evaluate_submission %} еще раз{% endif %}</button>
+        data-submission-id="{{ submission.id }}" data-sandbox-type="docker">Проверить{% if perms.contests.evaluate_submission or request|has_leader_permission:submission.course %} еще раз{% endif %}</button>
 {% if request.user.is_superuser %}
 <div class="btn-block btn-group btn-group-toggle mt-0 mb-3" data-toggle="buttons">
     <label class="btn btn-outline-secondary active">
@@ -106,18 +108,18 @@
     {% endif %}
 {% endif %}
 <div class="accordion mb-3" id="execution_list">
-    {% render_execution_list submission.execution_set.all %}
+    {% include 'contests/execution/execution_list.html' with executions=submission.execution_set.all course=submission.course %}
 </div>
 {% if submission.problem.type == 'Program' or submission.problem.type == 'Files' %}
 <div class="text-right text-muted">
-    {% if perms.contests.download_submission %}
+    {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
     <p class="text-warning text-break">
         <span data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям">
             <i class="fa fa-lock fa-fw"></i>директория на сервере: {{ submission.attachment_set.all.0.dirname }}
         </span>
     </p>
     {% endif %}
-    {% if perms.contests.moss_submission %}
+    {% if perms.contests.moss_submission or request|has_leader_permission:submission.course %}
         {% if submission.moss_to_submissions %}
     <p class="text-warning text-wrap" data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>с посылками MOSS: {% for to_submission_id in submission.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
     <p class="text-warning text-wrap" data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>ссылка на отчет MOSS: {% if submission.moss_report_url %}<a href="{{ submission.moss_report_url }}" target="_blank">{{ submission.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
@@ -127,7 +129,7 @@
 <legend>
     Файлы
     <span class="pull-right">
-    {% if perms.contests.download_submission %}
+    {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
         <a href="{% url 'contests:submission-download' submission.id %}" data-toggle="tooltip" data-placement="left" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>
     {% endif %}
     </span>
@@ -135,7 +137,7 @@
 <div class="list-group mb-3">
     {% for attachment in submission.attachment_set.all %}
     <span class="list-group-item d-flex">
-        {% if perms.contests.download_submission %}
+        {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
         <a class="mr-auto" href="{% url 'contests:submission-attachment' submission.id attachment.id %}{% if from_assignment %}?from_assignment=1{% endif %}"><samp>{{ attachment.filename }}</samp></a>
         <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}" data-toggle="tooltip" data-placement="left" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
         {% else %}
@@ -152,7 +154,8 @@
         {{ submission.text|safe }}
     </div>
 </div>
-{% if perms.contests.change_submission and submission.footprint %}
+{% if submission.footprint %}
+{% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
 <div class="text-right">
 <span data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям">
     <i class="fa fa-lock fa-fw"></i>
@@ -175,6 +178,7 @@
         <canvas id="footprintChart" height="120"></canvas>
     </div>
 </div>
+{% endif %}
 {% endif %}
 {% endif %}
 {% if submission.problem.type == 'Options' %}
@@ -204,15 +208,17 @@
                 </a>
             </small>
             {% endif %}
-            {% if perms.contests.change_submission and sub_form.instance.problem.type == 'Text' %}
+            {% if sub_form.instance.problem.type == 'Text' %}
+            {% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
             {% if sub_form.instance.has_footprint_increments %}
             <span class="text-warning mr-2" data-toggle="tooltip" data-placement="top" title="Обнаружена вставка текста" style="position: relative; top: -0.08em;"><i class="fa fa-exclamation-triangle fa-fw fa-lg"></i></span>
             {% else %}
             <span class="text-success mr-2" data-toggle="tooltip" data-placement="top" title="Вставка текста не обнаружена" style="position: relative; top: -0.08em;"><i class="fa fa-check-circle fa-fw fa-lg"></i></span>
             {% endif %}
             {% endif %}
+            {% endif %}
             <small>{{ sub_form.instance.problem.get_type_display }}</small>
-            {% if perms.contests.change_submission %}
+            {% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
                 {% if not sub_form.instance.problem.is_testable %}
                 <form action="{% url 'contests:api-submission-update' sub_form.instance.id %}" id="submission-update-form-{{ forloop.counter0 }}" method="POST" class="d-flex align-items-center ml-3" sub-submission-id={{ sub_form.instance.id }}>
                     {% csrf_token %}
@@ -257,17 +263,17 @@
                 <h6 class="text-muted">Ответ:</h6>
                 {% if sub_form.instance.problem.type == 'Program' or sub_form.instance.problem.type == 'Files' %}
                 <div class="text-right text-muted">
-                    {% if perms.contests.moss_submission %}
-                        {% if sub_form.instance.moss_to_submissions %}
+                    {% if sub_form.instance.moss_to_submissions %}
+                    {% if perms.contests.moss_submission or request|has_leader_permission:submission.course %}
                     <p class="text-warning text-wrap" data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>с посылками MOSS: {% for to_submission_id in sub_form.instance.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
                     <p class="text-warning text-wrap" data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>ссылка на отчет MOSS: {% if sub_form.instance.moss_report_url %}<a href="{{ sub_form.instance.moss_report_url }}" target="_blank">{{ sub_form.instance.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
-                        {% endif %}
+                    {% endif %}
                     {% endif %}
                 </div>
                 <h6 class="text-muted">
                     Файлы
                     <span class="pull-right">
-                    {% if perms.contests.download_submission %}
+                    {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
                         <a href="{% url 'contests:submission-download' sub_form.instance.id %}" data-toggle="tooltip" data-placement="left" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>
                     {% endif %}
                     </span>
@@ -275,7 +281,7 @@
                 <div class="list-group">
                     {% for attachment in sub_form.instance.attachment_set.all %}
                     <span class="list-group-item d-flex">
-                        {% if perms.contests.download_submission %}
+                        {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
                         <a class="mr-auto" href="{% url 'contests:submission-attachment' sub_form.instance.id attachment.id %}"><samp>{{ attachment.filename }}</samp></a>
                         <a href="{{ attachment.file.url }}" data-toggle="tooltip" data-placement="left" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
                         {% else %}
@@ -463,7 +469,7 @@ var footprintChart = new Chart(
 </script>
 {% endif %}
 {% if not submission.problem.type == 'Program' or not submission.problem.is_testable %}
-{% if perms.contests.change_submission %}
+{% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
 <!-- Submission Update -->
 <script>
 

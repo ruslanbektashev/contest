@@ -1,4 +1,4 @@
-{% load contests %}
+{% load views contests %}
 <div class="table-responsive">
     <table class="table table-sm">
         <thead>
@@ -31,7 +31,7 @@
                 </td>
                 {% if forloop.parentloop.first and forloop.first and assignment.attached_credit %}
                 <td class="text-center" rowspan="{{ course_assignments|length }}" style="vertical-align: middle;">
-                    {% if perms.contests.change_credit %}
+                    {% if perms.contests.change_credit or request|has_leader_permission:course %}
                     <a href="{% url 'contests:credit-update' assignment.attached_credit.id %}" class="numtus status-{{ assignment.attached_credit.score|colorize }}" data-toggle="tooltip" data-placement="bottom" title="{{ assignment.attached_credit.get_score_display }}">
                         {{ assignment.attached_credit.score|default:'-' }}
                     </a>

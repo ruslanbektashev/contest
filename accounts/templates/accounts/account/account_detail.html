@@ -94,16 +94,12 @@
     </table>
 </div>
 
-{% if perms.contests.view_assignment_table or account.user_id == request.user.id %}
+{% if perms.accounts.view_account or account.user_id == request.user.id %}
 {% if credits %}
 <legend>
     Результаты
     <span class="pull-right">
-    {% if account.is_student %}
-    {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
         <a href="{% if account.user_id == request.user.id %} {% url 'contests:assignment-list' %} {% else %} {% url 'accounts:account-assignment-list' account.user_id %} {% endif %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Задания" style="position: relative; top: -0.08rem;"><i class="fa fa-list-ol fa-fw"></i></a>
-    {% endif %}
-    {% endif %}
     </span>
 </legend>
 {% include 'accounts/account/account_results.html' %}

@@ -1,12 +1,14 @@
-{% if submissions %}
 {% load views contests %}
+{% if submissions %}
 <div class="table-responsive">
     <table id="p" class="table {% if not borderless %}table-bordered{% endif %} table-sm mt-{% if mt is not None %}{{ mt }}{% else %}0{% endif %}">
         <thead>
             <tr>
                 <th class="text-center" style="width: 18%;">Дата</th>
-                {% if perms.contests.view_submission_list and not assignment %}
+                {% if not assignment %}
+                {% if perms.contests.view_submission_list or request|has_leader_permission:course %}
                 <th>Студент</th>
+                {% endif %}
                 {% endif %}
                 {% if not assignment and not problem %}
                 <th>Задача</th>
@@ -19,8 +21,10 @@
             {% for submission in page_obj %}
             <tr class="{% if assignment and submission.date_created > assignment.date_updated %}bg-light{% endif %}">
                 <td class="text-center">{% if submission.date_created|date:'Y' == current_year %}{{ submission.date_created|date:'d b в H:i' }}{% else %}{{ submission.date_created|date:'d b y г. в H:i' }}{% endif %}</td>
-                {% if perms.contests.view_submission_list and not assignment %}
+                {% if not assignment %}
+                {% if perms.contests.view_submission_list or request|has_leader_permission:course %}
                 <td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>
+                {% endif %}
                 {% endif %}
                 {% if not assignment and not problem %}
                 <td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td>

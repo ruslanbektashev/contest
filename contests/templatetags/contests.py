@@ -208,15 +208,10 @@ def render_assignment_course_table(course, students, assignments, debts=False):
     return context
 
 
-@register.inclusion_tag('contests/execution/execution_list.html', takes_context=True)
-def render_execution_list(context, executions):
-    context['executions'] = executions
-    return context
-
-
 @register.inclusion_tag('contests/attachment/attachment_list.html', takes_context=True)
-def render_attachment_list(context, obj):
+def render_attachment_list(context, obj, course):
     context['attachments'] = obj.attachment_set.all()
     context['obj'] = obj
+    context['course'] = course
     context['path_name'] = 'contests:{}-attachment'.format(obj.__class__.__name__.lower())
     return context

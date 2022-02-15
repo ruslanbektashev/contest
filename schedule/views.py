@@ -1,10 +1,11 @@
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, DeleteView
 
-from contest.mixins import LoginRedirectMixin, LoginRedirectPermissionRequiredMixin
+from contest.mixins import LoginRedirectMixin
 from schedule.forms import ScheduleForm, ScheduleAttachmentForm, ScheduleAttachmentBaseFormSet
 from schedule.models import Schedule, ScheduleAttachment
 
@@ -21,7 +22,7 @@ class ScheduleDetail(LoginRedirectMixin, DetailView):
         return super().get(request, *args, **kwargs)
 
 
-class ScheduleCreate(LoginRedirectPermissionRequiredMixin, CreateView):
+class ScheduleCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
     model = Schedule
     form_class = ScheduleForm
     template_name = 'schedule/schedule/schedule_form.html'
@@ -76,7 +77,7 @@ class ScheduleCreate(LoginRedirectPermissionRequiredMixin, CreateView):
         return context
 
 
-class ScheduleDelete(LoginRedirectPermissionRequiredMixin, DeleteView):
+class ScheduleDelete(LoginRedirectMixin, PermissionRequiredMixin, DeleteView):
     model = Schedule
     template_name = 'schedule/schedule/schedule_delete.html'
     permission_required = 'schedule.delete_schedule'

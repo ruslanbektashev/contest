@@ -18,7 +18,7 @@
     {{ problem.title }}
     <span class="pull-right">
         {% if problem.type == 'Program' %}
-        {% if perms.contests.change_problem %}
+        {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
         <span class="dropdown show" data-toggle="tooltip" data-placement="left" title="Добавить тест">
             <a href="#" class="text-decoration-none text-success" role="button" id="dropdownAddTestMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-plus fa-fw"></i></a>
             <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownAddTestMenuLink">
@@ -30,14 +30,14 @@
         {% endif %}
         {% endif %}
         {% if problem.type == 'Program' or problem.type == 'Files' %}
-        {% if perms.contests.add_submission_pattern %}
+        {% if perms.contests.add_submission_pattern or request|has_leader_permission:problem.course %}
         <a href="{% url 'contests:submission-pattern-create' problem.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Добавить шаблон посылки"><i class="fa fa-clone fa-fw"></i></a>
         {% endif %}
         {% endif %}
-        {% if perms.contests.change_problem %}
+        {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
         <a href="{% url 'contests:problem-update' problem.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
         {% endif %}
-        {% if perms.contests.delete_problem %}
+        {% if perms.contests.delete_problem or request|has_leader_permission:problem.course %}
         <span class="dropdown show">
             <a href="#" class="text-decoration-none" role="button" id="dropdownMoreMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
             <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownMoreMenuLink">
@@ -85,7 +85,7 @@
                         </small>
                         {% endif %}
                         <small>{{ subproblem.sub_problem.get_type_display }}</small>
-                        {% if perms.contests.change_subproblem and perms.contests.delete_subproblem %}
+                        {% if perms.contests.change_subproblem and perms.contests.delete_subproblem or request|has_leader_permission:problem.course %}
                         <a href="{% url 'contests:subproblem-update' subproblem.id %}" class="card-link ml-2" data-toggle="tooltip" data-placement="top" title="Изменить номер">
                             <i class="fa fa-edit fa-fw fa-lg"></i>
                         </a>
@@ -142,7 +142,7 @@
                     </tr>
                     {% endif %}
                 </table>
-                {% if perms.contests.add_submission %}
+                {% if perms.contests.add_submission or request|has_leader_permission:problem.course %}
                 {% if assignment and assignment.credit_incomplete or request.user.is_superuser %}
                 <a href="{% url 'contests:submission-create' problem.id %}" class="btn btn-block btn-info mb-2">
                     <i class="fa fa-file-o fa-fw"></i> Отправить решение
@@ -150,9 +150,9 @@
                 {% endif %}
                 {% endif %}
                 <div class="w-100 mt-3">
-                    {% render_attachment_list problem %}
+                    {% render_attachment_list problem problem.course %}
                 </div>
-                {% if perms.contests.change_problem %}
+                {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
                 <a href="{% url 'contests:problem-update' problem.id %}?add_files=1" class="btn btn-block btn-light">
                     <i class="fa fa-files-o fa-fw"></i> Добавить файлы
                 </a>
@@ -177,7 +177,7 @@
                     {{ problem.contest.description|markdown|safe }}
                 </div>
                 <div class="w-100 mt-3">
-                    {% render_attachment_list problem.contest %}
+                    {% render_attachment_list problem.contest problem.course %}
                 </div>
             </div>
         </div>
@@ -193,7 +193,7 @@
         </div>
         <div id="collapseFour" class="collapse show" aria-labelledby="problem_submissions">
             {% if submissions %}
-            {% include 'contests/submission/submission_table.html' with borderless=True %}
+            {% include 'contests/submission/submission_table.html' with borderless=True course=problem.course %}
             {% else %}
             <div class="card-body">
                 <div class="alert alert-info mb-0">Посылок нет</div>
@@ -201,7 +201,7 @@
             {% endif %}
         </div>
     </div>
-    {% if perms.contests.view_submission_pattern %}
+    {% if perms.contests.view_submission_pattern or request|has_leader_permission:problem.course %}
     <div class="card">
         <div class="card-header" id="problem_submission_patterns">
             <h2 class="mb-0">
@@ -219,7 +219,7 @@
         </div>
     </div>
     {% endif %}
-    {% if perms.contests.view_iotest or perms.contests.view_uttest or perms.contests.view_fntest %}
+    {% if perms.contests.view_iotest or perms.contests.view_uttest or perms.contests.view_fntest or request|has_leader_permission:problem.course %}
     <div class="card">
         <div class="card-header" id="problem_tests">
             <h2 class="mb-0">
