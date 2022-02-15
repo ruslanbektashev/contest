@@ -4,14 +4,12 @@ from html.entities import name2codepoint
 from html.parser import HTMLParser
 
 from django import forms
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from accounts.models import Account, Comment
 from accounts.templatetags.markdown import markdown
 from accounts.widgets import CommentWidget
-from contest.widgets import BootstrapCheckboxSelect
 
 
 class AccountPartialForm(forms.ModelForm):
@@ -201,27 +199,3 @@ class CommentForm(forms.ModelForm):
         if parent_id and not Comment.objects.actual().filter(id=parent_id).exists():
             raise ValidationError("Нить комментирования отсутствует.", code='no_parent')
         return self.cleaned_data
-
-
-class ManageSubscriptionsForm(forms.Form):
-    object_type = forms.MultipleChoiceField(widget=BootstrapCheckboxSelect(), required=False)
-
-    def __init__(self, *args, **kwargs):
-        ANNOUNCEMENT_TYPE_ID = ContentType.objects.get(model='announcement').id
-        SCHEDULE_TYPE_ID = ContentType.objects.get(model='schedule').id
-        COMMENT_TYPE_ID = ContentType.objects.get(model='comment').id
-        SUBMISSION_TYPE_ID = ContentType.objects.get(model='submission').id
-
-        OBJECT_TYPE_CHOICES = (
-            (ANNOUNCEMENT_TYPE_ID, "Объявления"),
-            (SCHEDULE_TYPE_ID, "Расписание"),
-            (COMMENT_TYPE_ID, "Комментарии"),
-            (SUBMISSION_TYPE_ID, "Посылки"),
-        )
-        OBJECT_TYPE_CHOICES_LIMITED = OBJECT_TYPE_CHOICES[:2]
-
-        self.user = kwargs.pop('user', None)
-        super().__init__(*args, **kwargs)
-
-        choices = OBJECT_TYPE_CHOICES if self.user.has_perm('accounts.add_subscription') else OBJECT_TYPE_CHOICES_LIMITED
-        self.fields['object_type'].choices = choices

@@ -1,7 +1,6 @@
 from django.urls import path, include
 
 from accounts import views
-from contest.utils import under_development
 
 app_name = 'accounts'
 
@@ -32,8 +31,6 @@ urlpatterns = [
         ])),
     ])),
     path('mark_comments_as_read', views.mark_comments_as_read, name='mark-comments-as-read'),
-    path('message/<int:user_id>/create', under_development(views.MessageCreate.as_view()), name='message-create'),
-    path('chat/list', under_development(views.ChatList.as_view()), name='chat-list'),
     path('announcement/', include([
         path('create', views.AnnouncementCreate.as_view(), name='announcement-create'),
         path('<int:pk>/', include([

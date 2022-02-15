@@ -1,7 +1,5 @@
 import os.path
 
-from datetime import date, datetime
-from markdown import markdown
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer, TextLexer
@@ -9,7 +7,6 @@ from pygments.lexers import CppLexer, TextLexer
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
 from django.forms.models import inlineformset_factory, modelformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -22,18 +19,17 @@ from django.views.generic.edit import BaseCreateView, BaseDeleteView, BaseUpdate
 from django.views.generic.list import BaseListView
 
 from accounts.models import Account, Faculty
-from contest.mixins import (LoginRedirectMixin, OwnershipOrMixin, LeadershipOrMixin, PaginatorMixin)
+from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, LeadershipOrMixin, PaginatorMixin
 from contest.templatetags.views import has_leader_permission
 from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, AssignmentUpdatePartialForm,
                             ContestForm, ContestPartialForm, CourseFinishForm, CourseForm, CourseLeaderForm,
-                            CreditReportForm, CreditSetForm, EventForm, FNTestForm, OptionBaseFormSet, OptionForm,
+                            CreditReportForm, CreditSetForm, FNTestForm, OptionBaseFormSet, OptionForm,
                             ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm, ProblemRollbackResultsForm,
                             ProblemTestForm, SubmissionProgramForm, SubmissionFilesForm, SubmissionMossForm,
                             SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm, SubmissionUpdateForm,
                             UTTestForm)
-from contests.models import (Assignment, Attachment, Contest, Course, CourseLeader, Credit, Event, Execution, FNTest,
-                             Filter, IOTest, Lecture, Option, Problem, SubProblem, Submission, SubmissionPattern,
-                             UTTest)
+from contests.models import (Assignment, Attachment, Contest, Course, CourseLeader, Credit, Execution, FNTest, Filter,
+                             IOTest, Option, Problem, SubProblem, Submission, SubmissionPattern, UTTest)
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.contests import colorize
@@ -455,65 +451,6 @@ class FilterTable(LoginRedirectMixin, PermissionRequiredMixin, TemplateView):
         context['courses'] = courses
         context['table'] = table
         return context
-
-
-"""===================================================== Lecture ===================================================="""
-
-
-class LectureDetail(LoginRedirectMixin, DetailView):
-    model = Lecture
-    template_name = 'contests/lecture/lecture_detail.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['description'] = markdown(self.object.description)
-        return context
-
-
-class LectureCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
-    model = Lecture
-    fields = ['title', 'description']
-    template_name = 'contests/lecture/lecture_form.html'
-    permission_required = 'contests.add_lecture'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
-        return super().dispatch(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        form.instance.course = self.storage['course']
-        return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['course'] = self.storage['course']
-        return context
-
-
-class LectureUpdate(LoginRedirectMixin, PermissionRequiredMixin, UpdateView):
-    model = Lecture
-    fields = ['title', 'description']
-    template_name = 'contests/lecture/lecture_form.html'
-    permission_required = 'contests.change_lecture'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['course'] = self.object.course
-        return context
-
-
-class LectureDelete(LoginRedirectMixin, PermissionRequiredMixin, DeleteView):
-    model = Lecture
-    template_name = 'contests/lecture/lecture_delete.html'
-    permission_required = 'contests.delete_lecture'
-
-    def get_success_url(self):
-        return reverse('contests:course-detail', kwargs={'pk': self.object.course_id})
 
 
 """===================================================== Contest ===================================================="""
@@ -2220,109 +2157,6 @@ class ExecutionList(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, Per
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['course'] = self.storage['submission'].course
-        return context
-
-
-"""===================================================== Event ======================================================"""
-
-
-class EventDetail(LoginRedirectMixin, DetailView):
-    model = Event
-    template_name = 'contests/event/event_detail.html'
-
-
-class EventCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
-    model = Event
-    form_class = EventForm
-    template_name = 'contests/event/event_form.html'
-    permission_required = 'contests.add_event'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def get(self, request, *args, **kwargs):
-        date_started, date_ended = request.GET.get('date_start'), request.GET.get('date_end')
-        if date_started and date_ended:
-            self.storage['date_start'] = datetime.strptime(date_started, "%Y-%m-%dT%H:%M:%S")
-            self.storage['date_end'] = datetime.strptime(date_ended, "%Y-%m-%dT%H:%M:%S")
-        return super().get(request, *args, **kwargs)
-
-    def get_form_kwargs(self):
-        initial = {
-            'tutor': self.request.user
-        }
-        if 'date_start' in self.storage and 'date_end' in self.storage:
-            initial['date_start'] = self.storage['date_start']
-            initial['date_end'] = self.storage['date_end']
-        kwargs = super().get_form_kwargs()
-        kwargs['initial'] = initial
-        return kwargs
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        iso_date = self.object.date_start.date().isocalendar()
-        return reverse('contests:event-schedule') + '?year=' + str(iso_date[0]) + '&week=' + str(iso_date[1])
-
-
-class EventUpdate(LoginRedirectMixin, PermissionRequiredMixin, UpdateView):
-    model = Event
-    form_class = EventForm
-    template_name = 'contests/event/event_form.html'
-    permission_required = 'contests.change_event'
-
-    def get_form_kwargs(self):
-        initial = {
-            'tutor': self.request.user
-        }
-        kwargs = super().get_form_kwargs()
-        kwargs['initial'] = initial
-        return kwargs
-
-
-class EventDelete(LoginRedirectMixin, PermissionRequiredMixin, DeleteView):
-    model = Event
-    success_url = reverse_lazy('contests:event-list')
-    template_name = 'contests/event/event_delete.html'
-    permission_required = 'contests.delete_event'
-
-
-class EventSchedule(LoginRedirectMixin, ListView):
-    model = Event
-    template_name = 'contests/event/event_schedule.html'
-    context_object_name = 'events'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        iso_today = list(date.today().isocalendar())
-        if iso_today[2] == 7:
-            iso_today[1] += 1
-        self.storage['year'] = int(self.request.GET.get('year') or iso_today[0])
-        self.storage['week'] = int(self.request.GET.get('week') or iso_today[1])
-        if self.storage['week'] > 52:
-            last_week = date(self.storage['year'], 12, 28).isocalendar()[1]
-            if self.storage['week'] > last_week:
-                self.storage['year'] += 1
-                self.storage['week'] = 1
-        elif self.storage['week'] < 1:
-            last_week = date(self.storage['year'] - 1, 12, 28).isocalendar()[1]
-            self.storage['year'] -= 1
-            self.storage['week'] = last_week
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_queryset(self):
-        return Event.objects.weekly(self.storage['year'], self.storage['week'])
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['year'] = self.storage['year']
-        context['week'] = self.storage['week']
         return context
 
 

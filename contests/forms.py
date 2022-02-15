@@ -2,7 +2,7 @@ import os
 import re
 
 from django import forms
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.exceptions import ValidationError
@@ -11,8 +11,8 @@ from django.utils import timezone
 
 from accounts.models import Account
 from contest.widgets import BootstrapCheckboxSelect, BootstrapRadioSelect
-from contests.models import (Assignment, Attachment, Contest, Course, CourseLeader, Event, FNTest, Filter, Option,
-                             Problem, SubProblem, Submission, SubmissionPattern, UTTest)
+from contests.models import (Assignment, Attachment, Contest, Course, CourseLeader, FNTest, Option, Problem, SubProblem,
+                             Submission, SubmissionPattern, UTTest)
 
 
 class UserChoiceField(forms.ModelChoiceField):
@@ -683,12 +683,6 @@ class SubmissionUpdateForm(forms.ModelForm):
         return super().save(commit)
 
 
-# class SubmissionUpdateScoreForm(SubmissionUpdateForm):
-#     class Meta:
-#         model = Submission
-#         fields = ['score']
-
-
 class ToSubmissionsChoiceField(forms.ModelMultipleChoiceField):
     def label_from_instance(self, obj):
         return "{}: {}, {}".format(obj.owner.account, obj.status, naturaltime(obj.date_created))
@@ -704,15 +698,3 @@ class SubmissionMossForm(forms.Form):
                                                     owner__account__enrolled=True)
                                             .exclude(owner_id=self.submission.owner_id))
         self.fields['to_submissions'].queryset = to_submissions
-
-
-"""===================================================== Event ======================================================"""
-
-
-class EventForm(forms.ModelForm):
-    tutor = UserChoiceField(queryset=User.objects.filter(groups__name='Преподаватель'), required=False,
-                            label="Преподаватель")
-
-    class Meta:
-        model = Event
-        fields = ['tutor', 'title', 'type', 'place', 'date_start', 'date_end', 'tags']

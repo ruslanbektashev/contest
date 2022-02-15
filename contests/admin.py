@@ -2,8 +2,8 @@ from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericStackedInline
 
 from contests.forms import CourseForm
-from contests.models import (Assignment, Attachment, Contest, Course, Credit, Event, Execution, FNTest, IOTest, Lecture,
-                             Option, Problem, Submission, SubmissionPattern, Tag, UTTest)
+from contests.models import (Assignment, Attachment, Contest, Course, Credit, Execution, FNTest, IOTest, Option,
+                             Problem, Submission, SubmissionPattern, UTTest)
 
 
 class AttachmentInline(GenericStackedInline):
@@ -52,25 +52,6 @@ class CreditAdmin(admin.ModelAdmin):
 
     def name(self, instance):
         return instance.user.account
-
-
-@admin.register(Lecture)
-class LectureAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'date_updated', 'date_created')
-    list_filter = ('course__level',)
-    search_fields = ('title',)
-    fieldsets = (
-        ('Ссылки', {
-            'fields': ('owner', 'course')
-        }),
-        ('Детали', {
-            'fields': ('title', 'description')
-        }),
-        ('Даты', {
-            'fields': ('date_updated', 'date_created')
-        })
-    )
-    readonly_fields = ('date_updated', 'date_created')
 
 
 @admin.register(Contest)
@@ -262,35 +243,6 @@ class ExecutionAdmin(admin.ModelAdmin):
         })
     )
     readonly_fields = ('submission', 'date_created')
-
-
-@admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
-    list_display = ('__str__',)
-    fieldsets = (
-        ('Объект', {
-            'fields': ('object_type', 'object_id')
-        }),
-    )
-
-
-@admin.register(Event)
-class EventAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'date_start', 'date_end', 'date_updated', 'date_created')
-    list_filter = ('type',)
-    search_fields = ('title',)
-    fieldsets = (
-        ('Ссылки', {
-            'fields': ('owner', 'tutor')
-        }),
-        ('Детали', {
-            'fields': ('title', 'type', 'place', 'tags')
-        }),
-        ('Даты', {
-            'fields': ('date_start', 'date_end', 'date_updated', 'date_created')
-        })
-    )
-    readonly_fields = ('date_updated', 'date_created')
 
 
 admin.site.register(Option)

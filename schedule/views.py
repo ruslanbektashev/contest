@@ -1,7 +1,6 @@
 import os.path
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.contenttypes.models import ContentType
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy

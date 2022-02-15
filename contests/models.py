@@ -21,7 +21,7 @@ from django.utils import timezone
 
 from contest.abstract import CDEntry, CRDEntry, CRUDEntry
 from contest.utils import transliterate
-from accounts.models import Account, Comment, Faculty, Subscription, Notification
+from accounts.models import Account, Comment, Faculty, Notification
 
 try:
     from tools.sandbox import get_sandbox_class
@@ -99,7 +99,6 @@ class Course(CRUDEntry):
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, verbose_name="Уровень")
 
     comment_set = GenericRelation(Comment, content_type_field='object_type')
-    subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
     class Meta(CRUDEntry.Meta):
         ordering = ('level', 'id')
@@ -366,23 +365,6 @@ class Filter(models.Model):
         verbose_name_plural = "Фильтры"
 
 
-"""===================================================== Lesson ====================================================="""
-
-
-class Lecture(CRUDEntry):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Курс")
-
-    title = models.CharField(max_length=100, verbose_name="Заголовок")
-    description = models.TextField(verbose_name="Содержание")
-
-    class Meta(CRUDEntry.Meta):
-        verbose_name = "Лекция"
-        verbose_name_plural = "Лекции"
-
-    def __str__(self):
-        return "%s" % self.title
-
-
 """==================================================== Contest ====================================================="""
 
 
@@ -403,7 +385,6 @@ class Contest(CRUDEntry):
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
-    subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
     objects = ContestManager()
 
@@ -504,7 +485,6 @@ class Problem(CRUDEntry):
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
-    subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
     objects = ProblemManager.from_queryset(ProblemQuerySet)()
 
@@ -871,7 +851,6 @@ class Assignment(CRUDEntry):
     deadline = models.DateTimeField(null=True, blank=True, verbose_name="Принимать посылки до")
 
     comment_set = GenericRelation(Comment, content_type_field='object_type')
-    subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
     objects = AssignmentManager.from_queryset(AssignmentQuerySet)()
 
@@ -1010,7 +989,6 @@ class Submission(CRDEntry):
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
-    subscription_set = GenericRelation(Subscription, content_type_field='object_type')
 
     objects = SubmissionManager.from_queryset(SubmissionQuerySet)()
 
@@ -1191,61 +1169,3 @@ class Execution(models.Model):
 
     def __str__(self):
         return "Запуск: %s на тесте %s от %s" % (self.submission, self.test, self.date_created)
-
-
-"""====================================================== Tag ======================================================="""
-
-
-class Tag(models.Model):
-    object_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    object = GenericForeignKey(ct_field='object_type')
-
-    class Meta:
-        verbose_name = "Метка"
-        verbose_name_plural = "Метки"
-
-    def __str__(self):
-        return "%s" % self.object
-
-
-"""===================================================== Event ======================================================"""
-
-
-class EventQuerySet(models.QuerySet):
-    def weekly(self, year, week):
-        return self.filter(date_start__iso_year=year, date_start__week=week)
-
-
-class Event(CRUDEntry):
-    TYPE_CHOICES = (
-        (1, "Лекция"),
-        (2, "Семинар"),
-        (3, "Коллоквиум"),
-        (4, "Зачет"),
-        (5, "Экзамен"),
-        (6, "Пересдача"),
-        (7, "Семестр"),
-    )
-    TYPE_DEFAULT = 2
-
-    tutor = models.ForeignKey(User, related_name='responsibility_set', blank=True, null=True, on_delete=models.CASCADE, verbose_name="Преподаватель")
-
-    title = models.CharField(max_length=127, verbose_name="Заголовок")
-    type = models.PositiveSmallIntegerField(choices=TYPE_CHOICES, default=TYPE_DEFAULT, verbose_name="Тип")
-    place = models.CharField(max_length=15, blank=True, verbose_name="Место проведения")
-
-    date_start = models.DateTimeField(verbose_name="Дата начала")
-    date_end = models.DateTimeField(verbose_name="Дата окончания")
-
-    tags = models.ManyToManyField(Tag, blank=True, verbose_name="Метки")
-
-    objects = EventQuerySet.as_manager()
-
-    class Meta(CRUDEntry.Meta):
-        ordering = ('-date_start',)
-        verbose_name = "Событие"
-        verbose_name_plural = "События"
-
-    def __str__(self):
-        return "%s: %s" % (self.get_type_display(), self.title)

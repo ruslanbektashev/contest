@@ -1,6 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
@@ -8,7 +7,7 @@ from django.views import View
 from django.views.generic import DetailView, CreateView, RedirectView, TemplateView, UpdateView, DeleteView, ListView
 from markdown import markdown
 
-from contest.mixins import (LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin)
+from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
 from support.models import Discussion, Question, Report, TutorialStepPass
 
 

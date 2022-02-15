@@ -1,6 +1,5 @@
 from django.urls import path, include
 
-from contest.utils import under_development
 from contests import views
 
 app_name = 'contests'
@@ -32,14 +31,6 @@ urlpatterns = [
         path('<int:user_id>/<int:course_id>/create', views.FilterCreate.as_view(), name='filter-create'),
         path('<int:pk>/delete', views.FilterDelete.as_view(), name='filter-delete'),
         path('table', views.FilterTable.as_view(), name='filter-table')
-    ])),
-    path('course/<int:course_id>/lecture/create', views.LectureCreate.as_view(), name='lecture-create'),
-    path('lecture/', include([
-        path('<int:pk>/', include([
-            path('', views.LectureDetail.as_view(), name='lecture-detail'),
-            path('update', views.LectureUpdate.as_view(), name='lecture-update'),
-            path('delete', views.LectureDelete.as_view(), name='lecture-delete')
-        ]))
     ])),
     path('course/<int:course_id>/contest/create', views.ContestCreate.as_view(), name='contest-create'),
     path('contest/', include([
@@ -135,14 +126,5 @@ urlpatterns = [
             path('get/executions', views.ExecutionList.as_view(), name='submission-get-executions'),  # TODO: refactor as API
         ])),
         path('list', views.SubmissionList.as_view(), name='submission-list'),
-    ])),
-    path('event/', include([
-        path('create', under_development(views.EventCreate.as_view()), name='event-create'),
-        path('<int:pk>/', include([
-            path('', under_development(views.EventDetail.as_view()), name='event-detail'),
-            path('update', under_development(views.EventUpdate.as_view()), name='event-update'),
-            path('delete', under_development(views.EventDelete.as_view()), name='event-delete')
-        ])),
-        path('schedule', under_development(views.EventSchedule.as_view()), name='event-schedule')
     ])),
 ]

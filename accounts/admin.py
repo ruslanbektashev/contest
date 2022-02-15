@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 
-from accounts.models import Account, Activity, Comment, Faculty, Message, Chat, Announcement, Notification, Subscription
+from accounts.models import Account, Comment, Faculty, Announcement, Notification
 
 
 @admin.register(Permission)
@@ -38,34 +38,6 @@ class AccountAdmin(admin.ModelAdmin):
     readonly_fields = ('date_updated',)
 
 
-@admin.register(Activity)
-class ActivityAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'is_read', 'is_deleted', 'date_created')
-    list_editable = ('is_read', 'is_deleted')
-    list_filter = ('level',)
-    search_fields = ('action', 'recipient__last_name', 'recipient__first_name')
-    fieldsets = (
-        ('Субъект', {
-            'fields': ('subject_type', 'subject_id')
-        }),
-        ('Объект', {
-            'fields': ('object_type', 'object_id')
-        }),
-        ('Связь', {
-            'fields': ('reference_type', 'reference_id')
-        }),
-        ('Ссылки', {
-            'fields': ('recipient',)
-        }),
-        ('Детали', {
-            'fields': ('action', 'level', 'is_read', 'is_deleted')
-        }),
-        ('Даты', {
-            'fields': ('date_created',)
-        })
-    )
-
-
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
     list_display = ('id', 'author_name', 'object_type', 'object', 'short_text', 'is_deleted', 'date_created')
@@ -100,38 +72,6 @@ class CommentAdmin(admin.ModelAdmin):
     short_text.short_description = 'Текст комментария'
 
 
-@admin.register(Message)
-class MessageAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'is_read', 'is_deleted', 'date_created')
-    list_editable = ('is_read', 'is_deleted')
-    search_fields = ('sender__last_name', 'sender__first_name', 'recipient__last_name', 'recipient__first_name')
-    fieldsets = (
-        ('Ссылки', {
-            'fields': ('sender', 'recipient')
-        }),
-        ('Детали', {
-            'fields': ('text', 'is_read', 'is_deleted')
-        }),
-        ('Даты', {
-            'fields': ('date_created',)
-        })
-    )
-    readonly_fields = ('date_created',)
-
-
-@admin.register(Chat)
-class ChatAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'latest_message')
-    fieldsets = (
-        ('Ссылки', {
-            'fields': ('user_a', 'user_b')
-        }),
-        ('Детали', {
-            'fields': ('latest_message',)
-        }),
-    )
-
-
 @admin.register(Announcement)
 class AnnouncementAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'date_updated', 'date_created')
@@ -148,18 +88,6 @@ class AnnouncementAdmin(admin.ModelAdmin):
         })
     )
     readonly_fields = ('date_updated', 'date_created')
-
-
-@admin.register(Subscription)
-class SubscriptionAdmin(admin.ModelAdmin):
-    fieldsets = (
-        ('Объект', {
-            'fields': ('object_type', 'object_id')
-        }),
-        ('Пользователь', {
-            'fields': ('user',)
-        }),
-    )
 
 
 @admin.register(Notification)

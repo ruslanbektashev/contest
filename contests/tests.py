@@ -4,7 +4,8 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import Account, Faculty
-from contests.models import Course, Credit, Contest, Problem, SubmissionPattern, IOTest, UTTest, FNTest, Assignment, Submission
+from contests.models import (Course, Credit, Contest, Problem, SubmissionPattern, IOTest, UTTest, FNTest, Assignment,
+                             Submission)
 
 """===================================================== Course ====================================================="""
 

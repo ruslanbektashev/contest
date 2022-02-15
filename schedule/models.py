@@ -7,9 +7,9 @@ from django.dispatch import receiver
 from django.template.defaultfilters import date
 from django.utils import timezone
 
-from accounts.models import Subscription, Notification
+from accounts.models import Notification
 from contest.abstract import CRUDEntry
-from contests.templatetags.events import iso_to_gregorian
+from schedule.templatetags.events import iso_to_gregorian
 
 
 def current_week_date_from(format_string='Y-m-d'):

@@ -5,8 +5,6 @@ from markdown import markdown
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
 from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
@@ -16,15 +14,13 @@ from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView, TemplateView
-from django.views.generic.edit import BaseUpdateView
 
-from accounts.forms import (AccountPartialForm, AccountListForm, AccountSetForm, CommentForm, ManageSubscriptionsForm,
-                            StaffForm, StudentForm)
-from accounts.models import Account, Activity, Comment, Faculty, Message, Chat, Announcement, Notification, Subscription
+from accounts.forms import AccountPartialForm, AccountListForm, AccountSetForm, CommentForm, StaffForm, StudentForm
+from accounts.models import Account, Comment, Faculty, Announcement, Notification
 from accounts.templatetags.comments import get_comment_query_string
-from contest.mixins import (LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin)
+from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
 from contest.templatetags.views import get_query_string, get_updated_query_string
-from contests.models import Contest, Course, Problem, Submission
+from contests.models import Course, Problem, Submission
 from support.models import Question, Report
 
 """==================================================== Account ====================================================="""
@@ -406,118 +402,6 @@ class AccountProblemSubmissionList(LoginRedirectMixin, OwnershipOrMixin, Permiss
         return context
 
 
-"""================================================== Subscription =================================================="""
-
-
-class SubscriptionCreate(CreateView):
-    model = Subscription
-    permission_required = 'accounts.add_subscription'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        self.storage['previous_url'] = self.request.GET.get('previous_url', '')
-        self.storage['cascade'] = self.request.GET.get('cascade', '')
-        return super().dispatch(request, *args, **kwargs)
-
-    def get(self, request, *args, **kwargs):
-        object_type = ContentType.objects.get(model=kwargs.pop('object_model'))
-        object = object_type.get_object_for_this_type(id=kwargs.pop('object_id'))
-        Subscription.objects.make_subscription(user=self.request.user, object=object, cascade=bool(self.storage['cascade']))
-        return HttpResponseRedirect(self.get_success_url())
-
-    def get_success_url(self):
-        return self.storage['previous_url']
-
-
-class SubscriptionDelete(DeleteView):
-    model = Subscription
-    permission_required = 'accounts.delete_subscription'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        self.storage['previous_url'] = self.request.GET.get('previous_url', '')
-        self.storage['cascade'] = self.request.GET.get('cascade', '')
-        return super().dispatch(request, *args, **kwargs)
-
-    def get(self, request, *args, **kwargs):
-        Subscription.objects.delete_subscription(user=self.request.user, object=self.get_object().object, cascade=bool(self.storage['cascade']))
-        return HttpResponseRedirect(self.get_success_url())
-
-    def get_success_url(self):
-        return self.storage['previous_url']
-
-
-class ManageSubscriptions(LoginRequiredMixin, FormView):
-    form_class = ManageSubscriptionsForm
-    template_name = 'accounts/activity/activity_settings.html'
-
-    def get_initial(self):
-        initial = super().get_initial()
-        initial['object_type'] = list(self.request.user.subscription_set.values_list('object_type', flat=True))
-        return initial
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        course_ids = self.request.user.subscription_set.filter(object_type=ContentType.objects.get_for_model(Course)).values_list('object_id', flat=True)
-        context['all_courses'] = Course.objects.all()
-        context['courses'] = Course.objects.filter(id__in=course_ids)
-        contest_ids = self.request.user.subscription_set.filter(object_type=ContentType.objects.get_for_model(Contest)).values_list('object_id', flat=True)
-        context['contests'] = Contest.objects.filter(id__in=contest_ids)
-        return context
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        if form.is_valid():
-            user = self.request.user
-            choices = form.fields['object_type'].choices
-            data = form.cleaned_data['object_type']
-            
-            user.subscription_set.filter(object_type__in=choices).exclude(object_type__in=data).delete()
-            
-            new_object_type_ids = set(map(int, data)) - set(user.subscription_set.values_list('object_type', flat=True))
-            new_subscriptions = (Subscription(object_type=ContentType.objects.get(id=i), user=user) for i in new_object_type_ids)
-            Subscription.objects.bulk_create(new_subscriptions)
-
-            if not Subscription.objects.for_user_models(user, Comment, Submission).exists():
-                Subscription.objects.for_user_models(user, Course, Contest).delete()
-            elif not Subscription.objects.for_user_models(user, Course, Contest).exists():
-                for course in Course.objects.all():
-                    Subscription.objects.make_subscription(user, object=course, cascade=True)
-
-            return self.form_valid(form)
-        return self.form_invalid(form)
-    
-    def get_success_url(self):
-        return reverse('accounts:activity-settings')
-
-
-"""==================================================== Activity ===================================================="""
-
-
-class ActivityList(LoginRequiredMixin, PaginatorMixin, ListView):
-    model = Activity
-    template_name = 'accounts/activity/activity_list.html'
-    paginate_by = 30
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        activities = super().get_queryset().filter(recipient=self.request.user).actual()
-        context['paginator'], context['page_obj'], context['activities'], context['is_paginated'] = \
-            self.paginate_queryset(activities)
-        return context
-
-
 """==================================================== Comment ====================================================="""
 
 
@@ -589,59 +473,6 @@ class CommentDelete(LoginRedirectMixin, PermissionRequiredMixin, DeleteView):
     def get_success_url(self):
         page = self.request.GET.get('page', '1')
         return self.object.object.get_discussion_url() + get_comment_query_string(page)
-
-
-"""==================================================== Message ====================================================="""
-
-
-class MessageCreate(LoginRedirectMixin, PermissionRequiredMixin, PaginatorMixin, CreateView):
-    model = Message
-    fields = ['text']
-    template_name = 'accounts/message/message_form.html'
-    permission_required = 'accounts.add_message'
-    # TODO: set proper items-per-page
-    paginate_by = 100
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = {}
-
-    def dispatch(self, request, *args, **kwargs):
-        self.storage['recipient'] = get_object_or_404(User, id=kwargs.pop('user_id'))
-        return super().dispatch(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        form.instance.sender = self.request.user
-        form.instance.recipient = self.storage['recipient']
-        response = super().form_valid(form)
-        Chat.objects.update_or_create_chat(self.request.user, self.storage['recipient'], self.object)
-        return response
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['recipient'] = self.storage['recipient']
-        messages = Message.objects.get_messages(self.request.user, context['recipient'])
-        messages.mark_as_read(self.request.user)
-        context['paginator'], \
-            context['page_obj'], \
-            context['messages'], \
-            context['is_paginated'] = self.paginate_queryset(messages)
-        return context
-
-    def get_success_url(self):
-        return reverse('accounts:message-create', kwargs={'user_id': self.storage['recipient'].id})
-
-
-"""====================================================== Chat ======================================================"""
-
-
-class ChatList(LoginRequiredMixin, ListView):
-    model = Chat
-    template_name = 'accounts/chat/chat_list.html'
-    context_object_name = 'chats'
-
-    def get_queryset(self):
-        return super().get_queryset().actual(self.request.user)
 
 
 """================================================== Announcement =================================================="""
