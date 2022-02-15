@@ -1,5 +1,5 @@
-import math
 import enum
+import math
 from statistics import mean
 
 from django.apps import apps
@@ -13,7 +13,6 @@ from django.utils import timezone
 
 from contest.abstract import CRUDEntry
 from contest.utils import transliterate
-
 
 """==================================================== Faculty ====================================================="""
 

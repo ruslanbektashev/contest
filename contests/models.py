@@ -1,12 +1,13 @@
 import docx
 import importlib
 import io
+import json
 import os
 import random
 import zipfile
-import json
 
 from statistics import mean
+
 from ckeditor.fields import RichTextField
 from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth.models import User
@@ -19,9 +20,9 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 
+from accounts.models import Account, Comment, Faculty, Notification
 from contest.abstract import CDEntry, CRDEntry, CRUDEntry
 from contest.utils import transliterate
-from accounts.models import Account, Comment, Faculty, Notification
 
 try:
     from tools.sandbox import get_sandbox_class
