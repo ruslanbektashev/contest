@@ -1,0 +1,63 @@
+{% extends 'base_wide.html' %}
+{% load views contests %}
+
+{% block title %}
+Корзина
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Корзина" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>
+    Корзина
+</legend>
+{% if deleted_courses.exists or deleted_contests.exists or deleted_problems.exists %}
+<div class="table-responsive-lg">
+    <table class="table">
+        <thead>
+            <th>Тип</th>
+            <th>Название</th>
+            <th class="text-right">Дата удаления</th>
+            <th></th>
+            <th></th>
+        </thead>
+        <tbody>
+            {% for course in deleted_courses %}
+            <tr>
+                <td>Курс</td>
+                <td>{{ course }}</td>
+                <td class="text-right" style="width: 20%;">{{ course.date_updated }}</td>
+                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:course-update' course.id %}?restore=1"><i class="fa fa-undo fa-fw fa-lg"></i></a></td>
+                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:course-delete' course.id %}?permanent=1" class="text-danger"><i class="fa fa-trash-o fa-fw fa-lg"></i></a></td>
+            </tr>
+            {% endfor %}
+            {% for contest in deleted_contests %}
+            <tr>
+                <td>Раздел</td>
+                <td>{{ contest }}</td>
+                <td class="text-right" style="width: 20%;">{{ contest.date_updated }}</td>
+                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:contest-update' contest.id %}?restore=1"><i class="fa fa-undo fa-fw fa-lg"></i></a></td>
+                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:contest-delete' contest.id %}?permanent=1" class="text-danger"><i class="fa fa-trash-o fa-fw fa-lg"></i></a></td>
+            </tr>
+            {% endfor %}
+            {% for problem in deleted_problems %}
+            <tr>
+                <td>Задача</td>
+                <td>{{ problem }}</td>
+                <td class="text-right" style="width: 20%;">{{ problem.date_updated }}</td>
+                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:problem-update' problem.id %}?restore=1"><i class="fa fa-undo fa-fw fa-lg"></i></a></td>
+                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:problem-delete' problem.id %}?permanent=1" class="text-danger"><i class="fa fa-trash-o fa-fw fa-lg"></i></a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info mb-3" role="alert">
+    Корзина пуста
+</div>
+{% endif %}
+{% endblock content %}

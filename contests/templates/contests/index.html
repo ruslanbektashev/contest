@@ -24,6 +24,14 @@
         {% if perms.accounts.view_filter %}
         <a href="{% url 'contests:filter-table' %}" data-toggle="tooltip" data-placement="top" title="Фильтры"><i class="fa fa-bookmark fa-fw"></i></a>
         {% endif %}
+        {% if perms.contests.view_deleted %}
+        <span class="dropdown show">
+            <a href="#" class="text-decoration-none" role="button" id="dropdownMoreMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
+            <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownMoreMenuLink">
+                <a href="{% url 'contests:deleted-list' %}" class="dropdown-item"><i class="fa fa-trash-o fa-fw"></i> Корзина</a>
+            </span>
+        </span>
+        {% endif %}
     </span>
 </legend>
 <div id="contest_index_row" class="row">

@@ -15,5 +15,24 @@
 
 {% block content %}
 <legend>Удаление задачи</legend>
+{% if permanent %}
+<form action="" method="post">
+    {% csrf_token %}
+    <div class="alert alert-info" role="alert">
+        Вместе с задачей будут безвозвратно удалены:
+        <ul>
+            <li>все задания студентов по этой задаче</li>
+            <li>все комментарии в обсуждении этой задачи</li>
+        </ul>
+    </div>
+    <div class="alert alert-warning text-center" role="alert">
+        Вы точно хотите удалить задачу: {{ problem }}?
+    </div>
+    <div class="form-group">
+        <input class="btn btn-secondary btn-block" type="submit" value="Удалить" />
+    </div>
+</form>
+{% else %}
 {% render_delete_form problem %}
+{% endif %}
 {% endblock content %}

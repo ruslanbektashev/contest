@@ -11,14 +11,25 @@
 {% breadcrumb contest contest %}
 {% if problem %}
 {% breadcrumb problem problem %}
-{% breadcrumb "Редактирование" %}
+{% breadcrumb restore|yesno:"Восстановление,Редактирование" %}
 {% else %}
 {% breadcrumb "Новая задача" %}
 {% endif %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if add_files %}Добавление файлов в задачу{% else %}{% if problem %}Редактирование{% else %}Добавление{% endif %} задачи{% endif %}</legend>
+<legend>
+    {% if add_files %}
+    Добавление файлов в задачу
+    {% else %}
+    {% if problem %}
+    {{ restore|yesno:"Восстановление,Редактирование" }}
+    {% else %}
+    Добавление
+    {% endif %}
+    задачи
+    {% endif %}
+</legend>
 <form action="" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}
     {% render_form_errors form %}
@@ -205,7 +216,7 @@
     {% render_field form.files class+="custom-file-input" %}
     {% endwith %}
 
-    {% render_submit_button value="Сохранить" %}
+    {% render_submit_button value=restore|yesno:"Восстановить,Сохранить" %}
 </form>
 {% endblock content %}
 

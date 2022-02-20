@@ -14,5 +14,25 @@
 
 {% block content %}
 <legend>Удаление раздела</legend>
+{% if permanent %}
+<form action="" method="post">
+    {% csrf_token %}
+    <div class="alert alert-info" role="alert">
+        Вместе с разделом будут безвозвратно удалены:
+        <ul>
+            <li>все задачи этого раздела</li>
+            <li>все задания студентов по задачам из этого раздела</li>
+            <li>все комментарии в обсуждениях раздела и его задач</li>
+        </ul>
+    </div>
+    <div class="alert alert-warning text-center" role="alert">
+        Вы точно хотите удалить раздел: {{ contest }}?
+    </div>
+    <div class="form-group">
+        <input class="btn btn-secondary btn-block" type="submit" value="Удалить" />
+    </div>
+</form>
+{% else %}
 {% render_delete_form contest %}
+{% endif %}
 {% endblock content %}

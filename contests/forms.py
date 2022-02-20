@@ -140,7 +140,7 @@ class AttachmentForm(forms.ModelForm):
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
-        fields = ['faculty', 'title_official', 'title_unofficial', 'description', 'level']
+        fields = ['faculty', 'title_official', 'title_unofficial', 'description', 'level', 'soft_deleted']
 
 
 class CourseFinishForm(forms.Form):
@@ -261,8 +261,14 @@ class ContestPartialForm(MediaAttachmentMixin, AttachmentForm):
 class ContestForm(ContestPartialForm):
     class Meta:
         model = Contest
-        fields = ['course', 'title', 'description', 'number']
+        fields = ['course', 'title', 'description', 'number', 'soft_deleted']
         widgets = {'course': forms.HiddenInput}
+
+    def full_clean(self):
+        super().full_clean()
+        for error in self.non_field_errors().as_data():
+            if error.code == 'unique_together':
+                error.message = "Раздел с номером %d в этом курсе уже существует." % self.cleaned_data['number']
 
 
 """==================================================== Problem ====================================================="""
@@ -276,8 +282,8 @@ class ProblemAttachmentForm(MediaAttachmentMixin, AttachmentForm):
 
 class ProblemForm(ProblemAttachmentForm):
     class Meta(ProblemAttachmentForm.Meta):
-        fields = ['contest', 'type', 'title', 'description', 'number', 'score_max', 'score_for_5', 'score_for_4',
-                  'score_for_3', 'difficulty']
+        fields = ['contest', 'type', 'title', 'description', 'number', 'soft_deleted', 'score_max', 'score_for_5',
+                  'score_for_4', 'score_for_3', 'difficulty']
         widgets = {'contest': forms.HiddenInput, 'type': forms.HiddenInput}
 
     def clean(self):
@@ -289,6 +295,12 @@ class ProblemForm(ProblemAttachmentForm):
             raise ValidationError("Критерии не могут быть больше максимального балла",
                                   code='criteria_exceeds_score_max')
         return super().clean()
+
+    def full_clean(self):
+        super().full_clean()
+        for error in self.non_field_errors().as_data():
+            if error.code == 'unique_together':
+                error.message = "Задача с номером %d в этом разделе уже существует." % self.cleaned_data['number']
 
 
 class ProblemProgramForm(ProblemForm):

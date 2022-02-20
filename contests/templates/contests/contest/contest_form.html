@@ -10,14 +10,25 @@
 {% breadcrumb course course %}
 {% if contest %}
 {% breadcrumb contest contest %}
-{% breadcrumb "Редактирование" %}
+{% breadcrumb restore|yesno:"Восстановление,Редактирование" %}
 {% else %}
 {% breadcrumb "Новый раздел" %}
 {% endif %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if add_files %}Добавление файлов в раздел{% else %}{% if contest %}Редактирование{% else %}Добавление{% endif %} раздела{% endif %}</legend>
+<legend>
+    {% if add_files %}
+    Добавление файлов в раздел
+    {% else %}
+    {% if contest %}
+    {{ restore|yesno:"Восстановление,Редактирование" }}
+    {% else %}
+    Добавление
+    {% endif %}
+    раздела
+    {% endif %}
+</legend>
 <form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% render_form_errors form %}
@@ -56,7 +67,7 @@
     </div>
     {% endwith %}
     <div id="form_submit_button">
-    {% render_submit_button value="Сохранить" %}
+    {% render_submit_button value=restore|yesno:"Восстановить,Сохранить" %}
     </div>
 </form>
 {% endblock content %}

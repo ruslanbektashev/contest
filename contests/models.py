@@ -22,6 +22,7 @@ from django.utils import timezone
 
 from accounts.models import Account, Comment, Faculty, Notification
 from contest.abstract import CDEntry, CRDEntry, CRUDEntry
+from contest.soft_deletion import SoftDeletionModel, SoftDeletionManager, SoftDeletionQuerySet
 from contest.utils import transliterate
 
 try:
@@ -75,7 +76,7 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 """===================================================== Course ====================================================="""
 
 
-class Course(CRUDEntry):
+class Course(SoftDeletionModel, CRUDEntry):
     LEVEL_CHOICES = (
         (1, "1 курс, I семестр"),
         (2, "1 курс, II семестр"),
@@ -369,12 +370,12 @@ class Filter(models.Model):
 """==================================================== Contest ====================================================="""
 
 
-class ContestManager(models.Manager):
+class ContestManager(SoftDeletionManager):
     def get_new_number(self, course):
         return (self.filter(course=course).aggregate(models.Max('number')).get('number__max') or 0) + 1
 
 
-class Contest(CRUDEntry):
+class Contest(SoftDeletionModel, CRUDEntry):
     DEFAULT_NUMBER = 1
 
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Курс")
@@ -387,10 +388,10 @@ class Contest(CRUDEntry):
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
 
-    objects = ContestManager()
+    objects = ContestManager.from_queryset(SoftDeletionQuerySet)()
 
     class Meta(CRUDEntry.Meta):
-        unique_together = ('course', 'number')
+        unique_together = ('course', 'number', 'soft_deleted')
         ordering = ('number', 'id')
         verbose_name = "Раздел"
         verbose_name_plural = "Разделы"
@@ -409,7 +410,7 @@ class Contest(CRUDEntry):
 """==================================================== Problem ====================================================="""
 
 
-class ProblemQuerySet(models.QuerySet):
+class ProblemQuerySet(SoftDeletionQuerySet):
     def programs(self):
         return self.filter(type='Program')
 
@@ -426,12 +427,12 @@ class ProblemQuerySet(models.QuerySet):
         return self.filter(type='Test')
 
 
-class ProblemManager(models.Manager):
+class ProblemManager(SoftDeletionManager):
     def get_new_number(self, contest):
         return (self.filter(contest=contest).aggregate(models.Max('number')).get('number__max') or 0) + 1
 
 
-class Problem(CRUDEntry):
+class Problem(SoftDeletionModel, CRUDEntry):
     TYPE_CHOICES = (
         ('Program', "Способ ответа: программа"),
         ('Text', "Способ ответа: текст"),
@@ -490,7 +491,7 @@ class Problem(CRUDEntry):
     objects = ProblemManager.from_queryset(ProblemQuerySet)()
 
     class Meta(CRUDEntry.Meta):
-        unique_together = ('contest', 'number')
+        unique_together = ('contest', 'number', 'soft_deleted')
         ordering = ('number', 'id')
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"

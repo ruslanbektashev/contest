@@ -20,6 +20,7 @@ from django.views.generic.list import BaseListView
 
 from accounts.models import Account, Faculty
 from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, LeadershipOrMixin, PaginatorMixin
+from contest.soft_deletion import SoftDeletionUpdateView, SoftDeletionDeleteView
 from contest.templatetags.views import has_leader_permission
 from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, AssignmentUpdatePartialForm,
                             ContestForm, ContestPartialForm, CourseFinishForm, CourseForm, CourseLeaderForm,
@@ -81,6 +82,21 @@ class AttachmentDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         return self.object.object.get_absolute_url()
 
 
+"""==================================================== Deleted ====================================================="""
+
+
+class DeletedList(LoginRedirectMixin, PermissionRequiredMixin, TemplateView):
+    template_name = 'contests/deleted/deleted_list.html'
+    permission_required = 'contests.view_deleted'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['deleted_courses'] = Course.deleted_objects.all()
+        context['deleted_contests'] = Contest.deleted_objects.all()
+        context['deleted_problems'] = Problem.deleted_objects.all()
+        return context
+
+
 """===================================================== Course ====================================================="""
 
 
@@ -128,7 +144,7 @@ class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
+class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, SoftDeletionUpdateView):
     model = Course
     form_class = CourseForm
     template_name = 'contests/course/course_form.html'
@@ -145,7 +161,7 @@ class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         return self.object.leaders.filter(id=self.request.user.id).exists()
 
 
-class CourseDelete(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
+class CourseDelete(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, SoftDeletionDeleteView):
     model = Course
     success_url = reverse_lazy('contests:course-list')
     template_name = 'contests/course/course_delete.html'
@@ -516,7 +532,7 @@ class ContestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         return context
 
 
-class ContestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
+class ContestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, SoftDeletionUpdateView):
     model = Contest
     template_name = 'contests/contest/contest_form.html'
     permission_required = 'contests.change_contest'
@@ -534,17 +550,17 @@ class ContestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
     def get_form_class(self):
         if self.request.GET.get('add_files') == '1':
             return ContestPartialForm
-        return ContestForm
+        else:
+            return ContestForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['course'] = self.object.course
-        if self.request.GET.get('add_files') == '1':
-            context['add_files'] = True
+        context['add_files'] = self.request.GET.get('add_files') == '1'
         return context
 
 
-class ContestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
+class ContestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, SoftDeletionDeleteView):
     model = Contest
     template_name = 'contests/contest/contest_delete.html'
     permission_required = 'contests.delete_contest'
@@ -727,7 +743,7 @@ class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         return reverse('contests:contest-detail', kwargs={'pk': self.object.contest_id})
 
 
-class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
+class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, SoftDeletionUpdateView):
     model = Problem
     template_name = 'contests/problem/problem_form.html'
     permission_required = 'contests.change_problem'
@@ -786,12 +802,11 @@ class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         context['contest'] = self.object.contest
         context['type'] = self.object.type
         context['formset'] = self.storage.get('formset')
-        if self.request.GET.get('add_files') == '1':
-            context['add_files'] = True
+        context['add_files'] = self.request.GET.get('add_files') == '1'
         return context
 
 
-class ProblemDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
+class ProblemDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, SoftDeletionDeleteView):
     model = Problem
     template_name = 'contests/problem/problem_delete.html'
     permission_required = 'contests.delete_problem'

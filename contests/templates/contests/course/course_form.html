@@ -9,14 +9,14 @@
 {% breadcrumb "Главная" 'contests:index' %}
 {% if course %}
 {% breadcrumb course course %}
-{% breadcrumb "Редактирование" %}
+{% breadcrumb restore|yesno:"Восстановление,Редактирование" %}
 {% else %}
 {% breadcrumb "Новый курс" %}
 {% endif %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if course %}Редактирование{% else %}Добавление{% endif %} курса</legend>
+<legend>{% if course %}{{ restore|yesno:"Восстановление,Редактирование" }}{% else %}Добавление{% endif %} курса</legend>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_form_errors form %}
@@ -53,7 +53,7 @@
     </div>
     {% endwith %}
     <div id="form_submit_button">
-    {% render_submit_button value="Сохранить" %}
+    {% render_submit_button value=restore|yesno:"Восстановить,Сохранить" %}
     </div>
 </form>
 {% endblock content %}
