@@ -24,13 +24,13 @@
 <div class="mb-3">
     <div class="btn-group btn-group-sm" role="group" aria-label="Факультет">
         {% for f in faculties %}
-        <a href="{% url 'contests:course-list' %}?faculty_id={{ f.id }}" class="btn btn-light {% if f.id == faculty.id %}active{% endif %}" {% if f.id == faculty.id %}aria-pressed="true"{% endif %}>{{ f.short_name }}</a>
+        <a href="{% get_full_path_with_updated_query_string request faculty_id=f.id %}" class="btn btn-light {% if f.id == faculty.id %}active{% endif %}" {% if f.id == faculty.id %}aria-pressed="true"{% endif %}>{{ f.short_name }}</a>
         {% endfor %}
     </div>
 </div>
 {% endif %}
 {% if courses %}
-<div class="table-responsive mb-3">
+<div class="table-responsive-lg mb-3">
     <table class="table">
         <thead>
             <th>Название</th>

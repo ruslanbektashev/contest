@@ -15,7 +15,7 @@
 
 {% block content %}
 <legend>{{ account }}, {{ course }} <span class="text-muted pull-right">{{ course.get_level_display }}</span></legend>
-<div class="table-responsive mt-3">
+<div class="table-responsive-lg mt-3">
     <table class="table table-sm">
         <thead>
             <th>Раздел</th>
@@ -52,7 +52,7 @@
 
 {% if additional_submissions %}
 <legend>Необязательные задачи</legend>
-<div class="table-responsive mt-3">
+<div class="table-responsive-lg mt-3">
     <table class="table table-sm">
         <thead>
             <th>Раздел</th>
@@ -95,7 +95,7 @@
 {% endif %}
 
 {% if course_submissions_score %}
-<div class="table-responsive mb-3">
+<div class="table-responsive-lg mb-3">
     <table class="table table-sm table-borderless">
         <tbody>
             <tr>

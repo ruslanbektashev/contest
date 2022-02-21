@@ -143,6 +143,6 @@ label {
 
 table {
     @include media-breakpoint-up(lg) {
-        table-layout: fixed;
+        //table-layout: fixed;
     }
 }
