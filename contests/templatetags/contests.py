@@ -120,6 +120,11 @@ def course_difficulty(value):
     return COURSE_DIFFICULTY_CHOICES.get(value, 'Нет сведений')
 
 
+@register.filter
+def course_filtered(request, course):
+    return request.user.filter_set.filter(course=course).exists()
+
+
 @register.simple_tag()
 def account_course_credit_score(account, course_id=None):
     return account.course_credit_score(course_id=course_id)

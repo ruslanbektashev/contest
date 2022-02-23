@@ -29,8 +29,8 @@ urlpatterns = [
         ]))
     ])),
     path('filter/', include([
-        path('<int:user_id>/<int:course_id>/create', views.FilterCreate.as_view(), name='filter-create'),
-        path('<int:pk>/delete', views.FilterDelete.as_view(), name='filter-delete'),
+        path('create', views.FilterCreate.as_view(), name='filter-create'),
+        path('delete', views.FilterDelete.as_view(), name='filter-delete'),
         path('table', views.FilterTable.as_view(), name='filter-table')
     ])),
     path('course/<int:course_id>/contest/create', views.ContestCreate.as_view(), name='contest-create'),

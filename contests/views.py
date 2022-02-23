@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.views.generic import CreateView, DeleteView, DetailView, FormView, ListView, UpdateView
 from django.views.generic.base import TemplateView, View
 from django.views.generic.detail import BaseDetailView, SingleObjectMixin
-from django.views.generic.edit import BaseCreateView, BaseDeleteView, BaseUpdateView
+from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 
 from accounts.models import Account, Faculty
@@ -189,12 +189,13 @@ class CourseList(LoginRedirectMixin, ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
+        queryset = super().get_queryset()
         if not self.request.user.account.is_student and not self.request.user.has_perm('accounts.add_faculty'):
             course_ids = self.request.user.filter_set.values_list('course', flat=True)
-            courses = Course.objects.filter(id__in=course_ids)
+            queryset = queryset.filter(id__in=course_ids)
         else:
-            courses = Course.objects.filter(faculty=self.storage['faculty'])
-        return courses
+            queryset = queryset.filter(faculty=self.storage['faculty'])
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -417,28 +418,126 @@ class CreditDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
 """===================================================== Filter ====================================================="""
 
 
-class FilterCreate(LoginRedirectMixin, PermissionRequiredMixin, BaseCreateView):
-    model = Filter
-    http_method_names = ['get']
-    success_url = reverse_lazy('contests:filter-table')
+class FilterCreateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
+    http_method_names = ['post']
     permission_required = 'contests.add_filter'
 
-    def get(self, request, *args, **kwargs):
-        user = get_object_or_404(User, id=kwargs.get('user_id'))
-        course = get_object_or_404(Course, id=kwargs.get('course_id'))
-        if not Filter.objects.filter(user=user, course=course).exists():
-            Filter.objects.create(user=user, course=course)
-        return HttpResponseRedirect(self.success_url)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        course_id = request.POST.get('course_id')
+        try:
+            self.storage['course'] = Course.objects.get(id=course_id)
+        except Course.DoesNotExist:
+            return JsonResponse({'status': 'not_found'})
+        return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['course'].owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
+
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        return JsonResponse({'status': 'http_method_not_allowed'})
+
+    def post(self, request, *args, **kwargs):
+        response = {'status': 'ok'}
+        _, created = Filter.objects.get_or_create(user_id=request.user.id, course=self.storage['course'])
+        if not created:
+            response['status'] = 'exists'
+        return JsonResponse(response)
+
+    def handle_no_permission(self):
+        return JsonResponse({'status': 'access_denied'})
 
 
-class FilterDelete(LoginRedirectMixin, PermissionRequiredMixin, BaseDeleteView):
-    model = Filter
-    http_method_names = ['get']
-    success_url = reverse_lazy('contests:filter-table')
+class FilterDeleteAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
+    http_method_names = ['post']
     permission_required = 'contests.delete_filter'
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        course_id = request.POST.get('course_id')
+        try:
+            self.storage['course'] = Course.objects.get(id=course_id)
+        except Course.DoesNotExist:
+            return JsonResponse({'status': 'not_found'})
+        return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['course'].owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
+
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        return JsonResponse({'status': 'http_method_not_allowed'})
+
+    def post(self, request, *args, **kwargs):
+        response = {'status': 'ok'}
+        deleted, _ = Filter.objects.filter(user_id=request.user.id, course=self.storage['course']).delete()
+        if not deleted > 0:
+            response['status'] = 'not_found'
+        return JsonResponse(response)
+
+    def handle_no_permission(self):
+        return JsonResponse({'status': 'access_denied'})
+
+
+class FilterCreate(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
+    http_method_names = ['get']
+    permission_required = 'contests.add_filter'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['course'] = get_object_or_404(Course, id=request.GET.get('course_id'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['course'].owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
+
     def get(self, request, *args, **kwargs):
-        return self.delete(request, *args, **kwargs)
+        user_id = request.GET.get('user_id') or request.user.id
+        Filter.objects.get_or_create(user_id=user_id, course=self.storage['course'])
+        success_url = request.GET.get('from') or reverse('contests:filter-table')
+        return HttpResponseRedirect(success_url)
+
+
+class FilterDelete(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
+    http_method_names = ['get']
+    permission_required = 'contests.delete_filter'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['course'] = get_object_or_404(Course, id=request.GET.get('course_id'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['course'].owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
+
+    def get(self, request, *args, **kwargs):
+        user_id = request.GET.get('user_id') or request.user.id
+        Filter.objects.filter(user_id=user_id, course=self.storage['course']).delete()
+        success_url = request.GET.get('from') or reverse('contests:filter-table')
+        return HttpResponseRedirect(success_url)
 
 
 class FilterTable(LoginRedirectMixin, PermissionRequiredMixin, TemplateView):
@@ -449,18 +548,13 @@ class FilterTable(LoginRedirectMixin, PermissionRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         users = User.objects.filter(groups__name__in=["Преподаватель", "Модератор"])
         courses = Course.objects.all()
+        filters = list(Filter.objects.all().values_list('user_id', 'course_id'))
         table = []
         for i in range(len(users)):
             row = []
             for j in range(len(courses)):
-                col = {}
-                try:
-                    _filter = Filter.objects.get(user=users[i], course=courses[j])
-                    col['exists'] = True
-                    col['params'] = {'id': _filter.id}
-                except Filter.DoesNotExist:
-                    col['exists'] = False
-                    col['params'] = {'user_id': users[i].id, 'course_id': courses[j].id}
+                col = {'exists': (users[i].id, courses[j].id) in filters,
+                       'params': {'user_id': users[i].id, 'course_id': courses[j].id}}
                 row.append(col)
             table.append({'user': users[i], 'cols': row})
         context['users'] = users
