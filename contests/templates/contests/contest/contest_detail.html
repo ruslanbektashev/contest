@@ -37,6 +37,7 @@
         <span class="dropdown show">
             <a href="#" class="text-decoration-none" role="button" id="dropdownMoreMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
             <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownMoreMenuLink">
+                <a href="{% url 'contests:contest-update' contest.id %}?action=move" class="dropdown-item"><i class="fa fa-share-square-o fa-fw"></i> Переместить</a>
                 <a href="{% url 'contests:contest-delete' contest.id %}" class="dropdown-item text-danger"><i class="fa fa-trash-o fa-fw"></i> Удалить</a>
             </span>
         </span>
@@ -62,7 +63,7 @@
                     {% render_attachment_list contest contest.course %}
                 </div>
                 {% if perms.contests.change_contest or request|has_leader_permission:contest.course %}
-                <a href="{% url 'contests:contest-update' contest.id %}?add_files=1" class="btn btn-block btn-light">
+                <a href="{% url 'contests:contest-update' contest.id %}?action=add_files" class="btn btn-block btn-light">
                     <i class="fa fa-files-o fa-fw"></i> Добавить файлы
                 </a>
                 {% endif %}

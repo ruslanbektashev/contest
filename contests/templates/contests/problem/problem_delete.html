@@ -15,7 +15,7 @@
 
 {% block content %}
 <legend>Удаление задачи</legend>
-{% if permanent %}
+{% if action == 'delete_permanently' %}
 <form action="" method="post">
     {% csrf_token %}
     <div class="alert alert-info" role="alert">

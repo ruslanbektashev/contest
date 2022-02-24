@@ -271,6 +271,22 @@ class ContestForm(ContestPartialForm):
                 error.message = "Раздел с номером %d в этом курсе уже существует." % self.cleaned_data['number']
 
 
+class ContestMoveForm(forms.ModelForm):
+    class Meta:
+        model = Contest
+        fields = ['course', 'number', 'soft_deleted']
+
+    def __init__(self, course_queryset=None, **kwargs):
+        super().__init__(**kwargs)
+        self.fields['course'].queryset = course_queryset
+
+    def full_clean(self):
+        super().full_clean()
+        for error in self.non_field_errors().as_data():
+            if error.code == 'unique_together':
+                error.message = "Раздел с номером %d в этом курсе уже существует." % self.cleaned_data['number']
+
+
 """==================================================== Problem ====================================================="""
 
 
@@ -295,6 +311,23 @@ class ProblemForm(ProblemAttachmentForm):
             raise ValidationError("Критерии не могут быть больше максимального балла",
                                   code='criteria_exceeds_score_max')
         return super().clean()
+
+    def full_clean(self):
+        super().full_clean()
+        for error in self.non_field_errors().as_data():
+            if error.code == 'unique_together':
+                error.message = "Задача с номером %d в этом разделе уже существует." % self.cleaned_data['number']
+
+
+class ProblemMoveForm(forms.ModelForm):
+    class Meta:
+        model = Problem
+        fields = ['contest', 'number', 'soft_deleted']
+
+    def __init__(self, contest_queryset=None, **kwargs):
+        super().__init__(**kwargs)
+        self.fields['contest'].queryset = contest_queryset
+        self.fields['contest'].choices = grouped_contests(contest_queryset)
 
     def full_clean(self):
         super().full_clean()
@@ -389,6 +422,23 @@ class ProblemRollbackResultsForm(forms.Form):
     def __init__(self, *args, problem_id, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['submissions'].queryset = Submission.objects.to_rollback(problem_id)
+
+
+# TODO: refactor
+def grouped_contests(contests, multiple=False):
+    grouped = []
+    if not multiple:
+        grouped.append((0, '---------'))
+    course_contests = {}
+    for contest in contests:
+        if contest.course not in course_contests:
+            course_contests[contest.course] = [(contest.id, contest)]
+        else:
+            course_contests[contest.course].append((contest.id, contest))
+    for course, contest_choices in course_contests.items():
+        group = (course, contest_choices)
+        grouped.append(group)
+    return grouped
 
 
 """=============================================== SubmissionPattern ================================================"""

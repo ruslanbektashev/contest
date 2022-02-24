@@ -76,6 +76,13 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 """===================================================== Course ====================================================="""
 
 
+class CourseManager(SoftDeletionManager):
+    def get_queryset_for_contest(self, course, user):
+        queryset = self.get_queryset()
+        return (queryset.filter(id=course.id) | queryset.filter(faculty=user.account.faculty,
+                                                                leaders__id=user.id)).distinct()
+
+
 class Course(SoftDeletionModel, CRUDEntry):
     LEVEL_CHOICES = (
         (1, "1 курс, I семестр"),
@@ -101,6 +108,8 @@ class Course(SoftDeletionModel, CRUDEntry):
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, verbose_name="Уровень")
 
     comment_set = GenericRelation(Comment, content_type_field='object_type')
+
+    objects = CourseManager.from_queryset(SoftDeletionQuerySet)()
 
     class Meta(CRUDEntry.Meta):
         ordering = ('level', 'id')
@@ -373,6 +382,11 @@ class Filter(models.Model):
 class ContestManager(SoftDeletionManager):
     def get_new_number(self, course):
         return (self.filter(course=course).aggregate(models.Max('number')).get('number__max') or 0) + 1
+
+    def get_queryset_for_problem(self, contest, user):
+        queryset = self.get_queryset()
+        return (queryset.filter(id=contest.id) | queryset.filter(course__faculty=user.account.faculty,
+                                                                 course__leaders__id=user.id)).distinct()
 
 
 class Contest(SoftDeletionModel, CRUDEntry):

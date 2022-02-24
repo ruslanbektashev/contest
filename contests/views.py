@@ -23,12 +23,12 @@ from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, LeadershipOrMix
 from contest.soft_deletion import SoftDeletionUpdateView, SoftDeletionDeleteView
 from contest.templatetags.views import has_leader_permission
 from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, AssignmentUpdatePartialForm,
-                            ContestForm, ContestPartialForm, CourseFinishForm, CourseForm, CourseLeaderForm,
-                            CreditReportForm, CreditSetForm, FNTestForm, OptionBaseFormSet, OptionForm,
-                            ProblemCommonForm, ProblemProgramForm, ProblemAttachmentForm, ProblemRollbackResultsForm,
-                            ProblemTestForm, SubmissionProgramForm, SubmissionFilesForm, SubmissionMossForm,
-                            SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm, SubmissionUpdateForm,
-                            UTTestForm)
+                            ContestForm, ContestMoveForm, ContestPartialForm, CourseFinishForm, CourseForm,
+                            CourseLeaderForm, CreditReportForm, CreditSetForm, FNTestForm, OptionBaseFormSet,
+                            OptionForm, ProblemCommonForm, ProblemMoveForm, ProblemProgramForm, ProblemAttachmentForm,
+                            ProblemRollbackResultsForm, ProblemTestForm, SubmissionProgramForm, SubmissionFilesForm,
+                            SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm,
+                            SubmissionUpdateForm, UTTestForm)
 from contests.models import (Assignment, Attachment, Contest, Course, CourseLeader, Credit, Execution, FNTest, Filter,
                              IOTest, Option, Problem, SubProblem, Submission, SubmissionPattern, UTTest)
 from contests.results import TaskProgress
@@ -623,6 +623,7 @@ class ContestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['course'] = self.storage['course']
+        context['title'] = "Добавление раздела"
         return context
 
 
@@ -630,6 +631,14 @@ class ContestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
     model = Contest
     template_name = 'contests/contest/contest_form.html'
     permission_required = 'contests.change_contest'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['action'] = request.GET.get('action', None)
+        return super().dispatch(request, *args, **kwargs)
 
     def has_ownership(self):
         if not hasattr(self, 'object'):
@@ -642,15 +651,30 @@ class ContestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_form_class(self):
-        if self.request.GET.get('add_files') == '1':
+        if self.storage['action'] == 'add_files':
             return ContestPartialForm
+        elif self.storage['action'] == 'move':
+            return ContestMoveForm
         else:
             return ContestForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if self.storage['action'] == 'move':
+            kwargs['course_queryset'] = Course.objects.get_queryset_for_contest(self.object.course, self.request.user)
+        return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['course'] = self.object.course
-        context['add_files'] = self.request.GET.get('add_files') == '1'
+        if self.storage['action'] == 'add_files':
+            context['title'] = "Добавление файлов в раздел"
+        elif self.storage['action'] == 'move':
+            context['title'] = "Перемещение раздела"
+        elif self.storage['action'] == 'restore':
+            context['title'] = "Восстановление раздела"
+        else:
+            context['title'] = "Редактирование раздела"
         return context
 
 
@@ -831,6 +855,7 @@ class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         context['contest'] = self.storage['contest']
         context['type'] = self.storage['type']
         context['formset'] = self.storage.get('formset')
+        context['title'] = "Добавление задачи"
         return context
 
     def get_success_url(self):
@@ -847,6 +872,7 @@ class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
+        self.storage['action'] = request.GET.get('action', None)
         problem = self.get_object()
         if problem.type == 'Options':
             OptionFormSet = inlineformset_factory(parent_model=Problem, model=Option, form=OptionForm,
@@ -870,14 +896,22 @@ class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_form_class(self):
-        if self.request.GET.get('add_files') == '1':
+        if self.storage['action'] == 'add_files':
             return ProblemAttachmentForm
+        elif self.storage['action'] == 'move':
+            return ProblemMoveForm
         elif self.object.type == 'Program':
             return ProblemProgramForm
         elif self.object.type == 'Test':
             return ProblemTestForm
         else:
             return ProblemCommonForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if self.storage['action'] == 'move':
+            kwargs['contest_queryset'] = Contest.objects.get_queryset_for_problem(self.object.contest, self.request.user)
+        return kwargs
 
     def form_valid(self, form):
         if self.object.type == 'Options':
@@ -896,7 +930,14 @@ class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         context['contest'] = self.object.contest
         context['type'] = self.object.type
         context['formset'] = self.storage.get('formset')
-        context['add_files'] = self.request.GET.get('add_files') == '1'
+        if self.storage['action'] == 'add_files':
+            context['title'] = "Добавление файлов в задачу"
+        elif self.storage['action'] == 'move':
+            context['title'] = "Перемещение задачи"
+        elif self.storage['action'] == 'restore':
+            context['title'] = "Восстановление задачи"
+        else:
+            context['title'] = "Редактирование задачи"
         return context
 
 

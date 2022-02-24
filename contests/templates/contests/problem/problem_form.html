@@ -11,29 +11,18 @@
 {% breadcrumb contest contest %}
 {% if problem %}
 {% breadcrumb problem problem %}
-{% breadcrumb restore|yesno:"Восстановление,Редактирование" %}
+{% breadcrumb "Редактирование" %}
 {% else %}
 {% breadcrumb "Новая задача" %}
 {% endif %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>
-    {% if add_files %}
-    Добавление файлов в задачу
-    {% else %}
-    {% if problem %}
-    {{ restore|yesno:"Восстановление,Редактирование" }}
-    {% else %}
-    Добавление
-    {% endif %}
-    задачи
-    {% endif %}
-</legend>
+<legend>{{ title }}</legend>
 <form action="" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}
     {% render_form_errors form %}
-    {% if not add_files %}
+    {% if action == 'restore' or action == None %}
     {% render_field form.contest %}
     {% render_field form.type %}
     {% if type == 'Test' %}
@@ -116,13 +105,22 @@
 
     <input type="button" class="btn btn-block btn-light border mb-3" value="Добавить ещё вариант" id="add_more">
     {% endif %}
+    {% endif %}
 
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% if action == 'move' %}
+    {% render_field form.contest class+="form-control selectpicker" %}
+    {% endif %}
+    {% if action == 'move' or action == 'restore' or action == None %}
     {% render_field form.number class+="form-control" %}
+    {% endif %}
+    {% if action == 'restore' or action == None %}
     {% if type != 'Test' %}
     {% render_field form.score_max class+="form-control" %}
     {% endif %}
+    {% endif %}
     {% endwith %}
+    {% if action == 'restore' or action == None %}
     <div class="form-row">
         <div class="form-group col-4">
             <label for="{{ form.score_for_5.id_for_label }}">
@@ -212,11 +210,13 @@
     {% endif %}
 
     {% endif %}
+    {% if action == 'add_files' or action == 'restore' or action == None %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.files class+="custom-file-input" %}
     {% endwith %}
+    {% endif %}
 
-    {% render_submit_button value=restore|yesno:"Восстановить,Сохранить" %}
+    {% render_submit_button value="Сохранить" %}
 </form>
 {% endblock content %}
 

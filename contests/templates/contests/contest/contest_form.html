@@ -10,31 +10,22 @@
 {% breadcrumb course course %}
 {% if contest %}
 {% breadcrumb contest contest %}
-{% breadcrumb restore|yesno:"Восстановление,Редактирование" %}
+{% breadcrumb "Редактирование" %}
 {% else %}
 {% breadcrumb "Новый раздел" %}
 {% endif %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>
-    {% if add_files %}
-    Добавление файлов в раздел
-    {% else %}
-    {% if contest %}
-    {{ restore|yesno:"Восстановление,Редактирование" }}
-    {% else %}
-    Добавление
-    {% endif %}
-    раздела
-    {% endif %}
-</legend>
+<legend>{{ title }}</legend>
 <form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% render_form_errors form %}
-    {% if not add_files %}
+    {% if action == 'restore' or action == None %}
     {% render_field form.course %}
+    {% endif %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% if action == 'restore' or action == None %}
     {{ form.media }}
     <div id="field_title">
     {% render_field form.title class+="form-control" %}
@@ -56,18 +47,25 @@
             {{ form.description }}
         </div>
     </div>
+    {% endif %}
+    {% if action == 'move' %}
+    {% render_field form.course class+="form-control selectpicker" %}
+    {% endif %}
+    {% if action == 'move' or action == 'restore' or action == None %}
     <div id="field_number">
     {% render_field form.number class+="form-control" %}
     </div>
-    {% endwith %}
     {% endif %}
+    {% endwith %}
+    {% if action == 'add_files' or action == 'restore' or action == None %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
     <div id="field_files">
     {% render_field form.files class+="custom-file-input" %}
     </div>
     {% endwith %}
+    {% endif %}
     <div id="form_submit_button">
-    {% render_submit_button value=restore|yesno:"Восстановить,Сохранить" %}
+    {% render_submit_button value="Сохранить" %}
     </div>
 </form>
 {% endblock content %}
