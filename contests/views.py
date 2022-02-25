@@ -143,6 +143,11 @@ class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
         form.instance.owner = self.request.user
         return super().form_valid(form)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = "Добавление курса"
+        return context
+
 
 class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, SoftDeletionUpdateView):
     model = Course
@@ -159,6 +164,11 @@ class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         if not hasattr(self, 'object'):
             self.object = self.get_object()
         return self.object.leaders.filter(id=self.request.user.id).exists()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = "Редактирование курса"
+        return context
 
 
 class CourseDelete(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, SoftDeletionDeleteView):
@@ -233,7 +243,14 @@ class CourseUpdateLeaders(LoginRedirectMixin, OwnershipOrMixin, PermissionRequir
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['queryset'] = self.get_queryset()
-        kwargs['form_kwargs'] = {'course': self.storage['course']}
+        leader_queryset = User.objects.filter(groups__name="Преподаватель")
+        if self.storage['course'].faculty.short_name != "МФК":
+            leader_queryset = leader_queryset.filter(account__faculty=self.storage['course'].faculty)
+        leader_queryset = leader_queryset.order_by('last_name', 'first_name')
+        kwargs['form_kwargs'] = {
+            'course': self.storage['course'],
+            'leader_queryset': leader_queryset
+        }
         return kwargs
 
     def form_valid(self, form):
@@ -281,15 +298,9 @@ class CreditReport(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         form = self.get_form()
         if form.is_valid():
             report_file, filename = Credit.objects.create_report(
-                self.storage['course'],
-                form.cleaned_data['group_name'],
-                form.cleaned_data['students'],
-                form.cleaned_data['type'],
-                form.cleaned_data['examiners'],
-                form.cleaned_data['faculty'],
-                form.cleaned_data['discipline'],
-                form.cleaned_data['semester'],
-                form.cleaned_data['date'],
+                self.storage['course'], form.cleaned_data['group_name'], form.cleaned_data['students'],
+                form.cleaned_data['type'], form.cleaned_data['examiners'], form.cleaned_data['faculty'],
+                form.cleaned_data['discipline'], form.cleaned_data['semester'], form.cleaned_data['date']
             )
             response = HttpResponse(report_file, content_type='application/vnd.openxmlformats-officedocument')
             response['Content-Disposition'] = 'attachment; filename={}.docx'.format(filename)
@@ -2318,8 +2329,9 @@ def index(request):
     if request.user.has_perm('contests.add_course'):
         course_ids = request.user.filter_set.values_list('course_id')
         faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
-        courses = Course.objects.filter(faculty_id=faculty_id, id__in=course_ids)
+        faculty_courses = Course.objects.of_faculty(faculty_id)
+        filtered_courses = faculty_courses.filter(id__in=course_ids)
         faculties = Faculty.objects.all()
-        return render(request, 'contests/index.html', {'courses': courses, 'faculties': faculties})
+        return render(request, 'contests/index.html', {'courses': filtered_courses, 'faculties': faculties})
     else:
         return redirect(reverse('contests:assignment-list'))

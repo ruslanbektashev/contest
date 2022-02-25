@@ -16,6 +16,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import validate_comma_separated_integer_list, MinValueValidator, MaxValueValidator
 from django.db import models
+from django.db.models import Q
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
@@ -77,10 +78,12 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 
 
 class CourseManager(SoftDeletionManager):
+    def of_faculty(self, faculty_id):
+        return self.get_queryset().filter(Q(faculty__short_name="МФК") | Q(faculty_id=faculty_id)).distinct()
+
     def get_queryset_for_contest(self, course, user):
         queryset = self.get_queryset()
-        return (queryset.filter(id=course.id) | queryset.filter(faculty=user.account.faculty,
-                                                                leaders__id=user.id)).distinct()
+        return queryset.filter(Q(id=course.id) | Q(faculty=user.account.faculty, leaders__id=user.id)).distinct()
 
 
 class Course(SoftDeletionModel, CRUDEntry):
@@ -318,17 +321,9 @@ class CreditManager(models.Manager):
             })
 
         examiners = [(examiner.position + " " if examiner.position else "") + str(examiner) for examiner in examiners]
-        report_file = generate_credit_report(
-            group_name=group_name,
-            students=students_prepared,
-            report_type=type,
-            examiners=examiners,
-            faculty=faculty,
-            direction=faculty,
-            discipline=discipline,
-            semester=semester,
-            date=date,
-        )
+        report_file = generate_credit_report(group_name=group_name, students=students_prepared, report_type=type,
+                                             examiners=examiners, faculty=faculty, direction=faculty,
+                                             discipline=discipline, semester=semester, date=date)
 
         filename = "vedomost_{}_{}_{}_{}".format(type.lower(), course.title.lower(), group_name.lower(), date)
         filename = transliterate(filename).replace(" ", "_")
@@ -385,8 +380,7 @@ class ContestManager(SoftDeletionManager):
 
     def get_queryset_for_problem(self, contest, user):
         queryset = self.get_queryset()
-        return (queryset.filter(id=contest.id) | queryset.filter(course__faculty=user.account.faculty,
-                                                                 course__leaders__id=user.id)).distinct()
+        return queryset.filter(Q(id=contest.id) | Q(course__faculty=user.account.faculty, course__leaders__id=user.id)).distinct()
 
 
 class Contest(SoftDeletionModel, CRUDEntry):

@@ -25,6 +25,19 @@ class UserMultipleChoiceField(forms.ModelMultipleChoiceField):
         return "{} {}".format(obj.last_name, obj.first_name)
 
 
+class AccountSelect(forms.Select):
+    def __init__(self, attrs=None, choices=(), option_attrs=None):
+        super().__init__(attrs, choices)
+        self.option_attrs = option_attrs
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex, attrs)
+        if self.option_attrs is not None:
+            for data_attr, values in self.option_attrs.items():
+                option['attrs'][data_attr] = values[option['value']]
+        return option
+
+
 class AccountSelectMultiple(forms.SelectMultiple):
     def __init__(self, attrs=None, choices=(), option_attrs=None):
         super().__init__(attrs, choices)
@@ -171,12 +184,15 @@ class CourseLeaderForm(forms.ModelForm):
         fields = ['course', 'leader', 'group', 'subgroup']
         widgets = {'course': forms.HiddenInput}
 
-    def __init__(self, *args, course, **kwargs):
+    def __init__(self, *args, course, leader_queryset, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['course'].initial = course
-        self.fields['leader'].queryset = User.objects.filter(groups__name="Преподаватель",
-                                                             account__faculty=course.faculty).order_by('last_name',
-                                                                                                       'first_name')
+        self.fields['leader'].queryset = leader_queryset
+        option_subtext_data = leader_queryset.values_list('pk', 'account__faculty__short_name')
+        option_subtext_data = {pk: faculty_short_name for pk, faculty_short_name in option_subtext_data}
+        option_subtext_data[''] = ''
+        option_attrs = {'data-subtext': option_subtext_data}
+        self.fields['leader'].widget = AccountSelect(choices=self.fields['leader'].choices, option_attrs=option_attrs)
 
 
 """===================================================== Credit ====================================================="""
