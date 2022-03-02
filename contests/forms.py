@@ -668,7 +668,7 @@ class SubmissionOptionsForm(SubmissionForm):
 
 
 class SubmissionFilesForm(SubmissionAttachmentForm):
-    FILE_SIZE_LIMIT = 10 * 1024 * 1024
+    FILE_SIZE_LIMIT = 20 * 1024 * 1024
     FILES_ALLOWED_EXTENSIONS = ['.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf', '.png', '.jpg', '.jpeg']
 
     class Meta:
