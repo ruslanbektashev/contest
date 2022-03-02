@@ -1,4 +1,4 @@
-{% load contests %}
+{% load views contests %}
 <div class="table-responsive-lg">
     <table class="table table-bordered table-sm table-hover">
         <thead>
@@ -8,7 +8,7 @@
                 {% for contest in contests %}
                 <th class="lake text-truncate">
                     <a href="{{ contest.get_absolute_url }}" data-toggle="tooltip" data-placement="top" title="{{ contest }}">{{ contest.number }}</a>
-                    <a href="{% url 'contests:assignment-randomize' course.id %}?contest_id={{ contest.id }}{% if debts %}&debts=1{% endif %}" class="numtus status-info pebble" data-toggle="tooltip" data-placement="top" title="Распределить задания случайно в этом разделе"><i class="fa fa-random"></i></a>
+                    <a href="{% url 'contests:assignment-randomize' course.id %}{% get_updated_query_string request contest_id=contest.id %}" class="numtus status-info pebble" data-toggle="tooltip" data-placement="top" title="Распределить задания случайно в этом разделе"><i class="fa fa-random"></i></a>
                 </th>
                 {% endfor %}
                 <th class="text-center" style="width: 6%;">Зачет</th>
@@ -26,16 +26,16 @@
                         {{ assignment.problem.number }}<sup>{{ assignment.remark.0 }}</sup>
                     </a>
                     {% if forloop.last %}
-                    <a href="{% url 'contests:assignment-create' course.id %}?user_id={{ assignment.user_id }}&contest_id={{ assignment.problem.contest_id }}{% if debts %}&debts=1{% endif %}" class="numtus status-info pebble" data-toggle="tooltip" data-placement="bottom" title="Добавить задачу"><i class="fa fa-plus"></i></a>
+                    <a href="{% url 'contests:assignment-create' course.id %}{% get_updated_query_string request user_id=assignment.user_id contest_id=assignment.problem.contest_id %}" class="numtus status-info pebble" data-toggle="tooltip" data-placement="bottom" title="Добавить задачу"><i class="fa fa-plus"></i></a>
                     {% endif %}
                     {% empty %}
-                    <a href="{% url 'contests:assignment-create' course.id %}?user_id={{ row.student.user_id }}&contest_id={{ col.contest.id }}{% if debts %}&debts=1{% endif %}" class="numtus status-info pebble" data-toggle="tooltip" data-placement="bottom" title="Добавить задачу"><i class="fa fa-plus"></i></a>
+                    <a href="{% url 'contests:assignment-create' course.id %}{% get_updated_query_string request user_id=row.student.user_id contest_id=col.contest.id %}" class="numtus status-info pebble" data-toggle="tooltip" data-placement="bottom" title="Добавить задачу"><i class="fa fa-plus"></i></a>
                     {% endfor %}
                 </td>
                 {% endfor %}
                 <td class="text-center">
                     {% if row.student.credit_id %}
-                    <a href="{% url 'contests:credit-update' row.student.credit_id %}" class="numtus status-{{ row.student.credit_score|colorize }}" data-toggle="tooltip" data-placement="bottom" title="Оценка">
+                    <a href="{% url 'contests:credit-update' row.student.credit_id %}{% get_updated_query_string request %}" class="numtus status-{{ row.student.credit_score|colorize }}" data-toggle="tooltip" data-placement="bottom" title="Оценка">
                         {{ row.student.credit_score|default:'-' }}
                     </a>
                     {% endif %}

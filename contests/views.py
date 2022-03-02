@@ -21,7 +21,7 @@ from django.views.generic.list import BaseListView
 from accounts.models import Account, Faculty
 from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, LeadershipOrMixin, PaginatorMixin
 from contest.soft_deletion import SoftDeletionUpdateView, SoftDeletionDeleteView
-from contest.templatetags.views import has_leader_permission
+from contest.templatetags.views import has_leader_permission, get_updated_query_string
 from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, AssignmentUpdatePartialForm,
                             ContestForm, ContestMoveForm, ContestPartialForm, CourseFinishForm, CourseForm,
                             CourseLeaderForm, CreditReportForm, CreditSetForm, FNTestForm, OptionBaseFormSet,
@@ -281,6 +281,8 @@ class CreditReport(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        self.storage['faculty_id'] = int(request.GET.get('faculty_id') or 0)
+        self.storage['debts'] = bool(request.GET.get('debts'))
         return super().dispatch(request, *args, **kwargs)
 
     def has_ownership(self):
@@ -291,7 +293,23 @@ class CreditReport(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['course'] = self.storage['course']
+        course = self.storage['course']
+        students = Account.students.enrolled()
+        students = students.debtors(course) if self.storage['debts'] else students.current(course)
+        examiners = Account.objects.filter(user__groups__name='Преподаватель')
+        if course.faculty.short_name == "МФК":
+            if self.storage['faculty_id'] > 0:
+                students = students.filter(faculty_id=self.storage['faculty_id'])
+                examiners = examiners.filter(faculty_id=self.storage['faculty_id'])
+            students = students.order_by('faculty__short_name', 'user__last_name', 'user__first_name')
+            examiners = examiners.order_by('faculty__short_name', 'user__last_name', 'user__first_name')
+        else:
+            students = students.order_by('user__last_name', 'user__first_name')
+            examiners = examiners.filter(faculty=course.faculty).order_by('faculty__short_name', 'user__last_name',
+                                                                          'user__first_name')
+        kwargs['students'] = students
+        kwargs['examiners'] = examiners
+        kwargs['course'] = course
         return kwargs
 
     def post(self, request, *args, **kwargs):
@@ -324,6 +342,7 @@ class CourseStart(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Permi
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        self.storage['faculty_id'] = int(request.GET.get('faculty_id') or 0)
         return super().dispatch(request, *args, **kwargs)
 
     def has_ownership(self):
@@ -334,7 +353,16 @@ class CourseStart(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Permi
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['course'] = self.storage['course']
+        course = self.storage['course']
+        students = Account.students.enrolled().allowed(course).filter(credit_id=None)
+        if course.faculty.short_name == "МФК":
+            if self.storage['faculty_id'] > 0:
+                students = students.filter(faculty_id=self.storage['faculty_id'])
+            students = students.order_by('faculty__short_name', '-level', 'user__last_name', 'user__first_name')
+        else:
+            students = students.order_by('-level', 'user__last_name', 'user__first_name')
+        kwargs['runner_ups_queryset'] = students
+        kwargs['course'] = course
         return kwargs
 
     def post(self, request, *args, **kwargs):
@@ -364,11 +392,27 @@ class CourseFinish(LoginRedirectMixin, PermissionRequiredMixin, FormView):
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        self.storage['faculty_id'] = int(request.GET.get('faculty_id') or 0)
+        self.storage['debts'] = bool(request.GET.get('debts'))
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['course'] = self.storage['course']
+        course = self.storage['course']
+        students = Account.students.enrolled()
+        if self.storage['debts']:
+            students = students.debtors(course)
+        else:
+            students = students.current(course)
+        students = students.filter(credit_score__gte=1)
+        if course.faculty.short_name == "МФК":
+            if self.storage['faculty_id'] > 0:
+                students = students.filter(faculty_id=self.storage['faculty_id'])
+            students = students.order_by('faculty__short_name', '-level', 'user__last_name', 'user__first_name')
+        else:
+            students = students.order_by('-level', 'user__last_name', 'user__first_name')
+        kwargs['level_ups_queryset'] = students
+        kwargs['course'] = course
         return kwargs
 
     def post(self, request, *args, **kwargs):
@@ -404,7 +448,8 @@ class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_success_url(self):
-        return reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
+        success_url = reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
+        return success_url + get_updated_query_string(self.request)
 
 
 class CreditDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
@@ -1530,9 +1575,7 @@ class AssignmentCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
 
     def get_success_url(self):
         success_url = reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
-        if self.storage['debts']:
-            success_url += "?debts=1"
-        return success_url
+        return success_url + get_updated_query_string(self.request)
 
 
 class AssignmentCreateRandomSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, FormView):
@@ -1547,6 +1590,7 @@ class AssignmentCreateRandomSet(LoginRedirectMixin, LeadershipOrMixin, Ownership
     def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
         self.storage['debts'] = bool(request.GET.get('debts'))
+        self.storage['faculty_id'] = int(request.GET.get('faculty_id') or 0)
         contest_id = int(request.GET.get('contest_id') or 0)
         if contest_id:
             self.storage['contest'] = get_object_or_404(Contest, id=contest_id, course=self.storage['course'])
@@ -1575,7 +1619,7 @@ class AssignmentCreateRandomSet(LoginRedirectMixin, LeadershipOrMixin, Ownership
             Assignment.objects.create_random_set(request.user, form.cleaned_data['contest'], form.cleaned_data['type'],
                                                  form.cleaned_data['limit_per_user'],
                                                  form.cleaned_data['submission_limit'], form.cleaned_data['deadline'],
-                                                 self.storage['debts'])
+                                                 self.storage['debts'], self.storage['faculty_id'])
             return self.form_valid(form)
         return self.form_invalid(form)
 
@@ -1586,9 +1630,7 @@ class AssignmentCreateRandomSet(LoginRedirectMixin, LeadershipOrMixin, Ownership
 
     def get_success_url(self):
         success_url = reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
-        if self.storage['debts']:
-            success_url += "?debts=1"
-        return success_url
+        return success_url + get_updated_query_string(self.request)
 
 
 class AssignmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
@@ -1684,8 +1726,10 @@ class AssignmentCourseTable(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMi
             self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
             course_leader_queryset = CourseLeader.objects.filter(course=self.storage['course'], leader=request.user)
             course_leader = course_leader_queryset.get() if course_leader_queryset.exists() else None
+            default_faculty_id = course_leader.account.faculty_id if course_leader is not None else 0
             default_group = course_leader.group if course_leader is not None else 0
             default_subgroup = course_leader.subgroup if course_leader is not None else 0
+            self.storage['faculty_id'] = int(request.GET.get('faculty_id') or default_faculty_id)
             self.storage['group'] = int(request.GET.get('group') or default_group)
             self.storage['subgroup'] = int(request.GET.get('subgroup') or default_subgroup)
             self.storage['debts'] = bool(request.GET.get('debts'))
@@ -1700,18 +1744,22 @@ class AssignmentCourseTable(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMi
     def get_queryset(self):
         course = self.storage['course']
         if self.storage['debts']:
-            self.storage['students'] = Account.students.enrolled().debtors(course)
+            students = Account.students.enrolled().debtors(course)
         else:
-            self.storage['students'] = Account.students.enrolled().current(course)
+            students = Account.students.enrolled().current(course)
+            if self.storage['faculty_id'] > 0:
+                students = students.filter(faculty_id=self.storage['faculty_id'])
             if self.storage['group'] > 0:
-                self.storage['students'] = self.storage['students'].filter(group=self.storage['group'])
+                students = students.filter(group=self.storage['group'])
             if self.storage['subgroup'] > 0:
-                self.storage['students'] = self.storage['students'].filter(subgroup=self.storage['subgroup'])
+                students = students.filter(subgroup=self.storage['subgroup'])
+        self.storage['students'] = students
         bool(self.storage['students'])  # evaluate now
         return Assignment.objects.for_course_table(course, self.storage['students'])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['faculties'] = Faculty.objects.exclude(short_name="МФК")
         context.update(self.storage)
         return context
 
@@ -2331,7 +2379,6 @@ def index(request):
         faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
         faculty_courses = Course.objects.of_faculty(faculty_id)
         filtered_courses = faculty_courses.filter(id__in=course_ids)
-        faculties = Faculty.objects.all()
-        return render(request, 'contests/index.html', {'courses': filtered_courses, 'faculties': faculties})
+        return render(request, 'contests/index.html', {'courses': filtered_courses})
     else:
         return redirect(reverse('contests:assignment-list'))

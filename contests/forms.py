@@ -159,18 +159,10 @@ class CourseForm(forms.ModelForm):
 class CourseFinishForm(forms.Form):
     level_ups = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите студентов")
 
-    def __init__(self, course, *args, **kwargs):
+    def __init__(self, course, level_ups_queryset, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        level_ups = Account.students.enrolled().current(course).filter(credit_score__gte=1)
-        self.fields['level_ups'].queryset = level_ups.order_by('-level', 'user__last_name', 'user__first_name')
-        self.fields['level_ups'].initial = level_ups.filter(credit_score__gte=3)
-        option_subtext_data = self.fields['level_ups'].queryset.values_list('pk', 'level', 'faculty__short_name')
-        level_displays = dict(Account.LEVEL_CHOICES)
-        option_subtext_data = {pk: "{}, {}".format(faculty, level_displays[level]) for pk, level, faculty in option_subtext_data}
-        option_subtext_data[''] = ''
-        option_attrs = {'data-subtext': option_subtext_data}
-        self.fields['level_ups'].widget = AccountSelectMultiple(choices=self.fields['level_ups'].choices,
-                                                                option_attrs=option_attrs)
+        self.fields['level_ups'].queryset = level_ups_queryset
+        self.fields['level_ups'].initial = level_ups_queryset.filter(credit_score__gte=3)
 
 
 """================================================== CourseLeader =================================================="""
@@ -201,18 +193,10 @@ class CourseLeaderForm(forms.ModelForm):
 class CreditSetForm(forms.Form):
     runner_ups = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите студентов")
 
-    def __init__(self, course, *args, **kwargs):
+    def __init__(self, course, runner_ups_queryset, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        runner_ups = Account.students.enrolled().allowed(course).filter(credit_id=None)
-        self.fields['runner_ups'].queryset = runner_ups.order_by('-level', 'user__last_name', 'user__first_name')
-        self.fields['runner_ups'].initial = runner_ups.filter(level__in=[course.level - 1, course.level])
-        option_subtext_data = self.fields['runner_ups'].queryset.values_list('pk', 'level', 'faculty__short_name')
-        level_displays = dict(Account.LEVEL_CHOICES)
-        option_subtext_data = {pk: "{}, {}".format(faculty, level_displays[level]) for pk, level, faculty in option_subtext_data}
-        option_subtext_data[''] = ''
-        option_attrs = {'data-subtext': option_subtext_data}
-        self.fields['runner_ups'].widget = AccountSelectMultiple(choices=self.fields['runner_ups'].choices,
-                                                                 option_attrs=option_attrs)
+        self.fields['runner_ups'].queryset = runner_ups_queryset
+        self.fields['runner_ups'].initial = runner_ups_queryset.filter(level__in=[course.level - 1, course.level])
 
 
 class CreditReportForm(forms.Form):
@@ -231,12 +215,18 @@ class CreditReportForm(forms.Form):
     semester = forms.IntegerField(label="Семестр")
     date = forms.DateField(label="Дата")
 
-    def __init__(self, course, *args, **kwargs):
+    def __init__(self, course, students, examiners, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        students = Account.students.enrolled().current(course)
-        self.fields['students'].queryset = students.order_by('user__last_name', 'user__first_name')
-        examiners = Account.objects.filter(user__groups__name='Преподаватель', faculty=course.faculty)
-        self.fields['examiners'].queryset = examiners.order_by('user__last_name', 'user__first_name')
+        self.fields['students'].queryset = students
+        option_subtext_data = students.values_list('pk', 'level', 'faculty__short_name')
+        level_displays = dict(Account.LEVEL_CHOICES)
+        option_subtext_data = {pk: "{}, {}".format(faculty, level_displays[level]) for pk, level, faculty in
+                               option_subtext_data}
+        option_subtext_data[''] = ''
+        option_attrs = {'data-subtext': option_subtext_data}
+        self.fields['students'].widget = AccountSelectMultiple(choices=self.fields['students'].choices,
+                                                               option_attrs=option_attrs)
+        self.fields['examiners'].queryset = examiners
         self.fields['examiners'].initial = course.leaders.all()
         self.fields['faculty'].initial = course.faculty.short_name
         self.fields['discipline'].initial = course.title_official

@@ -809,17 +809,18 @@ class AssignmentQuerySet(models.QuerySet):
 
 
 class AssignmentManager(models.Manager):
-    def create_random_set(self, owner, contest, type, limit_per_user, submission_limit, deadline, debts=False):
+    def create_random_set(self, owner, contest, type, limit_per_user, submission_limit, deadline, debts, faculty_id):
         """ create random set of assignments with problems of given contest
             aligning their number to limit_per_user for contest.course.level students """
         problem_ids = contest.problem_set.filter(type=type).order_by('number').values_list('id', flat=True)
-        if debts:
-            user_ids = Account.students.enrolled().debtors(contest.course).values_list('user_id', flat=True)
-        else:
-            user_ids = Account.students.enrolled().current(contest.course).values_list('user_id', flat=True)
+        students = Account.students.enrolled()
+        students = students.debtors(contest.course) if debts else students.current(contest.course)
+        if faculty_id > 0:
+            students = students.filter(faculty_id=faculty_id)
+        student_ids = students.values_list('user_id', flat=True)
         new_assignments = []
-        for user_id in user_ids:
-            assigned_problem_ids = (self.filter(user_id=user_id, problem_id__in=problem_ids)
+        for student_id in student_ids:
+            assigned_problem_ids = (self.filter(user_id=student_id, problem_id__in=problem_ids)
                                         .select_related('problem')
                                         .values_list('problem_id', flat=True))
             problem_id_set = set(problem_ids)
@@ -834,9 +835,7 @@ class AssignmentManager(models.Manager):
                     assigned_problem_id_set.add(problem_id)
                 to_assign_problem_id_list = list(filter(lambda x: x in to_assign_problem_id_list, problem_ids))
                 for to_assign_problem_id in to_assign_problem_id_list:
-                    new_assignment = Assignment(owner_id=owner.id,
-                                                user_id=user_id,
-                                                problem_id=to_assign_problem_id,
+                    new_assignment = Assignment(owner_id=owner.id, user_id=student_id, problem_id=to_assign_problem_id,
                                                 submission_limit=submission_limit)
                     if deadline is not None:
                         new_assignment.deadline = deadline

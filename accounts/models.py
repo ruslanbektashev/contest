@@ -52,11 +52,12 @@ class StudentQuerySet(AccountQuerySet):
     def with_credits(self, course):
         Credit = apps.get_model('contests', 'Credit')
         subquery = Credit.objects.filter(course=course, user_id=models.OuterRef('user_id'))
-        return (self.annotate(credit_id=models.Subquery(subquery.values('id')))
-                    .annotate(credit_score=models.Subquery(subquery.values('score'))))
+        queryset = self if course.faculty.short_name == "МФК" else self.filter(faculty=course.faculty)
+        return (queryset.annotate(credit_id=models.Subquery(subquery.values('id')))
+                        .annotate(credit_score=models.Subquery(subquery.values('score'))))
 
     def allowed(self, course):
-        return self.with_credits(course).filter(level__lte=course.level, faculty=course.faculty)
+        return self.with_credits(course).filter(level__lte=course.level)
 
     def current(self, course):
         return self.allowed(course).exclude(credit_id=None)
