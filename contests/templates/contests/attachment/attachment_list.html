@@ -5,7 +5,7 @@
         <a class="text-truncate mr-auto" href="{% url path_name obj.id attachment.id %}" target="_blank">
             <samp>{{ attachment.filename }}</samp>
         </a>
-        <span class="text-muted text-nowrap mr-2">{{ attachment.file.size|filesizeformat }} ∙ {{ attachment.date_created|date:'d b Y H:i' }}</span>
+        <span class="text-muted text-nowrap mr-2">{% if attachment.file.exists %}{{ attachment.file.size|filesizeformat }} ∙ {% endif %}{{ attachment.date_created|date:'d b Y H:i' }}</span>
         <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}" data-toggle="tooltip" data-placement="top" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
         {% if perms.contests.delete_attachment or request|has_leader_permission:course %}
         <a href="{% url 'contests:attachment-delete' attachment.id %}" class="text-danger ml-2" data-toggle="tooltip" data-placement="top" title="Удалить"><i class="fa fa-trash-o fa-fw"></i></a>
