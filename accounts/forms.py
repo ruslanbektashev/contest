@@ -85,8 +85,7 @@ class StaffForm(AccountForm):
 
 
 class AccountListForm(forms.Form):
-    accounts = forms.ModelMultipleChoiceField(queryset=Account.students.none(),
-                                              widget=forms.CheckboxSelectMultiple)
+    accounts = forms.ModelMultipleChoiceField(queryset=Account.students.none(), widget=forms.CheckboxSelectMultiple)
 
     def __init__(self, *args, queryset, **kwargs):
         super().__init__(*args, **kwargs)
@@ -108,6 +107,12 @@ class AccountSetForm(forms.ModelForm):
         self.fields['faculty'].initial = faculty
         self.fields['level'].initial = level
         self.fields['admission_year'].initial = timezone.now().year - (level // 2)
+
+    def clean_faculty(self):
+        faculty = self.cleaned_data['faculty']
+        if faculty.short_name == "МФК":
+            raise ValidationError("В выбранный факультет нельзя добавить студентов", code='invalid_faculty')
+        return faculty
 
     def clean_names(self):
         names = sorted(self.cleaned_data['names'].split('\r\n'))
