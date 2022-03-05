@@ -1882,7 +1882,11 @@ class SubmissionDownload(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        response = HttpResponse(self.object.get_files_as_zip(), content_type='application/zip')
+        try:
+            zip_file = self.object.get_files_as_zip()
+        except FileNotFoundError:
+            raise Http404("Cannot create zip file: some files are missing")
+        response = HttpResponse(zip_file, content_type='application/zip')
         response['Content-Disposition'] = 'attachment; filename={}.zip'.format(self.object.pk)
         return response
 
