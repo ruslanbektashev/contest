@@ -2345,6 +2345,7 @@ class ExecutionList(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, Per
     model = Execution
     template_name = 'contests/execution/execution_list.html'
     context_object_name = 'executions'
+    permission_required = 'contests.evaluate_submission'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
