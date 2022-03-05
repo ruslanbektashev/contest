@@ -139,7 +139,9 @@
     <span class="list-group-item d-flex">
         {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
         <a class="mr-auto" href="{% url 'contests:submission-attachment' submission.id attachment.id %}{% if from_assignment %}?from_assignment=1{% endif %}"><samp>{{ attachment.filename }}</samp></a>
+        {% if attachment.file.exists %}
         <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}" data-toggle="tooltip" data-placement="left" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
+        {% endif %}
         {% else %}
         <samp>{{ attachment.filename }}</samp>
         {% endif %}

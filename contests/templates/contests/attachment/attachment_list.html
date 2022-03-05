@@ -6,7 +6,9 @@
             <samp>{{ attachment.filename }}</samp>
         </a>
         <span class="text-muted text-nowrap mr-2">{% if attachment.file.exists %}{{ attachment.file.size|filesizeformat }} ∙ {% endif %}{{ attachment.date_created|date:'d b Y H:i' }}</span>
+        {% if attachment.file.exists %}
         <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}" data-toggle="tooltip" data-placement="top" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
+        {% endif %}
         {% if perms.contests.delete_attachment or request|has_leader_permission:course %}
         <a href="{% url 'contests:attachment-delete' attachment.id %}" class="text-danger ml-2" data-toggle="tooltip" data-placement="top" title="Удалить"><i class="fa fa-trash-o fa-fw"></i></a>
         {% endif %}
