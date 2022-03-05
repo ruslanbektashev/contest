@@ -46,6 +46,11 @@ def has_student_permission(request, user):
     return user.id == request.user.id
 
 
+@register.filter()
+def exists(file):
+    return file.storage.exists(file.path)
+
+
 @register.simple_tag()
 def get_updated_query_string(request, **kwargs):
     _GET = request.GET.copy()
