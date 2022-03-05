@@ -8,7 +8,7 @@ def update_permissions(apps, schema_editor):
     Group = apps.get_model('auth', 'Group')
     Permission = apps.get_model('auth', 'Permission')
 
-    instructor_group = Group.objects.get(name="Преподаватель")
+    instructor_group = Group.objects.get_or_create(name="Преподаватель")
     permission_codenames = [
         'add_announcement', 'change_announcement', 'delete_announcement',
         'change_comment', 'delete_comment',
@@ -32,14 +32,14 @@ def update_permissions(apps, schema_editor):
     permissions = Permission.objects.filter(codename__in=permission_codenames)
     instructor_group.permissions.remove(*permissions)
 
-    student_group = Group.objects.get(name="Студент")
+    student_group = Group.objects.get_or_create(name="Студент")
     permission_codenames = [
         'view_course', 'view_contest', 'view_problem'
     ]
     permissions = Permission.objects.filter(codename__in=permission_codenames)
     student_group.permissions.remove(*permissions)
 
-    moderator_group = Group.objects.get(name="Модератор")
+    moderator_group = Group.objects.get_or_create(name="Модератор")
     permission_codenames = [
         'view_discussion', 'add_filter', 'delete_filter', 'add_faculty'
     ]
@@ -47,8 +47,11 @@ def update_permissions(apps, schema_editor):
     moderator_group.permissions.add(*permissions)
 
     for user_id in (720, 721, 724):
-        u = User.objects.get(id=user_id)
-        u.user_permissions.clear()
+        try:
+            user = User.objects.get(id=user_id)
+            user.user_permissions.clear()
+        except User.DoesNotExist:
+            pass
 
 
 class Migration(migrations.Migration):

@@ -47,22 +47,22 @@ COURSE_DIFFICULTY_CHOICES = {
 }
 
 
-@register.filter
+@register.filter()
 def remove_pwd(string):
     return re.sub(r'/?[\w\-./]+/', '', string)
 
 
-@register.filter
+@register.filter()
 def colorize(value):
     return STATE_COLORS.get(value, 'info')
 
 
-@register.filter
+@register.filter()
 def colorize_solved_flag(value):
     return 'success' if value else 'danger'
 
 
-@register.filter
+@register.filter()
 def colorize_progress(value):
     if value >= 80:
         return 'success'
@@ -74,7 +74,7 @@ def colorize_progress(value):
         return 'default'
 
 
-@register.filter
+@register.filter()
 def colorize_submission_count(submission_count, submission_limit=Assignment.DEFAULT_SUBMISSION_LIMIT):
     if submission_count == 0:
         return 'default'
@@ -86,12 +86,12 @@ def colorize_submission_count(submission_count, submission_limit=Assignment.DEFA
         return 'danger'
 
 
-@register.filter
+@register.filter()
 def colorize_activity_count(value):
     return 'success' if value else 'default'
 
 
-@register.filter
+@register.filter()
 def colorize_course_difficulty(value):
     if value == 1:
         return 'success'
@@ -103,7 +103,7 @@ def colorize_course_difficulty(value):
         return 'default'
 
 
-@register.filter
+@register.filter()
 def colorize_course_avg_score(value):
     if value >= 4.5:
         return 'success'
@@ -115,12 +115,12 @@ def colorize_course_avg_score(value):
         return 'default'
 
 
-@register.filter
+@register.filter()
 def course_difficulty(value):
     return COURSE_DIFFICULTY_CHOICES.get(value, 'Нет сведений')
 
 
-@register.filter
+@register.filter()
 def course_filtered(request, course):
     return request.user.filter_set.filter(course=course).exists()
 

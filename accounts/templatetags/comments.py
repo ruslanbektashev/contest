@@ -28,6 +28,6 @@ def render_comment_form(context, obj, parent=None, form=None):
     return context
 
 
-@register.filter
+@register.filter()
 def model_name(instance):
     return instance._meta.model_name

@@ -130,7 +130,7 @@ ATTRIBUTE_RE = re.compile(r"""
 """, re.VERBOSE | re.UNICODE)
 
 
-@register.tag
+@register.tag()
 def render_field(parser, token):
     """
     Render a form field using given attribute-value pairs
