@@ -1726,7 +1726,7 @@ class AssignmentCourseTable(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMi
             self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
             course_leader_queryset = CourseLeader.objects.filter(course=self.storage['course'], leader=request.user)
             course_leader = course_leader_queryset.get() if course_leader_queryset.exists() else None
-            default_faculty_id = course_leader.account.faculty_id if course_leader is not None else 0
+            default_faculty_id = course_leader.leader.account.faculty_id if course_leader is not None else 0
             default_group = course_leader.group if course_leader is not None else 0
             default_subgroup = course_leader.subgroup if course_leader is not None else 0
             self.storage['faculty_id'] = int(request.GET.get('faculty_id') or default_faculty_id)
