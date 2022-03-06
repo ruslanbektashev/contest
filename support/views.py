@@ -179,7 +179,15 @@ class DiscussionDetail(LoginRedirectMixin, PermissionRequiredMixin, PaginatorMix
         comments = self.object.comment_set.actual()
         context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
             self.paginate_queryset(comments)
-        return context
+        return
+
+
+"""===================================================== Change ====================================================="""
+
+
+class ChangeList(LoginRedirectMixin, PermissionRequiredMixin, TemplateView):
+    template_name = "support/change/change_list.html"
+    permission_required = "contests.add_course"
 
 
 """================================================ TutorialStepPass ================================================"""

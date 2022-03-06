@@ -38,6 +38,11 @@
                 <li>
                     <a class="nav-link" href="{% url 'support:report-create' %}?from={{ request.path }}">Сообщить об ошибке</a>
                 </li>
+                {% if perms.contests.add_course %}
+                <li>
+                    <a class="nav-link" href="{% url 'support:change-list' %}">Изменения</a>
+                </li>
+                {% endif %}
                 {% if request.user.is_staff %}
                 <li>
                     <a class="nav-link" href="{% url 'admin:index' %}">Админка</a>
