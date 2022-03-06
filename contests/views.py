@@ -2060,7 +2060,7 @@ class SubmissionUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         return success_url
 
 
-class SubmissionUpdateAPI(LoginRequiredMixin, PermissionRequiredMixin, BaseUpdateView):
+class SubmissionUpdateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, BaseUpdateView):
     model = Submission
     form_class = SubmissionUpdateForm
     http_method_names = ['post']
@@ -2068,6 +2068,16 @@ class SubmissionUpdateAPI(LoginRequiredMixin, PermissionRequiredMixin, BaseUpdat
 
     def http_method_not_allowed(self, request, *args, **kwargs):
         return JsonResponse({'status': 'http_method_not_allowed'})
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def form_valid(self, form):
         self.object = form.save()
