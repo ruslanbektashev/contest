@@ -50,7 +50,7 @@
     <tr><td class="text-right" style="width: 20%;">Автор</td><td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td></tr>
     <tr><td class="text-right" style="width: 20%;">К задаче</td><td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td></tr>
     {% if submission.get_assignment %}
-    <tr><td class="text-right" style="width: 20%;">По заданию</td><td><a href="{{ submission.get_assignment.get_absolute_url }}"><span class="numtus status-{{ submission.get_assignment.score|colorize }}">{{ submission.get_assignment.score|default:'-' }}</span></a></td></tr>
+    <tr><td class="text-right" style="width: 20%;">По заданию</td><td><a href="{{ submission.get_assignment.get_absolute_url }}"><span class="numtus status-{{ submission.get_assignment|get_assignment_score:request|colorize }}">{{ submission.get_assignment|get_assignment_score:request|default:'-' }}</span></a></td></tr>
     {% endif %}
     <tr><td class="text-right" style="width: 20%;">Отправлена</td><td>{{ submission.date_created }}</td></tr>
     {% if submission.date_updated %}
@@ -60,14 +60,14 @@
     <tr><td class="text-right" style="width: 20%;">Решено подзадач</td><td>{{ submission.sub_submissions.count }} из {{ submission.problem.sub_problems.count }}</td></tr>
     {% endif %}
     {% if submission.main_submission %}
-    <tr><td class="text-right" style="width: 20%;">Основная посылка</td><td><a href="{{ submission.main_submission.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}"><span class="numtus status-{{ submission.main_submission.status|colorize }}">{{ submission.main_submission.status }}</span></a></td></tr>
+    <tr><td class="text-right" style="width: 20%;">Основная посылка</td><td><a href="{{ submission.main_submission.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}"><span class="numtus status-{{ submission.main_submission|get_submission_status:request|colorize }}" data-toggle="tooltip" data-placement="right" title="{{ submission.main_submission|get_submission_status_display:request }}">{{ submission.main_submission|get_submission_status:request }}</span></a></td></tr>
     {% endif %}
 </table>
 <div class="progress justify-content-center mb-3" style="height: 25px;">
-    <div id="progress-bar" class="progress-bar bg-{% get_submission_style submission %}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% elif submission.problem.type != 'Program' and score_percentage > 0 %}{{ score_percentage }}{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% elif submission.problem.type != 'Program' and score_percentage > 0 %}{{ score_percentage }}{% else %}100{% endif %}%;"></div>
+    <div id="progress-bar" class="progress-bar bg-{{ submission|get_submission_style:request }}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% elif submission.problem.type != 'Program' and submission|get_submission_score_percentage:request > 0 %}{{ submission|get_submission_score_percentage:request }}{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% elif submission.problem.type != 'Program' and submission|get_submission_score_percentage:request > 0 %}{{ submission|get_submission_score_percentage:request }}{% else %}100{% endif %}%;"></div>
     <span class="status-display align-self-center" style="position: absolute;">
         <strong id="progress-bar-message" style="color: white;">
-            {{ submission.get_status_display }} {% if submission.problem.type != 'Program' and score_percentage > 0 %} · {{ score_percentage }}% {% endif %}
+            {{ submission|get_submission_status_display:request }} {% if submission.problem.type != 'Program' and submission|get_submission_score_percentage:request > 0 %} · {{ submission|get_submission_score_percentage:request }}%{% endif %}
         </strong>
     </span>
 </div>
@@ -101,6 +101,14 @@
     </label>
 </div>
 {% endif %}
+{% endif %}
+{% if submission.not_finished %}
+<div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+    Результат проверки посылки и оценка станут доступны {% if not request.user.account.is_student %}студенту {% endif %}после истечения отведенного для задания времени.
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
 {% endif %}
 {% if submission.problem.type == 'Test' and submission.owner.id == request.user.id and submission.sub_submissions.all|length < submission.problem.sub_problems.all|length %}
     {% if submission.assignment is None or submission.assignment.deadline and submission.assignment.deadline > current_time %}
@@ -186,11 +194,21 @@
 {% if submission.problem.type == 'Options' %}
 <h6 class="text-muted">Ответ:</h6>
 <ul class="list-group mb-3">
+    {% with submission_options=submission.options.all %}
+    {% if submission|is_hidden_for_student:request %}
     {% for option in submission.problem.option_set.all %}
-    <li class="list-group-item {% if option in submission.options.all %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
-        {% if option in submission.options.all %}{% if option.is_correct %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% else %}<i class="fa fa-times-circle-o" aria-hidden="true"></i>{% endif %}{% endif %} {{ option.text }}
+    <li class="list-group-item">
+        {% if option in submission_options %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% endif %} {{ option.text }}
     </li>
     {% endfor %}
+    {% else %}
+    {% for option in submission.problem.option_set.all %}
+    <li class="list-group-item {% if option in submission_options %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
+        {% if option in submission_options %}{% if option.is_correct %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% else %}<i class="fa fa-times-circle-o" aria-hidden="true"></i>{% endif %}{% endif %} {{ option.text }}
+    </li>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
 </ul>
 {% endif %}
 {% if submission.problem.type == 'Test' %}
@@ -200,8 +218,8 @@
     <div class="card">
         <div class="card-header d-flex align-items-center" id="heading_{{ sub_form.instance.id }}">
             <!-- <small class="mr-3" data-toggle="tooltip" data-placement="top" title="Номер подзадачи">{{ sub_form.instance.problem.number }}</small> -->
-            <a href="{{ sub_form.instance.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}" id="status-{{ forloop.counter0 }}" class="status status-{{ sub_form.instance.status|colorize }} mr-3" data-toggle="tooltip" data-placement="top" title="{{ sub_form.instance.get_status_display }}">
-                {{ sub_form.instance.status }}
+            <a href="{{ sub_form.instance.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}" id="status-{{ forloop.counter0 }}" class="status status-{{ sub_form.instance|get_submission_status:request|colorize }} mr-3" data-toggle="tooltip" data-placement="top" title="{{ sub_form.instance|get_submission_status_display:request }}">
+                {{ sub_form.instance|get_submission_status:request }}
             </a>
             {% if sub_form.instance.problem.title %}
             <small class="mr-auto">
@@ -251,15 +269,15 @@
                 <small class="ml-3 mr-1">Оценка: </small>
                 <small>{{ sub_form.instance.score }}</small>
                 {% endif %}
-            {% endif %}
             <a class="ml-3" href="{{ sub_form.instance.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}">
                 <i class="fa fa-edit fa-fw fa-lg" data-toggle="tooltip" data-placement="left" title="Изменить статус или оценку"></i>
             </a>
-            <a class="collapse-toggle ml-3" href data-toggle="collapse" data-target="#sub_submission_{{ sub_form.instance.id }}" aria-expanded="{% if sub_form.instance.status != 'OK' %}true{% else %}false{% endif %}" aria-controls="sub_submission_{{ sub_form.instance.id }}">
-                <i class="fa fa-angle-{% if sub_form.instance.status != 'OK' %}up{% else %}down{% endif %} fa-lg"></i>
+            {% endif %}
+            <a class="collapse-toggle ml-3" href data-toggle="collapse" data-target="#sub_submission_{{ sub_form.instance.id }}" aria-expanded="{% if sub_form.instance|get_submission_status:request != 'OK' %}true{% else %}false{% endif %}" aria-controls="sub_submission_{{ sub_form.instance.id }}">
+                <i class="fa fa-angle-{% if sub_form.instance|get_submission_status:request != 'OK' %}up{% else %}down{% endif %} fa-lg"></i>
             </a>
         </div>
-        <div class="collapse {% if sub_form.instance.status != 'OK' %}show{% endif %}" id="sub_submission_{{ sub_form.instance.id }}" aria-labelledby="heading_{{ sub_form.instance.id }}">
+        <div class="collapse {% if sub_form.instance|get_submission_status:request != 'OK' %}show{% endif %}" id="sub_submission_{{ sub_form.instance.id }}" aria-labelledby="heading_{{ sub_form.instance.id }}">
             <div class="card-body">
                 {{ sub_form.instance.problem.description|safe }}
                 <h6 class="text-muted">Ответ:</h6>
@@ -302,11 +320,21 @@
                 {% endif %}
                 {% if sub_form.instance.problem.type == 'Options' %}
                 <ul class="list-group">
+                    {% with submission_options=sub_form.instance.options.all %}
+                    {% if submission|is_hidden_for_student:request %}
                     {% for option in sub_form.instance.problem.option_set.all %}
-                    <li class="list-group-item {% if option in sub_form.instance.options.all %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
-                        {% if option in sub_form.instance.options.all %}{% if option.is_correct %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% else %}<i class="fa fa-times-circle-o" aria-hidden="true"></i>{% endif %}{% endif %} {{ option.text }}
+                    <li class="list-group-item">
+                        {% if option in submission_options %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% endif %} {{ option.text }}
                     </li>
                     {% endfor %}
+                    {% else %}
+                    {% for option in sub_form.instance.problem.option_set.all %}
+                    <li class="list-group-item {% if option in submission_options %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
+                        {% if option in submission_options %}{% if option.is_correct %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% else %}<i class="fa fa-times-circle-o" aria-hidden="true"></i>{% endif %}{% endif %} {{ option.text }}
+                    </li>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
                 </ul>
                 {% endif %}
             </div>
@@ -398,9 +426,9 @@ const adjustProgressBarMessageColor = (score) => {
     }
 };
 </script>
-{% if submission.problem.type != 'Program' and score_percentage > 0 %}
+{% if submission.problem.type != 'Program' and submission|get_submission_score_percentage:request > 0 %}
 <script>
-adjustProgressBarMessageColor({{ score_percentage }});
+adjustProgressBarMessageColor({{ submission|get_submission_score_percentage:request }});
 </script>
 {% endif %}
 {% if submission.problem.type == 'Text' and perms.contests.change_submission %}
@@ -507,12 +535,14 @@ const updateMainSubmission = (data) => {
         $('#main-submission-update') > $('#id_status').selectpicker('refresh');
         progressBar.classList.remove('bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-secondary', 'bg-primary');
         progressBar.classList.add('bg-' + mainSubmission.color);
-        adjustProgressBarMessageColor(mainSubmission.score);
+        adjustProgressBarMessageColor(mainSubmission.score)
+        mainFormButton.classList.remove('btn-light', 'btn-primary');
+        mainFormButton.classList.add('btn-light');
     }
 };
 
 mainForm.querySelector('#id_score').onkeyup = mainForm.onchange = () => {
-    mainFormButton.classList.remove('btn-light');
+    mainFormButton.classList.remove('btn-light', 'btn-primary');
     mainFormButton.classList.add('btn-primary');
 };
 

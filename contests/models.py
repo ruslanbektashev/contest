@@ -887,6 +887,10 @@ class Assignment(CRUDEntry):
     def contest(self):
         return self.problem.contest
 
+    @property
+    def not_finished(self):
+        return self.deadline is not None and timezone.now() < self.deadline
+
     def get_latest_submission(self):
         return self.problem.get_latest_submission_by(self.user)
 
@@ -976,6 +980,7 @@ class Submission(CRDEntry):
         ('UE', "Ошибка кодировки"),
         ('PE', "Ошибка комплектации"),
         ('EX', "Неизвестная ошибка"),
+        ('EV', "Посылка проверяется"),
         ('UN', "Посылка не проверена")
     )
     DEFAULT_STATUS = 'UN'
@@ -1017,6 +1022,11 @@ class Submission(CRDEntry):
     @property
     def short_title(self):
         return "П{}осылка {}".format("" if self.main_submission is None else "одп", self.id)
+
+    @property
+    def not_finished(self):
+        assignment = self.get_assignment()
+        return assignment is not None and assignment.not_finished
 
     def get_assignment(self):
         return self.assignment if self.main_submission is None else self.main_submission.assignment

@@ -763,7 +763,6 @@ class ProblemDetail(LoginRedirectMixin, PaginatorMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['latest_submission'] = self.object.get_latest_submission_by(self.request.user)
         try:
             context['assignment'] = Assignment.objects.get(user=self.request.user, problem=self.object)
         except Assignment.DoesNotExist:
@@ -1853,7 +1852,6 @@ class SubmissionDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
             self.paginate_queryset(comments)
         context['current_time'] = timezone.now()
-        context['score_percentage'] = self.object.score * 100 // self.object.problem.score_max
         context['from_assignment'] = 'from_assignment' in self.request.GET
         if 'forms' in self.storage:
             context['forms'] = self.storage['forms'].values()

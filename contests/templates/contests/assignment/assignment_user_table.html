@@ -25,8 +25,8 @@
                 {% endif %}
                 <td style="vertical-align: middle;"><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td>
                 <td class="text-center" style="vertical-align: middle;">
-                    <a href="{% url 'contests:assignment-detail' assignment.id %}" class="numtus status-{{ assignment.score|colorize }}">
-                        {{ assignment.score|default:'-' }}
+                    <a href="{% url 'contests:assignment-detail' assignment.id %}" class="numtus status-{{ assignment|get_assignment_score:request|colorize }}">
+                        {{ assignment|get_assignment_score:request|default:'-' }}
                     </a>
                 </td>
                 {% if forloop.parentloop.first and forloop.first and assignment.attached_credit %}

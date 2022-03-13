@@ -23,6 +23,7 @@ STATE_COLORS = {
     'UE': 'danger',
     'PE': 'danger',
     'EX': 'danger',
+    'EV': 'info',
     'UN': 'default',
     '5':  'success',
     5:    'success',
@@ -164,14 +165,53 @@ def get_problem_subproblems(problem):
     return ", ".join(subproblem_numbers)
 
 
-@register.simple_tag()
-def get_submission_style(submission):
-    if submission.status == 'UN':
+@register.filter()
+def is_hidden_for_student(obj, request):
+    return request.user.account.is_student and obj.not_finished
+
+
+@register.filter()
+def get_submission_status(submission, request):
+    if submission.status != 'UN' and is_hidden_for_student(submission, request):
+        return 'EV'
+    return submission.status
+
+
+@register.filter()
+def get_submission_status_display(submission, request):
+    if submission.status != 'UN' and is_hidden_for_student(submission, request):
+        return "Посылка проверяется"
+    return submission.get_status_display()
+
+
+@register.filter()
+def get_submission_score(submission, request):
+    if submission.score != 0 and is_hidden_for_student(submission, request):
+        return 0
+    return submission.score
+
+
+@register.filter()
+def get_submission_score_percentage(submission, request):
+    return get_submission_score(submission, request) * 100 // submission.problem.score_max
+
+
+@register.filter()
+def get_submission_style(submission, request):
+    status = get_submission_status(submission, request)
+    if status == 'UN':
         return 'info'
-    return colorize(submission.status)
+    return colorize(status)
 
 
-@register.simple_tag()
+@register.filter()
+def get_assignment_score(assignment, request):
+    if assignment.score != 0 and is_hidden_for_student(assignment, request):
+        return 0
+    return assignment.score
+
+
+@register.filter()
 def get_assignment_style(assignment):
     if assignment.latest_submission_status == 'UN' and assignment.latest_submission_date_created > assignment.date_updated:
         return 'info'

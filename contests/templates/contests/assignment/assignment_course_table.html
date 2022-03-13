@@ -22,7 +22,7 @@
                 {% for col in row.columns %}
                 <td class="msu-problem-set lake text-truncate">
                     {% for assignment in col.assignments %}
-                    <a href="{% url 'contests:assignment-detail' assignment.id %}" class="numtus status-{% get_assignment_style assignment %}" data-toggle="tooltip" data-placement="bottom" title="{{ assignment.remark }}">
+                    <a href="{% url 'contests:assignment-detail' assignment.id %}" class="numtus status-{{ assignment|get_assignment_style }}" data-toggle="tooltip" data-placement="bottom" title="{{ assignment.remark }}">
                         {{ assignment.problem.number }}<sup>{{ assignment.remark.0 }}</sup>
                     </a>
                     {% if forloop.last %}

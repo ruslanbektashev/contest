@@ -132,16 +132,6 @@
                     <tr><td class="text-right">Ограничение по памяти</td><td style="width: 20%;">{{ problem.memory_limit|filesizeformat }}</td></tr>
                     <tr><td class="text-right">Доступно для тестирования</td><td style="width: 20%;">{{ problem.is_testable|yesno:'да,нет' }}</td></tr>
                     {% endif %}
-                    {% if latest_submission %}
-                    <tr>
-                        <td class="text-right">Мой результат</td>
-                        <td>
-                            <a href="{{ latest_submission.get_absolute_url }}" class="badge badge-{{ latest_submission.status|colorize }}" data-toggle="tooltip" data-placement="bottom" title="{{ latest_submission.get_status_display }}">
-                                {{ latest_submission.get_status_display }}
-                            </a>
-                        </td>
-                    </tr>
-                    {% endif %}
                 </table>
                 {% if perms.contests.add_submission or request|has_leader_permission:problem.course %}
                 {% if assignment and assignment.credit_incomplete or request.user.is_superuser %}
