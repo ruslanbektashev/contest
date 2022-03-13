@@ -37,7 +37,7 @@
                 {% if perms.accounts.change_comment or comment.author.id == request.user.id %}
                 <small class="pebble">{% if comment.is_repliable %}| {% endif %}<a href="{% url 'accounts:comment-update' comment.id %}{% get_comment_query_string page_obj.number %}" class="text-uppercase text-muted">Редактировать</a></small>
                 {% endif %}
-                {% if perms.accounts.delete_comment or comment.author.id == request.user.id %}
+                {% if perms.accounts.delete_comment %}
                 <small class="pebble">| <a href="{% url 'accounts:comment-delete' comment.id %}{% get_comment_query_string page_obj.number %}" class="text-uppercase text-muted">Удалить</a></small>
                 {% endif %}
             </div>
