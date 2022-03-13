@@ -442,11 +442,16 @@ class CommentCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
         return self.object.object.get_discussion_url() + '#comment_' + str(self.object.pk)
 
 
-class CommentUpdate(LoginRedirectMixin, PermissionRequiredMixin, UpdateView):
+class CommentUpdate(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
     model = Comment
     form_class = CommentForm
     template_name = 'accounts/comment/comment_update.html'
     permission_required = 'accounts.change_comment'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.author_id == self.request.user.id
 
     def get_success_url(self):
         page = self.request.GET.get('page', '1')
