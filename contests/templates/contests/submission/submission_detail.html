@@ -102,7 +102,7 @@
 </div>
 {% endif %}
 {% endif %}
-{% if submission.not_finished %}
+{% if submission.hidden_for_student %}
 <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
     Результат проверки посылки и оценка станут доступны {% if not request.user.account.is_student %}студенту {% endif %}после истечения отведенного для задания времени.
     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -195,7 +195,7 @@
 <h6 class="text-muted">Ответ:</h6>
 <ul class="list-group mb-3">
     {% with submission_options=submission.options.all %}
-    {% if submission|is_hidden_for_student:request %}
+    {% if submission|is_hidden_for_user:request %}
     {% for option in submission.problem.option_set.all %}
     <li class="list-group-item">
         {% if option in submission_options %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% endif %} {{ option.text }}
@@ -321,7 +321,7 @@
                 {% if sub_form.instance.problem.type == 'Options' %}
                 <ul class="list-group">
                     {% with submission_options=sub_form.instance.options.all %}
-                    {% if submission|is_hidden_for_student:request %}
+                    {% if submission|is_hidden_for_user:request %}
                     {% for option in sub_form.instance.problem.option_set.all %}
                     <li class="list-group-item">
                         {% if option in submission_options %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% endif %} {{ option.text }}
@@ -365,7 +365,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 elem.children[0].classList.remove("fa-angle-up");
                 elem.children[0].classList.add("fa-angle-down");
             }
-            //toggleHTML(elem, '<i class="fa fa-angle-down fa-lg"></i>', '<i class="fa fa-angle-up fa-lg"></i>');
         });
     }
 });

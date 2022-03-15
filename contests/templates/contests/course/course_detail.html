@@ -70,7 +70,7 @@
         </div>
         <div id="collapseTwo" class="collapse show" aria-labelledby="course_contests">
             <div class="card-body">
-                {% include 'list.html' with lst=course.contest_set.all mb=0 warn_if_empty="Разделы еще не добавлены" %}
+                {% include 'contests/contest/contest_list.html' with contests=course.contest_set.all %}
                 {% if perms.contests.add_contest or request|has_leader_permission:course %}
                 <a id="btn_contest_create" href="{% url 'contests:contest-create' course.id %}" class="btn btn-block btn-light">
                     <i class="fa fa-plus fa-fw"></i> Добавить раздел

@@ -267,7 +267,7 @@ class ContestPartialForm(MediaAttachmentMixin, AttachmentForm):
 class ContestForm(ContestPartialForm):
     class Meta:
         model = Contest
-        fields = ['course', 'title', 'description', 'number', 'soft_deleted']
+        fields = ['course', 'title', 'description', 'number', 'hidden', 'soft_deleted']
         widgets = {'course': forms.HiddenInput}
 
     def full_clean(self):

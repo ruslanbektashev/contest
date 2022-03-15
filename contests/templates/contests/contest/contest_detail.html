@@ -81,7 +81,7 @@
         </div>
         <div id="collapseTwo" class="collapse show" aria-labelledby="contest_problems">
             <div class="card-body" style="min-height: 300px;">
-                {% include 'problem_list.html' with problems=contest.problem_set.all %}
+                {% include 'contests/problem/problem_list.html' with problems=contest.problem_set.all %}
                 {% if perms.contests.add_problem or request|has_leader_permission:contest.course %}
                 <div class="dropdown" data-boundary="viewport">
                     <button id="btn_problem_create" class="btn btn-block btn-light" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="viewport">
@@ -102,6 +102,12 @@
         </div>
     </div>
 </div>
+{% if not request.user.account.is_student and contest.hidden_for_student %}
+<div class="alert alert-warning">
+    <strong><i class="fa fa-lock"></i> Раздел скрыт.</strong> Чтобы раздел стал видимым для студента, Вы можете назначить ему задание по задаче из этого раздела.<br>
+    Вы также можете <a href="{% url 'contests:contest-update' contest.id %}">отключить</a> сокрытие раздела на странице редактирования.
+</div>
+{% endif %}
 <div class="row mb-3">
     <div class="col-12 col-md-6">
         <div class="col-12 text-muted text-left">Факультет: {{ contest.course.faculty }}</div>

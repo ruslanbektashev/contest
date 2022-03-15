@@ -392,6 +392,9 @@ class Contest(SoftDeletionModel, CRUDEntry):
     description = RichTextField(verbose_name="Описание")
 
     number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер")
+    hidden = models.BooleanField(default=False, verbose_name="Скрыть",
+                                 help_text="Скрытый раздел отображается только тем студентам, которым назначено хотя бы"
+                                           " одно задание по задаче из этого раздела")
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
@@ -407,6 +410,13 @@ class Contest(SoftDeletionModel, CRUDEntry):
     @property
     def files(self):
         return [attachment.file.path for attachment in self.attachment_set.all()]
+
+    @property
+    def hidden_for_student(self):
+        return self.hidden
+
+    def visible_for_student(self, student):
+        return not self.hidden or Assignment.objects.filter(user=student, problem__contest=self).exists()
 
     def get_discussion_url(self):
         return reverse('contests:contest-discussion', kwargs={'pk': self.pk})
@@ -512,6 +522,9 @@ class Problem(SoftDeletionModel, CRUDEntry):
     def files(self):
         return [attachment.file.path for attachment in self.attachment_set.all()]
 
+    def visible_for_student(self, student):
+        return self.contest.visible_for_student(student)
+
     def save(self, *args, **kwargs):
         if self.type not in {'Program', 'Options'}:
             self.is_testable = False
@@ -573,8 +586,8 @@ class Problem(SoftDeletionModel, CRUDEntry):
 class Option(models.Model):
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE, verbose_name="Задача")
 
-    text = models.CharField(verbose_name="Текст", max_length=250)
-    is_correct = models.BooleanField(verbose_name="Верный?", default=False)
+    text = models.CharField(max_length=250, verbose_name="Текст")
+    is_correct = models.BooleanField(default=False, verbose_name="Верный?")
 
     class Meta:
         verbose_name = "Вариант ответа"
@@ -888,7 +901,7 @@ class Assignment(CRUDEntry):
         return self.problem.contest
 
     @property
-    def not_finished(self):
+    def hidden_for_student(self):
         return self.deadline is not None and timezone.now() < self.deadline
 
     def get_latest_submission(self):
@@ -1024,9 +1037,9 @@ class Submission(CRDEntry):
         return "П{}осылка {}".format("" if self.main_submission is None else "одп", self.id)
 
     @property
-    def not_finished(self):
+    def hidden_for_student(self):
         assignment = self.get_assignment()
-        return assignment is not None and assignment.not_finished
+        return assignment is not None and assignment.hidden_for_student
 
     def get_assignment(self):
         return self.assignment if self.main_submission is None else self.main_submission.assignment

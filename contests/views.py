@@ -5,7 +5,7 @@ from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer, TextLexer
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.forms.models import inlineformset_factory, modelformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
@@ -622,15 +622,21 @@ class FilterTable(LoginRedirectMixin, PermissionRequiredMixin, TemplateView):
 """===================================================== Contest ===================================================="""
 
 
-class ContestDetail(LoginRedirectMixin, DetailView):
+class ContestDetail(LoginRedirectMixin, UserPassesTestMixin, DetailView):
     model = Contest
     template_name = 'contests/contest/contest_detail.html'
 
+    def test_func(self):
+        return not self.request.user.account.is_student or self.get_object().visible_for_student(self.request.user)
 
-class ContestDiscussion(LoginRedirectMixin, PaginatorMixin, DetailView):
+
+class ContestDiscussion(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin, DetailView):
     model = Contest
     template_name = 'contests/contest/contest_discussion.html'
     paginate_by = 30
+
+    def test_func(self):
+        return not self.request.user.account.is_student or self.get_object().visible_for_student(self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -640,9 +646,12 @@ class ContestDiscussion(LoginRedirectMixin, PaginatorMixin, DetailView):
         return context
 
 
-class ContestAttachment(LoginRedirectMixin, AttachmentDetail):
+class ContestAttachment(LoginRedirectMixin, UserPassesTestMixin, AttachmentDetail):
     model = Contest
     template_name = 'contests/contest/contest_attachment.html'
+
+    def test_func(self):
+        return not self.request.user.account.is_student or self.get_object().visible_for_student(self.request.user)
 
 
 class ContestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
@@ -756,10 +765,13 @@ class ContestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 """===================================================== Problem ===================================================="""
 
 
-class ProblemDetail(LoginRedirectMixin, PaginatorMixin, DetailView):
+class ProblemDetail(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin, DetailView):
     model = Problem
     template_name = 'contests/problem/problem_detail.html'
     paginate_by = 10
+
+    def test_func(self):
+        return not self.request.user.account.is_student or self.get_object().visible_for_student(self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -778,10 +790,13 @@ class ProblemDetail(LoginRedirectMixin, PaginatorMixin, DetailView):
         return context
 
 
-class ProblemDiscussion(LoginRedirectMixin, PaginatorMixin, DetailView):
+class ProblemDiscussion(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin, DetailView):
     model = Problem
     template_name = 'contests/problem/problem_discussion.html'
     paginate_by = 30
+
+    def test_func(self):
+        return not self.request.user.account.is_student or self.get_object().visible_for_student(self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -791,9 +806,12 @@ class ProblemDiscussion(LoginRedirectMixin, PaginatorMixin, DetailView):
         return context
 
 
-class ProblemAttachment(LoginRedirectMixin, AttachmentDetail):
+class ProblemAttachment(LoginRedirectMixin, UserPassesTestMixin, AttachmentDetail):
     model = Problem
     template_name = 'contests/problem/problem_attachment.html'
+
+    def test_func(self):
+        return not self.request.user.account.is_student or self.get_object().visible_for_student(self.request.user)
 
 
 class ProblemRollbackResults(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, FormView):

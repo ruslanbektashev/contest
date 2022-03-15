@@ -57,6 +57,11 @@
     </div>
     {% endif %}
     {% endwith %}
+    {% if action == 'restore' or action == None %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.hidden class+="custom-control-input" %}
+    {% endwith %}
+    {% endif %}
     {% if action == 'add_files' or action == 'restore' or action == None %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
     <div id="field_files">
