@@ -102,7 +102,7 @@
         </div>
     </div>
 </div>
-{% if not request.user.account.is_student and contest.hidden_for_student %}
+{% if not request.user.account.is_student and contest.hidden_from_students %}
 <div class="alert alert-warning">
     <strong><i class="fa fa-lock"></i> Раздел скрыт.</strong> Чтобы раздел стал видимым для студента, Вы можете назначить ему задание по задаче из этого раздела.<br>
     Вы также можете <a href="{% url 'contests:contest-update' contest.id %}">отключить</a> сокрытие раздела на странице редактирования.

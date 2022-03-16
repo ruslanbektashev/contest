@@ -627,7 +627,7 @@ class ContestDetail(LoginRedirectMixin, UserPassesTestMixin, DetailView):
     template_name = 'contests/contest/contest_detail.html'
 
     def test_func(self):
-        return not self.request.user.account.is_student or self.get_object().visible_for_student(self.request.user)
+        return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
 
 
 class ContestDiscussion(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin, DetailView):
@@ -636,7 +636,7 @@ class ContestDiscussion(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin,
     paginate_by = 30
 
     def test_func(self):
-        return not self.request.user.account.is_student or self.get_object().visible_for_student(self.request.user)
+        return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -651,7 +651,7 @@ class ContestAttachment(LoginRedirectMixin, UserPassesTestMixin, AttachmentDetai
     template_name = 'contests/contest/contest_attachment.html'
 
     def test_func(self):
-        return not self.request.user.account.is_student or self.get_object().visible_for_student(self.request.user)
+        return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
 
 
 class ContestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
@@ -771,7 +771,7 @@ class ProblemDetail(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin, Det
     paginate_by = 10
 
     def test_func(self):
-        return not self.request.user.account.is_student or self.get_object().visible_for_student(self.request.user)
+        return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -796,7 +796,7 @@ class ProblemDiscussion(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin,
     paginate_by = 30
 
     def test_func(self):
-        return not self.request.user.account.is_student or self.get_object().visible_for_student(self.request.user)
+        return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -811,7 +811,7 @@ class ProblemAttachment(LoginRedirectMixin, UserPassesTestMixin, AttachmentDetai
     template_name = 'contests/problem/problem_attachment.html'
 
     def test_func(self):
-        return not self.request.user.account.is_student or self.get_object().visible_for_student(self.request.user)
+        return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
 
 
 class ProblemRollbackResults(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, FormView):

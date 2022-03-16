@@ -166,32 +166,32 @@ def get_problem_subproblems(problem):
 
 
 @register.filter()
-def is_hidden_for_user(obj, request):
-    return request.user.account.is_student and obj.hidden_for_student
+def is_hidden_from_user(obj, request):
+    return request.user.account.is_student and obj.hidden_from_students
 
 
 @register.filter()
-def is_visible_for_user(obj, request):
-    return not request.user.account.is_student or obj.visible_for_student(request.user)
+def is_visible_to_user(obj, request):
+    return not request.user.account.is_student or obj.visible_to(request.user)
 
 
 @register.filter()
 def get_submission_status(submission, request):
-    if submission.status != 'UN' and is_hidden_for_user(submission, request):
+    if submission.status != 'UN' and is_hidden_from_user(submission, request):
         return 'EV'
     return submission.status
 
 
 @register.filter()
 def get_submission_status_display(submission, request):
-    if submission.status != 'UN' and is_hidden_for_user(submission, request):
+    if submission.status != 'UN' and is_hidden_from_user(submission, request):
         return "Посылка проверяется"
     return submission.get_status_display()
 
 
 @register.filter()
 def get_submission_score(submission, request):
-    if submission.score != 0 and is_hidden_for_user(submission, request):
+    if submission.score != 0 and is_hidden_from_user(submission, request):
         return 0
     return submission.score
 
@@ -211,7 +211,7 @@ def get_submission_style(submission, request):
 
 @register.filter()
 def get_assignment_score(assignment, request):
-    if assignment.score != 0 and is_hidden_for_user(assignment, request):
+    if assignment.score != 0 and is_hidden_from_user(assignment, request):
         return 0
     return assignment.score
 

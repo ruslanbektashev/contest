@@ -412,10 +412,10 @@ class Contest(SoftDeletionModel, CRUDEntry):
         return [attachment.file.path for attachment in self.attachment_set.all()]
 
     @property
-    def hidden_for_student(self):
+    def hidden_from_students(self):
         return self.hidden
 
-    def visible_for_student(self, student):
+    def visible_to(self, student):
         return not self.hidden or Assignment.objects.filter(user=student, problem__contest=self).exists()
 
     def get_discussion_url(self):
@@ -522,8 +522,8 @@ class Problem(SoftDeletionModel, CRUDEntry):
     def files(self):
         return [attachment.file.path for attachment in self.attachment_set.all()]
 
-    def visible_for_student(self, student):
-        return self.contest.visible_for_student(student)
+    def visible_to(self, student):
+        return self.contest.visible_to(student)
 
     def save(self, *args, **kwargs):
         if self.type not in {'Program', 'Options'}:
@@ -901,7 +901,7 @@ class Assignment(CRUDEntry):
         return self.problem.contest
 
     @property
-    def hidden_for_student(self):
+    def hidden_from_students(self):
         return self.deadline is not None and timezone.now() < self.deadline
 
     def get_latest_submission(self):
@@ -1037,9 +1037,9 @@ class Submission(CRDEntry):
         return "П{}осылка {}".format("" if self.main_submission is None else "одп", self.id)
 
     @property
-    def hidden_for_student(self):
+    def hidden_from_students(self):
         assignment = self.get_assignment()
-        return assignment is not None and assignment.hidden_for_student
+        return assignment is not None and assignment.hidden_from_students
 
     def get_assignment(self):
         return self.assignment if self.main_submission is None else self.main_submission.assignment

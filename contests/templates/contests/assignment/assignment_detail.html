@@ -71,7 +71,7 @@
 <div class="alert alert-warning" data-toggle="tooltip" data-placement="bottom" title="Отображается только преподавателям">{{ assignment.remark }}</div>
 {% endif %}
 {% endif %}
-{% if assignment.hidden_for_student %}
+{% if assignment.hidden_from_students %}
 <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
     Результаты проверки посылок и оценка станут доступны {% if not request.user.account.is_student %}студенту {% endif %}после истечения отведенного для этого задания времени.
     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
