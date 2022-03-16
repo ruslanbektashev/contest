@@ -98,6 +98,9 @@ class ReportDetail(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin
     template_name = 'support/report/report_detail.html'
     permission_required = 'support.view_report'
 
+    def has_ownership(self):
+        return self.get_object().owner_id == self.request.user.id
+
     def get(self, request, *args, **kwargs):
         object = self.get_object()
         # TODO: mark corresponding notifications as read
@@ -138,9 +141,7 @@ class ReportUpdate(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin
     permission_required = 'support.change_report'
 
     def has_ownership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.owner_id == self.request.user.id
+        return self.get_object().owner_id == self.request.user.id
 
 
 class ReportDelete(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
@@ -150,9 +151,7 @@ class ReportDelete(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin
     permission_required = 'support.delete_report'
 
     def has_ownership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.owner_id == self.request.user.id
+        return self.get_object().owner_id == self.request.user.id
 
 
 class ReportList(LoginRequiredMixin, ListView):
