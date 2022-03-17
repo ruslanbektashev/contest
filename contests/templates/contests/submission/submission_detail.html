@@ -197,14 +197,26 @@
     {% with submission_options=submission.options.all %}
     {% if submission|is_hidden_from_user:request %}
     {% for option in submission.problem.option_set.all %}
-    <li class="list-group-item">
-        {% if option in submission_options %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% endif %} {{ option.text }}
+    <li class="list-group-item d-flex">
+        {{ option.text }}
+        {% if option in submission_options %}
+        <span class="ml-auto"><i class="fa fa-check fa-fw" aria-hidden="true"></i></span>
+        {% endif %}
     </li>
     {% endfor %}
     {% else %}
     {% for option in submission.problem.option_set.all %}
-    <li class="list-group-item {% if option in submission_options %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
-        {% if option in submission_options %}{% if option.is_correct %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% else %}<i class="fa fa-times-circle-o" aria-hidden="true"></i>{% endif %}{% endif %} {{ option.text }}
+    <li class="list-group-item d-flex {% if option in submission_options %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
+        {{ option.text }}
+        {% if option in submission_options %}
+        <span class="ml-auto" data-toggle="tooltip" data-placement="left" title="Выбранный вариант ответа">
+            {% if option.is_correct %}
+            <i class="fa fa-check fa-fw" aria-hidden="true"></i>
+            {% else %}
+            <i class="fa fa-times fa-fw" aria-hidden="true"></i>
+            {% endif %}
+        </span>
+        {% endif %}
     </li>
     {% endfor %}
     {% endif %}
@@ -323,14 +335,26 @@
                     {% with submission_options=sub_form.instance.options.all %}
                     {% if submission|is_hidden_from_user:request %}
                     {% for option in sub_form.instance.problem.option_set.all %}
-                    <li class="list-group-item">
-                        {% if option in submission_options %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% endif %} {{ option.text }}
+                    <li class="list-group-item d-flex">
+                        {{ option.text }}
+                        {% if option in submission_options %}
+                        <span class="ml-auto"><i class="fa fa-check fa-fw" aria-hidden="true"></i></span>
+                        {% endif %}
                     </li>
                     {% endfor %}
                     {% else %}
                     {% for option in sub_form.instance.problem.option_set.all %}
-                    <li class="list-group-item {% if option in submission_options %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
-                        {% if option in submission_options %}{% if option.is_correct %}<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% else %}<i class="fa fa-times-circle-o" aria-hidden="true"></i>{% endif %}{% endif %} {{ option.text }}
+                    <li class="list-group-item d-flex {% if option in submission_options %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
+                        {{ option.text }}
+                        {% if option in submission_options %}
+                        <span class="ml-auto" data-toggle="tooltip" data-placement="left" title="Выбранный вариант ответа">
+                            {% if option.is_correct %}
+                            <i class="fa fa-check fa-fw" aria-hidden="true"></i>
+                            {% else %}
+                            <i class="fa fa-times fa-fw" aria-hidden="true"></i>
+                            {% endif %}
+                        </span>
+                        {% endif %}
                     </li>
                     {% endfor %}
                     {% endif %}

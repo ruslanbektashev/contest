@@ -1826,7 +1826,7 @@ class SubmissionDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         if self.object.problem.type == 'Test':
             forms = dict()
             sub_submission_id = self.storage.get('sub_submission_id')
-            for sub_submission in self.object.sub_submissions.all():
+            for sub_submission in self.object.sub_submissions.order_by('id'):
                 if sub_submission.id == sub_submission_id:
                     form = sub_form_class(instance=sub_submission, data=self.request.POST)
                     self.storage['sub_form'] = form

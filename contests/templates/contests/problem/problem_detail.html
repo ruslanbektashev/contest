@@ -102,7 +102,11 @@
                         <div class="card">
                             <ul class="list-group list-group-flush">
                                 {% for option in subproblem.sub_problem.option_set.all %}
-                                <li class="list-group-item">{{ option.text }}</li>
+                                    <li class="list-group-item d-flex">{{ option.text }}
+                                    {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
+                                        {% if option.is_correct %}<span class="text-success ml-auto"><i class="fa fa-check fa-fw"></i></span>{% endif %}
+                                    {% endif %}
+                                    </li>
                                 {% endfor %}
                             </ul>
                         </div>
