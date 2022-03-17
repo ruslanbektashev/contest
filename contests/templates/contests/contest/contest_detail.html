@@ -83,11 +83,11 @@
             <div class="card-body" style="min-height: 300px;">
                 {% include 'contests/problem/problem_list.html' with problems=contest.problem_set.all %}
                 {% if perms.contests.add_problem or request|has_leader_permission:contest.course %}
-                <div class="dropdown" data-boundary="viewport">
-                    <button id="btn_problem_create" class="btn btn-block btn-light" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-boundary="viewport">
+                <div id="dropdown_menu_problem_create" class="dropdown">
+                    <button id="btn_problem_create" class="btn btn-block btn-light" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="fa fa-plus fa-fw"></i> Добавить задачу
                     </button>
-                    <div class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="btn_problem_create" data-boundary="viewport">
+                    <div id="menu_problem_create" class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="btn_problem_create">
                         <a href="{% url 'contests:problem-create' contest.id 'Text' %}" class="dropdown-item"><i class="fa fa-keyboard-o fa-fw"></i> С ответом в виде текста</a>
                         <a href="{% url 'contests:problem-create' contest.id 'Files' %}" class="dropdown-item"><i class="fa fa-file-text-o fa-fw"></i> С ответом в виде файлов</a>
                         <a href="{% url 'contests:problem-create' contest.id 'Program' %}" class="dropdown-item"><i class="fa fa-file-code-o fa-fw"></i> С ответом в виде программы</a>
@@ -189,5 +189,22 @@ driver.defineSteps([
     {% endif %}
     {% endif %}
 ])
+</script>
+<script>
+let dropdown_to_fix = $('#dropdown_menu_problem_create');
+dropdown_to_fix.on('show.bs.dropdown', function () {
+    $('body').append($('#menu_problem_create').css({
+        position: 'absolute',
+        left: dropdown_to_fix.offset().left,
+        top: dropdown_to_fix.offset().top
+    }).detach());
+});
+dropdown_to_fix.on('hidden.bs.dropdown', function () {
+    dropdown_to_fix.append($('#menu_problem_create').css({
+        position: false,
+        left: false,
+        top: false
+    }).detach());
+});
 </script>
 {% endblock javascript %}
