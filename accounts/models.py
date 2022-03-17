@@ -503,7 +503,7 @@ class Comment(models.Model):
         ) + '#comment_{comment_id}'.format(comment_id=self.pk)
 
     def __str__(self):
-        return "Комментарий {}".format(self.pk)
+        return f"Комментарий {self.pk}"
 
 
 """================================================== Announcement =================================================="""
@@ -528,7 +528,7 @@ class Announcement(CRUDEntry):
             Notification.objects.notify(self.group, subject=self.owner, action=action, object=self)
 
     def __str__(self):
-        return "%s" % self.title
+        return self.title
 
 
 """================================================== Notification =================================================="""

@@ -28,7 +28,7 @@ from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateF
                             OptionForm, ProblemCommonForm, ProblemMoveForm, ProblemProgramForm, ProblemAttachmentForm,
                             ProblemRollbackResultsForm, ProblemTestForm, SubmissionProgramForm, SubmissionFilesForm,
                             SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm,
-                            SubmissionUpdateForm, UTTestForm)
+                            SubmissionUpdateForm, UTTestForm, SubProblemForm)
 from contests.models import (Assignment, Attachment, Contest, Course, CourseLeader, Credit, Execution, FNTest, Filter,
                              IOTest, Option, Problem, SubProblem, Submission, SubmissionPattern, UTTest)
 from contests.results import TaskProgress
@@ -1038,7 +1038,7 @@ class ProblemDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 
 class SubProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
     model = SubProblem
-    fields = ['number']
+    form_class = SubProblemForm
     template_name = 'contests/subproblem/subproblem_form.html'
     permission_required = 'contests.change_subproblem'
 

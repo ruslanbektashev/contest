@@ -63,7 +63,7 @@ class Attachment(CDEntry):
         return os.path.split(self.file.name)[1]
 
     def __str__(self):
-        return "%s" % self.filename
+        return self.filename
 
 
 @receiver(models.signals.post_delete, sender=Attachment)
@@ -153,7 +153,7 @@ class Course(SoftDeletionModel, CRUDEntry):
             Filter.objects.get_or_create(user=self.owner, course=self)
 
     def __str__(self):
-        return "%s" % self.title
+        return self.title
 
 
 """================================================== CourseLeader =================================================="""
@@ -175,7 +175,7 @@ class CourseLeader(models.Model):
         verbose_name_plural = "Преподаватели курсов"
 
     def __str__(self):
-        return "{} преподает {}".format(self.leader, self.course)
+        return f"{self.leader.account.get_short_name()} преподает {self.course}"
 
     def save(self, *args, **kwargs):
         created = self._state.adding
@@ -356,7 +356,7 @@ class Credit(CRUDEntry):
         verbose_name_plural = "Зачеты"
 
     def __str__(self):
-        return "Зачет по курсу: %s" % self.course.title
+        return f"Зачет {self.user.account.get_short_name()} по курсу: {self.course}"
 
 
 """===================================================== Filter ====================================================="""
@@ -422,7 +422,7 @@ class Contest(SoftDeletionModel, CRUDEntry):
         return reverse('contests:contest-discussion', kwargs={'pk': self.pk})
 
     def __str__(self):
-        return "#%i. %s" % (self.number, self.title)
+        return f"{self.number}. {self.title}"
 
 
 """==================================================== Problem ====================================================="""
@@ -577,7 +577,7 @@ class Problem(SoftDeletionModel, CRUDEntry):
         return reverse('contests:problem-discussion', kwargs={'pk': self.pk})
 
     def __str__(self):
-        return "#%i. %s" % (self.number, self.title)
+        return f"{self.number}. {self.title}"
 
 
 """===================================================== Option ====================================================="""
@@ -614,13 +614,14 @@ class SubProblem(models.Model):
     objects = SubProblemManager()
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=('problem', 'sub_problem'), name='unique_sub_problem_in_problem')]
+        constraints = [models.UniqueConstraint(fields=('problem', 'sub_problem'), name='unique_sub_problem_in_problem'),
+                       models.UniqueConstraint(fields=('problem', 'number'), name='unique_number_in_problem')]
         ordering = ('number',)
         verbose_name = "Подзадача теста"
         verbose_name_plural = "Подзадачи теста"
 
     def __str__(self):
-        return "{} -> {} ({})".format(self.problem, self.sub_problem, self.number)
+        return f"{self.number}-я подзадача в тесте {self.problem.title}"
 
 
 """=============================================== SubmissionPattern ================================================"""
@@ -641,7 +642,7 @@ class SubmissionPattern(CRUDEntry):
         return reverse('contests:submission-pattern-detail', kwargs={'pk': self.pk})
 
     def __str__(self):
-        return "%s" % self.title
+        return self.title
 
 
 """===================================================== Tests ======================================================"""
@@ -682,7 +683,7 @@ class BasicTest(CRUDEntry):
             return self.problem.launch_args.split() + launch_args
 
     def __str__(self):
-        return "%s" % self.title
+        return self.title
 
 
 class IOTest(BasicTest):
@@ -792,7 +793,7 @@ class FNTest(CRUDEntry):
         return getattr(module, function_name)(submission, observer, problem, self, sandbox_type=sandbox_type)
 
     def __str__(self):
-        return "%s" % self.title
+        return self.title
 
 
 """=================================================== Assignment ==================================================="""
@@ -922,7 +923,7 @@ class Assignment(CRUDEntry):
         return reverse('contests:assignment-discussion', kwargs={'pk': self.pk})
 
     def __str__(self):
-        return "Задание для %s: %s" % (self.user.account, self.problem)
+        return f"Задание для {self.user.account.get_short_name()}: {self.problem}"
 
 
 @receiver(models.signals.post_save, sender=Assignment)
@@ -1143,7 +1144,7 @@ class Submission(CRDEntry):
                                         relation="к задаче", reference=self.problem)
 
     def __str__(self):
-        return "Посылка от %s к задаче %s" % (self.owner.account, self.problem)
+        return f"Посылка от {self.owner.account.get_short_name()} к задаче {self.problem}"
 
 
 """=================================================== Execution ===================================================="""
@@ -1200,4 +1201,4 @@ class Execution(models.Model):
         verbose_name_plural = "Запуски"
 
     def __str__(self):
-        return "Запуск: %s на тесте %s от %s" % (self.submission, self.test, self.date_created)
+        return f"Запуск: {self.submission} на тесте {self.test} от {self.date_created}"

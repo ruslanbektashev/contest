@@ -32,7 +32,7 @@ class Question(CRUDEntry):
             Notification.objects.notify(self.owner, subject=self, action="обновлен")
 
     def __str__(self):
-        return "%s" % self.question
+        return self.question
 
 
 """===================================================== Report ====================================================="""
@@ -102,4 +102,4 @@ class TutorialStepPass(models.Model):
         verbose_name_plural = "Шаги руководства"
 
     def __str__(self):
-        return "{}: {}/{}".format(self.user.account, self.view, self.step)
+        return f"{self.user.account.get_short_name()}: {self.view}/{self.step}"

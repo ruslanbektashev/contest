@@ -5,7 +5,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
 from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
 
@@ -269,28 +269,26 @@ class ContestForm(ContestPartialForm):
         model = Contest
         fields = ['course', 'title', 'description', 'number', 'hidden', 'soft_deleted']
         widgets = {'course': forms.HiddenInput}
-
-    def full_clean(self):
-        super().full_clean()
-        for error in self.non_field_errors().as_data():
-            if error.code == 'unique_together':
-                error.message = "Раздел с номером %d в этом курсе уже существует." % self.cleaned_data['number']
+        error_messages = {
+            NON_FIELD_ERRORS: {
+                'unique_together': "Раздел с таким номером уже существует в этом курсе.",
+            }
+        }
 
 
 class ContestMoveForm(forms.ModelForm):
     class Meta:
         model = Contest
         fields = ['course', 'number', 'soft_deleted']
+        error_messages = {
+            NON_FIELD_ERRORS: {
+                'unique_together': "Раздел с таким номером уже существует в этом курсе.",
+            }
+        }
 
     def __init__(self, course_queryset=None, **kwargs):
         super().__init__(**kwargs)
         self.fields['course'].queryset = course_queryset
-
-    def full_clean(self):
-        super().full_clean()
-        for error in self.non_field_errors().as_data():
-            if error.code == 'unique_together':
-                error.message = "Раздел с номером %d в этом курсе уже существует." % self.cleaned_data['number']
 
 
 """==================================================== Problem ====================================================="""
@@ -307,6 +305,11 @@ class ProblemForm(ProblemAttachmentForm):
         fields = ['contest', 'type', 'title', 'description', 'number', 'soft_deleted', 'score_max', 'score_for_5',
                   'score_for_4', 'score_for_3', 'difficulty']
         widgets = {'contest': forms.HiddenInput, 'type': forms.HiddenInput}
+        error_messages = {
+            NON_FIELD_ERRORS: {
+                'unique_together': "Задача с таким номером уже существует в этом разделе.",
+            }
+        }
 
     def clean(self):
         if not (self.cleaned_data['score_for_3'] <= self.cleaned_data['score_for_4'] <= self.cleaned_data['score_for_5']):
@@ -318,28 +321,21 @@ class ProblemForm(ProblemAttachmentForm):
                                   code='criteria_exceeds_score_max')
         return super().clean()
 
-    def full_clean(self):
-        super().full_clean()
-        for error in self.non_field_errors().as_data():
-            if error.code == 'unique_together':
-                error.message = "Задача с номером %d в этом разделе уже существует." % self.cleaned_data['number']
-
 
 class ProblemMoveForm(forms.ModelForm):
     class Meta:
         model = Problem
         fields = ['contest', 'number', 'soft_deleted']
+        error_messages = {
+            NON_FIELD_ERRORS: {
+                'unique_together': "Задача с таким номером уже существует в этом разделе.",
+            }
+        }
 
     def __init__(self, contest_queryset=None, **kwargs):
         super().__init__(**kwargs)
         self.fields['contest'].queryset = contest_queryset
         self.fields['contest'].choices = grouped_contests(contest_queryset)
-
-    def full_clean(self):
-        super().full_clean()
-        for error in self.non_field_errors().as_data():
-            if error.code == 'unique_together':
-                error.message = "Задача с номером %d в этом разделе уже существует." % self.cleaned_data['number']
 
 
 class ProblemProgramForm(ProblemForm):
@@ -445,6 +441,21 @@ def grouped_contests(contests, multiple=False):
         group = (course, contest_choices)
         grouped.append(group)
     return grouped
+
+
+"""=================================================== SubProblem ==================================================="""
+
+
+class SubProblemForm(forms.ModelForm):
+    class Meta:
+        model = SubProblem
+        fields = ['problem', 'number']
+        widgets = {'problem': forms.HiddenInput}
+        error_messages = {
+            NON_FIELD_ERRORS: {
+                'unique_together': "Такой номер подзадачи уже занят в тесте",
+            }
+        }
 
 
 """=============================================== SubmissionPattern ================================================"""

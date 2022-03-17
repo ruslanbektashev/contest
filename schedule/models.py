@@ -51,7 +51,7 @@ class Schedule(CRUDEntry):
             pass
 
     def __str__(self):
-        return "{} - {}".format(date(self.date_from, 'd E Y'), date(self.date_to, 'd E Y'))
+        return f"{date(self.date_from, 'd E Y')} - {date(self.date_to, 'd E Y')}"
 
 
 def schedule_attachment_file_path(instance, filename):
