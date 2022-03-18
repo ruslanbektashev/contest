@@ -166,7 +166,7 @@
 </div>
 {% if submission.footprint %}
 {% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
-<div class="text-right">
+<div class="text-right mb-3">
 <span data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям">
     <i class="fa fa-lock fa-fw"></i>
 {% if submission.has_footprint_increments %}
@@ -178,7 +178,7 @@
         Вставка текста не обнаружена.
     </span>
 {% endif %}
-    <button class="btn btn-link px-0" onclick="toggleText(this, 'Показать график', 'Скрыть график')" data-toggle="collapse" data-target="#collapseChart" aria-expanded="false" aria-controls="collapseChart">
+    <button class="btn btn-link p-0" onclick="toggleText(this, 'Показать график', 'Скрыть график')" data-toggle="collapse" data-target="#collapseChart" aria-expanded="false" aria-controls="collapseChart">
         Показать график
     </button>
 </span>
