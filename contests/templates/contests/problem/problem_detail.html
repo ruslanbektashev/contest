@@ -279,13 +279,13 @@
 <script type="text/javascript">
 let correct_option_elements = document.getElementsByClassName('contest-correct-option');
 function toggleCorrectOptions(elem, firstText, secondText) {
-    let toggler;
+    let toggle_fn;
     if (elem.innerText === firstText)
-        toggler = (elem) => elem.classList.remove('d-none');
+        toggle_fn = (elem) => elem.classList.remove('d-none');
     else
-        toggler = (elem) => elem.classList.add('d-none');
+        toggle_fn = (elem) => elem.classList.add('d-none');
     for (let correct_option_element of correct_option_elements)
-        toggler(correct_option_element);
+        toggle_fn(correct_option_element);
     toggleText(elem, firstText, secondText);
 }
 </script>

@@ -102,7 +102,7 @@
 <legend>
     Преподаватели
     <span class="pull-right">
-        {% if perms.contests.change_course %}
+        {% if perms.contests.change_course or request|has_leader_permission:course %}
         <a href="{% url 'contests:course-update-leaders' course.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Изменить ведущих преподавателей"><i class="fa fa-edit fa-fw"></i></a>
         {% endif %}
     </span>
@@ -115,7 +115,7 @@
     {% empty %}
     <div class="col-12">
         <div class="alert alert-info">
-            Ведущие преподаватели на этом курсе не назначены. {% if perms.contests.change_course %}Вы можете это <a href="{% url 'contests:course-update-leaders' course.id %}">исправить</a>.{% endif %}
+            Ведущие преподаватели на этом курсе не назначены. {% if perms.contests.change_course or request|has_leader_permission:course %}Вы можете это <a href="{% url 'contests:course-update-leaders' course.id %}">исправить</a>.{% endif %}
         </div>
     </div>
     {% endfor %}

@@ -1,4 +1,4 @@
-{% load contests %}
+{% load views contests %}
 <div class="table-responsive-lg mt-3">
     <table class="table table-sm table-hover">
         <tbody>
@@ -7,7 +7,7 @@
                 <td class="text-muted" style="width: 26%;"><span>{{ credit.course.get_level_display }}</span></td>
                 <td style="vertical-align: middle;"><a href="{% url 'accounts:account-course-results' account.user_id credit.course.id %}">{{ credit.course }}</a></td>
                 <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    {% if perms.contests.change_credit %}
+                    {% if perms.contests.change_credit or request|has_leader_permission:credit.course %}
                     <a href="{% url 'contests:credit-update' credit.id %}" class="numtus status-{{ credit.score|colorize }}" data-toggle="tooltip" data-placement="left" title="{{ credit.get_score_display }}">
                         {{ credit.score|default:'-' }}
                     </a>

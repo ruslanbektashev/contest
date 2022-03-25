@@ -554,7 +554,7 @@ class AssignmentForm(AssignmentUpdateForm):
 class AssignmentSetForm(forms.Form):
     contest = forms.ModelChoiceField(queryset=Contest.objects.none(), label="Раздел")
     type = forms.ChoiceField(choices=Problem.TYPE_CHOICES, initial='Program', label="Тип задач")
-    limit_per_user = forms.IntegerField(min_value=1, max_value=10, initial=1, label="Дополнить до",
+    limit_per_user = forms.IntegerField(min_value=1, max_value=20, initial=1, label="Дополнить до",
                                         help_text="Количество заданий в выбранном разделе увеличится до указанного "
                                                   "значения у каждого студента")
     submission_limit = forms.IntegerField(initial=Assignment.DEFAULT_SUBMISSION_LIMIT,
