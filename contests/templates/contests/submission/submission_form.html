@@ -31,13 +31,14 @@
 
 {% block content %}
 <legend>
-    Отправить решение
+    Отправка решения
     {% if main_problem and assignment.deadline is not None and assignment.deadline > current_time %}
     <span id="countdown_wrapper" class="text-muted pull-right">осталось: <span id="countdown_to_deadline"></span></span>
     {% endif %}
 </legend>
 
 {% if problem.type == 'Text' or problem.type == 'Options' or problem.type == 'Files' %}
+<h6 class="text-muted">Вопрос:</h6>
 <p>{{ problem.description|safe }}</p>
 {% endif %}
 
@@ -94,6 +95,13 @@
 
     {% elif problem.type == 'Options' %}
 
+    {% if form.options.errors %}
+    <div class="alert alert-danger">
+        {% for error in form.options.errors %}
+        {{ error }}<br>
+        {% endfor %}
+    </div>
+    {% endif %}
     {{ form.options }}
 
     {% endif %}

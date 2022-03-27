@@ -10,7 +10,7 @@ from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
 
 from accounts.models import Account
-from contest.widgets import BootstrapCheckboxSelect, BootstrapRadioSelect
+from contest.widgets import OptionCheckboxSelect, OptionRadioSelect
 from contests.models import (Assignment, Attachment, Contest, Course, CourseLeader, FNTest, Option, Problem, SubProblem,
                              Submission, SubmissionPattern, UTTest)
 
@@ -383,15 +383,13 @@ class OptionBaseFormSet(forms.BaseInlineFormSet):
 class ProblemTestForm(ProblemForm):
     class Meta(ProblemForm.Meta):
         fields = ProblemForm.Meta.fields + ['sub_problems']
+        widgets = {'contest': forms.HiddenInput, 'type': forms.HiddenInput, 'score_max': forms.HiddenInput}
+        labels = {'score_for_5': "Процентов для 5", 'score_for_4': "Процентов для 4", 'score_for_3': "Процентов для 3"}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['sub_problems'].queryset = Problem.objects.filter(contest=self.initial['contest'],
                                                                       type__in=['Program', 'Files', 'Text', 'Options'])
-        self.fields['score_for_5'].label = "Процентов для 5"
-        self.fields['score_for_4'].label = "Процентов для 4"
-        self.fields['score_for_3'].label = "Процентов для 3"
-        self.fields['score_max'].widget = forms.HiddenInput()
 
     def clean_sub_problems(self):
         if len(self.cleaned_data['sub_problems']) <= 1:
@@ -655,17 +653,22 @@ class SubmissionOptionsForm(SubmissionForm):
     class Meta:
         model = Submission
         fields = ['options']
+        error_messages = {
+            'options': {
+                'required': "Не выбран ни один вариант ответа."
+            }
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        options = self.problem.option_set.all()
+        options = self.problem.option_set.order_randomly()
+        self.fields['options'].queryset = options
         if options.filter(is_correct=True).count() > 1:
-            widget = BootstrapCheckboxSelect()
+            widget_class = OptionCheckboxSelect
         else:
-            widget = BootstrapRadioSelect()
-            widget.allow_multiple_selected = True
-        self.fields['options'] = forms.ModelMultipleChoiceField(required=True, label="Варианты",  queryset=options,
-                                                                widget=widget)
+            widget_class = OptionRadioSelect
+            widget_class.allow_multiple_selected = True
+        self.fields['options'].widget = widget_class(choices=self.fields['options'].choices)
 
 
 class SubmissionFilesForm(SubmissionAttachmentForm):

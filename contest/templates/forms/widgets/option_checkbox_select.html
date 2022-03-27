@@ -1,0 +1,13 @@
+{% with id=widget.attrs.id %}
+<ul {% if id %}id="{{ id }}" {% endif %}class="list-group mb-3{% if widget.attrs.class %} {{ widget.attrs.class }}{% endif %}">
+    {% for group, options, index in widget.optgroups %}
+    {% for option in options %}
+    <li class="list-group-item">
+        <div class="custom-control custom-checkbox">
+            {% include option.template_name with widget=option %}
+        </div>
+    </li>
+    {% endfor %}
+    {% endfor %}
+</ul>
+{% endwith %}

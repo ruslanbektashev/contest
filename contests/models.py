@@ -583,11 +583,18 @@ class Problem(SoftDeletionModel, CRUDEntry):
 """===================================================== Option ====================================================="""
 
 
+class OptionQuerySet(models.QuerySet):
+    def order_randomly(self):
+        return self.order_by('?')
+
+
 class Option(models.Model):
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE, verbose_name="Задача")
 
     text = models.CharField(max_length=250, verbose_name="Текст")
     is_correct = models.BooleanField(default=False, verbose_name="Верный?")
+
+    objects = models.Manager.from_queryset(OptionQuerySet)()
 
     class Meta:
         verbose_name = "Вариант ответа"

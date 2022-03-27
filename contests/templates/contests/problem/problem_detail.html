@@ -66,7 +66,7 @@
                 {% if problem.type == 'Options' %}
                 <h6 class="text-muted">Варианты ответа:</h6>
                 <ul class="list-group list-group mb-3">
-                    {% for option in problem.option_set.all %}
+                    {% for option in problem.option_set.order_randomly %}
                     <li class="list-group-item d-flex">
                         {{ option.text }}
                         {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
@@ -100,11 +100,11 @@
                     </div>
                     <div class="card-body">
                         {{ subproblem.sub_problem.description|safe }}
-                        {% if subproblem.sub_problem.option_set.exists %}
+                        {% if subproblem.sub_problem.type == 'Options' %}
                         <h6 class="text-muted">Варианты ответа:</h6>
                         <div class="card">
                             <ul class="list-group list-group-flush">
-                                {% for option in subproblem.sub_problem.option_set.all %}
+                                {% for option in subproblem.sub_problem.option_set.order_randomly %}
                                     <li class="list-group-item d-flex">{{ option.text }}
                                     {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
                                         {% if option.is_correct %}<span class="contest-correct-option text-success ml-auto d-none"><i class="fa fa-check fa-fw"></i></span>{% endif %}
