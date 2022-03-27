@@ -8,6 +8,7 @@ from django.views.generic import DetailView, CreateView, RedirectView, TemplateV
 from markdown import markdown
 
 from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
+from support.forms import QuestionForm
 from support.models import Discussion, Question, Report, TutorialStepPass
 
 
@@ -52,14 +53,14 @@ class QuestionDetail(LoginRequiredMixin, DetailView):
 
 class QuestionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
     model = Question
-    fields = ['question', 'addressee', 'answer', 'is_published', 'redirect_comment']
+    form_class = QuestionForm
     template_name = 'support/question/question_form.html'
     permission_required = 'support.add_question'
 
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        form.fields['addressee'].queryset = User.objects.filter(groups__name__in=["Преподаватель", "Модератор"])
-        return form
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['addressee_queryset'] = User.objects.filter(groups__name__in=["Преподаватель", "Модератор"])
+        return kwargs
 
     def form_valid(self, form):
         form.instance.owner = self.request.user

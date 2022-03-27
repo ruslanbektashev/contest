@@ -28,7 +28,7 @@
     {% render_field form.answer class+="form-control" %}
     {% endif %}
     {% if not question or perms.support.change_question %}
-    {% render_field form.addressee class+="form-control selectpicker" %}
+    {% render_field form.addressee class+="form-control selectpicker" data-container="body" data-live-search="true" data-size=10 %}
     {% endif %}
     {% if perms.support.change_question %}
     {% render_field form.redirect_comment class+="form-control" %}
