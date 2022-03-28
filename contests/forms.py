@@ -725,6 +725,16 @@ class SubmissionUpdateForm(forms.ModelForm):
         self.fields['score'].widget.attrs['max'] = self.instance.problem.score_max
         self.fields['score'].required = False
         self.fields['status'].required = False
+        if self.instance.problem.type != 'Program':
+            self.fields['status'].choices = [
+                ('OK', "Задача решена"),
+                ('PS', "Задача решена частично"),
+                ('TF', "Тест провален"),
+                ('WA', "Неверный ответ"),
+                ('NA', "Ответ отсутствует"),
+                ('EV', "Посылка проверяется"),
+                ('UN', "Посылка не проверена")
+            ]
 
     def clean_score(self):
         if self.cleaned_data['score'] > self.instance.problem.score_max:

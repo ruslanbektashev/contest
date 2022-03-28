@@ -1822,19 +1822,16 @@ class SubmissionDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
 
     def get_form(self, form_class=None):
         sub_form_class = self.sub_form_class
-
         if self.object.problem.type == 'Test':
             forms = dict()
             sub_submission_id = self.storage.get('sub_submission_id')
             for sub_submission in self.object.sub_submissions.order_by('id'):
                 if sub_submission.id == sub_submission_id:
                     form = sub_form_class(instance=sub_submission, data=self.request.POST)
-                    self.storage['sub_form'] = form
-                    forms[sub_submission.id] = form
+                    forms[sub_submission.id] = self.storage['sub_form'] = form
                 else:
                     forms[sub_submission.id] = sub_form_class(instance=sub_submission)
             self.storage['forms'] = forms
-
         form_class = self.get_form_class()
         if 'sub_form' not in self.storage:
             return super().get_form()                # filled with POST data
