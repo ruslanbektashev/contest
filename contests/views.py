@@ -22,13 +22,13 @@ from accounts.models import Account, Faculty
 from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, LeadershipOrMixin, PaginatorMixin
 from contest.soft_deletion import SoftDeletionUpdateView, SoftDeletionDeleteView
 from contest.templatetags.views import has_leader_permission, get_updated_query_string
-from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, AssignmentUpdatePartialForm,
-                            ContestForm, ContestMoveForm, ContestPartialForm, CourseFinishForm, CourseForm,
-                            CourseLeaderForm, CreditReportForm, CreditSetForm, FNTestForm, OptionBaseFormSet,
-                            OptionForm, ProblemCommonForm, ProblemMoveForm, ProblemProgramForm, ProblemAttachmentForm,
-                            ProblemRollbackResultsForm, ProblemTestForm, SubmissionProgramForm, SubmissionFilesForm,
-                            SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm, SubmissionTextForm,
-                            SubmissionUpdateForm, UTTestForm, SubProblemForm)
+from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, AssignmentEvaluateForm,
+                            AssignmentUpdateAttachmentForm, ContestForm, ContestMoveForm, ContestAttachmentForm,
+                            CourseFinishForm, CourseForm, CourseLeaderForm, CreditReportForm, CreditSetForm, FNTestForm,
+                            OptionBaseFormSet, OptionForm, ProblemCommonForm, ProblemMoveForm, ProblemProgramForm,
+                            ProblemAttachmentForm, ProblemRollbackResultsForm, ProblemTestForm, SubmissionProgramForm,
+                            SubmissionFilesForm, SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm,
+                            SubmissionTextForm, SubmissionUpdateForm, UTTestForm, SubProblemForm)
 from contests.models import (Assignment, Attachment, Contest, Course, CourseLeader, Credit, Execution, FNTest, Filter,
                              IOTest, Option, Problem, SubProblem, Submission, SubmissionPattern, UTTest)
 from contests.results import TaskProgress
@@ -711,7 +711,7 @@ class ContestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 
     def get_form_class(self):
         if self.storage['action'] == 'add_files':
-            return ContestPartialForm
+            return ContestAttachmentForm
         elif self.storage['action'] == 'move':
             return ContestMoveForm
         else:
@@ -1542,6 +1542,11 @@ class AssignmentDiscussion(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMix
         return context
 
 
+class AssignmentAttachment(LoginRedirectMixin, AttachmentDetail):
+    model = Assignment
+    template_name = 'contests/assignment/assignment_attachment.html'
+
+
 class AssignmentCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
     model = Assignment
     form_class = AssignmentForm
@@ -1582,6 +1587,7 @@ class AssignmentCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['course'] = self.storage['course']
+        context['title'] = "Добавление задания"
         return context
 
     def get_success_url(self):
@@ -1654,7 +1660,7 @@ class AssignmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['partial'] = int(request.GET.get('partial') or 0)
+        self.storage['action'] = request.GET.get('action', None)
         return super().dispatch(request, *args, **kwargs)
 
     def has_ownership(self):
@@ -1668,21 +1674,29 @@ class AssignmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def get_form_class(self):
-        if self.storage['partial']:
-            return AssignmentUpdatePartialForm
+        if self.storage['action'] == 'add_files':
+            return AssignmentUpdateAttachmentForm
+        elif self.storage['action'] == 'evaluate':
+            return AssignmentEvaluateForm
         else:
             return AssignmentUpdateForm
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        if not self.storage['partial']:
+        if self.storage['action'] is None:
             kwargs['course'] = self.object.course
         return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['course'] = self.object.course
-        context['partial'] = self.storage['partial']
+        context['action'] = self.storage['action']
+        if self.storage['action'] == 'add_files':
+            context['title'] = "Прикрепление файлов к заданию"
+        elif self.storage['action'] == 'evaluate':
+            context['title'] = "Оценка задания"
+        else:
+            context['title'] = "Редактирование задания"
         return context
 
 

@@ -22,15 +22,16 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if assignment %}Редактирование{% else %}Добавление{% endif %} задания</legend>
-<form action="" method="post">
+<legend>{{ title }}</legend>
+<form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-    {% if not partial %}
+    {% if action is None %}
     {% render_field form.user class+="form-control selectpicker" %}
     {% render_field form.problem class+="form-control selectpicker" %}
     {% endif %}
+    {% if action == 'evaluate' or action is None %}
     {% render_field form.score class+="form-control" %}
     {% render_field form.score_max class+="form-control" %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" %}
@@ -39,6 +40,12 @@
     {% render_field form.submission_limit class+="form-control" %}
     {% render_field form.deadline class+="form-control" placeholder="Неограниченно" %}
     {% render_field form.remark class+="form-control" %}
+    {% endif %}
+    {% if action == 'add_files' or action == 'evaluate' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.files class+="custom-file-input" %}
+    {% endwith %}
+    {% endif %}
     {% endwith %}
     {% render_submit_button value="Сохранить" %}
 </form>

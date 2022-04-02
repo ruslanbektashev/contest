@@ -53,7 +53,7 @@
     </tr>
 </table>
 {% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %}
-<a href="{% url 'contests:assignment-update' assignment.id %}?partial=1" class="btn btn-block btn-light border mb-3"><i class="fa fa-pencil fa-fw"></i> Изменить оценку</a>
+<a href="{% url 'contests:assignment-update' assignment.id %}?action=evaluate" class="btn btn-block btn-light border mb-3"><i class="fa fa-pencil fa-fw"></i> Изменить оценку</a>
 {% endif %}
 {% if perms.contests.add_submission and request|has_student_permission:assignment.user %}
 {% if not assignment.credit_incomplete %}
@@ -79,6 +79,12 @@
     </button>
 </div>
 {% endif %}
+<div class="w-100 mb-3">
+{% render_attachment_list assignment assignment.course %}
+{% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %}
+<a href="{% url 'contests:assignment-update' assignment.id %}?action=add_files" class="btn btn-block btn-light mb-3"><i class="fa fa-files-o fa-fw"></i> Прикрепить файлы</a>
+{% endif %}
+</div>
 <div class="col-xs-12 col-md-6 mx-auto">
     {% if submissions %}
     <h4>Посылки</h4>

@@ -506,7 +506,7 @@ class Problem(SoftDeletionModel, CRUDEntry):
     launch_args = models.CharField(max_length=255, blank=True, verbose_name="Параметры запуска")
     time_limit = models.PositiveSmallIntegerField(default=DEFAULT_TIME_LIMIT, verbose_name="Ограничение по времени")
     memory_limit = models.PositiveIntegerField(default=DEFAULT_MEMORY_LIMIT, verbose_name="Ограничение по памяти")
-    is_testable = models.BooleanField(default=True, verbose_name="Доступно для тестирования?")
+    is_testable = models.BooleanField(default=True, verbose_name="Разрешить автоматическую проверку решений")
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
@@ -597,7 +597,7 @@ class Option(models.Model):
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE, verbose_name="Задача")
 
     text = models.CharField(max_length=250, verbose_name="Текст")
-    is_correct = models.BooleanField(default=False, verbose_name="Верный?")
+    is_correct = models.BooleanField(default=False, verbose_name="Верный")
 
     objects = models.Manager.from_queryset(OptionQuerySet)()
 
@@ -878,13 +878,24 @@ class Assignment(CRUDEntry):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Студент")
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE, verbose_name="Задача")
 
-    score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE, validators=[MinValueValidator(0), MaxValueValidator(5)], verbose_name="Оценка")
-    score_max = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_MAX, validators=[MinValueValidator(3), MaxValueValidator(5)], verbose_name="Максимальная оценка", help_text="при прохождении посылкой всех тестов, система автоматической проверки ставит максимальную оценку минус один")
-    score_is_locked = models.BooleanField(default=False, verbose_name="Оценка заблокирована", help_text="заблокированная оценка не может быть изменена системой автоматической проверки")
-    submission_limit = models.PositiveSmallIntegerField(default=DEFAULT_SUBMISSION_LIMIT, verbose_name="Ограничение количества посылок")
+    score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE,
+                                             validators=[MinValueValidator(0), MaxValueValidator(5)],
+                                             verbose_name="Оценка")
+    score_max = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_MAX,
+                                                 validators=[MinValueValidator(3), MaxValueValidator(5)],
+                                                 verbose_name="Максимальная оценка",
+                                                 help_text="при прохождении посылкой всех тестов, система "
+                                                           "автоматической проверки ставит максимальную оценку минус "
+                                                           "один")
+    score_is_locked = models.BooleanField(default=False, verbose_name="Заблокировать оценку",
+                                          help_text="заблокированная оценка не может быть изменена системой "
+                                                    "автоматической проверки")
+    submission_limit = models.PositiveSmallIntegerField(default=DEFAULT_SUBMISSION_LIMIT,
+                                                        verbose_name="Ограничение количества посылок")
     remark = models.CharField(max_length=255, blank=True, verbose_name="Пометка", help_text="для преподавателей")
     deadline = models.DateTimeField(null=True, blank=True, verbose_name="Принимать посылки до")
 
+    attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
 
     objects = AssignmentManager.from_queryset(AssignmentQuerySet)()

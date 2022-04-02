@@ -59,6 +59,11 @@ class MediaAttachmentMixin:
                                 '.wmv', '.mp4', '.zip', '.djvu', '.sav']
 
 
+class SubmissionFilesAttachmentMixin:
+    FILE_SIZE_LIMIT = 20 * 1024 * 1024
+    FILES_ALLOWED_EXTENSIONS = ['.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf', '.png', '.jpg', '.jpeg']
+
+
 """=================================================== Attachment ==================================================="""
 
 
@@ -258,13 +263,13 @@ class CreditReportForm(forms.Form):
 """==================================================== Contest ====================================================="""
 
 
-class ContestPartialForm(MediaAttachmentMixin, AttachmentForm):
+class ContestAttachmentForm(MediaAttachmentMixin, AttachmentForm):
     class Meta:
         model = Contest
         fields = []
 
 
-class ContestForm(ContestPartialForm):
+class ContestForm(ContestAttachmentForm):
     class Meta:
         model = Contest
         fields = ['course', 'title', 'description', 'number', 'hidden', 'soft_deleted']
@@ -498,7 +503,13 @@ class FNTestForm(forms.ModelForm):
 """=================================================== Assignment ==================================================="""
 
 
-class AssignmentUpdatePartialForm(forms.ModelForm):
+class AssignmentUpdateAttachmentForm(SubmissionFilesAttachmentMixin, AttachmentForm):
+    class Meta:
+        model = Assignment
+        fields = []
+
+
+class AssignmentEvaluateForm(AssignmentUpdateAttachmentForm):
     class Meta:
         model = Assignment
         fields = ['score', 'score_max', 'score_is_locked', 'submission_limit', 'remark', 'deadline']
@@ -521,11 +532,11 @@ class AssignmentUpdatePartialForm(forms.ModelForm):
         return self.cleaned_data
 
 
-class AssignmentUpdateForm(AssignmentUpdatePartialForm):
+class AssignmentUpdateForm(AssignmentEvaluateForm):
     user = UserChoiceField(queryset=User.objects.none(), label="Студент", disabled=True)
 
-    class Meta(AssignmentUpdatePartialForm.Meta):
-        fields = AssignmentUpdatePartialForm.Meta.fields + ['user', 'problem']
+    class Meta(AssignmentEvaluateForm.Meta):
+        fields = AssignmentEvaluateForm.Meta.fields + ['user', 'problem']
 
     def __init__(self, course, contest=None, **kwargs):
         super().__init__(**kwargs)
@@ -671,10 +682,7 @@ class SubmissionOptionsForm(SubmissionForm):
         self.fields['options'].widget = widget_class(choices=self.fields['options'].choices)
 
 
-class SubmissionFilesForm(SubmissionAttachmentForm):
-    FILE_SIZE_LIMIT = 20 * 1024 * 1024
-    FILES_ALLOWED_EXTENSIONS = ['.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf', '.png', '.jpg', '.jpeg']
-
+class SubmissionFilesForm(SubmissionFilesAttachmentMixin, SubmissionAttachmentForm):
     class Meta:
         model = Submission
         fields = []

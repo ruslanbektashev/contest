@@ -102,6 +102,7 @@ urlpatterns = [
         path('<int:pk>/', include([
             path('', views.AssignmentDetail.as_view(), name='assignment-detail'),
             path('discussion', views.AssignmentDiscussion.as_view(), name='assignment-discussion'),
+            path('attachment/<int:attachment_id>', views.AssignmentAttachment.as_view(), name='assignment-attachment'),
             path('update', views.AssignmentUpdate.as_view(), name='assignment-update'),
             path('delete', views.AssignmentDelete.as_view(), name='assignment-delete')
         ])),

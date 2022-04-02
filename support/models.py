@@ -10,13 +10,15 @@ from contest.abstract import CRUDEntry
 
 class Question(CRUDEntry):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+", verbose_name="Владелец")
-    addressee = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True, related_name="+", verbose_name="Адресат")
+    addressee = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True, related_name="+",
+                                  verbose_name="Адресат")
 
     question = models.CharField(max_length=255, verbose_name="Вопрос")
     answer = models.TextField(blank=True, verbose_name="Ответ")
 
-    is_published = models.BooleanField(default=False, verbose_name="Опубликован?")
-    redirect_comment = models.CharField(max_length=255, null=True, blank=True, verbose_name="Комментарий к переадресации")
+    is_published = models.BooleanField(default=False, verbose_name="Опубликовать", help_text="Опубликованный ответ "
+                                                                                             "виден всем пользователям")
+    redirect_comment = models.CharField(max_length=255, null=True, blank=True, verbose_name="Комментарий адресату")
 
     class Meta:
         ordering = ('-date_created',)
