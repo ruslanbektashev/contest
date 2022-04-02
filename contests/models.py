@@ -77,10 +77,15 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 """===================================================== Course ====================================================="""
 
 
-class CourseManager(SoftDeletionManager):
-    def of_faculty(self, faculty_id):
-        return self.get_queryset().filter(Q(faculty__short_name="МФК") | Q(faculty_id=faculty_id)).distinct()
+class CourseQuerySet(SoftDeletionQuerySet):
+    def of_faculty(self, faculty):
+        if faculty.short_name == "МФК":
+            return self.filter(faculty_id=faculty.id)
+        else:
+            return self.filter(Q(faculty_id=faculty.id) | Q(faculty__short_name="МФК")).distinct()
 
+
+class CourseManager(SoftDeletionManager):
     def get_queryset_for_contest(self, course, user):
         queryset = self.get_queryset()
         return queryset.filter(Q(id=course.id) | Q(faculty=user.account.faculty, leaders__id=user.id)).distinct()
@@ -112,7 +117,7 @@ class Course(SoftDeletionModel, CRUDEntry):
 
     comment_set = GenericRelation(Comment, content_type_field='object_type')
 
-    objects = CourseManager.from_queryset(SoftDeletionQuerySet)()
+    objects = CourseManager.from_queryset(CourseQuerySet)()
 
     class Meta(CRUDEntry.Meta):
         ordering = ('level', 'id')

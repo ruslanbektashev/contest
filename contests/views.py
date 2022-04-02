@@ -199,17 +199,15 @@ class CourseList(LoginRedirectMixin, ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        if not self.request.user.account.is_student and not self.request.user.has_perm('accounts.add_faculty'):
-            course_ids = self.request.user.filter_set.values_list('course', flat=True)
-            queryset = queryset.filter(id__in=course_ids)
-        else:
-            queryset = queryset.filter(faculty=self.storage['faculty'])
-        return queryset
+        return super().get_queryset().filter(faculty=self.storage['faculty'])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['faculties'] = Faculty.objects.all()
+        if self.request.user.has_perm('accounts.add_faculty') or self.request.user.account.faculty.is_interfaculty:
+            faculties = Faculty.objects.all()
+        else:
+            faculties = Faculty.objects.available_for_user(self.request.user)
+        context['faculties'] = faculties
         context['faculty'] = self.storage['faculty']
         return context
 
@@ -243,13 +241,9 @@ class CourseUpdateLeaders(LoginRedirectMixin, OwnershipOrMixin, PermissionRequir
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['queryset'] = self.get_queryset()
-        leader_queryset = User.objects.filter(groups__name="Преподаватель")
-        if self.storage['course'].faculty.short_name != "МФК":
-            leader_queryset = leader_queryset.filter(account__faculty=self.storage['course'].faculty)
-        leader_queryset = leader_queryset.order_by('last_name', 'first_name')
         kwargs['form_kwargs'] = {
             'course': self.storage['course'],
-            'leader_queryset': leader_queryset
+            'leader_queryset': Account.staff.get_leader_queryset(self.storage['course'].faculty)
         }
         return kwargs
 
@@ -1505,7 +1499,7 @@ class AssignmentDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
     def has_ownership(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        return self.object.user_id == self.request.user.id
+        return self.object.course.owner_id == self.request.user.id or self.object.user_id == self.request.user.id
 
     def has_leadership(self):
         if not hasattr(self, 'object'):
@@ -1533,7 +1527,7 @@ class AssignmentDiscussion(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMix
     def has_ownership(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        return self.object.user_id == self.request.user.id
+        return self.object.course.owner_id == self.request.user.id or self.object.user_id == self.request.user.id
 
     def has_leadership(self):
         if not hasattr(self, 'object'):
@@ -1740,16 +1734,19 @@ class AssignmentCourseTable(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMi
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
-            self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
-            course_leader_queryset = CourseLeader.objects.filter(course=self.storage['course'], leader=request.user)
-            course_leader = course_leader_queryset.get() if course_leader_queryset.exists() else None
-            default_faculty_id = course_leader.leader.account.faculty_id if course_leader is not None else 0
-            default_group = course_leader.group if course_leader is not None else 0
-            default_subgroup = course_leader.subgroup if course_leader is not None else 0
+            course = get_object_or_404(Course, id=kwargs.pop('course_id'))
+            user_as_leader_queryset = CourseLeader.objects.filter(course=course, leader=request.user)
+            user_as_leader = user_as_leader_queryset.get() if user_as_leader_queryset.exists() else None
+            default_faculty_id = 0
+            if course.faculty.is_interfaculty and user_as_leader is not None:
+                default_faculty_id = user_as_leader.leader.account.faculty_id
+            default_group = user_as_leader.group if user_as_leader is not None else 0
+            default_subgroup = user_as_leader.subgroup if user_as_leader is not None else 0
+            self.storage['course'] = course
             self.storage['faculty_id'] = int(request.GET.get('faculty_id') or default_faculty_id)
             self.storage['group'] = int(request.GET.get('group') or default_group)
             self.storage['subgroup'] = int(request.GET.get('subgroup') or default_subgroup)
-            self.storage['debts'] = bool(request.GET.get('debts'))
+            self.storage['debts'] = int(request.GET.get('debts') or 0)
         return super().dispatch(request, *args, **kwargs)
 
     def has_ownership(self):
@@ -2403,10 +2400,8 @@ class ExecutionList(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 @login_required
 def index(request):
     if request.user.has_perm('contests.add_course'):
-        course_ids = request.user.filter_set.values_list('course_id')
-        faculty_id = int(request.GET.get('faculty_id') or request.user.account.faculty_id)
-        faculty_courses = Course.objects.of_faculty(faculty_id)
-        filtered_courses = faculty_courses.filter(id__in=course_ids)
+        filtered_course_ids = request.user.filter_set.values_list('course_id')
+        filtered_courses = Course.objects.filter(id__in=filtered_course_ids)
         return render(request, 'contests/index.html', {'courses': filtered_courses})
     else:
         return redirect(reverse('contests:assignment-list'))

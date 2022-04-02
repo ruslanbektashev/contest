@@ -7,6 +7,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models import Q
 from django.db.transaction import atomic
 from django.urls import reverse
 from django.utils import timezone
@@ -17,15 +18,26 @@ from contest.utils import transliterate
 """==================================================== Faculty ====================================================="""
 
 
+class FacultyManager(models.Manager):
+    def available_for_user(self, user):
+        return self.get_queryset().filter(Q(id=user.account.faculty_id) | Q(short_name="МФК")).distinct()
+
+
 class Faculty(models.Model):
     name = models.CharField(max_length=50, verbose_name="Наименование")
     short_name = models.CharField(max_length=50, verbose_name="Краткое наименование")
     group_name = models.CharField(max_length=50, verbose_name="Наименование группы")
     group_prefix = models.CharField(max_length=5, verbose_name="Префикс группы")
 
+    objects = FacultyManager()
+
     class Meta:
         verbose_name = "Факультет"
         verbose_name_plural = "Факультеты"
+
+    @property
+    def is_interfaculty(self):
+        return self.short_name == "МФК"
 
     def __str__(self):
         return self.short_name
@@ -124,6 +136,13 @@ class StaffManager(models.Manager):
                                               new_user_data['patronymic']).strip()
             credentials.append([user_initials, new_user_data['username'], new_user_data['password']])
         return self.bulk_create(new_accounts), credentials
+
+    def get_leader_queryset(self, faculty):
+        leader_queryset = User.objects.filter(groups__name="Преподаватель")
+        if faculty.short_name != "МФК":
+            leader_queryset = leader_queryset.filter(Q(account__faculty=faculty) | Q(account__faculty__short_name="МФК")).distinct()
+        leader_queryset = leader_queryset.order_by('account__faculty__short_name', 'last_name', 'first_name')
+        return leader_queryset
 
 
 class StudentManager(models.Manager):

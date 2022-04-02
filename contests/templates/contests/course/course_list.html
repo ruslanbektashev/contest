@@ -19,8 +19,6 @@
     {% endif %}
     </span>
 </legend>
-{% if not request.user.account.is_student %}
-{% if perms.accounts.add_faculty %}
 <div class="mb-3">
     <div class="btn-group btn-group-sm" role="group" aria-label="Факультет">
         {% for f in faculties %}
@@ -28,7 +26,6 @@
         {% endfor %}
     </div>
 </div>
-{% endif %}
 {% if courses %}
 <div class="table-responsive-lg mb-3">
     <table class="table">
@@ -42,7 +39,7 @@
             {% for course in courses %}
             <tr>
                 <td style="vertical-align: middle;"><a href="{{ course.get_absolute_url }}" class="mr-auto text-truncate">{{ course }}</a></td>
-                <td class="text-right" style="vertical-align: middle; width: 20%;">{{ course.get_level_display }}</td>
+                <td class="text-right text-truncate" style="width: 15%;">{{ course.get_level_display }}</td>
 {#                <td class="text-center" style="vertical-align: middle; width: 14%;">#}
 {#                    <span class="text-{{ course.avg_credit_score|colorize_course_avg_score }}"><strong>{{ course.avg_credit_score }}</strong></span>#}
 {#                </td>#}
@@ -58,8 +55,5 @@
 <div class="alert alert-info mb-3" role="alert">
     Курсы еще не добавлены
 </div>
-{% endif %}
-{% else %}
-{% include 'list.html' with lst=courses warn_if_empty="Курсы еще не добавлены" %}
 {% endif %}
 {% endblock content %}
