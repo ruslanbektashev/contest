@@ -22,13 +22,13 @@ from accounts.models import Account, Faculty
 from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, LeadershipOrMixin, PaginatorMixin
 from contest.soft_deletion import SoftDeletionUpdateView, SoftDeletionDeleteView
 from contest.templatetags.views import has_leader_permission, get_updated_query_string
-from contests.forms import (AssignmentForm, AssignmentSetForm, AssignmentUpdateForm, AssignmentEvaluateForm,
-                            AssignmentUpdateAttachmentForm, ContestForm, ContestMoveForm, ContestAttachmentForm,
+from contests.forms import (AssignmentForm, AssignmentEvaluateForm, AssignmentSetForm, AssignmentUpdateForm,
+                            AssignmentUpdateAttachmentForm, ContestForm, ContestAttachmentForm, ContestMoveForm,
                             CourseFinishForm, CourseForm, CourseLeaderForm, CreditReportForm, CreditSetForm, FNTestForm,
-                            OptionBaseFormSet, OptionForm, ProblemCommonForm, ProblemMoveForm, ProblemProgramForm,
-                            ProblemAttachmentForm, ProblemRollbackResultsForm, ProblemTestForm, SubmissionProgramForm,
-                            SubmissionFilesForm, SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm,
-                            SubmissionTextForm, SubmissionUpdateForm, UTTestForm, SubProblemForm)
+                            OptionForm, OptionBaseFormSet, ProblemAttachmentForm, ProblemCommonForm, ProblemMoveForm,
+                            ProblemProgramForm, ProblemRollbackResultsForm, ProblemTestForm, SubmissionFilesForm,
+                            SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm, SubmissionProgramForm,
+                            SubmissionTextForm, SubmissionUpdateForm, SubmissionVerbalForm, UTTestForm, SubProblemForm)
 from contests.models import (Assignment, Attachment, Contest, Course, CourseLeader, Credit, Execution, FNTest, Filter,
                              IOTest, Option, Problem, SubProblem, Submission, SubmissionPattern, UTTest)
 from contests.results import TaskProgress
@@ -1992,10 +1992,12 @@ class SubmissionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
         problem = self.storage['problem']
         if problem.type == 'Text':
             return SubmissionTextForm
-        elif problem.type == 'Options':
-            return SubmissionOptionsForm
+        elif problem.type == 'Verbal':
+            return SubmissionVerbalForm
         elif problem.type == 'Files':
             return SubmissionFilesForm
+        elif problem.type == 'Options':
+            return SubmissionOptionsForm
         else:
             return SubmissionProgramForm
 

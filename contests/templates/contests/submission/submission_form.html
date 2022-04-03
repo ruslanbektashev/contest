@@ -45,6 +45,7 @@
 <form action="" id="submission-form" method="post" enctype="multipart/form-data" class="form-horizontal">
     {% csrf_token %}
     {% render_form_errors form %}
+
     {% if problem.type == 'Program' %}
     <div class="alert alert-warning" role="alert">
         Решения компилируются средствами gcc под операционной системой семейства Linux.<br>
@@ -52,6 +53,7 @@
         Принимаются файлы только с кодировкой UTF-8.<br>
     </div>
     {% endif %}
+
     {% if problem.submission_patterns.exists %}
     <div class="alert alert-info" role="contentinfo">
         {% for submission_pattern in problem.submission_patterns.all %}
@@ -59,20 +61,20 @@
         {% endfor %}
     </div>
     {% endif %}
-    {% if problem.type == 'Files' %}
+
+    {% if problem.type == 'Files' or problem.type == 'Verbal' %}
     <div class="alert alert-info" role="alert">
         Прикрепите файл(ы) в качестве ответа.
     </div>
     {% endif %}
 
-    {% if problem.type == 'Program' or problem.type == 'Files' %}
+    {% if problem.type == 'Program' or problem.type == 'Verbal' or problem.type == 'Files' %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.files class+="custom-file-input"%}
     {% endwith %}
     {% endif %}
 
     {% if problem.type == 'Text' %}
-
     {{ form.media }}
     <div class="form-group">
         <label for="{{ field.id_for_label }}">
@@ -92,9 +94,9 @@
             {{ form.footprint }}
         </div>
     </div>
+    {% endif %}
 
-    {% elif problem.type == 'Options' %}
-
+    {% if problem.type == 'Options' %}
     {% if form.options.errors %}
     <div class="alert alert-danger">
         {% for error in form.options.errors %}
@@ -103,8 +105,8 @@
     </div>
     {% endif %}
     {{ form.options }}
-
     {% endif %}
+
     {% if problem.type == 'Text' %}
     <div class="form-group">
         <button id="form_proceed" class="btn btn-light btn-block border" type="button" onclick="showConfirmation()" style="opacity: 1;">Продолжить</button>

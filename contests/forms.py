@@ -649,45 +649,6 @@ class SubmissionAttachmentForm(SubmissionForm, AttachmentForm):
         fields = []
 
 
-class SubmissionTextForm(SubmissionForm):
-    class Meta:
-        model = Submission
-        fields = ['text', 'footprint']
-        widgets = {'footprint': forms.HiddenInput}
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['text'].required = True
-
-
-class SubmissionOptionsForm(SubmissionForm):
-    class Meta:
-        model = Submission
-        fields = ['options']
-        error_messages = {
-            'options': {
-                'required': "Не выбран ни один вариант ответа."
-            }
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        options = self.problem.option_set.order_randomly()
-        self.fields['options'].queryset = options
-        if options.filter(is_correct=True).count() > 1:
-            widget_class = OptionCheckboxSelect
-        else:
-            widget_class = OptionRadioSelect
-            widget_class.allow_multiple_selected = True
-        self.fields['options'].widget = widget_class(choices=self.fields['options'].choices)
-
-
-class SubmissionFilesForm(SubmissionFilesAttachmentMixin, SubmissionAttachmentForm):
-    class Meta:
-        model = Submission
-        fields = []
-
-
 class SubmissionProgramForm(SubmissionAttachmentForm):
     class Meta:
         model = Submission
@@ -721,6 +682,54 @@ class SubmissionProgramForm(SubmissionAttachmentForm):
                 raise ValidationError("Идентификатор %(label)s не соответствует комплекту поставки решения",
                                       code='wrong_label', params={'label': label})
         return files
+
+
+class SubmissionTextForm(SubmissionForm):
+    class Meta:
+        model = Submission
+        fields = ['text', 'footprint']
+        widgets = {'footprint': forms.HiddenInput}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['text'].required = True
+
+
+class SubmissionVerbalForm(SubmissionAttachmentForm):
+    FILE_SIZE_LIMIT = 20 * 1024 * 1024
+    FILES_ALLOWED_EXTENSIONS = ['.aac', '.flac', '.mp3', '.wav', '.wma']
+
+    class Meta:
+        model = Submission
+        fields = []
+
+
+class SubmissionFilesForm(SubmissionFilesAttachmentMixin, SubmissionAttachmentForm):
+    class Meta:
+        model = Submission
+        fields = []
+
+
+class SubmissionOptionsForm(SubmissionForm):
+    class Meta:
+        model = Submission
+        fields = ['options']
+        error_messages = {
+            'options': {
+                'required': "Не выбран ни один вариант ответа."
+            }
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        options = self.problem.option_set.order_randomly()
+        self.fields['options'].queryset = options
+        if options.filter(is_correct=True).count() > 1:
+            widget_class = OptionCheckboxSelect
+        else:
+            widget_class = OptionRadioSelect
+            widget_class.allow_multiple_selected = True
+        self.fields['options'].widget = widget_class(choices=self.fields['options'].choices)
 
 
 class SubmissionUpdateForm(forms.ModelForm):
