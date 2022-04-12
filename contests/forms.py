@@ -540,7 +540,7 @@ class AssignmentUpdateForm(AssignmentEvaluateForm):
 
     def __init__(self, course, contest=None, **kwargs):
         super().__init__(**kwargs)
-        user_ids = Account.students.enrolled().current(course).values_list('user_id')
+        user_ids = Account.students.enrolled().with_credits(course).values_list('user_id')
         self.fields['user'].queryset = User.objects.filter(id__in=user_ids)
         self.fields['problem'].choices = grouped_problems(course, contest)
 
