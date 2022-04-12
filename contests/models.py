@@ -835,14 +835,18 @@ class AssignmentQuerySet(models.QuerySet):
 
 
 class AssignmentManager(models.Manager):
-    def create_random_set(self, owner, contest, type, limit_per_user, submission_limit, deadline, debts, faculty_id):
+    def create_random_set(self, owner, contest, type, limit_per_user, submission_limit, deadline, params):
         """ create random set of assignments with problems of given contest
             aligning their number to limit_per_user for contest.course.level students """
         problem_ids = contest.problem_set.filter(type=type).order_by('number').values_list('id', flat=True)
         students = Account.students.enrolled()
-        students = students.debtors(contest.course) if debts else students.current(contest.course)
-        if faculty_id > 0:
-            students = students.filter(faculty_id=faculty_id)
+        students = students.debtors(contest.course) if params['debts'] else students.current(contest.course)
+        if params['faculty_id'] > 0:
+            students = students.filter(faculty_id=params['faculty_id'])
+        if params['group'] > 0:
+            students = students.filter(group=params['group'])
+        if params['subgroup'] > 0:
+            students = students.filter(subgroup=params['subgroup'])
         student_ids = students.values_list('user_id', flat=True)
         new_assignments = []
         for student_id in student_ids:

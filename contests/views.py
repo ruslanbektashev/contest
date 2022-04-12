@@ -1605,12 +1605,23 @@ class AssignmentCreateRandomSet(LoginRedirectMixin, LeadershipOrMixin, Ownership
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
-        self.storage['debts'] = bool(request.GET.get('debts'))
-        self.storage['faculty_id'] = int(request.GET.get('faculty_id') or 0)
-        contest_id = int(request.GET.get('contest_id') or 0)
-        if contest_id:
-            self.storage['contest'] = get_object_or_404(Contest, id=contest_id, course=self.storage['course'])
+        if request.user.is_authenticated:
+            course = get_object_or_404(Course, id=kwargs.pop('course_id'))
+            user_as_leader_queryset = CourseLeader.objects.filter(course=course, leader=request.user)
+            user_as_leader = user_as_leader_queryset.get() if user_as_leader_queryset.exists() else None
+            default_faculty_id = 0
+            if course.faculty.is_interfaculty and user_as_leader is not None:
+                default_faculty_id = user_as_leader.leader.account.faculty_id
+            default_group = user_as_leader.group if user_as_leader is not None else 0
+            default_subgroup = user_as_leader.subgroup if user_as_leader is not None else 0
+            self.storage['course'] = course
+            self.storage['faculty_id'] = int(request.GET.get('faculty_id') or default_faculty_id)
+            self.storage['group'] = int(request.GET.get('group') or default_group)
+            self.storage['subgroup'] = int(request.GET.get('subgroup') or default_subgroup)
+            self.storage['debts'] = bool(request.GET.get('debts'))
+            contest_id = int(request.GET.get('contest_id') or 0)
+            if contest_id:
+                self.storage['contest'] = get_object_or_404(Contest, id=contest_id, course=self.storage['course'])
         return super().dispatch(request, *args, **kwargs)
 
     def has_ownership(self):
@@ -1636,7 +1647,7 @@ class AssignmentCreateRandomSet(LoginRedirectMixin, LeadershipOrMixin, Ownership
             Assignment.objects.create_random_set(request.user, form.cleaned_data['contest'], form.cleaned_data['type'],
                                                  form.cleaned_data['limit_per_user'],
                                                  form.cleaned_data['submission_limit'], form.cleaned_data['deadline'],
-                                                 self.storage['debts'], self.storage['faculty_id'])
+                                                 self.storage)
             return self.form_valid(form)
         return self.form_invalid(form)
 
