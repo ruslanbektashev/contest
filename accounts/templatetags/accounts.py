@@ -31,3 +31,10 @@ def naturaltime_if_lt_week_ago(value, arg=None):
 @register.simple_tag()
 def course_contests(course, contests):
     return contests.filter(course=course.id)
+
+@register.filter()
+def has_unread(value, arg=None):
+    for notification in value:
+        if not notification.is_read:
+            return True
+    return False

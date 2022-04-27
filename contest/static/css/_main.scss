@@ -146,3 +146,55 @@ table {
         //table-layout: fixed;
     }
 }
+
+.news-header {
+  padding: 0.4rem 1.25rem;
+  /*background-color: rgb(2, 175, 167, 0.5);*/
+}
+
+.news-btn-link {
+  font-weight: 600;
+  color: #0c5460;
+}
+
+.news-btn-link:hover {
+  color: #0a3b44;
+}
+
+.news-btn-link:focus {
+  box-shadow: 0 0 0 0.2rem rgba(10, 59, 68, 0.25);
+}
+
+.news-line-header {
+  padding: 0.25rem 0.75rem !important;
+}
+
+.news-list-line-btn {
+  padding: 0.375rem 0.45rem !important;
+  line-height: 0.5 !important;
+}
+
+.short-notification-list {
+  max-height: 150px;
+  overflow:hidden;
+  overflow-y:scroll;
+}
+
+.short-announcement-list {
+  max-height: 200px;
+  overflow:hidden;
+  overflow-y:scroll;
+}
+
+.actual-word {
+  border-bottom: 1px dotted #0c5460
+}
+
+.table_for_excel td {
+  text-align: right!important;
+  min-width: 70px;
+  font-weight: 500;
+  padding-right: 3px;
+  border: 1px solid #D4D4D4!important;
+  color: black!important;
+}

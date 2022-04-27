@@ -1,4 +1,5 @@
 {% extends 'base_wide.html' %}
+{% load accounts %}
 {% load views contests tutorial static %}
 
 
@@ -10,6 +11,7 @@
 {% block content %}
 <legend>
     Главная
+    {% comment %}{{ perms.accounts | default:"Error of perms reading" }} {% endcomment %}
     <span class="pull-right">
         {% if perms.contests.add_course %}
         <a href="{% url 'contests:course-create' %}" id="btn_course_create" class="text-success" data-toggle="tooltip" data-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
@@ -34,6 +36,10 @@
         {% endif %}
     </span>
 </legend>
+
+{% render_news_block notifications schedules announcements count_of_news %}
+<br>
+
 <div id="contest_index_row" class="row">
     {% for course in courses %}
     <div class="col-12 col-md-6 mb-3">
@@ -173,4 +179,23 @@ driver.defineSteps([
     {% endif %}
 ]);
 </script>
+
+    <script>
+    var infinite = new Waypoint.Infinite({
+        element: $('.notification-list')[0],
+        items: '.notification-list-item',
+        more: '.notification-list-more'
+    });
+</script>
+<script type="text/javascript" src="{% static 'js/notifications.js' %}"></script>
+<script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+        const watcher = new ReadWatcher("{% url 'accounts:mark-notifications-as-read' %}");
+        if(parseInt('{% unread_notifications_count request.user %}') > 0) {
+            window.addEventListener('scroll', watcher, false);
+            document.getElementById('notifications').addEventListener('mouseover', watcher, false);
+            setTimeout(watcher.markNotificationsAsRead.bind(watcher), 1000);
+        }
+    });
+    </script>
 {% endblock javascript %}

@@ -1,4 +1,5 @@
 import json
+from datetime import timedelta
 
 from markdown import markdown
 
@@ -531,11 +532,26 @@ class AnnouncementList(LoginRequiredMixin, ListView):
     template_name = 'accounts/announcement/announcement_list.html'
     context_object_name = 'announcements'
 
-    def get_queryset(self):
+    def get_queryset(self, is_actual=False, period_of_actualisation=timedelta(days=0)):
+        announcement_query_set = []
+
         if self.request.user.has_perm('accounts.change_announcement'):
-            return super().get_queryset().all()
+            if not is_actual:
+                return super().get_queryset().all()
+            else:
+                for announcement in super().get_queryset().all():
+                    if announcement.date_created >= timezone.now().date()-period_of_actualisation:
+                        announcement_query_set.append(announcement)
+                return announcement_query_set
         else:
-            return super().get_queryset().filter(group__in=self.request.user.groups.all())
+            if not is_actual:
+                return super().get_queryset().filter(group__in=self.request.user.groups.all())
+            else:
+                for announcement in super().get_queryset().filter(group__in=self.request.user.groups.all()):
+                    if announcement.date_created >= timezone.now().date()-period_of_actualisation:
+                        announcement_query_set.append(announcement)
+                return announcement_query_set
+
 
 
 """================================================== Notification =================================================="""

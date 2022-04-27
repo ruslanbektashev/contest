@@ -1,4 +1,6 @@
 {% extends 'base_wide.html' %}
+{% load static %}
+{% load accounts %}
 {% load views contests %}
 
 {% block title %}
@@ -11,6 +13,9 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
+{% render_news_block notifications schedules announcements count_of_news %}
+<br>
+
 <legend>
     Мои задания
     <span class="pull-right">
@@ -19,4 +24,27 @@
 </legend>
 {% render_assignment_user_table assignments credits %}
 {% render_assignment_progress assignments "Прогресс" %}
+
+{% block javascript %}
+</script>
+
+    <script>
+    var infinite = new Waypoint.Infinite({
+        element: $('.notification-list')[0],
+        items: '.notification-list-item',
+        more: '.notification-list-more'
+    });
+</script>
+<script type="text/javascript" src="{% static 'js/notifications.js' %}"></script>
+<script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+        const watcher = new ReadWatcher("{% url 'accounts:mark-notifications-as-read' %}");
+        if(parseInt('{% unread_notifications_count request.user %}') > 0) {
+            window.addEventListener('scroll', watcher, false);
+            document.getElementById('notifications').addEventListener('mouseover', watcher, false);
+            setTimeout(watcher.markNotificationsAsRead.bind(watcher), 1000);
+        }
+    });
+    </script>
+{% endblock javascript %}
 {% endblock content %}

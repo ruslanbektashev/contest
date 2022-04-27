@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
@@ -20,7 +21,7 @@ def current_week_date_from(format_string='Y-m-d'):
 
 def current_week_date_to(format_string='Y-m-d'):
     iso_today = timezone.now().isocalendar()
-    date_to = iso_to_gregorian(iso_today[0], iso_today[1], 7)
+    date_to = iso_to_gregorian(iso_today[0], iso_today[1], 6)
     return "{}".format(date(date_to, format_string))
 
 
@@ -40,7 +41,7 @@ class Schedule(CRUDEntry):
 
     def is_upcoming(self):
         today = timezone.now().date()
-        return today < self.date_from
+        return today < self.date_from <= today + timedelta(days=7)  #self.date_from - today < 7*24*3600*1000
 
     def save(self, *args, **kwargs):
         created = self._state.adding

@@ -131,7 +131,7 @@ $(function () {
         let value = date_interval_field.val();
         if (value) {
             let new_date_from = moment(value, "DD.MM.YYYY").day(1);
-            let new_date_to =  moment(value, "DD.MM.YYYY").day(7)
+            let new_date_to =  moment(value, "DD.MM.YYYY").day(6)
             date_from_field.val(new_date_from.format("YYYY-MM-DD"));
             date_to_field.val(new_date_to.format("YYYY-MM-DD"));
             date_interval_field.val(new_date_from.format("DD.MM.YYYY") + " - " + new_date_to.format("DD.MM.YYYY"))

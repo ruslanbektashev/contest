@@ -232,6 +232,14 @@ def render_assignment_user_table(context, assignments, credits):
     context['assignments'] = assignments
     return context
 
+@register.inclusion_tag('contests/news_block.html', takes_context=True)
+def render_news_block(context, notifications, schedules, announcements, count_of_news):
+    context['notifications'] = notifications
+    context['schedules'] = schedules
+    context['announcements'] = announcements
+    context['count_of_news'] = count_of_news
+    return context
+
 
 @register.inclusion_tag('contests/assignment/assignment_course_table.html', takes_context=True)
 def render_assignment_course_table(context, course, students, assignments, debts=False):
