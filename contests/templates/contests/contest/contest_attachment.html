@@ -15,7 +15,7 @@
 {% block content %}
 <legend>{{ contest }}</legend>
 <samp>{{ attachment.filename }}</samp>
-<div class="alert alert-light border mt-2">{{ code|safe }}</div>
+<div class="alert alert-light border mt-2 overflow-auto">{{ code|safe }}</div>
 {% endblock content %}
 
 {% block stylesheets %}

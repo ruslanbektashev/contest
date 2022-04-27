@@ -5,6 +5,9 @@
         <a class="text-truncate mr-auto" href="{% url path_name obj.id attachment.id %}" target="_blank">
             <samp>{{ attachment.filename }}</samp>
         </a>
+        {% if attachment.extension == '.pdf' or attachment.extension == '.ppt' or attachment.extension == '.pptx' or attachment.extension == '.doc' or attachment.extension == '.docx' or attachment.extension == '.xsl' or attachment.extension == '.xlsx' %}
+        <a href="https://docs.google.com/viewer?url={{ attachment.file.url }}&embedded=true" class="mr-2" title="Смотреть"><i class="fa fa-external-link"></i></a>
+        {% endif %}
         <span class="text-muted text-nowrap mr-2">{% if attachment.file|exists %}{{ attachment.file.size|filesizeformat }} ∙ {% endif %}{{ attachment.date_created|date:'d b Y H:i' }}</span>
         {% if attachment.file|exists %}
         <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}" data-toggle="tooltip" data-placement="top" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
