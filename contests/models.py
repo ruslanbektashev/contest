@@ -50,6 +50,9 @@ class Attachment(CDEntry):
 
     file = models.FileField(upload_to=attachment_path, verbose_name="Файл")
 
+    def extension(self):
+        return os.path.splitext(self.file.name)[1]
+
     class Meta(CDEntry.Meta):
         verbose_name = "Файл"
         verbose_name_plural = "Файлы"
