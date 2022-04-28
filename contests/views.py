@@ -20,7 +20,7 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 
-from accounts.models import Account, Faculty
+from accounts.models import Account, Faculty, Notification, Announcement
 from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, LeadershipOrMixin, PaginatorMixin
 from contest.soft_deletion import SoftDeletionUpdateView, SoftDeletionDeleteView
 from contest.templatetags.views import has_leader_permission, get_updated_query_string
@@ -42,6 +42,9 @@ from io import BytesIO
 from aspose import slides
 import io
 from xlsx2html import xlsx2html
+
+from schedule.models import Schedule
+
 """=================================================== Attachment ==================================================="""
 
 
@@ -1796,6 +1799,10 @@ class AssignmentUserTable(LoginRedirectMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['credits'] = self.request.user.credit_set.select_related('course')
+        context['notifications'] = Notification.objects.get_queryset().filter(recipient=self.request.user).last_n_unread(10)
+        context['schedules'] = Schedule.objects.get_queryset().filter(date_from__range=[timezone.now().date()-timedelta(days=6), timezone.now().date()+timedelta(days=7)])
+        context['announcements'] = Announcement.objects.get_queryset().filter(date_created__range=[timezone.now().date()-timedelta(days=90), timezone.now().date()])
+        context['count_of_news'] = context['notifications'].count() + context['schedules'].count() + context['announcements'].count()
         return context
 
 
@@ -2478,9 +2485,13 @@ class ExecutionList(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 
 @login_required
 def index(request):
+    notifications = Notification.objects.get_queryset().filter(recipient=request.user).last_n_unread(10)#Notification.objects.all()
+    schedules = Schedule.objects.get_queryset().filter(date_from__range=[timezone.now().date() - timedelta(days=6), timezone.now().date() + timedelta(days=7)])
+    announcements = Announcement.objects.get_queryset().filter(date_created__range=[timezone.now().date() - timedelta(days=90), timezone.now().date()])
+    count_of_news = notifications.count() + schedules.count() + announcements.count()
     if request.user.has_perm('contests.add_course'):
         filtered_course_ids = request.user.filter_set.values_list('course_id')
         filtered_courses = Course.objects.filter(id__in=filtered_course_ids)
-        return render(request, 'contests/index.html', {'courses': filtered_courses})
+        return render(request, 'contests/index.html', {'courses': filtered_courses, 'notifications': notifications, 'schedules': schedules, 'announcements': announcements, 'count_of_news': count_of_news})
     else:
         return redirect(reverse('contests:assignment-list'))
