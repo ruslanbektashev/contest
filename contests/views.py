@@ -1,7 +1,12 @@
 import os.path
 import re
-from datetime import timedelta
+import io
+import mammoth
 
+from io import BytesIO
+from aspose import slides
+from xlsx2html import xlsx2html
+from datetime import timedelta
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer, TextLexer
@@ -37,11 +42,7 @@ from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.contests import colorize
 
-import mammoth
-from io import BytesIO
-from aspose import slides
-import io
-from xlsx2html import xlsx2html
+
 
 from schedule.models import Schedule
 
@@ -56,7 +57,7 @@ class AttachmentDetail(DetailView):
         except Attachment.DoesNotExist:
             raise Http404("Attachment with id = %s does not exist." % kwargs.get('attachment_id'))
         attachment_ext = os.path.splitext(attachment.file.path)[1]
-        if attachment_ext not in ('.h', '.hpp', '.c', '.cpp', '.docx', '.ppt', '.pptx', '.xls', '.xlsx'):
+        if attachment_ext not in ('.h', '.hpp', '.c', '.cpp', '.docx', '.ppt', '.pptx', '.xlsx'):
             return HttpResponseRedirect(attachment.file.url)
 
         context = self.get_context_data(object=self.object, attachment=attachment)
