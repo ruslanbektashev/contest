@@ -1,4 +1,3 @@
-import os.path
 import re
 import io
 import mammoth
@@ -42,8 +41,6 @@ from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.contests import colorize
 
-
-
 from schedule.models import Schedule
 
 """=================================================== Attachment ==================================================="""
@@ -56,7 +53,7 @@ class AttachmentDetail(DetailView):
             attachment = self.object.attachment_set.get(id=kwargs.get('attachment_id'))
         except Attachment.DoesNotExist:
             raise Http404("Attachment with id = %s does not exist." % kwargs.get('attachment_id'))
-        attachment_ext = os.path.splitext(attachment.file.path)[1]
+        attachment_ext = attachment.extension()
         if attachment_ext not in ('.h', '.hpp', '.c', '.cpp', '.docx', '.ppt', '.pptx', '.xlsx'):
             return HttpResponseRedirect(attachment.file.url)
 
@@ -66,8 +63,7 @@ class AttachmentDetail(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         attachment = kwargs.get('attachment')
-        attachment_ext = os.path.splitext(attachment.file.path)[1]
-        context['ext'] = attachment_ext
+        attachment_ext = attachment.extension()
         if attachment_ext in ('.c', '.cpp', '.h', '.hpp'):
             try:
                 content = attachment.file.read()
@@ -113,7 +109,6 @@ class AttachmentDetail(DetailView):
             out_file = ''.join(
                 f'<hr><h3 id="fsheet{id(sheet_name_k)}">{sheet_name_k}</h3><hr>{value}' for sheet_name_k, value in
                 html_sheets.items())+nav
-
             context['code'] = out_file
 
         return context
