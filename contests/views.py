@@ -3,12 +3,16 @@ import io
 import mammoth
 
 from io import BytesIO
-from aspose import slides
 from xlsx2html import xlsx2html
 from datetime import timedelta
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer, TextLexer
+
+try:
+    from aspose import slides as slides
+except ImportError:
+    slides = None
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
@@ -76,7 +80,7 @@ class AttachmentDetail(DetailView):
             with open(attachment.file.path, "rb") as docx_file:
                 context['code'] = mammoth.convert_to_html(docx_file).value
 
-        if attachment_ext in ('.ppt', '.pptx'):
+        if attachment_ext in ('.ppt', '.pptx') and slides is not None:
             pres = slides.Presentation(attachment.file.path)
             options = slides.export.HtmlOptions()
             s = BytesIO()
