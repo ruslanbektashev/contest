@@ -1,6 +1,7 @@
 import re
 import io
 import mammoth
+import aspose.words as aw
 
 from io import BytesIO
 from xlsx2html import xlsx2html
@@ -8,6 +9,7 @@ from datetime import timedelta
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer, TextLexer
+from pydocx import PyDocX
 
 try:
     from aspose import slides as slides
@@ -57,8 +59,7 @@ class AttachmentDetail(DetailView):
             attachment = self.object.attachment_set.get(id=kwargs.get('attachment_id'))
         except Attachment.DoesNotExist:
             raise Http404("Attachment with id = %s does not exist." % kwargs.get('attachment_id'))
-        attachment_ext = attachment.extension()
-        if attachment_ext not in ('.h', '.hpp', '.c', '.cpp', '.docx', '.ppt', '.pptx', '.xlsx'):
+        if attachment.extension() not in ('.h', '.hpp', '.c', '.cpp', '.docx', '.doc', '.ppt', '.pptx', '.xlsx'):
             return HttpResponseRedirect(attachment.file.url)
 
         context = self.get_context_data(object=self.object, attachment=attachment)
@@ -76,22 +77,25 @@ class AttachmentDetail(DetailView):
             formatter = HtmlFormatter(linenos='inline', wrapcode=True)
             context['code'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter)
 
-        if attachment_ext in '.docx':
-            with open(attachment.file.path, "rb") as docx_file:
-                context['code'] = mammoth.convert_to_html(docx_file).value
+        if attachment_ext in '.doc':
+            doc = aw.Document(attachment.file.path)
+            outStream_ = io.BytesIO()
+            doc.save(outStream_, aw.SaveFormat.DOCX)
+            #context['code'] = str(mammoth.convert_to_html(outStream_).value).replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.'''," ")
+            context['code'] = str(PyDocX.to_html(outStream_)).replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.'''," ")
+        elif attachment_ext in '.docx':
+            #with open(attachment.file.path, "rb") as docx_file:
+            #    context['code'] = mammoth.convert_to_html(docx_file).value
+            context['code'] = PyDocX.to_html(attachment.file.path)
 
         if attachment_ext in ('.ppt', '.pptx') and slides is not None:
             pres = slides.Presentation(attachment.file.path)
             options = slides.export.HtmlOptions()
-            s = BytesIO()
-            pres.save(s, slides.export.SaveFormat.HTML, options)
-            s = str(s.getvalue(), 'utf-8').replace('''Evaluation only.</tspan>''', " </tspan>")
-            s = s.replace("Created with Aspose.Slides for .NET Standard 2.0 22.1.</tspan>", " </tspan>")
-            s = s.replace("Copyright 2004-2022Aspose Pty Ltd.</tspan>", " </tspan>")
-            s = s.replace('''class="slide"''', '''class="slide"  style="margin-bottom: 1%!important;"''')
-            s = s.replace('''xlink="http://www.w3.org/1999/xlink" width=''',
+            outStream_ = BytesIO()
+            pres.save(outStream_, slides.export.SaveFormat.HTML, options)
+            outStream_ = str(outStream_.getvalue(), 'utf-8').replace('''Evaluation only.</tspan>''', " </tspan>").replace("Created with Aspose.Slides for .NET Standard 2.0 22.1.</tspan>", " </tspan>").replace("Copyright 2004-2022Aspose Pty Ltd.</tspan>", " </tspan>").replace('''class="slide"''', '''class="slide"  style="margin-bottom: 1%!important;"''').replace('''xlink="http://www.w3.org/1999/xlink" width=''',
                           '''xlink="http://www.w3.org/1999/xlink" class="mw-100 h-auto d-inline-block"''')
-            context['code'] = s.replace('''class="slideTitle"''', '''style="display:none;"''')
+            context['code'] = outStream_.replace('''class="slideTitle"''', '''style="display:none;"''')
 
         if attachment_ext in ('.xlsx'):
             html_sheets = dict()
@@ -102,7 +106,7 @@ class AttachmentDetail(DetailView):
                     out_file_i = io.StringIO()
                     xlsx2html(xlsx_file, out_file_i, locale='en', sheet=i)
                     out_file_i.seek(0)
-                    html_content_i = out_file_i.read().replace("table", '''table class="table_for_excel";''')
+                    html_content_i = out_file_i.read()
                     contains_sheet_name = r.search(html_content_i).group(0)
                     sheet_name = contains_sheet_name[8:contains_sheet_name.index('!')]
                     html_sheets[sheet_name] = html_content_i
@@ -110,10 +114,9 @@ class AttachmentDetail(DetailView):
                     break
             nav = '<br><ul>{}</ul>'.format(''.join(
                 f'<li><a href="#fsheet{id(sheet_name_k)}">{sheet_name_k}</a></li>' for sheet_name_k in html_sheets.keys()))
-            out_file = ''.join(
+            context['code']  = ''.join(
                 f'<hr><h3 id="fsheet{id(sheet_name_k)}">{sheet_name_k}</h3><hr>{value}' for sheet_name_k, value in
                 html_sheets.items())+nav
-            context['code'] = out_file
 
         return context
 

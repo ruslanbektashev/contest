@@ -7,7 +7,7 @@
         </a>
         {% if attachment.file|exists %}
             {% if attachment.extension == '.pdf' or attachment.extension == '.ppt' or attachment.extension == '.pptx' or attachment.extension == '.doc' or attachment.extension == '.docx' or attachment.extension == '.xls' or attachment.extension == '.xlsx' %}
-                <a href="https://docs.google.com/viewer?url={{ attachment.file.url }}&embedded=true" class="mr-2" title="Смотреть"><i class="fa fa-external-link"></i></a>
+                <a href="https://docs.google.com/viewer?url=https://contest.msu.uz{{ attachment.file.url }}" class="mr-2" title="Смотреть в Google Docs" target="_blank"><i class="fa fa-external-link"></i></a>
             {% endif %}
         {% endif %}
         <span class="text-muted text-nowrap mr-2">{% if attachment.file|exists %}{{ attachment.file.size|filesizeformat }} ∙ {% endif %}{{ attachment.date_created|date:'d b Y H:i' }}</span>
