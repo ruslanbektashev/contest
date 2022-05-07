@@ -2,6 +2,7 @@ import re
 import io
 import mammoth
 import aspose.words as aw
+import tempfile
 
 from io import BytesIO
 from xlsx2html import xlsx2html
@@ -10,6 +11,7 @@ from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer, TextLexer
 from pydocx import PyDocX
+from xls2xlsx import XLS2XLSX
 
 try:
     from aspose import slides as slides
@@ -59,7 +61,7 @@ class AttachmentDetail(DetailView):
             attachment = self.object.attachment_set.get(id=kwargs.get('attachment_id'))
         except Attachment.DoesNotExist:
             raise Http404("Attachment with id = %s does not exist." % kwargs.get('attachment_id'))
-        if attachment.extension() not in ('.h', '.hpp', '.c', '.cpp', '.docx', '.doc', '.ppt', '.pptx', '.xlsx'):
+        if attachment.extension() not in ('.h', '.hpp', '.c', '.cpp', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx'):
             return HttpResponseRedirect(attachment.file.url)
 
         context = self.get_context_data(object=self.object, attachment=attachment)
@@ -77,18 +79,19 @@ class AttachmentDetail(DetailView):
             formatter = HtmlFormatter(linenos='inline', wrapcode=True)
             context['code'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter)
 
-        if attachment_ext in '.doc':
+        elif attachment_ext == '.doc':
             doc = aw.Document(attachment.file.path)
             outStream_ = io.BytesIO()
             doc.save(outStream_, aw.SaveFormat.DOCX)
             #context['code'] = str(mammoth.convert_to_html(outStream_).value).replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.'''," ")
             context['code'] = str(PyDocX.to_html(outStream_)).replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.'''," ")
-        elif attachment_ext in '.docx':
+
+        elif attachment_ext == '.docx':
             #with open(attachment.file.path, "rb") as docx_file:
             #    context['code'] = mammoth.convert_to_html(docx_file).value
             context['code'] = PyDocX.to_html(attachment.file.path)
 
-        if attachment_ext in ('.ppt', '.pptx') and slides is not None:
+        elif attachment_ext in ('.ppt', '.pptx') and slides is not None:
             pres = slides.Presentation(attachment.file.path)
             options = slides.export.HtmlOptions()
             outStream_ = BytesIO()
@@ -97,12 +100,21 @@ class AttachmentDetail(DetailView):
                           '''xlink="http://www.w3.org/1999/xlink" class="mw-100 h-auto d-inline-block"''')
             context['code'] = outStream_.replace('''class="slideTitle"''', '''style="display:none;"''')
 
-        if attachment_ext in ('.xlsx'):
+        elif attachment_ext in ('.xls', '.xlsx'):
+
+            if attachment_ext == '.xls':
+                temp = tempfile.TemporaryFile()
+                x2x = XLS2XLSX(attachment.file.path)
+                x2x.to_xlsx(temp)
+            else:
+                temp = attachment.file.path
+
             html_sheets = dict()
             r = re.compile(r'\<td id\=\".+\!.+\"')
+
             for i in range(100):
                 try:
-                    xlsx_file:str = attachment.file.path
+                    xlsx_file:str = temp
                     out_file_i = io.StringIO()
                     xlsx2html(xlsx_file, out_file_i, locale='en', sheet=i)
                     out_file_i.seek(0)
