@@ -1,5 +1,4 @@
-{% load accounts %}
-{% load views contests %}
+{% load views contests accounts %}
 <div class="card">
     <div class="card-header news-header alert-info" id="course_description">
         <h2 class="mb-0">
@@ -49,7 +48,7 @@
                 <div id="collapseOne" class="collapse show" aria-labelledby="course_description">
                     <div class="card-body short-notification-list">
                         <div id="notifications" class="notification-list list-group mb-3">
-                            {% if notifications|has_unread %}
+                            {% if has_unread_notifications %}
                                 {% now 'Y' as current_year %}
                                 {% for notification in notifications %}
                                     {% if not notification.is_read %}

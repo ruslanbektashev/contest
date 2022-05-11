@@ -1807,10 +1807,11 @@ class AssignmentUserTable(LoginRedirectMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['credits'] = self.request.user.credit_set.select_related('course')
-        context['notifications'] = Notification.objects.get_queryset().filter(recipient=self.request.user).last_n_unread(10)
+        context['notifications'] = Notification.objects.get_queryset().filter(recipient=self.request.user).unread()[:10]
         context['schedules'] = Schedule.objects.get_queryset().filter(date_from__range=[timezone.now().date()-timedelta(days=6), timezone.now().date()+timedelta(days=7)])
         context['announcements'] = Announcement.objects.get_queryset().filter(date_created__range=[timezone.now().date()-timedelta(days=90), timezone.now().date()])
         context['count_of_news'] = context['notifications'].count() + context['schedules'].count() + context['announcements'].count()
+        context['has_unread_notifications'] = 1 if Notification.objects.get_queryset().filter(recipient=self.request.user).unread().exists() else 0
         return context
 
 
@@ -2493,13 +2494,14 @@ class ExecutionList(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 
 @login_required
 def index(request):
-    notifications = Notification.objects.get_queryset().filter(recipient=request.user).last_n_unread(10)#Notification.objects.all()
+    notifications = Notification.objects.get_queryset().filter(recipient=request.user).unread()[:10]
     schedules = Schedule.objects.get_queryset().filter(date_from__range=[timezone.now().date() - timedelta(days=6), timezone.now().date() + timedelta(days=7)])
     announcements = Announcement.objects.get_queryset().filter(date_created__range=[timezone.now().date() - timedelta(days=90), timezone.now().date()])
     count_of_news = notifications.count() + schedules.count() + announcements.count()
+    has_unread_notifications = 1 if Notification.objects.get_queryset().filter(recipient=request.user).unread().exists() else 0
     if request.user.has_perm('contests.add_course'):
         filtered_course_ids = request.user.filter_set.values_list('course_id')
         filtered_courses = Course.objects.filter(id__in=filtered_course_ids)
-        return render(request, 'contests/index.html', {'courses': filtered_courses, 'notifications': notifications, 'schedules': schedules, 'announcements': announcements, 'count_of_news': count_of_news})
+        return render(request, 'contests/index.html', {'courses': filtered_courses, 'notifications': notifications, 'schedules': schedules, 'announcements': announcements, 'count_of_news': count_of_news, 'has_unread_notifications': has_unread_notifications})
     else:
         return redirect(reverse('contests:assignment-list'))

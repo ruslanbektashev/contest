@@ -1,7 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load static %}
-{% load accounts %}
-{% load views contests %}
+{% load views contests accounts static %}
 
 {% block title %}
 Мои задания
@@ -13,7 +11,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-{% render_news_block notifications schedules announcements count_of_news %}
+{% include 'contests/news_block.html' %}
 <br>
 
 <legend>

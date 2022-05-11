@@ -1,6 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load accounts %}
-{% load views contests tutorial static %}
+{% load views contests tutorial static accounts %}
 
 
 
@@ -11,7 +10,6 @@
 {% block content %}
 <legend>
     Главная
-    {% comment %}{{ perms.accounts | default:"Error of perms reading" }} {% endcomment %}
     <span class="pull-right">
         {% if perms.contests.add_course %}
         <a href="{% url 'contests:course-create' %}" id="btn_course_create" class="text-success" data-toggle="tooltip" data-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
@@ -37,7 +35,7 @@
     </span>
 </legend>
 
-{% render_news_block notifications schedules announcements count_of_news %}
+{% include 'contests/news_block.html' %}
 <br>
 
 <div id="contest_index_row" class="row">

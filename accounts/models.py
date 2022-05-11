@@ -560,9 +560,6 @@ class NotificationQuerySet(models.QuerySet):
     def unread(self):
         return self.actual().filter(is_read=False)
 
-    def last_n_unread(self, number_of_unread_notifs):
-        return self.unread()[:number_of_unread_notifs]
-
     def mark_as_deleted(self):
         return self.actual().update(is_deleted=True)
 
