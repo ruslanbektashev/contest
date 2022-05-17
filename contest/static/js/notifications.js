@@ -4,6 +4,12 @@ class ReadWatcher {
         this.notifications = document.getElementById('notifications');
         this.unread_notifications_ids = [];
         this.options = { method: 'POST', headers: { 'ContentType': 'application/json' }, cache: 'no-store' }
+        this.certain_notif = null;
+    }
+
+    set_notification_to_read(notif_to_read) {
+        this.certain_notif = document.getElementById(notif_to_read);
+        this.handleEvent();
     }
 
     updateUnreadCounterBadge() {
@@ -33,17 +39,26 @@ class ReadWatcher {
     }
 
     handleEvent(event) {
-        for(let notification of this.notifications.children) {
+        let self = this;
+        function notification_read_actions(notification) {
             let is_unread = JSON.parse(notification.getAttribute('data-unread'));
             if (is_unread) {
                 let notification_id = parseInt(notification.getAttribute('data-id'));
                 let notification_body = notification.getElementsByClassName('notification-body')[0];
-                if (this.isInViewPoint(notification_body) && !this.unread_notifications_ids.includes(notification_id)) {
+                if (self.isInViewPoint(notification_body) && !self.unread_notifications_ids.includes(notification_id)) {
                     notification.classList.remove('bg-light');
                     notification.removeAttribute('data-unread');
-                    this.unread_notifications_ids.push(notification_id);
+                    self.unread_notifications_ids.push(notification_id);
                 }
             }
         }
+        if (this.certain_notif == null) {
+            for(let notification of this.notifications.children) {
+                notification_read_actions(notification);
+            }
+        }
+        else
+             notification_read_actions(this.certain_notif);
+
     }
 }
