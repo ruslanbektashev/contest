@@ -1,14 +1,25 @@
-{% load views contests accounts %}
+{% load views contests accounts static %}
 <div class="card">
-    <div class="card-header news-header alert-info" id="course_description">
-        <h2 class="mb-0">
-            <button class="btn btn-link news-btn-link btn-block text-left d-flex collapsed" type="button" data-toggle="collapse"
-                    data-target="#collapseNews" aria-expanded="false" aria-controls="collapseNews">
-                Последние новости
-                <span class="numtus badge-info align-middle ml-auto">{{ count_of_news }}</span>
-            </button>
-        </h2>
-    </div>
+    {% if count_of_news %}
+        <div class="card-header news-header alert-info" id="course_description">
+            <h2 class="mb-0">
+                <button class="btn btn-link news-btn-link btn-block text-left d-flex collapsed" type="button" data-toggle="collapse"
+                        data-target="#collapseNews" aria-expanded="false" aria-controls="collapseNews">
+                    Последние новости
+                    <span class="numtus badge-info align-middle ml-auto">{{ count_of_news }}</span>
+                </button>
+            </h2>
+        </div>
+    {% else %}
+        <div class="card-header news-header alert-secondary" id="course_description">
+            <h2 class="mb-0">
+                <button class="btn btn-link btn-block text-left d-flex collapsed" type="button" data-toggle="collapse"
+                        data-target="#collapseNews" aria-expanded="false" aria-controls="collapseNews" disabled>
+                    Последние новости
+                </button>
+            </h2>
+        </div>
+    {% endif %}
     <div id="collapseNews" class="collapse" aria-labelledby="course_description">
         <div class="card-body">
             <!-- Актуальное расписание -->
@@ -52,7 +63,7 @@
                                 {% now 'Y' as current_year %}
                                 {% for notification in notifications %}
                                     {% if not notification.is_read %}
-                                        <li class="notification-list-item list-group-item d-flex {% if not notification.is_read %}bg-light"
+                                        <li id="notif_{{ notification.id }}" class="notification-list-item list-group-item d-flex {% if not notification.is_read %}bg-light"
                                             data-unread=true{% else %}"{% endif %} data-id={{ notification.id }}>
                                             <span class="notification-body mr-auto">
                                                 {% if notification.subject.username %}
@@ -62,7 +73,7 @@
                                                 {% endif %}
                                                 {{ notification.action }}
                                                 {% if notification.object %}
-                                                    <a href="{{ notification.object.get_absolute_url }}"> {{ notification.object }}</a>
+                                                    <a href="{{ notification.object.get_absolute_url }}" id="object_notif_{{ notification.id }}"> {{ notification.object }}</a>
                                                 {% endif %}
                                                 {% if notification.reference %}
                                                     / <a href="{{ notification.reference.get_absolute_url }}"> {{ notification.reference }}</a>
@@ -131,3 +142,15 @@
         </div>
     </div>
 </div>
+<script type="text/javascript" src="{% static 'js/notifications.js' %}"></script>
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function() {
+    const watcher = new ReadWatcher("{% url 'accounts:mark-notifications-as-read' %}");
+    {% for notif in notifications %}
+        document.getElementById('object_notif_{{ notif.id }}').addEventListener('mousedown', function () {
+            watcher.set_notification_to_read('notif_{{ notif.id }}');
+            setTimeout(watcher.markNotificationsAsRead.bind(watcher), 10);
+        });
+    {% endfor %}
+});
+</script>
