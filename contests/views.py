@@ -1,7 +1,7 @@
+import csv
 import re
 import io
 import tempfile
-import pandas as pd
 import aspose.words as aw
 
 from io import BytesIO
@@ -12,6 +12,7 @@ from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer, TextLexer
 from pydocx import PyDocX
 from xls2xlsx import XLS2XLSX
+from openpyxl import Workbook
 
 try:
     from aspose import slides as slides
@@ -123,8 +124,18 @@ class AttachmentDetail(DetailView):
                 .join(f'<hr><h3 id="fsheet{id(sheet_name_k)}">{sheet_name_k}</h3><hr>{value}'
                       for sheet_name_k, value in html_sheets.items()) + nav
         elif attachment_ext == '.csv':
-            content = pd.read_csv(attachment.file.path)
-            context['code'] = content.to_html()
+            temp = tempfile.TemporaryFile()
+            wb = Workbook()
+            ws = wb.active
+            with open(attachment.file.path, 'r') as f:
+                for row in csv.reader(f):
+                    ws.append(row)
+            wb.save(temp)
+            out_file = io.StringIO()
+            xlsx2html(temp, out_file, locale='en')
+            out_file.seek(0)
+            html_content = out_file.read()
+            context['code'] = html_content
         elif attachment_ext == '.doc':
             doc = aw.Document(attachment.file.path)
             out_stream = io.BytesIO()
