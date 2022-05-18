@@ -99,8 +99,8 @@ class AttachmentDetail(DetailView):
         elif attachment_ext in ('.xls', '.xlsx'):
             if attachment_ext == '.xls':
                 temp = tempfile.TemporaryFile()
-                x2x = XLS2XLSX(attachment.file.path)
-                x2x.to_xlsx(temp)
+                converter = XLS2XLSX(attachment.file.path)
+                converter.to_xlsx(temp)
             else:
                 temp = attachment.file.path
             html_sheets = dict()
@@ -108,34 +108,32 @@ class AttachmentDetail(DetailView):
             for i in range(100):
                 try:
                     xlsx_file: str = temp
-                    out_file_i = io.StringIO()
-                    xlsx2html(xlsx_file, out_file_i, locale='en', sheet=i)
-                    out_file_i.seek(0)
-                    html_content_i = out_file_i.read()
-                    contains_sheet_name = r.search(html_content_i).group(0)
-                    sheet_name = contains_sheet_name[8:contains_sheet_name.index('!')]
-                    html_sheets[sheet_name] = html_content_i
+                    current_sheet = io.StringIO()
+                    xlsx2html(xlsx_file, current_sheet, locale='en', sheet=i)
+                    current_sheet.seek(0)
+                    current_sheet_html = current_sheet.read()
+                    sheet_name_str = r.search(current_sheet_html).group(0)
+                    sheet_name = sheet_name_str[8:sheet_name_str.index('!')]
+                    html_sheets[sheet_name] = current_sheet_html
                 except IndexError:
                     break
-            nav = '<br><ul>{}</ul>'\
-                .format(''.join(f'<li><a href="#fsheet{id(sheet_name_k)}">{sheet_name_k}</a></li>'
-                                for sheet_name_k in html_sheets.keys()))
-            context['code'] = ''\
-                .join(f'<hr><h3 id="fsheet{id(sheet_name_k)}">{sheet_name_k}</h3><hr>{value}'
-                      for sheet_name_k, value in html_sheets.items()) + nav
+            nav = '<br><ul>{}</ul>'.format(''.join(f'<li><a href="#fsheet{id(sheet_name)}">{sheet_name}</a></li>'
+                                                   for sheet_name in html_sheets.keys()))
+            context['code'] = ''.join(f'<hr><h3 id="fsheet{id(sheet_name)}">{sheet_name}</h3><hr>{value}'
+                                      for sheet_name, value in html_sheets.items()) + nav
         elif attachment_ext == '.csv':
             temp = tempfile.TemporaryFile()
-            wb = Workbook()
-            ws = wb.active
-            with open(attachment.file.path, 'r') as f:
-                for row in csv.reader(f):
-                    ws.append(row)
-            wb.save(temp)
-            out_file = io.StringIO()
-            xlsx2html(temp, out_file, locale='en')
-            out_file.seek(0)
-            html_content = out_file.read()
-            context['code'] = html_content
+            workbook = Workbook()
+            worksheet = workbook.active
+            with open(attachment.file.path, 'r') as file:
+                for row in csv.reader(file):
+                    worksheet.append(row)
+            workbook.save(temp)
+            sheet = io.StringIO()
+            xlsx2html(temp, sheet, locale='en')
+            sheet.seek(0)
+            sheet_html = sheet.read()
+            context['code'] = sheet_html
         elif attachment_ext == '.doc':
             doc = aw.Document(attachment.file.path)
             out_stream = io.BytesIO()
