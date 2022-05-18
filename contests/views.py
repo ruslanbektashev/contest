@@ -1,7 +1,8 @@
 import re
 import io
-import aspose.words as aw
 import tempfile
+import pandas as pd
+import aspose.words as aw
 
 from io import BytesIO
 from xlsx2html import xlsx2html
@@ -60,7 +61,12 @@ class AttachmentDetail(DetailView):
             attachment = self.object.attachment_set.get(id=kwargs.get('attachment_id'))
         except Attachment.DoesNotExist:
             raise Http404("Attachment with id = %s does not exist." % kwargs.get('attachment_id'))
-        if attachment.extension() not in ('.h', '.hpp', '.c', '.cpp', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx'):
+        if attachment.extension() not in ('.h', '.hpp',
+                                          '.c', '.cpp',
+                                          '.ppt', '.pptx',
+                                          '.xls', '.xlsx',
+                                          '.doc', '.docx',
+                                          '.csv'):
             return HttpResponseRedirect(attachment.file.url)
 
         context = self.get_context_data(object=self.object, attachment=attachment)
@@ -70,7 +76,7 @@ class AttachmentDetail(DetailView):
         context = super().get_context_data(**kwargs)
         attachment = kwargs.get('attachment')
         attachment_ext = attachment.extension()
-        if attachment_ext in ('.c', '.cpp', '.h', '.hpp'):
+        if attachment_ext in ('.h', '.hpp', '.c', '.cpp'):
             try:
                 content = attachment.file.read()
             except FileNotFoundError:
@@ -82,8 +88,12 @@ class AttachmentDetail(DetailView):
             options = slides.export.HtmlOptions()
             out_stream = BytesIO()
             pres.save(out_stream, slides.export.SaveFormat.HTML, options)
-            out_stream = str(out_stream.getvalue(), 'utf-8').replace('''Evaluation only.</tspan>''', " </tspan>").replace("Created with Aspose.Slides for .NET Standard 2.0 22.1.</tspan>", " </tspan>").replace("Copyright 2004-2022Aspose Pty Ltd.</tspan>", " </tspan>").replace('''class="slide"''', '''class="slide"  style="margin-bottom: 1%!important;"''').replace('''xlink="http://www.w3.org/1999/xlink" width=''',
-                          '''xlink="http://www.w3.org/1999/xlink" class="mw-100 h-auto d-inline-block"''')
+            out_stream = str(out_stream.getvalue(), 'utf-8').replace('''Evaluation only.</tspan>''', " </tspan>") \
+                .replace("Created with Aspose.Slides for .NET Standard 2.0 22.1.</tspan>", " </tspan>") \
+                .replace("Copyright 2004-2022Aspose Pty Ltd.</tspan>", " </tspan>") \
+                .replace('''class="slide"''', '''class="slide"  style="margin-bottom: 1%!important;"''') \
+                .replace('''xlink="http://www.w3.org/1999/xlink" width=''',
+                         '''xlink="http://www.w3.org/1999/xlink" class="mw-100 h-auto d-inline-block"''')
             context['code'] = out_stream.replace('''class="slideTitle"''', '''style="display:none;"''')
         elif attachment_ext in ('.xls', '.xlsx'):
             if attachment_ext == '.xls':
@@ -96,7 +106,7 @@ class AttachmentDetail(DetailView):
             r = re.compile(r'\<td id\=\".+\!.+\"')
             for i in range(100):
                 try:
-                    xlsx_file:str = temp
+                    xlsx_file: str = temp
                     out_file_i = io.StringIO()
                     xlsx2html(xlsx_file, out_file_i, locale='en', sheet=i)
                     out_file_i.seek(0)
@@ -106,16 +116,21 @@ class AttachmentDetail(DetailView):
                     html_sheets[sheet_name] = html_content_i
                 except IndexError:
                     break
-            nav = '<br><ul>{}</ul>'.format(''.join(
-                f'<li><a href="#fsheet{id(sheet_name_k)}">{sheet_name_k}</a></li>' for sheet_name_k in html_sheets.keys()))
-            context['code']  = ''.join(
-                f'<hr><h3 id="fsheet{id(sheet_name_k)}">{sheet_name_k}</h3><hr>{value}' for sheet_name_k, value in
-                html_sheets.items())+nav
+            nav = '<br><ul>{}</ul>'\
+                .format(''.join(f'<li><a href="#fsheet{id(sheet_name_k)}">{sheet_name_k}</a></li>'
+                                for sheet_name_k in html_sheets.keys()))
+            context['code'] = ''\
+                .join(f'<hr><h3 id="fsheet{id(sheet_name_k)}">{sheet_name_k}</h3><hr>{value}'
+                      for sheet_name_k, value in html_sheets.items()) + nav
+        elif attachment_ext == '.csv':
+            content = pd.read_csv(attachment.file.path)
+            context['code'] = content.to_html()
         elif attachment_ext == '.doc':
             doc = aw.Document(attachment.file.path)
             out_stream = io.BytesIO()
             doc.save(out_stream, aw.SaveFormat.DOCX)
-            # context['code'] = str(mammoth.convert_to_html(outStream_).value).replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.'''," ")
+            # context['code'] = str(mammoth.convert_to_html(outStream_).value)\
+            #     .replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
             context['code'] = str(PyDocX.to_html(out_stream)).replace(
                 '''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
         elif attachment_ext == '.docx':
@@ -139,7 +154,8 @@ class AttachmentDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
     def has_leadership(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        return hasattr(self.object.object, 'course') and self.object.object.course.leaders.filter(id=self.request.user.id).exists()
+        return hasattr(self.object.object, 'course') and self.object.object.course.leaders.filter(
+            id=self.request.user.id).exists()
 
     def get_success_url(self):
         return self.object.object.get_absolute_url()
@@ -212,7 +228,8 @@ class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
         return context
 
 
-class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, SoftDeletionUpdateView):
+class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                   SoftDeletionUpdateView):
     model = Course
     form_class = CourseForm
     template_name = 'contests/course/course_form.html'
@@ -749,7 +766,8 @@ class ContestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         return context
 
 
-class ContestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, SoftDeletionUpdateView):
+class ContestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                    SoftDeletionUpdateView):
     model = Contest
     template_name = 'contests/contest/contest_form.html'
     permission_required = 'contests.change_contest'
@@ -800,7 +818,8 @@ class ContestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         return context
 
 
-class ContestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, SoftDeletionDeleteView):
+class ContestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                    SoftDeletionDeleteView):
     model = Contest
     template_name = 'contests/contest/contest_delete.html'
     permission_required = 'contests.delete_contest'
@@ -836,7 +855,8 @@ class ProblemDetail(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin, Det
             context['assignment'] = Assignment.objects.get(user=self.request.user, problem=self.object)
         except Assignment.DoesNotExist:
             context['assignment'] = None
-        if self.request.user.has_perm('contests.view_submission_list') or has_leader_permission(self.request, self.object.course):
+        if self.request.user.has_perm('contests.view_submission_list') or has_leader_permission(self.request,
+                                                                                                self.object.course):
             submissions = self.object.submission_set.all()
         else:
             submissions = self.object.submission_set.filter(owner_id=self.request.user.id)
@@ -871,7 +891,8 @@ class ProblemAttachment(LoginRedirectMixin, UserPassesTestMixin, AttachmentDetai
         return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
 
 
-class ProblemRollbackResults(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, FormView):
+class ProblemRollbackResults(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                             FormView):
     form_class = ProblemRollbackResultsForm
     template_name = 'contests/problem/problem_rollback_results_form.html'
     permission_required = 'contests.change_problem'
@@ -992,7 +1013,8 @@ class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         return reverse('contests:contest-detail', kwargs={'pk': self.object.contest_id})
 
 
-class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, SoftDeletionUpdateView):
+class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                    SoftDeletionUpdateView):
     model = Problem
     template_name = 'contests/problem/problem_form.html'
     permission_required = 'contests.change_problem'
@@ -1040,7 +1062,8 @@ class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         if self.storage['action'] == 'move':
-            kwargs['contest_queryset'] = Contest.objects.get_queryset_for_problem(self.object.contest, self.request.user)
+            kwargs['contest_queryset'] = Contest.objects.get_queryset_for_problem(self.object.contest,
+                                                                                  self.request.user)
         return kwargs
 
     def form_valid(self, form):
@@ -1071,7 +1094,8 @@ class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         return context
 
 
-class ProblemDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, SoftDeletionDeleteView):
+class ProblemDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                    SoftDeletionDeleteView):
     model = Problem
     template_name = 'contests/problem/problem_delete.html'
     permission_required = 'contests.delete_problem'
@@ -1135,7 +1159,8 @@ class SubProblemDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
 """=============================================== SubmissionPattern ================================================"""
 
 
-class SubmissionPatternDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DetailView):
+class SubmissionPatternDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                              DetailView):
     model = SubmissionPattern
     context_object_name = 'submission_pattern'
     template_name = 'contests/submission_pattern/submission_pattern_detail.html'
@@ -1157,7 +1182,8 @@ class SubmissionPatternDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOr
         return context
 
 
-class SubmissionPatternCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
+class SubmissionPatternCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                              CreateView):
     model = SubmissionPattern
     form_class = SubmissionPatternForm
     template_name = 'contests/submission_pattern/submission_pattern_form.html'
@@ -1193,7 +1219,8 @@ class SubmissionPatternCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOr
         return context
 
 
-class SubmissionPatternUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
+class SubmissionPatternUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                              UpdateView):
     model = SubmissionPattern
     form_class = SubmissionPatternForm
     context_object_name = 'submission_pattern'
@@ -1216,7 +1243,8 @@ class SubmissionPatternUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOr
         return kwargs
 
 
-class SubmissionPatternDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
+class SubmissionPatternDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                              DeleteView):
     model = SubmissionPattern
     context_object_name = 'submission_pattern'
     template_name = 'contests/submission_pattern/submission_pattern_delete.html'
@@ -1553,7 +1581,8 @@ class FNTestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
 """=================================================== Assignment ==================================================="""
 
 
-class AssignmentDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, PaginatorMixin, DetailView):
+class AssignmentDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, PaginatorMixin,
+                       DetailView):
     model = Assignment
     template_name = 'contests/assignment/assignment_detail.html'
     permission_required = 'contests.view_assignment'
@@ -1572,16 +1601,19 @@ class AssignmentDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         submissions = self.object.get_submissions()
-        context['submission_paginator'], context['submission_page_obj'], context['submissions'], context['submission_is_paginated'] = \
+        context['submission_paginator'], context['submission_page_obj'], context['submissions'], context[
+            'submission_is_paginated'] = \
             self.paginate_queryset(submissions)
         comments = self.object.comment_set.actual()
-        context['comment_paginator'], context['comment_page_obj'], context['comments'], context['comment_is_paginated'] = \
+        context['comment_paginator'], context['comment_page_obj'], context['comments'], context[
+            'comment_is_paginated'] = \
             self.paginate_queryset(comments)
         context['current_time'] = timezone.now()
         return context
 
 
-class AssignmentDiscussion(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, PaginatorMixin, DetailView):
+class AssignmentDiscussion(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                           PaginatorMixin, DetailView):
     model = Assignment
     template_name = 'contests/assignment/assignment_discussion.html'
     permission_required = 'contests.view_assignment'
@@ -1658,7 +1690,8 @@ class AssignmentCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         return success_url + get_updated_query_string(self.request)
 
 
-class AssignmentCreateRandomSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, FormView):
+class AssignmentCreateRandomSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                                FormView):
     form_class = AssignmentSetForm
     template_name = 'contests/assignment/assignment_random_set_form.html'
     permission_required = 'contests.add_assignment'
@@ -1808,10 +1841,14 @@ class AssignmentUserTable(LoginRedirectMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['credits'] = self.request.user.credit_set.select_related('course')
         context['notifications'] = Notification.objects.get_queryset().filter(recipient=self.request.user).unread()[:10]
-        context['schedules'] = Schedule.objects.get_queryset().filter(date_from__range=[timezone.now().date()-timedelta(days=6), timezone.now().date()+timedelta(days=7)])
-        context['announcements'] = Announcement.objects.get_queryset().filter(date_created__range=[timezone.now().date()-timedelta(days=90), timezone.now().date()])
-        context['count_of_news'] = context['notifications'].count() + context['schedules'].count() + context['announcements'].count()
-        context['has_unread_notifications'] = 1 if Notification.objects.get_queryset().filter(recipient=self.request.user).unread().exists() else 0
+        context['schedules'] = Schedule.objects.get_queryset().filter(
+            date_from__range=[timezone.now().date() - timedelta(days=6), timezone.now().date() + timedelta(days=7)])
+        context['announcements'] = Announcement.objects.get_queryset().filter(
+            date_created__range=[timezone.now().date() - timedelta(days=90), timezone.now().date()])
+        context['count_of_news'] = context['notifications'].count() + context['schedules'].count() + context[
+            'announcements'].count()
+        context['has_unread_notifications'] = 1 if Notification.objects.get_queryset().filter(
+            recipient=self.request.user).unread().exists() else 0
         return context
 
 
@@ -1874,7 +1911,8 @@ class AssignmentCourseTable(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMi
 """=================================================== Submission ==================================================="""
 
 
-class SubmissionDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, PaginatorMixin, UpdateView):
+class SubmissionDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, PaginatorMixin,
+                       UpdateView):
     model = Submission
     form_class = SubmissionUpdateForm
     sub_form_class = SubmissionUpdateForm
@@ -1924,7 +1962,7 @@ class SubmissionDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
             self.storage['forms'] = forms
         form_class = self.get_form_class()
         if 'sub_form' not in self.storage:
-            return super().get_form()                # filled with POST data
+            return super().get_form()  # filled with POST data
         else:
             return form_class(instance=self.object)  # not filled with data
 
@@ -1969,7 +2007,8 @@ class SubmissionDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         return success_url
 
 
-class SubmissionDownload(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, BaseDetailView):
+class SubmissionDownload(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                         BaseDetailView):
     model = Submission
     permission_required = 'contests.download_submission'
 
@@ -1994,7 +2033,8 @@ class SubmissionDownload(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin
         return response
 
 
-class SubmissionAttachment(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, AttachmentDetail):
+class SubmissionAttachment(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                           AttachmentDetail):
     model = Submission
     template_name = 'contests/submission/submission_attachment.html'
     permission_required = 'contests.view_submission'
@@ -2039,7 +2079,8 @@ class SubmissionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
                 if main_submission_id:
                     main_submission = get_object_or_404(Submission, id=main_submission_id)
                     self.storage['main_submission'] = main_submission
-                    pending_sub_problems = problem.sub_problems.exclude(submission__in=main_submission.sub_submissions.all())
+                    pending_sub_problems = problem.sub_problems.exclude(
+                        submission__in=main_submission.sub_submissions.all())
                     if sub_problem_id and sub_problem_id.isdigit():
                         sub_problem = pending_sub_problems.filter(id=sub_problem_id).first()
                     if sub_problem is None:
@@ -2111,7 +2152,8 @@ class SubmissionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
             main_submission = self.storage.get('main_submission')
             if main_submission:
                 context['main_submission'] = main_submission
-                context['pending_sub_problems'] = main_problem.sub_problems.exclude(submission__in=main_submission.sub_submissions.all()).exclude(id=problem.id)
+                context['pending_sub_problems'] = main_problem.sub_problems.exclude(
+                    submission__in=main_submission.sub_submissions.all()).exclude(id=problem.id)
             else:
                 context['pending_sub_problems'] = main_problem.sub_problems.exclude(id=problem.id)
         context['current_time'] = timezone.now()
@@ -2165,7 +2207,8 @@ class SubmissionUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         return success_url
 
 
-class SubmissionUpdateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, BaseUpdateView):
+class SubmissionUpdateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                          BaseUpdateView):
     model = Submission
     form_class = SubmissionUpdateForm
     http_method_names = ['post']
@@ -2215,7 +2258,8 @@ class SubmissionUpdateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixi
         return JsonResponse({'status': 'access_denied'})
 
 
-class SubmissionMoss(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, SingleObjectMixin, FormView):
+class SubmissionMoss(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                     SingleObjectMixin, FormView):
     model = Submission
     form_class = SubmissionMossForm
     template_name = 'contests/submission/submission_moss_form.html'
@@ -2495,13 +2539,19 @@ class ExecutionList(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 @login_required
 def index(request):
     notifications = Notification.objects.get_queryset().filter(recipient=request.user).unread()[:10]
-    schedules = Schedule.objects.get_queryset().filter(date_from__range=[timezone.now().date() - timedelta(days=6), timezone.now().date() + timedelta(days=7)])
-    announcements = Announcement.objects.get_queryset().filter(date_created__range=[timezone.now().date() - timedelta(days=90), timezone.now().date()])
+    schedules = Schedule.objects.get_queryset().filter(
+        date_from__range=[timezone.now().date() - timedelta(days=6), timezone.now().date() + timedelta(days=7)])
+    announcements = Announcement.objects.get_queryset().filter(
+        date_created__range=[timezone.now().date() - timedelta(days=90), timezone.now().date()])
     count_of_news = notifications.count() + schedules.count() + announcements.count()
-    has_unread_notifications = 1 if Notification.objects.get_queryset().filter(recipient=request.user).unread().exists() else 0
+    has_unread_notifications = 1 if Notification.objects.get_queryset().filter(
+        recipient=request.user).unread().exists() else 0
     if request.user.has_perm('contests.add_course'):
         filtered_course_ids = request.user.filter_set.values_list('course_id')
         filtered_courses = Course.objects.filter(id__in=filtered_course_ids)
-        return render(request, 'contests/index.html', {'courses': filtered_courses, 'notifications': notifications, 'schedules': schedules, 'announcements': announcements, 'count_of_news': count_of_news, 'has_unread_notifications': has_unread_notifications})
+        return render(request, 'contests/index.html',
+                      {'courses': filtered_courses, 'notifications': notifications, 'schedules': schedules,
+                       'announcements': announcements, 'count_of_news': count_of_news,
+                       'has_unread_notifications': has_unread_notifications})
     else:
         return redirect(reverse('contests:assignment-list'))
