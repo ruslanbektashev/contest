@@ -1856,8 +1856,8 @@ class AssignmentUserTable(LoginRedirectMixin, ListView):
             date_created__range=[timezone.now().date() - timedelta(days=90), timezone.now().date()])
         context['count_of_news'] = context['notifications'].count() + context['schedules'].count() + context[
             'announcements'].count()
-        context['has_unread_notifications'] = 1 if Notification.objects.get_queryset().filter(
-            recipient=self.request.user).unread().exists() else 0
+        context['has_unread_notifications'] = Notification.objects.get_queryset().filter(
+            recipient=self.request.user).unread().exists()
         return context
 
 
@@ -2553,8 +2553,8 @@ def index(request):
     announcements = Announcement.objects.get_queryset().filter(
         date_created__range=[timezone.now().date() - timedelta(days=90), timezone.now().date()])
     count_of_news = notifications.count() + schedules.count() + announcements.count()
-    has_unread_notifications = 1 if Notification.objects.get_queryset().filter(
-        recipient=request.user).unread().exists() else 0
+    has_unread_notifications = Notification.objects.get_queryset().filter(
+        recipient=request.user).unread().exists()
     if request.user.has_perm('contests.add_course'):
         filtered_course_ids = request.user.filter_set.values_list('course_id')
         filtered_courses = Course.objects.filter(id__in=filtered_course_ids)

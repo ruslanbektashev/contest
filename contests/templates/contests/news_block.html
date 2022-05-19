@@ -76,7 +76,10 @@
                                                     <a href="{{ notification.object.get_absolute_url }}" id="object_notif_{{ notification.id }}"> {{ notification.object }}</a>
                                                 {% endif %}
                                                 {% if notification.reference %}
-                                                    / <a href="{{ notification.reference.get_absolute_url }}"> {{ notification.reference }}</a>
+                                                    {% if notification.relation %}
+                                                        {{ notification.relation }}
+                                                    {% endif %}
+                                                    <a href="{{ notification.reference.get_absolute_url }}"> {{ notification.reference }}</a>
                                                 {% endif %}
                                             </span>
                                             <span class="text-muted text-right" style="width: 25%;">

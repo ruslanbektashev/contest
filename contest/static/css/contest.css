@@ -10120,7 +10120,7 @@ label {
 }
 
 .short-notification-list {
-  max-height: 150px;
+  max-height: 200px;
   overflow: hidden;
   overflow-y: scroll;
 }
