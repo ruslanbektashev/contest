@@ -1864,8 +1864,7 @@ class AssignmentUserTable(LoginRedirectMixin, ListView):
         context['notifications'] = Notification.objects.get_queryset().filter(recipient=self.request.user).unread()[:10]
         context['schedules'] = Schedule.objects.get_queryset().filter(
             date_from__range=[timezone.now().date() - timedelta(days=6), timezone.now().date() + timedelta(days=7)])
-        context['announcements'] = Announcement.objects.get_queryset().filter(
-            date_created__range=[timezone.now().date() - timedelta(days=90), timezone.now().date()])
+        context['announcements'] = Announcement.objects.all()
         context['count_of_news'] = context['notifications'].count() + context['schedules'].count() + context[
             'announcements'].count()
         context['has_unread_notifications'] = Notification.objects.get_queryset().filter(
@@ -2564,8 +2563,7 @@ def index(request):
     notifications = Notification.objects.get_queryset().filter(recipient=request.user).unread()[:10]
     schedules = Schedule.objects.get_queryset().filter(
         date_from__range=[timezone.now().date() - timedelta(days=6), timezone.now().date() + timedelta(days=7)])
-    announcements = Announcement.objects.get_queryset().filter(
-        date_created__range=[timezone.now().date() - timedelta(days=90), timezone.now().date()])
+    announcements = Announcement.objects.all()
     count_of_news = notifications.count() + schedules.count() + announcements.count()
     has_unread_notifications = Notification.objects.get_queryset().filter(
         recipient=request.user).unread().exists()
