@@ -1869,8 +1869,6 @@ class AssignmentUserTable(LoginRedirectMixin, ListView):
             actual__gte=datetime.today())
         context['count_of_news'] = context['notifications'].count() + context['schedules'].count() + context[
             'announcements'].count()
-        context['has_unread_notifications'] = Notification.objects.get_queryset().filter(
-            recipient=self.request.user).unread().exists()
         return context
 
 
@@ -2568,14 +2566,11 @@ def index(request):
     announcements = Announcement.objects.get_queryset().filter(
             actual__gte=datetime.today())
     count_of_news = notifications.count() + schedules.count() + announcements.count()
-    has_unread_notifications = Notification.objects.get_queryset().filter(
-        recipient=request.user).unread().exists()
     if request.user.has_perm('contests.add_course'):
         filtered_course_ids = request.user.filter_set.values_list('course_id')
         filtered_courses = Course.objects.filter(id__in=filtered_course_ids)
         return render(request, 'contests/index.html',
                       {'courses': filtered_courses, 'notifications': notifications, 'schedules': schedules,
-                       'announcements': announcements, 'count_of_news': count_of_news,
-                       'has_unread_notifications': has_unread_notifications})
+                       'announcements': announcements, 'count_of_news': count_of_news})
     else:
         return redirect(reverse('contests:assignment-list'))
