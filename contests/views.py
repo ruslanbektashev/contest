@@ -6,6 +6,7 @@ import aspose.words as aw
 
 from io import BytesIO
 from datetime import timedelta
+from django.utils.datetime_safe import datetime
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer, TextLexer
@@ -1864,7 +1865,8 @@ class AssignmentUserTable(LoginRedirectMixin, ListView):
         context['notifications'] = Notification.objects.get_queryset().filter(recipient=self.request.user).unread()[:10]
         context['schedules'] = Schedule.objects.get_queryset().filter(
             date_from__range=[timezone.now().date() - timedelta(days=6), timezone.now().date() + timedelta(days=7)])
-        context['announcements'] = Announcement.objects.all()
+        context['announcements'] = Announcement.objects.get_queryset().filter(
+            actual__gte=datetime.today())
         context['count_of_news'] = context['notifications'].count() + context['schedules'].count() + context[
             'announcements'].count()
         context['has_unread_notifications'] = Notification.objects.get_queryset().filter(
@@ -2563,7 +2565,8 @@ def index(request):
     notifications = Notification.objects.get_queryset().filter(recipient=request.user).unread()[:10]
     schedules = Schedule.objects.get_queryset().filter(
         date_from__range=[timezone.now().date() - timedelta(days=6), timezone.now().date() + timedelta(days=7)])
-    announcements = Announcement.objects.all()
+    announcements = Announcement.objects.get_queryset().filter(
+            actual__gte=datetime.today())
     count_of_news = notifications.count() + schedules.count() + announcements.count()
     has_unread_notifications = Notification.objects.get_queryset().filter(
         recipient=request.user).unread().exists()
