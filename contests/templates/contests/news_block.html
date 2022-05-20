@@ -62,32 +62,33 @@
                             {% if has_unread_notifications %}
                                 {% now 'Y' as current_year %}
                                 {% for notification in notifications %}
-                                    {% if not notification.is_read %}
-                                        <li id="notif_{{ notification.id }}" class="notification-list-item list-group-item d-flex {% if not notification.is_read %}bg-light"
-                                            data-unread=true{% else %}"{% endif %} data-id={{ notification.id }}>
-                                            <span class="notification-body mr-auto">
-                                                {% if notification.subject.username %}
-                                                    <a href="{{ notification.subject.account.get_absolute_url }}">{{ notification.subject.account }}</a>
-                                                {% elif notification.subject %}
-                                                    <a href="{{ notification.subject.get_absolute_url }}"> {{ notification.subject }}</a>
+                                    <li id="notif_{{ notification.id }}" class="notification-list-item list-group-item d-flex {% if not notification.is_read %}bg-light"
+                                        data-unread=true{% else %}"{% endif %} data-id={{ notification.id }}>
+                                        <span class="notification-body mr-auto">
+                                            {% if notification.subject.username %}
+                                                <a href="{{ notification.subject.account.get_absolute_url }}">{{ notification.subject.account }}</a>
+                                            {% elif notification.subject %}
+                                                <a href="{{ notification.subject.get_absolute_url }}"> {{ notification.subject }}</a>
+                                            {% endif %}
+                                            {{ notification.action }}
+                                            {% if notification.object %}
+                                                <a href="{{ notification.object.get_absolute_url }}" id="object_notif_{{ notification.id }}"> {{ notification.object }}</a>
+                                            {% endif %}
+                                            {% if notification.reference %}
+                                                {% if notification.relation %}
+                                                    {{ notification.relation }}
                                                 {% endif %}
-                                                {{ notification.action }}
-                                                {% if notification.object %}
-                                                    <a href="{{ notification.object.get_absolute_url }}" id="object_notif_{{ notification.id }}"> {{ notification.object }}</a>
-                                                {% endif %}
-                                                {% if notification.reference %}
-                                                    / <a href="{{ notification.reference.get_absolute_url }}"> {{ notification.reference }}</a>
-                                                {% endif %}
-                                            </span>
-                                            <span class="text-muted text-right" style="width: 25%;">
-                                                {% if notification.date_created|date:'Y' == current_year %}
-                                                    {{ notification.date_created|naturaltime_if_lt_week_ago:'j E в H:i' }}
-                                                {% else %}
-                                                    {{ notification.date_created|naturaltime_if_lt_week_ago:'j E Y г. в H:i' }}
-                                                {% endif %}
-                                            </span>
-                                        </li>
-                                    {% endif %}
+                                                <a href="{{ notification.reference.get_absolute_url }}"> {{ notification.reference }}</a>
+                                            {% endif %}
+                                        </span>
+                                        <span class="text-muted text-right" style="width: 25%;">
+                                            {% if notification.date_created|date:'Y' == current_year %}
+                                                {{ notification.date_created|naturaltime_if_lt_week_ago:'j E в H:i' }}
+                                            {% else %}
+                                                {{ notification.date_created|naturaltime_if_lt_week_ago:'j E Y г. в H:i' }}
+                                            {% endif %}
+                                        </span>
+                                    </li>
                                 {% endfor %}
                             {% else %}
                                 <div class="alert alert-info mb-3" role="alert">
