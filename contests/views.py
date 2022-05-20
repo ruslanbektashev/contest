@@ -5,14 +5,14 @@ import tempfile
 import aspose.words as aw
 
 from io import BytesIO
-from xlsx2html import xlsx2html
 from datetime import timedelta
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer, TextLexer
 from pydocx import PyDocX
-from xls2xlsx import XLS2XLSX
 from openpyxl import Workbook
+from xls2xlsx import XLS2XLSX
+from xlsx2html import xlsx2html
 
 try:
     from aspose import slides as slides
@@ -87,15 +87,15 @@ class AttachmentDetail(DetailView):
         elif attachment_ext in ('.ppt', '.pptx') and slides is not None:
             pres = slides.Presentation(attachment.file.path)
             options = slides.export.HtmlOptions()
-            out_stream = BytesIO()
-            pres.save(out_stream, slides.export.SaveFormat.HTML, options)
-            out_stream = str(out_stream.getvalue(), 'utf-8').replace('''Evaluation only.</tspan>''', " </tspan>") \
+            file_stream = BytesIO()
+            pres.save(file_stream, slides.export.SaveFormat.HTML, options)
+            file_stream = str(file_stream.getvalue(), 'utf-8').replace('''Evaluation only.</tspan>''', " </tspan>") \
                 .replace("Created with Aspose.Slides for .NET Standard 2.0 22.1.</tspan>", " </tspan>") \
                 .replace("Copyright 2004-2022Aspose Pty Ltd.</tspan>", " </tspan>") \
                 .replace('''class="slide"''', '''class="slide"  style="margin-bottom: 1%!important;"''') \
                 .replace('''xlink="http://www.w3.org/1999/xlink" width=''',
                          '''xlink="http://www.w3.org/1999/xlink" class="mw-100 h-auto d-inline-block"''')
-            context['code'] = out_stream.replace('''class="slideTitle"''', '''style="display:none;"''')
+            context['code'] = file_stream.replace('''class="slideTitle"''', '''style="display:none;"''')
         elif attachment_ext in ('.xls', '.xlsx'):
             if attachment_ext == '.xls':
                 temp = tempfile.TemporaryFile()
@@ -135,13 +135,13 @@ class AttachmentDetail(DetailView):
             sheet_html = sheet.read()
             context['code'] = sheet_html
         elif attachment_ext == '.doc':
-            doc = aw.Document(attachment.file.path)
-            out_stream = io.BytesIO()
-            doc.save(out_stream, aw.SaveFormat.DOCX)
+            doc_file = aw.Document(attachment.file.path)
+            file_stream = io.BytesIO()
+            doc_file.save(file_stream, aw.SaveFormat.DOCX)
             # context['code'] = str(mammoth.convert_to_html(outStream_).value)\
             #     .replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
-            context['code'] = str(PyDocX.to_html(out_stream)).replace(
-                '''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
+            context['code'] = str(PyDocX.to_html(file_stream))\
+                .replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
         elif attachment_ext == '.docx':
             # with open(attachment.file.path, "rb") as docx_file:
             #    context['code'] = mammoth.convert_to_html(docx_file).value
