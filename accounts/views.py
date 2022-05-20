@@ -1,5 +1,4 @@
 import json
-from datetime import timedelta
 
 from markdown import markdown
 
@@ -535,6 +534,11 @@ class AnnouncementList(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return super().get_queryset().all()
 
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super(AnnouncementList, self).get_context_data()
+        context['has_actual_announcements'] = Announcement.objects.get_queryset().filter(
+            actual__gte=datetime.today()).exists()
+        return context
 
 
 """================================================== Notification =================================================="""
