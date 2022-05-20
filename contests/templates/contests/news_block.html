@@ -59,7 +59,7 @@
                 <div id="collapseOne" class="collapse show" aria-labelledby="course_description">
                     <div class="card-body short-notification-list">
                         <div id="notifications" class="notification-list list-group mb-3">
-                            {% if has_unread_notifications %}
+                            {% if notifications %}
                                 {% now 'Y' as current_year %}
                                 {% for notification in notifications %}
                                     <li id="notif_{{ notification.id }}" class="notification-list-item list-group-item d-flex {% if not notification.is_read %}bg-light"
