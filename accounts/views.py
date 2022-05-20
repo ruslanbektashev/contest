@@ -504,7 +504,7 @@ class AnnouncementDetail(LoginRedirectMixin, PermissionRequiredMixin, DetailView
 
 class AnnouncementCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
     model = Announcement
-    fields = ['group', 'title', 'text']
+    fields = ['group', 'title', 'text', 'actual']
     template_name = 'accounts/announcement/announcement_form.html'
     permission_required = 'accounts.add_announcement'
 

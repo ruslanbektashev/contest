@@ -1,3 +1,4 @@
+import datetime
 import enum
 import math
 from statistics import mean
@@ -533,6 +534,16 @@ class Announcement(CRUDEntry):
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     text = models.TextField(verbose_name="Текст объявления")
+    actual = models.DateField(null=True, blank=True, verbose_name="Актуально до")
+
+    @property
+    def get_actual(self):
+        if self.actual is None:
+            return self.date_created.date() + datetime.timedelta(days=90)
+        return self.actual
+
+    def is_actual(self):
+        return self.get_actual >= datetime.datetime.now().date()
 
     class Meta(CRUDEntry.Meta):
         ordering = ('-date_created',)

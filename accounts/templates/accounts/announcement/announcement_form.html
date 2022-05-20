@@ -1,9 +1,13 @@
 {% extends 'base_wide.html' %}
-{% load views forms %}
+{% load views forms static %}
 
 {% block title %}
 Объявление
 {% endblock title %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{% static 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css' %}"/>
+{% endblock stylesheets %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -25,7 +29,34 @@
     {% render_field form.group class+="form-control selectpicker" %}
     {% render_field form.title class+="form-control" %}
     {% render_field form.text class+="form-control" %}
+    {% render_field form.actual class+="form-control" placeholder="По умолчанию: 3 месяца" %}
     {% endwith %}
     {% render_submit_button value="Сохранить" %}
 </form>
 {% endblock content %}
+
+{% block javascript %}
+<script type="text/javascript" src="{% static 'moment/min/moment.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'moment/min/locales.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js' %}"></script>
+<script type="text/javascript">
+$(function () {
+    $("#id_actual").datetimepicker({
+        locale: 'ru',
+        format: 'DD.MM.YYYY',
+        sideBySide: true,
+        icons: {
+            time: 'fa fa-clock-o fa-fw',
+            date: 'fa fa-calendar fa-fw',
+            up: 'fa fa-chevron-up fa-fw',
+            down: 'fa fa-chevron-down fa-fw',
+            previous: 'fa fa-chevron-left fa-fw',
+            next: 'fa fa-chevron-right fa-fw',
+            today: 'fa fa-map-marker fa-fw',
+            clear: 'fa fa-refresh fa-fw',
+            close: 'fa fa-times fa-fw'
+        }
+    });
+});
+</script>
+{% endblock javascript %}

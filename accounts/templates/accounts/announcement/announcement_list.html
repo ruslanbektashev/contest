@@ -20,23 +20,26 @@
     </span>
 </legend>
 {% for announcement in announcements %}
-<div class="card{% if forloop.counter > 1 %} mt-3{% endif %}">
-    <div class="card-header d-flex align-items-center">
-        <span class="text-primary mr-auto">{{ announcement.title }}</span>
-        {% if perms.accounts.change_announcement %}
-        <a href="{% url 'accounts:announcement-update' announcement.id %}" class="card-link" data-toggle="tooltip" data-placement="left" title="Редактировать объявление"><i class="fa fa-edit fa-lg fa-fw"></i></a>
-        {% endif %}
-        {% if perms.accounts.delete_announcement %}
-        <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="card-link text-danger ml-2" data-toggle="tooltip" data-placement="top" title="Удалить объявление" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-lg fa-fw"></i></a>
-        {% endif %}
+    {% if announcement.is_actual %}
+    <div class="card{% if forloop.counter > 1 %} mt-3{% endif %}">
+        <div class="card-header d-flex align-items-center">
+            <span class="text-primary mr-auto">{{ announcement.title }}</span>
+            <span class="text-muted">Актуально до: {{ announcement.get_actual }}</span>
+            {% if perms.accounts.change_announcement %}
+            <a href="{% url 'accounts:announcement-update' announcement.id %}" class="card-link" data-toggle="tooltip" data-placement="left" title="Редактировать объявление"><i class="fa fa-edit fa-lg fa-fw"></i></a>
+            {% endif %}
+            {% if perms.accounts.delete_announcement %}
+            <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="card-link text-danger ml-2" data-toggle="tooltip" data-placement="top" title="Удалить объявление" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-lg fa-fw"></i></a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="card-text">{{ announcement.text|safe }}</div>
+        </div>
+        <div class="card-footer d-flex align-items-center">
+            <span class="text-muted mr-auto">{{ announcement.date_created|date:'' }}</span>
+            <span class="numtus badge-secondary">{{ announcement.group }}</span>
+        </div>
     </div>
-    <div class="card-body">
-        <div class="card-text">{{ announcement.text|safe }}</div>
-    </div>
-    <div class="card-footer d-flex align-items-center">
-        <span class="text-muted mr-auto">{{ announcement.date_created|date:'' }}</span>
-        <span class="numtus badge-secondary">{{ announcement.group }}</span>
-    </div>
-</div>
+    {% endif %}
 {% endfor %}
 {% endblock content %}
