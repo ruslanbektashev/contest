@@ -530,6 +530,11 @@ class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
             self.object = self.get_object()
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
+    def form_valid(self, form):
+        Notification.objects.notify(self.object.user, subject=self.request.user, action="изменил Вашу оценку по курсу",
+                                    object=self.object.course)
+        return redirect(self.get_success_url())
+
     def get_success_url(self):
         success_url = reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
         return success_url + get_updated_query_string(self.request)
@@ -1789,6 +1794,11 @@ class AssignmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
             self.object = self.get_object()
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
+    def form_valid(self, form):
+        Notification.objects.notify(self.object.user, subject=self.request.user, action="изменил Вашу оценку к задаче",
+                                    object=self.object, relation="из раздела", reference=self.object.contest)
+        return redirect('contests:assignment-detail', self.object.id)
+
     def get_form_class(self):
         if self.storage['action'] == 'add_files':
             return AssignmentUpdateAttachmentForm
@@ -2258,6 +2268,8 @@ class SubmissionUpdateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixi
                 'score': self.object.main_submission.score,
                 'color': colorize(self.object.main_submission.status)
             })
+        Notification.objects.notify(self.object.owner, subject=self.request.user, action="изменил оценку Вашей посылки",
+                                    object=self.object, relation="из раздела", reference=self.object.contest)
         return JsonResponse(response)
 
     def form_invalid(self, form):
