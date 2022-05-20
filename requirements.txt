@@ -17,5 +17,3 @@ mammoth~=1.4.19
 xlsx2html~=0.4.0
 PyDocX~=0.9.10
 xls2xlsx~=0.1.5
-currency-symbols==2.0.1
-openpyxl==3.0.9
