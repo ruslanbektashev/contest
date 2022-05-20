@@ -4,7 +4,7 @@ $('#slideslideIface1').slideDown(0);
 var $counter = 1;
 var $ind = 0;
 var $id;
-var $flag = true
+var $flag = true;
 
 
 $("#next_power_point_slide").on('click', function () {
@@ -40,12 +40,12 @@ $("#prev_power_point_slide").on('click', function () {
 });
 
 $('#start_power_point_slide').on('click', function () {
-    $counter = 1
+    $counter = 1;
     $(".slide").css("display", "none");
     $('#slideslideIface1').slideDown(300);
 });
 $('#end_power_point_slide').on('click', function () {
-    $counter = $counter
+    $counter = $counter;
     $('.slide').each(function (index, element) {
         $counter = index + 1;
     });
@@ -61,7 +61,7 @@ $('#Change_mode').on('click', function () {
             $($id).slideDown(400);
             $ind = index;
         });
-        $ind += 1
+        $ind += 1;
         $id = '#slideslideIface' + $ind;
         $($id).slideDown(200);
         $(".hide_button").css("display", "none");
