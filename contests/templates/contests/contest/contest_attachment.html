@@ -23,7 +23,7 @@
         {% endif %}
     </legend>
     <samp>{{ attachment.filename }}</samp>
-    <div class="alert alert-light border mt-2 overflow-auto">
+    <div class="alert alert-light border mt-2 overflow-hidden">
         {{ code|safe }}
         {% if ext == '.ppt' or ext == '.pptx' %}
             <nav class="hide_button">
