@@ -6,7 +6,7 @@
             <samp>{{ attachment.filename }}</samp>
         </a>
         {% if attachment.file|exists %}
-            {% if attachment.extension == '.pdf' or attachment.extension == '.ppt' or attachment.extension == '.pptx' or attachment.extension == '.doc' or attachment.extension == '.docx' or attachment.extension == '.xls' or attachment.extension == '.xlsx' %}
+            {% if attachment.extension == '.pdf' or attachment.extension == '.ppt' or attachment.extension == '.pptx' or attachment.extension == '.doc' or attachment.extension == '.docx' or attachment.extension == '.xls' or attachment.extension == '.xlsx' or attachment.extension == '.csv' %}
                 <a href="https://docs.google.com/viewer?url=https://contest.msu.uz{{ attachment.file.url }}" class="mr-2" title="Смотреть в Google Docs" target="_blank"><i class="fa fa-external-link"></i></a>
             {% endif %}
         {% endif %}
