@@ -122,8 +122,10 @@ class AttachmentDetail(DetailView):
                     break
             nav = '<br><ul>{}</ul>'.format(''.join(f'<li><a href="#fsheet{id(sheet_name)}">{sheet_name}</a></li>'
                                                    for sheet_name in html_sheets.keys()))
-            context['code'] = ''.join(f'<hr><h3 id="fsheet{id(sheet_name)}">{sheet_name}</h3><hr>{value}'
-                                      for sheet_name, value in html_sheets.items()) + nav
+
+
+            context['code'] ='<div class="overflow-auto">' + ''.join(f'<hr><h3 id="fsheet{id(sheet_name)}">{sheet_name}</h3><hr>{value}'
+                                      for sheet_name, value in html_sheets.items()) + nav+'</div>'
         elif attachment_ext == '.csv':
             temp = tempfile.TemporaryFile()
             workbook = Workbook()
