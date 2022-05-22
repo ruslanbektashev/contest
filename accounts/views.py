@@ -531,9 +531,6 @@ class AnnouncementList(LoginRequiredMixin, ListView):
     template_name = 'accounts/announcement/announcement_list.html'
     context_object_name = 'announcements'
 
-    def get_queryset(self):
-        return super().get_queryset().all()
-
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super(AnnouncementList, self).get_context_data()
         context['has_actual_announcements'] = Announcement.objects.get_queryset().filter(
