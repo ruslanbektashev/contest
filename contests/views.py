@@ -6,6 +6,8 @@ import aspose.words as aw
 
 from io import BytesIO
 from datetime import timedelta
+
+import openpyxl
 from django.utils.datetime_safe import datetime
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
@@ -107,19 +109,16 @@ class AttachmentDetail(DetailView):
             else:
                 temp = attachment.file.path
             html_sheets = dict()
-            r = re.compile(r'\<td id\=\".+\!.+\"')
-            for i in range(100):
-                try:
-                    xlsx_file: str = temp
-                    current_sheet = io.StringIO()
-                    xlsx2html(xlsx_file, current_sheet, locale='en', sheet=i)
-                    current_sheet.seek(0)
-                    current_sheet_html = current_sheet.read()
-                    sheet_name_str = r.search(current_sheet_html).group(0)
-                    sheet_name = sheet_name_str[8:sheet_name_str.index('!')]
-                    html_sheets[sheet_name] = current_sheet_html
-                except IndexError:
-                    break
+            regexp = re.compile(r'\<td id\=\".+\!.+\"')
+            for i in range(len(openpyxl.load_workbook(temp).sheetnames)):
+                xlsx_file: str = temp
+                current_sheet = io.StringIO()
+                xlsx2html(xlsx_file, current_sheet, locale='en', sheet=i)
+                current_sheet.seek(0)
+                current_sheet_html = current_sheet.read()
+                sheet_name_str = regexp.search(current_sheet_html).group(0)
+                sheet_name = sheet_name_str[8:sheet_name_str.index('!')]
+                html_sheets[sheet_name] = current_sheet_html
             nav = '<br><ul>{}</ul>'.format(''.join(f'<li><a href="#fsheet{id(sheet_name)}">{sheet_name}</a></li>'
                                                    for sheet_name in html_sheets.keys()))
             context['code'] = '<div class="overflow-auto">' +\
