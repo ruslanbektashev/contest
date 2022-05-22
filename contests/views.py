@@ -122,10 +122,8 @@ class AttachmentDetail(DetailView):
                     break
             nav = '<br><ul>{}</ul>'.format(''.join(f'<li><a href="#fsheet{id(sheet_name)}">{sheet_name}</a></li>'
                                                    for sheet_name in html_sheets.keys()))
-
-
-            context['code'] ='<div class="overflow-auto">' + ''.join(f'<hr><h3 id="fsheet{id(sheet_name)}">{sheet_name}</h3><hr>{value}'
-                                      for sheet_name, value in html_sheets.items()) + nav+'</div>'
+            context['code'] = '<div class="overflow-auto">' + ''.join(f'<hr><h3 id="fsheet{id(sheet_name)}">{sheet_name}</h3><hr>{value}'
+                                      for sheet_name, value in html_sheets.items()) + nav+ '</div>'
         elif attachment_ext == '.csv':
             temp = tempfile.TemporaryFile()
             workbook = Workbook()
@@ -138,7 +136,7 @@ class AttachmentDetail(DetailView):
             xlsx2html(temp, sheet, locale='en')
             sheet.seek(0)
             sheet_html = sheet.read()
-            context['code'] = sheet_html
+            context['code'] = '<div class="overflow-auto">' + sheet_html + '</div>'
         elif attachment_ext == '.doc':
             doc_file = aw.Document(attachment.file.path)
             file_stream = io.BytesIO()
