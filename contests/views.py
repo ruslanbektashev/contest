@@ -2,7 +2,6 @@ import csv
 import re
 import io
 import tempfile
-import aspose.words as aw
 
 from io import BytesIO
 from datetime import timedelta
@@ -21,6 +20,11 @@ try:
     from aspose import slides as slides
 except ImportError:
     slides = None
+
+try:
+    from aspose import words as words
+except ImportError:
+    words = None
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
@@ -137,10 +141,10 @@ class AttachmentDetail(DetailView):
             sheet.seek(0)
             sheet_html = sheet.read()
             context['code'] = '<div class="overflow-auto">' + sheet_html + '</div>'
-        elif attachment_ext == '.doc':
-            doc_file = aw.Document(attachment.file.path)
+        elif attachment_ext == '.doc' and words is not None:
+            doc_file = words.Document(attachment.file.path)
             file_stream = io.BytesIO()
-            doc_file.save(file_stream, aw.SaveFormat.DOCX)
+            doc_file.save(file_stream, words.SaveFormat.DOCX)
             context['code'] = str(PyDocX.to_html(file_stream))\
                 .replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
         elif attachment_ext == '.docx':
