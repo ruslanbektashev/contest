@@ -39,26 +39,26 @@ class ReadWatcher {
     }
 
     handleEvent(event) {
-        let self = this;
         function notification_read_actions(notification) {
             let is_unread = JSON.parse(notification.getAttribute('data-unread'));
             if (is_unread) {
                 let notification_id = parseInt(notification.getAttribute('data-id'));
                 let notification_body = notification.getElementsByClassName('notification-body')[0];
-                if (self.isInViewPoint(notification_body) && !self.unread_notifications_ids.includes(notification_id)) {
+                if (this.isInViewPoint(notification_body) && !this.unread_notifications_ids.includes(notification_id)) {
                     notification.classList.remove('bg-light');
                     notification.removeAttribute('data-unread');
-                    self.unread_notifications_ids.push(notification_id);
+                    this.unread_notifications_ids.push(notification_id);
                 }
             }
         }
+        let notification_read_actions_bind = notification_read_actions.bind(this);
         if (this.certain_notif == null) {
             for(let notification of this.notifications.children) {
-                notification_read_actions(notification);
+                notification_read_actions_bind(notification);
             }
         }
         else
-             notification_read_actions(this.certain_notif);
+             notification_read_actions_bind(this.certain_notif);
 
     }
 }
