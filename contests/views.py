@@ -119,11 +119,11 @@ class AttachmentDetail(DetailView):
                 sheet_name_str = regexp.search(current_sheet_html).group(0)
                 sheet_name = sheet_name_str[8:sheet_name_str.index('!')]
                 html_sheets[sheet_name] = current_sheet_html
+            sheets = ''.join(f'<hr><h3 id="fsheet{id(sheet_name)}">{sheet_name}</h3><hr>{value}'
+                             for sheet_name, value in html_sheets.items())
             nav = '<br><ul>{}</ul>'.format(''.join(f'<li><a href="#fsheet{id(sheet_name)}">{sheet_name}</a></li>'
                                                    for sheet_name in html_sheets.keys()))
-            context['code'] = '<div class="overflow-auto">' +\
-                              ''.join(f'<hr><h3 id="fsheet{id(sheet_name)}">{sheet_name}</h3><hr>{value}'
-                                      for sheet_name, value in html_sheets.items()) + nav+ '</div>'
+            context['code'] = '<div class="overflow-auto">' + sheets + nav + '</div>'
         elif attachment_ext == '.csv':
             temp = tempfile.TemporaryFile()
             workbook = Workbook()
