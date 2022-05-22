@@ -62,7 +62,7 @@
                             {% if notifications %}
                                 {% now 'Y' as current_year %}
                                 {% for notification in notifications %}
-                                    <li id="notif_{{ notification.id }}" class="notification-list-item list-group-item d-flex {% if not notification.is_read %}bg-light"
+                                    <li id="{{ notification.id }}" class="notification-list-item list-group-item d-flex {% if not notification.is_read %}bg-light"
                                         data-unread=true{% else %}"{% endif %} data-id={{ notification.id }}>
                                         <span class="notification-body mr-auto">
                                             {% if notification.subject.username %}
@@ -150,11 +150,12 @@
 <script type="text/javascript">
 document.addEventListener("DOMContentLoaded", function() {
     const watcher = new ReadWatcher("{% url 'accounts:mark-notifications-as-read' %}");
-    {% for notif in notifications %}
-        document.getElementById('object_notif_{{ notif.id }}').addEventListener('mousedown', function () {
-            watcher.set_notification_to_read('notif_{{ notif.id }}');
+    let notifications_list = document.getElementById('notifications');
+    for(let notif_body of notifications_list.children) {
+        document.getElementById(`object_notif_${parseInt(notif_body.id)}`).addEventListener('mousedown', function () {
+            watcher.set_notification_to_read(notif_body.id);
             setTimeout(watcher.markNotificationsAsRead.bind(watcher), 10);
         });
-    {% endfor %}
+    }
 });
 </script>
