@@ -122,7 +122,8 @@ class AttachmentDetail(DetailView):
                     break
             nav = '<br><ul>{}</ul>'.format(''.join(f'<li><a href="#fsheet{id(sheet_name)}">{sheet_name}</a></li>'
                                                    for sheet_name in html_sheets.keys()))
-            context['code'] = '<div class="overflow-auto">' + ''.join(f'<hr><h3 id="fsheet{id(sheet_name)}">{sheet_name}</h3><hr>{value}'
+            context['code'] = '<div class="overflow-auto">' +\
+                              ''.join(f'<hr><h3 id="fsheet{id(sheet_name)}">{sheet_name}</h3><hr>{value}'
                                       for sheet_name, value in html_sheets.items()) + nav+ '</div>'
         elif attachment_ext == '.csv':
             temp = tempfile.TemporaryFile()
@@ -141,13 +142,9 @@ class AttachmentDetail(DetailView):
             doc_file = aw.Document(attachment.file.path)
             file_stream = io.BytesIO()
             doc_file.save(file_stream, aw.SaveFormat.DOCX)
-            # context['code'] = str(mammoth.convert_to_html(outStream_).value)\
-            #     .replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
             context['code'] = str(PyDocX.to_html(file_stream))\
                 .replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
         elif attachment_ext == '.docx':
-            # with open(attachment.file.path, "rb") as docx_file:
-            #    context['code'] = mammoth.convert_to_html(docx_file).value
             context['code'] = PyDocX.to_html(attachment.file.path)
 
         return context
