@@ -536,7 +536,7 @@ class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
     def form_valid(self, form):
         Notification.objects.notify(self.object.user, subject=self.request.user, action="изменил Вашу оценку по курсу",
                                     object=self.object.course)
-        return redirect(self.get_success_url())
+        return super().form_valid(form)
 
     def get_success_url(self):
         success_url = reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
@@ -1800,7 +1800,7 @@ class AssignmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
     def form_valid(self, form):
         Notification.objects.notify(self.object.user, subject=self.request.user, action="изменил Вашу оценку к задаче",
                                     object=self.object, relation="из раздела", reference=self.object.contest)
-        return redirect('contests:assignment-detail', self.object.id)
+        return super().form_valid(form)
 
     def get_form_class(self):
         if self.storage['action'] == 'add_files':
