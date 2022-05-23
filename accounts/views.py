@@ -532,9 +532,9 @@ class AnnouncementList(LoginRequiredMixin, ListView):
     context_object_name = 'announcements'
 
     def get_context_data(self, *, object_list=None, **kwargs):
-        context = super(AnnouncementList, self).get_context_data()
+        context = super().get_context_data()
         context['has_actual_announcements'] = Announcement.objects.get_queryset().filter(
-            actual__gte=datetime.today()).exists()
+            actual__gte=timezone.now().today()).exists()
         return context
 
 
