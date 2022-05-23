@@ -6,13 +6,12 @@ import tempfile
 from io import BytesIO
 from datetime import timedelta
 
-import openpyxl
 from django.utils.datetime_safe import datetime
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer, TextLexer
 from pydocx import PyDocX
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from xls2xlsx import XLS2XLSX
 from xlsx2html import xlsx2html
 
@@ -114,7 +113,7 @@ class AttachmentDetail(DetailView):
                 temp = attachment.file.path
             html_sheets = dict()
             regexp = re.compile(r'\<td id\=\".+\!.+\"')
-            for i in range(len(openpyxl.load_workbook(temp).sheetnames)):
+            for i in range(len(load_workbook(temp).sheetnames)):
                 xlsx_file: str = temp
                 current_sheet = io.StringIO()
                 xlsx2html(xlsx_file, current_sheet, locale='en', sheet=i)
