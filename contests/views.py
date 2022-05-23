@@ -96,14 +96,16 @@ class AttachmentDetail(DetailView):
             options = slides.export.HtmlOptions()
             out_stream = BytesIO()
             pres.save(out_stream, slides.export.SaveFormat.HTML, options)
-            out_stream = str(out_stream.getvalue(), 'utf-8').replace('''Evaluation only.</tspan>''', " </tspan>") \
+            out_stream = str(out_stream.getvalue(), 'utf-8')\
+                .replace('''Evaluation only.</tspan>''', " </tspan>") \
                 .replace("Created with Aspose.Slides for .NET Standard 2.0 22.1.</tspan>", " </tspan>") \
                 .replace("Copyright 2004-2022Aspose Pty Ltd.</tspan>", " </tspan>") \
                 .replace('''class="slide"''',
                          '''class="slide pagination justify-content-center"  style="margin-bottom: 1%!important;''') \
                 .replace('''xlink="http://www.w3.org/1999/xlink" width=''',
-                         '''xlink="http://www.w3.org/1999/xlink" class="h-auto d-inline-block" style="width:70%!important"''')
-            context['code'] = out_stream.replace('''class="slideTitle"''', '''style="display:none;"''')
+                         '''xlink="http://www.w3.org/1999/xlink" class="h-auto d-inline-block" style="width:70%!important"''')\
+                .replace('''class="slideTitle"''', '''style="display:none;"''')
+            context['code'] = out_stream
         elif attachment_ext in ('.xls', '.xlsx'):
             if attachment_ext == '.xls':
                 temp = tempfile.TemporaryFile()
