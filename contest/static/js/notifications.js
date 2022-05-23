@@ -54,7 +54,7 @@ class ReadWatcher {
         let notification_read_actions_bind = notification_read_actions.bind(this);
         if (this.certain_notif == null) {
             for(let notification of this.notifications.children) {
-                notification_read_actions_bind(notification);
+                notification_read_actions(notification);
             }
         }
         else
