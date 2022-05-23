@@ -144,8 +144,7 @@ class AttachmentDetail(DetailView):
             doc_file = words.Document(attachment.file.path)
             file_stream = io.BytesIO()
             doc_file.save(file_stream, words.SaveFormat.DOCX)
-            context['code'] = str(PyDocX.to_html(file_stream))\
-                .replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
+            context['code'] = str(PyDocX.to_html(file_stream)).replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
         elif attachment_ext == '.docx':
             context['code'] = PyDocX.to_html(attachment.file.path)
 
