@@ -1,9 +1,8 @@
 import csv
 import re
-import io
 import tempfile
 
-from io import BytesIO
+from io import BytesIO, StringIO
 from datetime import timedelta
 
 from django.utils.datetime_safe import datetime
@@ -55,6 +54,7 @@ from contests.models import (Assignment, Attachment, Contest, Course, CourseLead
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.contests import colorize
+from contests.documents import watermarks as wm
 
 from schedule.models import Schedule
 
@@ -96,14 +96,13 @@ class AttachmentDetail(DetailView):
             options = slides.export.HtmlOptions()
             out_stream = BytesIO()
             pres.save(out_stream, slides.export.SaveFormat.HTML, options)
-            out_stream = str(out_stream.getvalue(), 'utf-8').replace('''Evaluation only.</tspan>''', " </tspan>") \
-                .replace("Created with Aspose.Slides for .NET Standard 2.0 22.1.</tspan>", " </tspan>") \
-                .replace("Copyright 2004-2022Aspose Pty Ltd.</tspan>", " </tspan>") \
+            out_stream = str(out_stream.getvalue(), 'utf-8').replace(wm.PPT_WM_1, ' ').replace(wm.PPT_WM_2, ' ').replace(wm.PPT_WM_3, ' ') \
                 .replace('''class="slide"''',
                          '''class="slide pagination justify-content-center"  style="margin-bottom: 1%!important;''') \
                 .replace('''xlink="http://www.w3.org/1999/xlink" width=''',
-                         '''xlink="http://www.w3.org/1999/xlink" class="h-auto d-inline-block" style="width:70%!important"''')
-            context['code'] = out_stream.replace('''class="slideTitle"''', '''style="display:none;"''')
+                         '''xlink="http://www.w3.org/1999/xlink" class="h-auto d-inline-block" style="width:70%!important"''')\
+                .replace('''class="slideTitle"''', '''style="display:none;"''')
+            context['code'] = out_stream
         elif attachment_ext in ('.xls', '.xlsx'):
             if attachment_ext == '.xls':
                 temp = tempfile.TemporaryFile()
@@ -114,8 +113,8 @@ class AttachmentDetail(DetailView):
             html_sheets = dict()
             regexp = re.compile(r'\<td id\=\".+\!.+\"')
             for i in range(len(load_workbook(temp).sheetnames)):
-                xlsx_file: str = temp
-                current_sheet = io.StringIO()
+                xlsx_file = temp
+                current_sheet = StringIO()
                 xlsx2html(xlsx_file, current_sheet, locale='en', sheet=i)
                 current_sheet.seek(0)
                 current_sheet_html = current_sheet.read()
@@ -135,14 +134,14 @@ class AttachmentDetail(DetailView):
                 for row in csv.reader(file):
                     worksheet.append(row)
             workbook.save(temp)
-            sheet = io.StringIO()
+            sheet = StringIO()
             xlsx2html(temp, sheet, locale='en')
             sheet.seek(0)
             sheet_html = sheet.read()
             context['code'] = sheet_html
         elif attachment_ext == '.doc' and words is not None:
             doc_file = words.Document(attachment.file.path)
-            file_stream = io.BytesIO()
+            file_stream = BytesIO()
             doc_file.save(file_stream, words.SaveFormat.DOCX)
             context['code'] = str(PyDocX.to_html(file_stream)).replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
         elif attachment_ext == '.docx':
@@ -534,7 +533,7 @@ class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
     def form_valid(self, form):
         Notification.objects.notify(self.object.user, subject=self.request.user, action="изменил Вашу оценку по курсу",
                                     object=self.object.course)
-        return redirect(self.get_success_url())
+        return super().form_valid(form)
 
     def get_success_url(self):
         success_url = reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
@@ -1798,7 +1797,7 @@ class AssignmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
     def form_valid(self, form):
         Notification.objects.notify(self.object.user, subject=self.request.user, action="изменил Вашу оценку к задаче",
                                     object=self.object, relation="из раздела", reference=self.object.contest)
-        return redirect('contests:assignment-detail', self.object.id)
+        return super().form_valid(form)
 
     def get_form_class(self):
         if self.storage['action'] == 'add_files':
