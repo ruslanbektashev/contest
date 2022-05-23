@@ -3,7 +3,7 @@ import re
 import io
 import tempfile
 
-from io import BytesIO
+from io import BytesIO, StringIO
 from datetime import timedelta
 
 from django.utils.datetime_safe import datetime
@@ -117,7 +117,7 @@ class AttachmentDetail(DetailView):
             regexp = re.compile(r'\<td id\=\".+\!.+\"')
             for i in range(len(load_workbook(temp).sheetnames)):
                 xlsx_file: str = temp
-                current_sheet = io.StringIO()
+                current_sheet = StringIO()
                 xlsx2html(xlsx_file, current_sheet, locale='en', sheet=i)
                 current_sheet.seek(0)
                 current_sheet_html = current_sheet.read()
@@ -137,14 +137,14 @@ class AttachmentDetail(DetailView):
                 for row in csv.reader(file):
                     worksheet.append(row)
             workbook.save(temp)
-            sheet = io.StringIO()
+            sheet = StringIO()
             xlsx2html(temp, sheet, locale='en')
             sheet.seek(0)
             sheet_html = sheet.read()
             context['code'] = sheet_html
         elif attachment_ext == '.doc' and words is not None:
             doc_file = words.Document(attachment.file.path)
-            file_stream = io.BytesIO()
+            file_stream = BytesIO()
             doc_file.save(file_stream, words.SaveFormat.DOCX)
             context['code'] = str(PyDocX.to_html(file_stream)).replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
         elif attachment_ext == '.docx':
