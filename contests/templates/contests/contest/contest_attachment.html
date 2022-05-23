@@ -2,27 +2,25 @@
 {% load views static %}
 
 {% block title %}
-    Раздел
+Раздел
 {% endblock title %}
 
 {% block breadcrumbs %}
-    {% breadcrumb "Главная" 'contests:index' %}
-    {% breadcrumb contest.course contest.course %}
-    {% breadcrumb contest contest %}
-    {% breadcrumb attachment.filename %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb contest.course contest.course %}
+{% breadcrumb contest contest %}
+{% breadcrumb attachment.filename %}
 {% endblock breadcrumbs %}
 
 {% block content %}
-    <legend>{{ contest }}
-        {% if ext == '.ppt' or ext == '.pptx' %}
-
-            <span class="pull-right">
-                <a id="Change_mode" title="Изменить режим просмотра"><i class="fa fa-file-text-o" id="mode_view" style="color:#007BFF" aria-hidden="true"></i></a>
-            </span>
-
-        {% endif %}
-    </legend>
-    <samp>{{ attachment.filename }}</samp>
+<legend>{{ contest }}
+    {% if ext == '.ppt' or ext == '.pptx' %}
+          <span class="pull-right">
+             <a id="Change_mode" title="Изменить режим просмотра"><i class="fa fa-file-text-o" id="mode_view" style="color:#007BFF" aria-hidden="true"></i></a>
+          </span>
+    {% endif %}
+</legend>
+<samp>{{ attachment.filename }}</samp>
     <div class="alert alert-light border mt-2 overflow-hidden">
         {{ code|safe }}
         {% if ext == '.ppt' or ext == '.pptx' %}
@@ -62,7 +60,7 @@
 {% endblock javascript %}
 
 {% block stylesheets %}
-    <link href="{% static 'css/highlight.css' %}" rel="stylesheet"/>
+<link href="{% static 'css/highlight.css' %}" rel="stylesheet"/>
     <style>
         body {
             width: 100% !important;
