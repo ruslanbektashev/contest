@@ -113,7 +113,6 @@
                     <div class="card-body short-announcement-list">
                         {% if announcements %}
                             {% for announcement in announcements %}
-                                {% if announcement.is_actual %}
                                     <div class="card{% if forloop.counter > 1 %} mt-3{% endif %}">
                                         <div class="card-header d-flex align-items-center">
                                             <span class="text-primary mr-auto">{{ announcement.title }}</span>
@@ -133,7 +132,6 @@
                                             <span class="numtus badge-secondary">{{ announcement.group }}</span>
                                         </div>
                                     </div>
-                                {% endif %}
                             {% endfor %}
                         {% else %}
                             <div class="alert alert-info mb-3" role="alert">
