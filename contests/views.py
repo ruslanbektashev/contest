@@ -115,7 +115,7 @@ class AttachmentDetail(DetailView):
             html_sheets = dict()
             regexp = re.compile(r'\<td id\=\".+\!.+\"')
             for i in range(len(load_workbook(temp).sheetnames)):
-                xlsx_file: str = temp
+                xlsx_file = temp
                 current_sheet = StringIO()
                 xlsx2html(xlsx_file, current_sheet, locale='en', sheet=i)
                 current_sheet.seek(0)
