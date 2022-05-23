@@ -54,6 +54,7 @@ from contests.models import (Assignment, Attachment, Contest, Course, CourseLead
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.contests import colorize
+from contests.documents import watermarks as wm
 
 from schedule.models import Schedule
 
@@ -95,10 +96,7 @@ class AttachmentDetail(DetailView):
             options = slides.export.HtmlOptions()
             out_stream = BytesIO()
             pres.save(out_stream, slides.export.SaveFormat.HTML, options)
-            out_stream = str(out_stream.getvalue(), 'utf-8')\
-                .replace('''Evaluation only.</tspan>''', " </tspan>") \
-                .replace("Created with Aspose.Slides for .NET Standard 2.0 22.1.</tspan>", " </tspan>") \
-                .replace("Copyright 2004-2022Aspose Pty Ltd.</tspan>", " </tspan>") \
+            out_stream = str(out_stream.getvalue(), 'utf-8').replace(wm.PPT_WM_1, ' ').replace(wm.PPT_WM_2, ' ').replace(wm.PPT_WM_3, ' ') \
                 .replace('''class="slide"''',
                          '''class="slide pagination justify-content-center"  style="margin-bottom: 1%!important;''') \
                 .replace('''xlink="http://www.w3.org/1999/xlink" width=''',
