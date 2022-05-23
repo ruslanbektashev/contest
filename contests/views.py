@@ -1,6 +1,5 @@
 import csv
 import re
-import io
 import tempfile
 
 from io import BytesIO, StringIO
