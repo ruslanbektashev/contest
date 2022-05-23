@@ -46,10 +46,10 @@ $('#start_power_point_slide').on('click', function () {
     $('#slideslideIface1').css({opacity: 1, position: 'relative', height: 'auto', left: 'unset', right: 0});
 });
 $('#end_power_point_slide').on('click', function () {
-    $counter = $counter;
     $('.slide').each(function (index, element) {
         $counter = index + 1;
     });
+    $ind = $counter;
     $id = '#slideslideIface' + $counter;
     $(".slide").css({opacity: 0, position: 'absolute', top: 0, height: 0, right: '-300px',left: 'unset', transition: '0.3s'});
     $($id).css({opacity: 1, position: 'relative', height: 'auto', left: 'unset', right: 0});
