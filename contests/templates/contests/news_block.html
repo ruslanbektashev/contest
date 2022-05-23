@@ -152,7 +152,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const watcher = new ReadWatcher("{% url 'accounts:mark-notifications-as-read' %}");
     let notifications_list = document.getElementById('notifications');
     for(let notif_body of notifications_list.children) {
-        document.getElementById(`object_notif_${parseInt(notif_body.id)}`).addEventListener('mousedown', function () {
+        document.getElementById(`object_notif_${notif_body.id}`).addEventListener('mousedown', function () {
             watcher.set_notification_to_read(notif_body.id);
             setTimeout(watcher.markNotificationsAsRead.bind(watcher), 10);
         });
