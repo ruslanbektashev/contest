@@ -111,16 +111,14 @@ class AttachmentDetail(DetailView):
             else:
                 temp = attachment.file.path
             html_sheets = dict()
-            regexp = re.compile(r'\<td id\=\".+\!.+\"')
-            for i in range(len(load_workbook(temp).sheetnames)):
+            workbook = load_workbook(temp)
+            for i in range(len(workbook.sheetnames)):
                 xlsx_file = temp
                 current_sheet = StringIO()
                 xlsx2html(xlsx_file, current_sheet, locale='en', sheet=i)
                 current_sheet.seek(0)
                 current_sheet_html = current_sheet.read()
-                sheet_name_str = regexp.search(current_sheet_html).group(0)
-                sheet_name = sheet_name_str[8:sheet_name_str.index('!')]
-                html_sheets[sheet_name] = current_sheet_html
+                html_sheets[workbook.sheetnames[i]] = current_sheet_html
             sheets = ''.join(f'<hr><h3 id="fsheet{id(sheet_name)}">{sheet_name}</h3><hr>{value}'
                              for sheet_name, value in html_sheets.items())
             nav = '<br><ul>{}</ul>'.format(''.join(f'<li><a href="#fsheet{id(sheet_name)}">{sheet_name}</a></li>'
