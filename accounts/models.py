@@ -529,12 +529,18 @@ class Comment(models.Model):
 """================================================== Announcement =================================================="""
 
 
+class AnnouncementQuerySet(models.QuerySet):
+    def actual(self):
+        return self.filter(actual__gte=timezone.now().today())
+
+
 class Announcement(CRUDEntry):
     group = models.ForeignKey(Group, blank=True, null=True, on_delete=models.CASCADE, verbose_name="Для группы")
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     text = models.TextField(verbose_name="Текст объявления")
     actual = models.DateField(null=True, blank=True, verbose_name="Актуально до")
+    objects = AnnouncementQuerySet.as_manager()
 
     @property
     def get_actual(self):

@@ -1860,8 +1860,7 @@ class AssignmentUserTable(LoginRedirectMixin, ListView):
         context['notifications'] = Notification.objects.get_queryset().filter(recipient=self.request.user).unread()[:10]
         context['schedules'] = Schedule.objects.get_queryset().filter(
             date_from__range=[timezone.now().date() - timedelta(days=6), timezone.now().date() + timedelta(days=7)])
-        context['announcements'] = Announcement.objects.get_queryset().filter(
-            actual__gte=datetime.today())
+        context['announcements'] = Announcement.objects.actual()
         context['count_of_news'] = context['notifications'].count() + context['schedules'].count() + context[
             'announcements'].count()
         return context
@@ -2558,8 +2557,7 @@ def index(request):
     notifications = Notification.objects.get_queryset().filter(recipient=request.user).unread()[:10]
     schedules = Schedule.objects.get_queryset().filter(
         date_from__range=[timezone.now().date() - timedelta(days=6), timezone.now().date() + timedelta(days=7)])
-    announcements = Announcement.objects.get_queryset().filter(
-            actual__gte=datetime.today())
+    announcements = Announcement.objects.actual()
     count_of_news = notifications.count() + schedules.count() + announcements.count()
     if request.user.has_perm('contests.add_course'):
         filtered_course_ids = request.user.filter_set.values_list('course_id')
