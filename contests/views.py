@@ -92,7 +92,7 @@ class AttachmentDetail(DetailView):
             formatter = HtmlFormatter(linenos='inline', wrapcode=True)
             context['code'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter)
         elif attachment_ext in ('.ppt', '.pptx') and slides is not None:
-            pres = slides.Presentation(attachment.file.url)
+            pres = slides.Presentation(attachment.file.path)
             options = slides.export.HtmlOptions()
             out_stream = BytesIO()
             pres.save(out_stream, slides.export.SaveFormat.HTML, options)
@@ -106,10 +106,10 @@ class AttachmentDetail(DetailView):
         elif attachment_ext in ('.xls', '.xlsx'):
             if attachment_ext == '.xls':
                 temp = tempfile.TemporaryFile()
-                converter = XLS2XLSX(attachment.file.url)
+                converter = XLS2XLSX(attachment.file.path)
                 converter.to_xlsx(temp)
             else:
-                temp = attachment.file.url
+                temp = attachment.file.path
             html_sheets = dict()
             workbook = load_workbook(temp)
             for i in range(len(workbook.sheetnames)):
@@ -128,7 +128,7 @@ class AttachmentDetail(DetailView):
             temp = tempfile.TemporaryFile()
             workbook = Workbook()
             worksheet = workbook.active
-            with open(attachment.file.url, 'r') as file:
+            with open(attachment.file.path, 'r') as file:
                 for row in csv.reader(file):
                     worksheet.append(row)
             workbook.save(temp)
@@ -138,12 +138,12 @@ class AttachmentDetail(DetailView):
             sheet_html = sheet.read()
             context['code'] = sheet_html
         elif attachment_ext == '.doc' and words is not None:
-            doc_file = words.Document(attachment.file.url)
+            doc_file = words.Document(attachment.file.path)
             file_stream = BytesIO()
             doc_file.save(file_stream, words.SaveFormat.DOCX)
             context['code'] = str(PyDocX.to_html(file_stream)).replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
         elif attachment_ext == '.docx':
-            context['code'] = PyDocX.to_html(attachment.file.url)
+            context['code'] = PyDocX.to_html(attachment.file.path)
 
         return context
 
