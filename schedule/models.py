@@ -25,9 +25,16 @@ def current_week_date_to(format_string='Y-m-d'):
     return "{}".format(date(date_to, format_string))
 
 
+class ScheduleQuerySet(models.QuerySet):
+    def actual(self):
+        return self.filter(date_from__range=[timezone.now().date() - timedelta(days=6),
+                                             timezone.now().date() + timedelta(days=7)])
+
+
 class Schedule(CRUDEntry):
     date_from = models.DateField(default=current_week_date_from, verbose_name="Начало интервала")
     date_to = models.DateField(default=current_week_date_to, verbose_name="Конец интервала")
+    objects = ScheduleQuerySet.as_manager()
 
     class Meta(CRUDEntry.Meta):
         unique_together = ('date_from', 'date_to')
@@ -41,7 +48,7 @@ class Schedule(CRUDEntry):
 
     def is_upcoming(self):
         today = timezone.now().date()
-        return today < self.date_from <= today + timedelta(days=7)  #self.date_from - today < 7*24*3600*1000
+        return today < self.date_from <= today + timedelta(days=7)
 
     def save(self, *args, **kwargs):
         created = self._state.adding
