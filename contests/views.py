@@ -524,8 +524,8 @@ class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def form_valid(self, form):
-        Notification.objects.notify(self.object.user, subject=self.request.user, action="изменил Вашу оценку по курсу",
-                                    object=self.object.course)
+        Notification.objects.notify(self.object.user, subject=self.request.user,
+                                    action="изменил Вашу итоговую оценку по курсу", object=self.object.course)
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -1788,7 +1788,7 @@ class AssignmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def form_valid(self, form):
-        Notification.objects.notify(self.object.user, subject=self.request.user, action="изменил Вашу оценку к задаче",
+        Notification.objects.notify(self.object.user, subject=self.request.user, action="изменил оценку Вашего задания",
                                     object=self.object, relation="из раздела", reference=self.object.contest)
         return super().form_valid(form)
 
