@@ -2,26 +2,22 @@ import csv
 import tempfile
 
 from io import BytesIO, StringIO
-from datetime import timedelta
 
-from django.utils.datetime_safe import datetime
+try:
+    from aspose import aspose_slides as aspose_slides
+except ImportError:
+    aspose_slides = None
+try:
+    from aspose import words as aspose_words
+except ImportError:
+    aspose_words = None
+from mammoth import convert_to_html
+from openpyxl import Workbook, load_workbook
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer, TextLexer
-from mammoth import convert_to_html
-from openpyxl import Workbook, load_workbook
 from xls2xlsx import XLS2XLSX
 from xlsx2html import xlsx2html
-
-try:
-    from aspose import slides as slides
-except ImportError:
-    slides = None
-
-try:
-    from aspose import words as words
-except ImportError:
-    words = None
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
@@ -90,11 +86,11 @@ class AttachmentDetail(DetailView):
                 raise Http404("File %s does not exist." % attachment.filename)
             formatter = HtmlFormatter(linenos='inline', wrapcode=True)
             context['code'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter)
-        elif attachment_ext in ('.ppt', '.pptx') and slides is not None:
-            pres = slides.Presentation(attachment.file.path)
-            options = slides.export.HtmlOptions()
+        elif attachment_ext in ('.ppt', '.pptx') and aspose_slides is not None:
+            pres = aspose_slides.Presentation(attachment.file.path)
+            options = aspose_slides.export.HtmlOptions()
             out_stream = BytesIO()
-            pres.save(out_stream, slides.export.SaveFormat.HTML, options)
+            pres.save(out_stream, aspose_slides.export.SaveFormat.HTML, options)
             out_stream = str(out_stream.getvalue(), 'utf-8').replace(wm.PPT_WM_1, ' ').replace(wm.PPT_WM_2, ' ').replace(wm.PPT_WM_3, ' ') \
                 .replace('''class="slide"''',
                          '''class="slide pagination justify-content-center"  style="margin-bottom: 1%!important;''') \
@@ -136,10 +132,10 @@ class AttachmentDetail(DetailView):
             sheet.seek(0)
             sheet_html = sheet.read()
             context['code'] = sheet_html
-        elif attachment_ext == '.doc' and words is not None:
-            doc_file = words.Document(attachment.file.path)
+        elif attachment_ext == '.doc' and aspose_words is not None:
+            doc_file = aspose_words.Document(attachment.file.path)
             file_stream = BytesIO()
-            doc_file.save(file_stream, words.SaveFormat.DOCX)
+            doc_file.save(file_stream, aspose_words.SaveFormat.DOCX)
             context['code'] = convert_to_html(file_stream).value.replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
         elif attachment_ext == '.docx':
             context['code'] = convert_to_html(attachment.file.path).value
