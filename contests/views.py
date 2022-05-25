@@ -1,5 +1,4 @@
 import csv
-import re
 import tempfile
 
 from io import BytesIO, StringIO
@@ -9,7 +8,7 @@ from django.utils.datetime_safe import datetime
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer, TextLexer
-from pydocx import PyDocX
+from mammoth import convert_to_html
 from openpyxl import Workbook, load_workbook
 from xls2xlsx import XLS2XLSX
 from xlsx2html import xlsx2html
@@ -141,9 +140,9 @@ class AttachmentDetail(DetailView):
             doc_file = words.Document(attachment.file.path)
             file_stream = BytesIO()
             doc_file.save(file_stream, words.SaveFormat.DOCX)
-            context['code'] = str(PyDocX.to_html(file_stream)).replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
+            context['code'] = convert_to_html(file_stream).value.replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
         elif attachment_ext == '.docx':
-            context['code'] = PyDocX.to_html(attachment.file.path)
+            context['code'] = convert_to_html(attachment.file.path).value
 
         return context
 
