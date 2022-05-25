@@ -49,7 +49,7 @@ from contests.models import (Assignment, Attachment, Contest, Course, CourseLead
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.contests import colorize
-from contests.documents import watermarks as wm
+from contests.documents import replaces as rp
 
 from schedule.models import Schedule
 
@@ -91,12 +91,7 @@ class AttachmentDetail(DetailView):
             options = aspose_slides.export.HtmlOptions()
             out_stream = BytesIO()
             pres.save(out_stream, aspose_slides.export.SaveFormat.HTML, options)
-            out_stream = str(out_stream.getvalue(), 'utf-8').replace(wm.PPT_WM_1, ' </tspan>').replace(wm.PPT_WM_2, ' ').replace(wm.PPT_WM_3, ' ') \
-                .replace('''class="slide"''',
-                         '''class="slide pagination justify-content-center"  style="margin-bottom: 1%!important;''') \
-                .replace('''xlink="http://www.w3.org/1999/xlink" width=''',
-                         '''xlink="http://www.w3.org/1999/xlink" class="h-auto d-inline-block" style="width:70%!important"''')\
-                .replace('''class="slideTitle"''', '''style="display:none;"''')
+            out_stream = str(out_stream.getvalue(), 'utf-8').replace(rp.PPT_WM_1, rp.TSPAN).replace(rp.PPT_WM_2, rp.BLANK).replace(rp.PPT_WM_3, rp.BLANK).replace(rp.PPT_ST_1_BEFORE, rp.PPT_ST_1_AFTER).replace(rp.PPT_ST_2_BEFORE, rp.PPT_ST_2_AFTER).replace(rp.PPT_ST_3_BEFORE, rp.PPT_ST_3_AFTER)
             context['code'] = out_stream
         elif attachment_ext in ('.xls', '.xlsx'):
             if attachment_ext == '.xls':
@@ -136,7 +131,7 @@ class AttachmentDetail(DetailView):
             doc_file = aspose_words.Document(attachment.file.path)
             file_stream = BytesIO()
             doc_file.save(file_stream, aspose_words.SaveFormat.DOCX)
-            context['code'] = convert_to_html(file_stream).value.replace('''Evaluation Only. Created with Aspose.Words. Copyright 2003-2022 Aspose Pty Ltd.''', " ")
+            context['code'] = convert_to_html(file_stream).value.replace(rp.DOC_WM_1, rp.BLANK)
         elif attachment_ext == '.docx':
             context['code'] = convert_to_html(attachment.file.path).value
 
@@ -524,8 +519,8 @@ class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def form_valid(self, form):
-        Notification.objects.notify(self.object.user, subject=self.request.user, action="изменил Вашу оценку по курсу",
-                                    object=self.object.course)
+        Notification.objects.notify(self.object.user, subject=self.request.user,
+                                    action="изменил Вашу итоговую оценку по курсу", object=self.object.course)
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -1788,7 +1783,7 @@ class AssignmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
     def form_valid(self, form):
-        Notification.objects.notify(self.object.user, subject=self.request.user, action="изменил Вашу оценку к задаче",
+        Notification.objects.notify(self.object.user, subject=self.request.user, action="изменил оценку Вашего задания",
                                     object=self.object, relation="из раздела", reference=self.object.contest)
         return super().form_valid(form)
 
