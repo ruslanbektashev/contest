@@ -4,7 +4,7 @@ import tempfile
 from io import BytesIO, StringIO
 
 try:
-    from aspose import aspose_slides as aspose_slides
+    from aspose import slides as aspose_slides
 except ImportError:
     aspose_slides = None
 try:
