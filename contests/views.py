@@ -95,7 +95,7 @@ class AttachmentDetail(DetailView):
             options = slides.export.HtmlOptions()
             out_stream = BytesIO()
             pres.save(out_stream, slides.export.SaveFormat.HTML, options)
-            out_stream = str(out_stream.getvalue(), 'utf-8').replace(wm.PPT_WM_1, ' ').replace(wm.PPT_WM_2, ' ').replace(wm.PPT_WM_3, ' ') \
+            out_stream = str(out_stream.getvalue(), 'utf-8').replace(wm.PPT_WM_1, ' </tspan>').replace(wm.PPT_WM_2, ' ').replace(wm.PPT_WM_3, ' ') \
                 .replace('''class="slide"''',
                          '''class="slide pagination justify-content-center"  style="margin-bottom: 1%!important;''') \
                 .replace('''xlink="http://www.w3.org/1999/xlink" width=''',
