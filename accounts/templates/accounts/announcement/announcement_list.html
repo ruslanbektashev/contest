@@ -22,7 +22,7 @@
 {% for announcement in announcements %}
     <div class="card{% if forloop.counter > 1 %} mt-3{% endif %}">
         <div class="card-header d-flex align-items-center">
-            <span class="text-primary mr-auto">{{ announcement.title }}</span>
+            <a href="{% url 'accounts:announcement-detail' announcement.id %}" class="text-primary mr-auto">{{ announcement.title }}</a>
             <span class="text-muted mx-2">Актуально до: {{ announcement.get_actual }}</span>
             {% if perms.accounts.change_announcement %}
             <a href="{% url 'accounts:announcement-update' announcement.id %}" class="card-link" data-toggle="tooltip" data-placement="left" title="Редактировать объявление"><i class="fa fa-edit fa-lg fa-fw"></i></a>
