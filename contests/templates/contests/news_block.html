@@ -69,14 +69,14 @@
             </h6>
             <div class="list-group">
             {% for announcement in announcements %}
-                <li class="list-group-item d-flex">
+                <a href="{% url 'accounts:announcement-detail' announcement.id %}" class="list-group-item list-group-item-action d-flex">
                     <span class="notification-body mr-auto">
                         {{ announcement.title }}
                     </span>
                     <span class="text-muted text-right" style="width: 25%;">
                         {{ announcement.date_created|date:'' }}
                     </span>
-                </li>
+                </a>
             {% endfor %}
             </div>
         {% endif %}
