@@ -213,6 +213,11 @@ class AnnouncementForm(forms.ModelForm):
         fields = '__all__'
         exclude = ['owner']
 
+    def clean_group(self):
+        group = self.cleaned_data['group']
+        if group is None:
+            raise ValidationError("Укажите группу", code='invalid_group')
+
     def clean_actual(self):
         actual = self.cleaned_data['actual']
         if actual is None:
