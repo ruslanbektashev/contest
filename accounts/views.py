@@ -533,7 +533,7 @@ class AnnouncementList(LoginRequiredMixin, ListView):
     context_object_name = 'announcements'
 
     def get_queryset(self):
-        return super().get_queryset().filter(actual__gte=timezone.now().today())
+        return super().get_queryset().actual()
 
 
 """================================================== Notification =================================================="""
