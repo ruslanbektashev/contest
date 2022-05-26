@@ -15,7 +15,8 @@ from django.utils.datetime_safe import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView, TemplateView
 
-from accounts.forms import AccountPartialForm, AccountListForm, AccountSetForm, CommentForm, StaffForm, StudentForm
+from accounts.forms import AccountPartialForm, AccountListForm, AccountSetForm, CommentForm, StaffForm, StudentForm, \
+    AnnouncementForm
 from accounts.models import Account, Comment, Faculty, Announcement, Notification
 from accounts.templatetags.comments import get_comment_query_string
 from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
@@ -503,9 +504,9 @@ class AnnouncementDetail(LoginRedirectMixin, PermissionRequiredMixin, DetailView
 
 class AnnouncementCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
     model = Announcement
-    fields = ['group', 'title', 'text', 'actual']
     template_name = 'accounts/announcement/announcement_form.html'
     permission_required = 'accounts.add_announcement'
+    form_class = AnnouncementForm
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -514,9 +515,9 @@ class AnnouncementCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView
 
 class AnnouncementUpdate(LoginRedirectMixin, PermissionRequiredMixin, UpdateView):
     model = Announcement
-    fields = ['group', 'title', 'text', 'actual']
     template_name = 'accounts/announcement/announcement_form.html'
     permission_required = 'accounts.change_announcement'
+    form_class = AnnouncementForm
 
 
 class AnnouncementDelete(LoginRedirectMixin, PermissionRequiredMixin, DeleteView):

@@ -6,8 +6,9 @@ from html.parser import HTMLParser
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.utils.datetime_safe import datetime
 
-from accounts.models import Account, Comment
+from accounts.models import Account, Comment, Announcement
 from accounts.templatetags.markdown import markdown
 from accounts.widgets import CommentWidget
 
@@ -204,3 +205,18 @@ class CommentForm(forms.ModelForm):
         if parent_id and not Comment.objects.actual().filter(id=parent_id).exists():
             raise ValidationError("Нить комментирования отсутствует.", code='no_parent')
         return self.cleaned_data
+
+
+class AnnouncementForm(forms.ModelForm):
+    class Meta:
+        model = Announcement
+        fields = '__all__'
+        exclude = ['owner']
+
+    def clean_actual(self):
+        actual = self.cleaned_data['actual']
+        if actual is None:
+            actual = datetime.date((timezone.now() + timezone.timedelta(days=90)))
+        if datetime.date(actual) < timezone.now():
+            raise ValidationError("Укажите дату в будущем", code='invalid_actual')
+        return actual
