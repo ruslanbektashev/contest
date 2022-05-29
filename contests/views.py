@@ -151,8 +151,8 @@ class AttachmentDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
     def has_leadership(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        return hasattr(self.object.object, 'course') and self.object.object.course.leaders.filter(
-            id=self.request.user.id).exists()
+        return hasattr(self.object.object, 'course') and (self.object.object.course.leaders
+                                                          .filter(id=self.request.user.id).exists())
 
     def get_success_url(self):
         return self.object.object.get_absolute_url()
@@ -1064,8 +1064,7 @@ class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         if self.storage['action'] == 'move':
-            kwargs['contest_queryset'] = Contest.objects.get_queryset_for_problem(self.object.contest,
-                                                                                  self.request.user)
+            kwargs['contest_queryset'] = Contest.objects.get_queryset_for_problem(self.object.contest, self.request.user)
         return kwargs
 
     def form_valid(self, form):
@@ -1604,12 +1603,10 @@ class AssignmentDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         context = super().get_context_data(**kwargs)
         submissions = self.object.get_submissions()
         context['submission_paginator'], context['submission_page_obj'], context['submissions'], context[
-            'submission_is_paginated'] = \
-            self.paginate_queryset(submissions)
+            'submission_is_paginated'] = self.paginate_queryset(submissions)
         comments = self.object.comment_set.actual()
         context['comment_paginator'], context['comment_page_obj'], context['comments'], context[
-            'comment_is_paginated'] = \
-            self.paginate_queryset(comments)
+            'comment_is_paginated'] = self.paginate_queryset(comments)
         context['current_time'] = timezone.now()
         return context
 
@@ -2082,8 +2079,8 @@ class SubmissionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
                 if main_submission_id:
                     main_submission = get_object_or_404(Submission, id=main_submission_id)
                     self.storage['main_submission'] = main_submission
-                    pending_sub_problems = problem.sub_problems.exclude(
-                        submission__in=main_submission.sub_submissions.all())
+                    pending_sub_problems = (problem.sub_problems
+                                            .exclude(submission__in=main_submission.sub_submissions.all()))
                     if sub_problem_id and sub_problem_id.isdigit():
                         sub_problem = pending_sub_problems.filter(id=sub_problem_id).first()
                     if sub_problem is None:
@@ -2155,8 +2152,9 @@ class SubmissionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
             main_submission = self.storage.get('main_submission')
             if main_submission:
                 context['main_submission'] = main_submission
-                context['pending_sub_problems'] = main_problem.sub_problems.exclude(
-                    submission__in=main_submission.sub_submissions.all()).exclude(id=problem.id)
+                context['pending_sub_problems'] = (main_problem.sub_problems
+                                                   .exclude(submission__in=main_submission.sub_submissions.all())
+                                                   .exclude(id=problem.id))
             else:
                 context['pending_sub_problems'] = main_problem.sub_problems.exclude(id=problem.id)
         context['current_time'] = timezone.now()

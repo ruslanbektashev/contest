@@ -210,8 +210,7 @@ class CommentForm(forms.ModelForm):
 class AnnouncementForm(forms.ModelForm):
     class Meta:
         model = Announcement
-        fields = '__all__'
-        exclude = ['owner']
+        fields = ['group', 'title', 'text', 'actual']
 
     def clean_group(self):
         group = self.cleaned_data['group']
@@ -223,6 +222,6 @@ class AnnouncementForm(forms.ModelForm):
         actual = self.cleaned_data['actual']
         if actual is None:
             actual = datetime.date((timezone.now() + timezone.timedelta(days=90)))
-        if datetime.date(actual) < timezone.now():
+        elif actual < timezone.now().date():
             raise ValidationError("Укажите дату в будущем", code='invalid_actual')
         return actual

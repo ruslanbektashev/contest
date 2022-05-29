@@ -21,14 +21,14 @@
 </legend>
 {% now 'Y-m-d' as current_date %}
 {% if schedules %}
-    <div class="list-group mb-3">
-        {% for obj in schedules %}
-            <a href="{{ obj.get_absolute_url }}" class="list-group-item list-group-item-action d-flex"><span>{{ obj }}</span>{% if obj.is_current %} <span class="numtus badge-primary align-middle ml-auto">На текущую неделю</span>{% elif obj.is_upcoming %} <span class="numtus badge-success align-middle ml-auto">На грядущую неделю</span>{% endif %}</a>
-        {% endfor %}
-    </div>
+<div class="list-group mb-3">
+    {% for obj in schedules %}
+    <a href="{{ obj.get_absolute_url }}" class="list-group-item list-group-item-action d-flex"><span>{{ obj }}</span>{% if obj.is_current %} <span class="numtus badge-primary align-middle ml-auto">На текущую неделю</span>{% elif obj.is_upcoming %} <span class="numtus badge-success align-middle ml-auto">На грядущую неделю</span>{% endif %}</a>
+    {% endfor %}
+</div>
 {% else %}
-    <div class="alert alert-info mb-3" role="alert">
-        Расписание не добавлено
-    </div>
+<div class="alert alert-info mb-3" role="alert">
+    Расписание не добавлено
+</div>
 {% endif %}
 {% endblock content %}

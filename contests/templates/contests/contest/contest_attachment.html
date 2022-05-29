@@ -5,6 +5,27 @@
 Раздел
 {% endblock title %}
 
+{% block stylesheets %}
+<link href="{% static 'css/highlight.css' %}" rel="stylesheet"/>
+<style>
+    body {
+        width: 100% !important;
+        margin-top: 70px !important;
+    }
+
+    table td {
+        text-align: right !important;
+        min-width: 100px;
+        font-weight: 500;
+        font-size: 12px !important;
+        padding: 0 3px;
+        border: 1px solid #D4D4D4 !important;
+        color: black !important;
+        height: 30px !important;
+    }
+</style>
+{% endblock stylesheets %}
+
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb contest.course contest.course %}
@@ -15,67 +36,43 @@
 {% block content %}
 <legend>{{ contest }}
     {% if ext == '.ppt' or ext == '.pptx' %}
-          <span class="pull-right">
-             <a id="Change_mode" title="Изменить режим просмотра"><i class="fa fa-file-text-o" id="mode_view" style="color:#007BFF" aria-hidden="true"></i></a>
-          </span>
+    <span class="pull-right">
+        <a id="Change_mode" title="Изменить режим просмотра"><i class="fa fa-file-text-o" id="mode_view" style="color:#007BFF" aria-hidden="true"></i></a>
+    </span>
     {% endif %}
 </legend>
 <samp>{{ attachment.filename }}</samp>
-    <div class="alert alert-light border mt-2 {% if ext == '.ppt' or ext == '.pptx' %}overflow-hidden{% else %}overflow-auto{% endif %}">
-        {{ code|safe }}
-        {% if ext == '.ppt' or ext == '.pptx' %}
-            <nav class="hide_button">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item" id="start_power_point_slide">
-                        <a class="page-link" title="Перейти в начало">
-                            <span aria-hidden="true"><i class="fa fa-angle-double-left fa-fw"
-                            ></i></span>
-                        </a>
-                    </li>
-                    <li class="page-item" id="prev_power_point_slide">
-                        <a class="page-link" title="Предыдущий слайд">
-                            <span aria-hidden="true"><i class="fa fa-angle-left fa-fw"></i></span>
-                        </a>
-                    </li>
-                    <li class="page-item" id="next_power_point_slide">
-                        <a class="page-link" title="Следующий слайд">
-                            <span aria-hidden="true"><i class="fa fa-angle-right fa-fw"></i></span>
-                        </a>
-                    </li>
-                    <li class="page-item" id="end_power_point_slide">
-                        <a class="page-link" title="Перейти в конец">
-                            <span aria-hidden="true"><i class="fa fa-angle-double-right fa-fw"
-                            ></i></span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        {% endif %}
-    </div>
+<div class="alert alert-light border mt-2 {% if ext == '.ppt' or ext == '.pptx' %}overflow-hidden{% else %}overflow-auto{% endif %}">
+    {{ code|safe }}
+    {% if ext == '.ppt' or ext == '.pptx' %}
+    <nav class="hide_button">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" id="start_power_point_slide">
+                <a class="page-link" title="Перейти в начало">
+                    <span aria-hidden="true"><i class="fa fa-angle-double-left fa-fw"></i></span>
+                </a>
+            </li>
+            <li class="page-item" id="prev_power_point_slide">
+                <a class="page-link" title="Предыдущий слайд">
+                    <span aria-hidden="true"><i class="fa fa-angle-left fa-fw"></i></span>
+                </a>
+            </li>
+            <li class="page-item" id="next_power_point_slide">
+                <a class="page-link" title="Следующий слайд">
+                    <span aria-hidden="true"><i class="fa fa-angle-right fa-fw"></i></span>
+                </a>
+            </li>
+            <li class="page-item" id="end_power_point_slide">
+                <a class="page-link" title="Перейти в конец">
+                    <span aria-hidden="true"><i class="fa fa-angle-double-right fa-fw"></i></span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+</div>
 {% endblock content %}
 
 {% block javascript %}
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="{% static 'js/PowerPointSlides.js' %}"></script>
+<script src="{% static 'js/PowerPointSlides.js' %}"></script>
 {% endblock javascript %}
-
-{% block stylesheets %}
-<link href="{% static 'css/highlight.css' %}" rel="stylesheet"/>
-    <style>
-        body {
-            width: 100% !important;
-            margin-top: 70px !important;
-        }
-
-        table td {
-            text-align: right !important;
-            min-width: 100px;
-            font-weight: 500;
-            font-size: 12px !important;
-            padding: 0 3px;
-            border: 1px solid #D4D4D4 !important;
-            color: black !important;
-            height: 30px !important;
-        }
-    </style>
-{% endblock stylesheets %}

@@ -15,8 +15,8 @@ from django.utils.datetime_safe import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView, TemplateView
 
-from accounts.forms import AccountPartialForm, AccountListForm, AccountSetForm, CommentForm, StaffForm, StudentForm, \
-    AnnouncementForm
+from accounts.forms import (AccountPartialForm, AccountListForm, AccountSetForm, CommentForm, StaffForm, StudentForm,
+                            AnnouncementForm)
 from accounts.models import Account, Comment, Faculty, Announcement, Notification
 from accounts.templatetags.comments import get_comment_query_string
 from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
@@ -533,7 +533,10 @@ class AnnouncementList(LoginRequiredMixin, ListView):
     context_object_name = 'announcements'
 
     def get_queryset(self):
-        return super().get_queryset().actual()
+        queryset = super().get_queryset().actual()
+        if not self.request.user.has_perm('accounts.change_announcement'):
+            queryset = queryset.filter(group__in=self.request.user.groups.all())
+        return queryset
 
 
 """================================================== Notification =================================================="""

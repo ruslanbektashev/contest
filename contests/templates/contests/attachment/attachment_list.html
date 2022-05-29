@@ -6,17 +6,14 @@
             <samp>{{ attachment.filename }}</samp>
         </a>
         {% if attachment.extension == '.pdf' or attachment.extension == '.ppt' or attachment.extension == '.pptx' or attachment.extension == '.doc' or attachment.extension == '.docx' or attachment.extension == '.xls' or attachment.extension == '.xlsx' or attachment.extension == '.csv' %}
-            <a href="https://docs.google.com/viewer?url=https://contest.msu.uz{{ attachment.file.url }}" class="mr-2" title="Смотреть в Google Docs" target="_blank"><i class="fa fa-external-link"></i></a>
+        <a href="https://docs.google.com/viewer?url=https://contest.msu.uz{{ attachment.file.url }}" class="mr-2" title="Смотреть в Google Docs" target="_blank"><i class="fa fa-external-link"></i></a>
         {% endif %}
         <span class="text-muted text-nowrap mr-2">{% if attachment.file|exists %}{{ attachment.file.size|filesizeformat }} ∙ {% endif %}{{ attachment.date_created|date:'d b Y H:i' }}</span>
         {% if attachment.file|exists %}
-            <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}" data-toggle="tooltip" data-placement="top" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
-            {% comment %}{% if perms.contests.update_attachment or request|has_leader_permission:course %}
-                <a href="{% url 'contests:attachment-delete' attachment.id %}" class="text-warning ml-2" data-toggle="tooltip" data-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
-            {% endif %} {% endcomment %}
+        <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}" data-toggle="tooltip" data-placement="top" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
         {% endif %}
         {% if perms.contests.delete_attachment or request|has_leader_permission:course %}
-            <a href="{% url 'contests:attachment-delete' attachment.id %}" class="text-danger ml-2" data-toggle="tooltip" data-placement="top" title="Удалить"><i class="fa fa-trash-o fa-fw"></i></a>
+        <a href="{% url 'contests:attachment-delete' attachment.id %}" class="text-danger ml-2" data-toggle="tooltip" data-placement="top" title="Удалить"><i class="fa fa-trash-o fa-fw"></i></a>
         {% endif %}
     </li>
     {% endfor %}

@@ -472,13 +472,13 @@ class Comment(models.Model):
             course_leaders = course.leaders.values_list('id', flat=True)
             action = "оставил" if created else "изменил"
             Notification.objects.notify(course_leaders, subject=self.author, action=action + " комментарий",
-                                        object=self, reference=self.object)
+                                        object=self, relation="в", reference=self.object)
             if self.id != self.parent_id:
                 parent_comment = Comment.objects.get(id=self.parent_id)
                 if parent_comment.author != self.author:
                     Notification.objects.notify(parent_comment.author, subject=self.author,
                                                 action=action + " ответ на Ваш комментарий", object=self,
-                                                reference=self.object)
+                                                relation="в", reference=self.object)
 
     def _set_thread(self):
         parent = Comment.objects.get(id=self.parent_id)
@@ -540,16 +540,8 @@ class Announcement(CRUDEntry):
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     text = models.TextField(verbose_name="Текст объявления")
     actual = models.DateField(null=True, blank=True, verbose_name="Актуально до")
+
     objects = AnnouncementQuerySet.as_manager()
-
-    @property
-    def get_actual(self):
-        if self.actual is None:
-            return self.date_created.date() + datetime.timedelta(days=90)
-        return self.actual
-
-    def is_actual(self):
-        return self.get_actual >= datetime.datetime.now().date()
 
     class Meta(CRUDEntry.Meta):
         ordering = ('-date_created',)

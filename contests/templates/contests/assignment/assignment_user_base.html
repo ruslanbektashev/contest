@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views contests accounts static %}
+{% load views contests %}
 
 {% block title %}
 Мои задания
@@ -12,8 +12,6 @@
 
 {% block content %}
 {% include 'contests/news_block.html' %}
-<br>
-
 <legend>
     Мои задания
     <span class="pull-right">
@@ -22,16 +20,4 @@
 </legend>
 {% render_assignment_user_table assignments credits %}
 {% render_assignment_progress assignments "Прогресс" %}
-
-{% block javascript %}
-</script>
-
-    <script>
-    var infinite = new Waypoint.Infinite({
-        element: $('.notification-list')[0],
-        items: '.notification-list-item',
-        more: '.notification-list-more'
-    });
-</script>
-{% endblock javascript %}
 {% endblock content %}

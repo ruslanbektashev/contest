@@ -21,7 +21,7 @@ def current_week_date_from(format_string='Y-m-d'):
 
 def current_week_date_to(format_string='Y-m-d'):
     iso_today = timezone.now().isocalendar()
-    date_to = iso_to_gregorian(iso_today[0], iso_today[1], 6)
+    date_to = iso_to_gregorian(iso_today[0], iso_today[1], 7)
     return "{}".format(date(date_to, format_string))
 
 
@@ -34,6 +34,7 @@ class ScheduleQuerySet(models.QuerySet):
 class Schedule(CRUDEntry):
     date_from = models.DateField(default=current_week_date_from, verbose_name="Начало интервала")
     date_to = models.DateField(default=current_week_date_to, verbose_name="Конец интервала")
+
     objects = ScheduleQuerySet.as_manager()
 
     class Meta(CRUDEntry.Meta):

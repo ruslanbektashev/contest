@@ -5,6 +5,10 @@
 Посылка
 {% endblock title %}
 
+{% block stylesheets %}
+<link href="{% static 'css/highlight.css' %}" rel="stylesheet"/>
+{% endblock stylesheets %}
+
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% if from_assignment and submission.get_assignment %}
@@ -36,7 +40,3 @@
 <samp>{{ attachment.filename }}</samp>
 <div class="alert alert-light border mt-2">{{ code|safe }}</div>
 {% endblock content %}
-
-{% block stylesheets %}
-<link href="{% static 'css/highlight.css' %}" rel="stylesheet"/>
-{% endblock stylesheets %}
