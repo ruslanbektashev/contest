@@ -669,11 +669,12 @@ class SubmissionProgramForm(SubmissionAttachmentForm):
                     match = re.match(pattern, f.name)
                     if match:
                         patterns.remove(pattern)
-                        if label is None:
-                            label = match.group(1)
-                        elif label != match.group(1):
-                            raise ValidationError("Идентификаторы в именах файлов не совпадают",
-                                                  code='label_mismatch')
+                        if match.lastindex > 0:
+                            if label is None:
+                                label = match.group(1)
+                            elif label != match.group(1):
+                                raise ValidationError("Идентификаторы в именах файлов не совпадают",
+                                                      code='label_mismatch')
                         break
                 else:
                     raise ValidationError("Некорректное имя файла: %(filename)s", code='invalid_filename',
@@ -754,10 +755,11 @@ class SubmissionUpdateForm(forms.ModelForm):
             ]
 
     def clean_score(self):
-        if self.cleaned_data['score'] > self.instance.problem.score_max:
+        score = self.cleaned_data['score']
+        if score is not None and score > self.instance.problem.score_max:
             raise ValidationError("Оценка не может превышать максимальную оценку этой задачи",
                                   code='score_exceeds_problem_score_max')
-        return self.cleaned_data['score']
+        return score
 
     def clean(self):
         if self.instance.problem.is_testable:
