@@ -504,9 +504,9 @@ class AnnouncementDetail(LoginRedirectMixin, PermissionRequiredMixin, DetailView
 
 class AnnouncementCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
     model = Announcement
+    form_class = AnnouncementForm
     template_name = 'accounts/announcement/announcement_form.html'
     permission_required = 'accounts.add_announcement'
-    form_class = AnnouncementForm
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -515,9 +515,9 @@ class AnnouncementCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView
 
 class AnnouncementUpdate(LoginRedirectMixin, PermissionRequiredMixin, UpdateView):
     model = Announcement
+    form_class = AnnouncementForm
     template_name = 'accounts/announcement/announcement_form.html'
     permission_required = 'accounts.change_announcement'
-    form_class = AnnouncementForm
 
 
 class AnnouncementDelete(LoginRedirectMixin, PermissionRequiredMixin, DeleteView):

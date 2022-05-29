@@ -49,8 +49,7 @@ from contests.models import (Assignment, Attachment, Contest, Course, CourseLead
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.contests import colorize
-from contests.documents import replaces as rp
-
+from contests.documents import replaces
 from schedule.models import Schedule
 
 """=================================================== Attachment ==================================================="""
@@ -63,14 +62,9 @@ class AttachmentDetail(DetailView):
             attachment = self.object.attachment_set.get(id=kwargs.get('attachment_id'))
         except Attachment.DoesNotExist:
             raise Http404("Attachment with id = %s does not exist." % kwargs.get('attachment_id'))
-        if attachment.extension() not in ('.h', '.hpp',
-                                          '.c', '.cpp',
-                                          '.ppt', '.pptx',
-                                          '.xls', '.xlsx',
-                                          '.doc', '.docx',
+        if attachment.extension() not in ('.h', '.hpp', '.c', '.cpp', '.ppt', '.pptx', '.xls', '.xlsx', '.doc', '.docx',
                                           '.csv'):
             return HttpResponseRedirect(attachment.file.url)
-
         context = self.get_context_data(object=self.object, attachment=attachment)
         return self.render_to_response(context)
 
@@ -91,7 +85,11 @@ class AttachmentDetail(DetailView):
             options = aspose_slides.export.HtmlOptions()
             out_stream = BytesIO()
             pres.save(out_stream, aspose_slides.export.SaveFormat.HTML, options)
-            out_stream = str(out_stream.getvalue(), 'utf-8').replace(rp.PPT_WM_1, rp.TSPAN).replace(rp.PPT_WM_2, rp.BLANK).replace(rp.PPT_WM_3, rp.BLANK).replace(rp.PPT_ST_1_BEFORE, rp.PPT_ST_1_AFTER).replace(rp.PPT_ST_2_BEFORE, rp.PPT_ST_2_AFTER).replace(rp.PPT_ST_3_BEFORE, rp.PPT_ST_3_AFTER)
+            out_stream = (str(out_stream.getvalue(), 'utf-8').replace(replaces.PPT_WM_1, replaces.TSPAN)
+                          .replace(replaces.PPT_WM_2, replaces.BLANK).replace(replaces.PPT_WM_3, replaces.BLANK)
+                          .replace(replaces.PPT_ST_1_BEFORE, replaces.PPT_ST_1_AFTER)
+                          .replace(replaces.PPT_ST_2_BEFORE, replaces.PPT_ST_2_AFTER)
+                          .replace(replaces.PPT_ST_3_BEFORE, replaces.PPT_ST_3_AFTER))
             context['code'] = out_stream
         elif attachment_ext in ('.xls', '.xlsx'):
             if attachment_ext == '.xls':
@@ -131,10 +129,9 @@ class AttachmentDetail(DetailView):
             doc_file = aspose_words.Document(attachment.file.path)
             file_stream = BytesIO()
             doc_file.save(file_stream, aspose_words.SaveFormat.DOCX)
-            context['code'] = convert_to_html(file_stream).value.replace(rp.DOC_WM_1, rp.BLANK)
+            context['code'] = convert_to_html(file_stream).value.replace(replaces.DOC_WM_1, replaces.BLANK)
         elif attachment_ext == '.docx':
             context['code'] = convert_to_html(attachment.file.path).value
-
         return context
 
 
@@ -1844,11 +1841,11 @@ class AssignmentUserTable(LoginRedirectMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['credits'] = self.request.user.credit_set.select_related('course')
-        context['notifications'] = Notification.objects.get_queryset().filter(recipient=self.request.user).unread()[:10]
+        context['notifications'] = Notification.objects.actual().filter(recipient=self.request.user).unread()[:10]
         context['schedules'] = Schedule.objects.actual()
         context['announcements'] = Announcement.objects.actual()
-        context['count_of_news'] = context['notifications'].count() + context['schedules'].count() + context[
-            'announcements'].count()
+        context['count_of_news'] = (context['notifications'].count() + context['schedules'].count() +
+                                    context['announcements'].count())
         return context
 
 
@@ -2541,7 +2538,7 @@ class ExecutionList(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 
 @login_required
 def index(request):
-    notifications = Notification.objects.get_queryset().filter(recipient=request.user).unread()[:10]
+    notifications = Notification.objects.actual().filter(recipient=request.user).unread()[:10]
     schedules = Schedule.objects.actual()
     announcements = Announcement.objects.actual()
     count_of_news = notifications.count() + schedules.count() + announcements.count()
