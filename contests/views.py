@@ -16,7 +16,7 @@ from mammoth import convert_to_html
 from openpyxl import Workbook, load_workbook
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
-from pygments.lexers import CppLexer, TextLexer
+from pygments.lexers import CppLexer
 from xls2xlsx import XLS2XLSX
 from xlsx2html import xlsx2html
 
@@ -35,6 +35,7 @@ from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 
 from accounts.models import Account, Faculty, Notification, Announcement
+from contest.documents import replaces
 from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, LeadershipOrMixin, PaginatorMixin
 from contest.soft_deletion import SoftDeletionUpdateView, SoftDeletionDeleteView
 from contest.templatetags.views import has_leader_permission, get_updated_query_string
@@ -50,7 +51,6 @@ from contests.models import (Assignment, Attachment, Contest, Course, CourseLead
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.contests import colorize
-from contests.documents import replaces
 from schedule.models import Schedule
 
 """=================================================== Attachment ==================================================="""

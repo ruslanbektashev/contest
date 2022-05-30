@@ -198,7 +198,7 @@ class CourseLeader(models.Model):
 def generate_credit_report(group_name, students, report_type, examiners, faculty, direction, discipline, semester, date):
     months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
 
-    f = open('blank_report.docx', 'rb')
+    f = open('contest/documents/blank_report.docx', 'rb')
 
     document = docx.Document(f)
     style = document.styles['Normal']
