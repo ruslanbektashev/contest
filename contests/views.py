@@ -1,3 +1,4 @@
+import re
 import csv
 import tempfile
 
@@ -80,17 +81,21 @@ class AttachmentDetail(DetailView):
                 raise Http404("File %s does not exist." % attachment.filename)
             formatter = HtmlFormatter(linenos='inline', wrapcode=True)
             context['code'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter)
-        elif attachment_ext in ('.ppt', '.pptx') and aspose_slides is not None:
-            pres = aspose_slides.Presentation(attachment.file.path)
-            options = aspose_slides.export.HtmlOptions()
-            out_stream = BytesIO()
-            pres.save(out_stream, aspose_slides.export.SaveFormat.HTML, options)
-            out_stream = (str(out_stream.getvalue(), 'utf-8').replace(replaces.PPT_WM_1, replaces.TSPAN)
-                          .replace(replaces.PPT_WM_2, replaces.BLANK).replace(replaces.PPT_WM_3, replaces.BLANK)
-                          .replace(replaces.PPT_ST_1_BEFORE, replaces.PPT_ST_1_AFTER)
-                          .replace(replaces.PPT_ST_2_BEFORE, replaces.PPT_ST_2_AFTER)
-                          .replace(replaces.PPT_ST_3_BEFORE, replaces.PPT_ST_3_AFTER))
-            context['code'] = out_stream
+        elif attachment_ext in ('.ppt', '.pptx'):
+            if aspose_slides is not None:
+                pres = aspose_slides.Presentation(attachment.file.path)
+                options = aspose_slides.export.HtmlOptions()
+                byte_stream = BytesIO()
+                pres.save(byte_stream, aspose_slides.export.SaveFormat.HTML, options)
+                byte_stream = (str(byte_stream.getvalue(), 'utf-8').replace(replaces.PPT_WM_1, replaces.TSPAN)
+                              .replace(re.search(replaces.PPT_WM_2, str(byte_stream.getvalue())).group(0), replaces.BLANK)
+                              .replace(re.search(replaces.PPT_WM_3, str(byte_stream.getvalue())).group(0), replaces.BLANK)
+                              .replace(replaces.PPT_ST_1_BEFORE, replaces.PPT_ST_1_AFTER)
+                              .replace(replaces.PPT_ST_2_BEFORE, replaces.PPT_ST_2_AFTER)
+                              .replace(replaces.PPT_ST_3_BEFORE, replaces.PPT_ST_3_AFTER))
+                context['code'] = byte_stream
+            else:
+                context['code'] = 'Aspose.Slides package not found. Unable to show file.'
         elif attachment_ext in ('.xls', '.xlsx'):
             if attachment_ext == '.xls':
                 temp = tempfile.TemporaryFile()
@@ -125,11 +130,15 @@ class AttachmentDetail(DetailView):
             sheet.seek(0)
             sheet_html = sheet.read()
             context['code'] = sheet_html
-        elif attachment_ext == '.doc' and aspose_words is not None:
-            doc_file = aspose_words.Document(attachment.file.path)
-            file_stream = BytesIO()
-            doc_file.save(file_stream, aspose_words.SaveFormat.DOCX)
-            context['code'] = convert_to_html(file_stream).value.replace(replaces.DOC_WM_1, replaces.BLANK)
+        elif attachment_ext == '.doc':
+            if aspose_words is not None:
+                doc_file = aspose_words.Document(attachment.file.path)
+                byte_stream = BytesIO()
+                doc_file.save(byte_stream, aspose_words.SaveFormat.DOCX)
+                byte_stream = convert_to_html(byte_stream).value
+                context['code'] = byte_stream.replace(re.search(replaces.DOC_WM_1, byte_stream).group(0), replaces.BLANK)
+            else:
+                context['code'] = 'Aspose.Words package not found. Unable to show file.'
         elif attachment_ext == '.docx':
             context['code'] = convert_to_html(attachment.file.path).value
         return context
@@ -1061,7 +1070,8 @@ class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         if self.storage['action'] == 'move':
-            kwargs['contest_queryset'] = Contest.objects.get_queryset_for_problem(self.object.contest, self.request.user)
+            kwargs['contest_queryset'] = Contest.objects.get_queryset_for_problem(self.object.contest,
+                                                                                  self.request.user)
         return kwargs
 
     def form_valid(self, form):
