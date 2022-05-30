@@ -1,5 +1,6 @@
 import json
 
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from markdown import markdown
 
@@ -492,6 +493,9 @@ class AnnouncementDetail(LoginRedirectMixin, PermissionRequiredMixin, DetailView
 
     def get(self, request, *args, **kwargs):
         object = self.get_object()
+        if object.group is not None:
+            if object.group not in self.request.user.groups.all():
+                raise PermissionDenied
         # TODO: mark corresponding notifications as read
         # Notification.objects.filter(recipient=request.user, object_type=ContentType.objects.get_for_model(object),
         #                             object_id=object.id).mark_as_read()
