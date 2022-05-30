@@ -543,6 +543,13 @@ class Announcement(CRUDEntry):
 
     objects = AnnouncementQuerySet.as_manager()
 
+    @property
+    def group_name(self):
+        if self.group is None:
+            return 'Для всех'
+        else:
+            return self.group
+
     class Meta(CRUDEntry.Meta):
         ordering = ('-date_created',)
         verbose_name = "Объявление"

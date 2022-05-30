@@ -1,5 +1,6 @@
 import json
 
+from django.db.models import Q
 from markdown import markdown
 
 from django.apps import apps
@@ -535,7 +536,7 @@ class AnnouncementList(LoginRequiredMixin, ListView):
     def get_queryset(self):
         queryset = super().get_queryset().actual()
         if not self.request.user.has_perm('accounts.change_announcement'):
-            queryset = queryset.filter(group__in=self.request.user.groups.all())
+            queryset = queryset.filter(Q(group__in=self.request.user.groups.all()) | Q(group=None))
         return queryset
 
 

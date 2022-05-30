@@ -212,12 +212,6 @@ class AnnouncementForm(forms.ModelForm):
         model = Announcement
         fields = ['group', 'title', 'text', 'actual']
 
-    def clean_group(self):
-        group = self.cleaned_data['group']
-        if group is None:
-            raise ValidationError("Укажите группу", code='invalid_group')
-        return group
-
     def clean_actual(self):
         actual = self.cleaned_data['actual']
         if actual is None:
