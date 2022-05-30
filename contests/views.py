@@ -94,7 +94,9 @@ class AttachmentDetail(DetailView):
                               .replace(replaces.PPT_ST_2_BEFORE, replaces.PPT_ST_2_AFTER)
                               .replace(replaces.PPT_ST_3_BEFORE, replaces.PPT_ST_3_AFTER))
                 context['code'] = byte_stream
+                context['aspose_exist'] = 1
             else:
+                context['aspose_exist'] = 0
                 context['code'] = 'Aspose.Slides package not found. Unable to show file.'
         elif attachment_ext in ('.xls', '.xlsx'):
             if attachment_ext == '.xls':
