@@ -538,10 +538,7 @@ class AnnouncementList(LoginRequiredMixin, ListView):
     context_object_name = 'announcements'
 
     def get_queryset(self):
-        queryset = super().get_queryset().actual()
-        if not self.request.user.has_perm('accounts.change_announcement'):
-            queryset = queryset.filter(Q(group__in=self.request.user.groups.all()) | Q(group=None))
-        return queryset
+        return super().get_queryset().proper_group(self.request.user).actual()
 
 
 """================================================== Notification =================================================="""

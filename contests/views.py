@@ -1855,7 +1855,7 @@ class AssignmentUserTable(LoginRedirectMixin, ListView):
         context['credits'] = self.request.user.credit_set.select_related('course')
         context['notifications'] = Notification.objects.actual().filter(recipient=self.request.user).unread()[:10]
         context['schedules'] = Schedule.objects.actual()
-        context['announcements'] = Announcement.objects.actual()
+        context['announcements'] = Announcement.objects.proper_group(self.request.user).actual()
         context['count_of_news'] = (context['notifications'].count() + context['schedules'].count() +
                                     context['announcements'].count())
         return context
@@ -2552,7 +2552,7 @@ class ExecutionList(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 def index(request):
     notifications = Notification.objects.actual().filter(recipient=request.user).unread()[:10]
     schedules = Schedule.objects.actual()
-    announcements = Announcement.objects.actual()
+    announcements = Announcement.objects.proper_group(request.user).actual()
     count_of_news = notifications.count() + schedules.count() + announcements.count()
     if request.user.has_perm('contests.add_course'):
         filtered_course_ids = request.user.filter_set.values_list('course_id')

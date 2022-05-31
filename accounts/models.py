@@ -533,6 +533,12 @@ class AnnouncementQuerySet(models.QuerySet):
     def actual(self):
         return self.filter(actual__gte=timezone.now().today())
 
+    def proper_group(self, user):
+        if not user.has_perm('accounts.change_announcement'):
+            return self.filter(Q(group__in=user.groups.all()) | Q(group=None))
+        else:
+            return self.all()
+
 
 class Announcement(CRUDEntry):
     group = models.ForeignKey(Group, blank=True, null=True, on_delete=models.CASCADE, verbose_name="Для группы")
