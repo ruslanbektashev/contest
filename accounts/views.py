@@ -493,7 +493,7 @@ class AnnouncementDetail(LoginRedirectMixin, PermissionRequiredMixin, DetailView
 
     def get(self, request, *args, **kwargs):
         object = self.get_object()
-        if object.group is not None:
+        if object.group is not None and not self.request.user.has_perm('accounts.change_announcement'):
             if object.group not in self.request.user.groups.all():
                 raise PermissionDenied
         # TODO: mark corresponding notifications as read
