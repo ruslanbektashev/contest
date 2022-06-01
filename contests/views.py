@@ -88,16 +88,17 @@ class AttachmentDetail(DetailView):
                 byte_stream = BytesIO()
                 pres.save(byte_stream, aspose_slides.export.SaveFormat.HTML, options)
                 byte_stream = (str(byte_stream.getvalue(), 'utf-8').replace(replaces.PPT_WM_1, replaces.TSPAN)
-                              .replace(re.search(replaces.PPT_WM_2, str(byte_stream.getvalue())).group(0), replaces.BLANK)
-                              .replace(re.search(replaces.PPT_WM_3, str(byte_stream.getvalue())).group(0), replaces.BLANK)
-                              .replace(replaces.PPT_ST_1_BEFORE, replaces.PPT_ST_1_AFTER)
-                              .replace(replaces.PPT_ST_2_BEFORE, replaces.PPT_ST_2_AFTER)
-                              .replace(replaces.PPT_ST_3_BEFORE, replaces.PPT_ST_3_AFTER))
-                context['code'] = byte_stream
+                               .replace(re.search(replaces.PPT_WM_2, str(byte_stream.getvalue())).group(0), replaces.BLANK)
+                               .replace(re.search(replaces.PPT_WM_3, str(byte_stream.getvalue())).group(0), replaces.BLANK)
+                               .replace(replaces.PPT_ST_1_BEFORE, replaces.PPT_ST_1_AFTER)
+                               .replace(replaces.PPT_ST_2_BEFORE, replaces.PPT_ST_2_AFTER)
+                               .replace(replaces.PPT_ST_3_BEFORE, replaces.PPT_ST_3_AFTER))
                 context['aspose_exist'] = 1
+                context['code'] = byte_stream
             else:
                 context['aspose_exist'] = 0
-                context['code'] = 'Aspose.Slides package not found. Unable to show file.'
+                context['code'] = ('Пакет Aspose.Slides не найден. Невозможно отобразить файл.\n' +
+                                   'Загрузите файл и воспользуйтесь локальным средством просмотра.')
         elif attachment_ext in ('.xls', '.xlsx'):
             if attachment_ext == '.xls':
                 temp = tempfile.TemporaryFile()
@@ -140,7 +141,8 @@ class AttachmentDetail(DetailView):
                 byte_stream = convert_to_html(byte_stream).value
                 context['code'] = byte_stream.replace(re.search(replaces.DOC_WM_1, byte_stream).group(0), replaces.BLANK)
             else:
-                context['code'] = 'Aspose.Words package not found. Unable to show file.'
+                context['code'] = ('Пакет Aspose.Words не найден. Невозможно отобразить файл.\n' +
+                                   'Загрузите файл и воспользуйтесь локальным средством просмотра.')
         elif attachment_ext == '.docx':
             context['code'] = convert_to_html(attachment.file.path).value
         return context
