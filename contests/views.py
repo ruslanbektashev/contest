@@ -1,8 +1,7 @@
-import re
-import csv
-import tempfile
-
+from re import sub
+from csv import reader
 from io import BytesIO, StringIO
+from tempfile import TemporaryFile
 
 try:
     from aspose import slides as aspose_slides
@@ -83,25 +82,26 @@ class AttachmentDetail(DetailView):
             context['code'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter)
         elif attachment_ext in ('.ppt', '.pptx'):
             if aspose_slides is not None:
-                pres = aspose_slides.Presentation(attachment.file.path)
+                ppt_file = aspose_slides.Presentation(attachment.file.path)
                 options = aspose_slides.export.HtmlOptions()
                 byte_stream = BytesIO()
-                pres.save(byte_stream, aspose_slides.export.SaveFormat.HTML, options)
-                byte_stream = (str(byte_stream.getvalue(), 'utf-8').replace(replaces.PPT_WM_1, replaces.TSPAN)
-                               .replace(re.search(replaces.PPT_WM_2, str(byte_stream.getvalue())).group(0), replaces.BLANK)
-                               .replace(re.search(replaces.PPT_WM_3, str(byte_stream.getvalue())).group(0), replaces.BLANK)
-                               .replace(replaces.PPT_ST_1_BEFORE, replaces.PPT_ST_1_AFTER)
-                               .replace(replaces.PPT_ST_2_BEFORE, replaces.PPT_ST_2_AFTER)
-                               .replace(replaces.PPT_ST_3_BEFORE, replaces.PPT_ST_3_AFTER))
+                ppt_file.save(byte_stream, aspose_slides.export.SaveFormat.HTML, options)
+                str_content = str(byte_stream.getvalue(), 'utf-8')
+                str_content = sub(replaces.PPT_WM_1, replaces.TSPAN, str_content)
+                str_content = sub(replaces.PPT_WM_2, replaces.BLANK, str_content)
+                str_content = sub(replaces.PPT_WM_3, replaces.BLANK, str_content)
+                str_content = sub(replaces.PPT_ST_1_BEFORE, replaces.PPT_ST_1_AFTER, str_content)
+                str_content = sub(replaces.PPT_ST_2_BEFORE, replaces.PPT_ST_2_AFTER, str_content)
+                str_content = sub(replaces.PPT_ST_3_BEFORE, replaces.PPT_ST_3_AFTER, str_content)
                 context['aspose_exist'] = 1
-                context['code'] = byte_stream
+                context['code'] = str_content
             else:
                 context['aspose_exist'] = 0
-                context['code'] = ('Пакет Aspose.Slides не найден. Невозможно отобразить файл.\n' +
+                context['code'] = ('Невозможно отобразить файл. Пакет Aspose.Slides не найден.\n' +
                                    'Загрузите файл и воспользуйтесь локальным средством просмотра.')
         elif attachment_ext in ('.xls', '.xlsx'):
             if attachment_ext == '.xls':
-                temp = tempfile.TemporaryFile()
+                temp = TemporaryFile()
                 converter = XLS2XLSX(attachment.file.path)
                 converter.to_xlsx(temp)
             else:
@@ -121,11 +121,11 @@ class AttachmentDetail(DetailView):
                                                    for sheet_name in html_sheets.keys()))
             context['code'] = sheets + nav
         elif attachment_ext == '.csv':
-            temp = tempfile.TemporaryFile()
+            temp = TemporaryFile()
             workbook = Workbook()
             worksheet = workbook.active
             with open(attachment.file.path, 'r') as file:
-                for row in csv.reader(file):
+                for row in reader(file):
                     worksheet.append(row)
             workbook.save(temp)
             sheet = StringIO()
@@ -138,10 +138,10 @@ class AttachmentDetail(DetailView):
                 doc_file = aspose_words.Document(attachment.file.path)
                 byte_stream = BytesIO()
                 doc_file.save(byte_stream, aspose_words.SaveFormat.DOCX)
-                byte_stream = convert_to_html(byte_stream).value
-                context['code'] = byte_stream.replace(re.search(replaces.DOC_WM_1, byte_stream).group(0), replaces.BLANK)
+                html_content = convert_to_html(byte_stream).value
+                context['code'] = sub(replaces.DOC_WM_1, replaces.BLANK, html_content)
             else:
-                context['code'] = ('Пакет Aspose.Words не найден. Невозможно отобразить файл.\n' +
+                context['code'] = ('Невозможно отобразить файл. Пакет Aspose.Words не найден.\n' +
                                    'Загрузите файл и воспользуйтесь локальным средством просмотра.')
         elif attachment_ext == '.docx':
             context['code'] = convert_to_html(attachment.file.path).value
