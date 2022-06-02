@@ -1,24 +1,3 @@
-from re import sub
-from csv import reader
-from io import BytesIO, StringIO
-from tempfile import TemporaryFile
-
-try:
-    from aspose import slides as aspose_slides
-except ImportError:
-    aspose_slides = None
-try:
-    from aspose import words as aspose_words
-except ImportError:
-    aspose_words = None
-from mammoth import convert_to_html
-from openpyxl import Workbook, load_workbook
-from pygments import highlight
-from pygments.formatters import HtmlFormatter
-from pygments.lexers import CppLexer
-from xls2xlsx import XLS2XLSX
-from xlsx2html import xlsx2html
-
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
@@ -34,7 +13,7 @@ from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 
 from accounts.models import Account, Faculty, Notification, Announcement
-from contest.documents import replaces
+from contest.documents.viewer import to_html
 from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, LeadershipOrMixin, PaginatorMixin
 from contest.soft_deletion import SoftDeletionUpdateView, SoftDeletionDeleteView
 from contest.templatetags.views import has_leader_permission, get_updated_query_string
@@ -71,80 +50,8 @@ class AttachmentDetail(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         attachment = kwargs.get('attachment')
-        attachment_ext = attachment.extension()
-        context['ext'] = attachment_ext
-        if attachment_ext in ('.h', '.hpp', '.c', '.cpp'):
-            try:
-                content = attachment.file.read()
-            except FileNotFoundError:
-                raise Http404("File %s does not exist." % attachment.filename)
-            formatter = HtmlFormatter(linenos='inline', wrapcode=True)
-            context['code'] = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter)
-        elif attachment_ext in ('.ppt', '.pptx'):
-            if aspose_slides is not None:
-                ppt_file = aspose_slides.Presentation(attachment.file.path)
-                options = aspose_slides.export.HtmlOptions()
-                byte_stream = BytesIO()
-                ppt_file.save(byte_stream, aspose_slides.export.SaveFormat.HTML, options)
-                str_content = str(byte_stream.getvalue(), 'utf-8')
-                str_content = sub(replaces.PPT_WM_1, replaces.TSPAN, str_content)
-                str_content = sub(replaces.PPT_WM_2, replaces.BLANK, str_content)
-                str_content = sub(replaces.PPT_WM_3, replaces.BLANK, str_content)
-                str_content = sub(replaces.PPT_ST_1_BEFORE, replaces.PPT_ST_1_AFTER, str_content)
-                str_content = sub(replaces.PPT_ST_2_BEFORE, replaces.PPT_ST_2_AFTER, str_content)
-                str_content = sub(replaces.PPT_ST_3_BEFORE, replaces.PPT_ST_3_AFTER, str_content)
-                context['aspose_exist'] = 1
-                context['code'] = str_content
-            else:
-                context['aspose_exist'] = 0
-                context['code'] = ('Невозможно отобразить файл. Пакет Aspose.Slides не найден.\n' +
-                                   'Загрузите файл и воспользуйтесь локальным средством просмотра.')
-        elif attachment_ext in ('.xls', '.xlsx'):
-            if attachment_ext == '.xls':
-                temp = TemporaryFile()
-                converter = XLS2XLSX(attachment.file.path)
-                converter.to_xlsx(temp)
-            else:
-                temp = attachment.file.path
-            html_sheets = dict()
-            workbook = load_workbook(temp)
-            for i in range(len(workbook.sheetnames)):
-                xlsx_file = temp
-                current_sheet = StringIO()
-                xlsx2html(xlsx_file, current_sheet, locale='en', sheet=i)
-                current_sheet.seek(0)
-                current_sheet_html = current_sheet.read()
-                html_sheets[workbook.sheetnames[i]] = current_sheet_html
-            sheets = ''.join(f'<hr><h3 id="fsheet{id(sheet_name)}">{sheet_name}</h3><hr>{value}'
-                             for sheet_name, value in html_sheets.items())
-            nav = '<br><ul>{}</ul>'.format(''.join(f'<li><a href="#fsheet{id(sheet_name)}">{sheet_name}</a></li>'
-                                                   for sheet_name in html_sheets.keys()))
-            context['code'] = sheets + nav
-        elif attachment_ext == '.csv':
-            temp = TemporaryFile()
-            workbook = Workbook()
-            worksheet = workbook.active
-            with open(attachment.file.path, 'r') as file:
-                for row in reader(file):
-                    worksheet.append(row)
-            workbook.save(temp)
-            sheet = StringIO()
-            xlsx2html(temp, sheet, locale='en')
-            sheet.seek(0)
-            sheet_html = sheet.read()
-            context['code'] = sheet_html
-        elif attachment_ext == '.doc':
-            if aspose_words is not None:
-                doc_file = aspose_words.Document(attachment.file.path)
-                byte_stream = BytesIO()
-                doc_file.save(byte_stream, aspose_words.SaveFormat.DOCX)
-                html_content = convert_to_html(byte_stream).value
-                context['code'] = sub(replaces.DOC_WM_1, replaces.BLANK, html_content)
-            else:
-                context['code'] = ('Невозможно отобразить файл. Пакет Aspose.Words не найден.\n' +
-                                   'Загрузите файл и воспользуйтесь локальным средством просмотра.')
-        elif attachment_ext == '.docx':
-            context['code'] = convert_to_html(attachment.file.path).value
+        context['ext'] = attachment.extension()
+        context['code'], context['aspose_exist'] = to_html(attachment)
         return context
 
 
