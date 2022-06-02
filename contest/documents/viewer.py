@@ -95,7 +95,7 @@ def to_html(attachment):
             byte_stream = BytesIO()
             doc_file.save(byte_stream, aspose_words.SaveFormat.DOCX)
             html_content = convert_to_html(byte_stream).value
-            result = sub(replaces.DOC_WM_1, replaces.BLANK, html_content), 0
+            result = sub(replaces.DOC_WM_1, replaces.BLANK, html_content), 1
         else:
             result = ('Невозможно отобразить файл. Пакет Aspose.Words не найден.\n' +
                       'Загрузите файл и воспользуйтесь локальным средством просмотра.'), 0
