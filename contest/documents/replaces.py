@@ -12,8 +12,8 @@ PPT_ST_3_BEFORE = 'class="slideTitle"'
 PPT_ST_3_AFTER = 'style="display:none;"'
 
 # Aspose-Words watermark to remove:
-DOC_WM_1 = r'Evaluation Only. Created with Aspose.Words. Copyright [0-9-]* Aspose Pty Ltd.'
+DOC_WM_1 = r'Evaluation Only\. Created with Aspose\.Words\. Copyright [0-9-]* Aspose Pty Ltd\.'
 
 # Others:
-BLANK = ' '
-TSPAN = ' </tspan>'
+BLANK = r' '
+TSPAN = r' </tspan>'
