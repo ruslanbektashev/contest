@@ -51,7 +51,10 @@ class AttachmentDetail(DetailView):
         context = super().get_context_data(**kwargs)
         attachment = kwargs.get('attachment')
         context['ext'] = attachment.extension()
-        context['code'], context['aspose_exist'] = to_html(attachment)
+        try:
+            context['code'], context['display_aspose_controls'] = to_html(attachment)
+        except FileNotFoundError:
+            raise Http404("File %s does not exist." % attachment.filename)
         return context
 
 

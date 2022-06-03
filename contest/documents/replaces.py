@@ -1,7 +1,9 @@
+import re
+
 # Aspose-Slides watermarks to remove:
-PPT_WM_1 = 'Evaluation only.</tspan>'
-PPT_WM_2 = r'Created with Aspose\.Slides for \.NET Standard [0-9. ]*\.'
-PPT_WM_3 = r'Copyright [0-9-]*Aspose Pty Ltd.'
+PPT_WM_1 = re.compile(r'Evaluation only.</tspan>')
+PPT_WM_2 = re.compile(r'Created with Aspose\.Slides for \.NET Standard [0-9. ]*\.')
+PPT_WM_3 = re.compile(r'Copyright [0-9-]*Aspose Pty Ltd.')
 
 # Styles to replace:
 PPT_ST_1_BEFORE = 'class="slide"'
@@ -12,8 +14,8 @@ PPT_ST_3_BEFORE = 'class="slideTitle"'
 PPT_ST_3_AFTER = 'style="display:none;"'
 
 # Aspose-Words watermark to remove:
-DOC_WM_1 = r'Evaluation Only\. Created with Aspose\.Words\. Copyright [0-9-]* Aspose Pty Ltd\.'
+DOC_WM_1 = re.compile(r'Evaluation Only\. Created with Aspose\.Words\. Copyright [0-9-]* Aspose Pty Ltd\.')
 
 # Others:
-BLANK = r' '
-TSPAN = r' </tspan>'
+BLANK = ' '
+TSPAN = ' </tspan>'

@@ -34,20 +34,19 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ contest }}
-{% if ext == '.ppt' or ext == '.pptx' %}
-    {% if aspose_exist == 1 %}
+<legend>
+    {{ contest }}
+    {% if display_aspose_controls %}
     <span class="pull-right">
         <a id="Change_mode" title="Изменить режим просмотра"><i class="fa fa-file-text-o" id="mode_view" style="color:#007BFF" aria-hidden="true"></i></a>
     </span>
     {% endif %}
-{% endif %}
 </legend>
 <samp>{{ attachment.filename }}</samp>
-<div class="alert alert-light border mt-2 {% if ext == '.ppt' or ext == '.pptx' %}overflow-hidden{% else %}overflow-auto{% endif %}">
+{% if code is not None %}
+<div class="alert alert-light border mt-2 {% if display_aspose_controls %}overflow-hidden{% else %}overflow-auto{% endif %}">
     {{ code|safe }}
-    {% if ext == '.ppt' or ext == '.pptx'%}
-    {% if aspose_exist == 1 %}
+    {% if display_aspose_controls %}
     <nav class="hide_button">
         <ul class="pagination justify-content-center">
             <li class="page-item" id="start_power_point_slide">
@@ -73,10 +72,16 @@
         </ul>
     </nav>
     {% endif %}
-    {% endif %}
 </div>
+{% else %}
+<div class="alert alert-info border text-center mt-2">
+    Невозможно отобразить файл. Вы можете <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}">загрузить</a> его и воспользоваться локальным средством просмотра.
+</div>
+{% endif %}
 {% endblock content %}
 
+{% if display_aspose_controls %}
 {% block javascript %}
 <script src="{% static 'js/PowerPointSlides.js' %}"></script>
 {% endblock javascript %}
+{% endif %}

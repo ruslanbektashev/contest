@@ -2,7 +2,7 @@
 {% load views static %}
 
 {% block title %}
-Задача
+Задание
 {% endblock title %}
 
 {% block stylesheets %}
@@ -28,15 +28,19 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
-{% breadcrumb problem.course problem.course %}
-{% breadcrumb problem.contest problem.contest %}
-{% breadcrumb problem problem %}
+{% if perms.contests.view_assignment_table or request|has_leader_permission:assignment.course %}
+{% breadcrumb assignment.course assignment.course %}
+{% breadcrumb "Задания" 'contests:assignment-table' assignment.course.id %}
+{% else %}
+{% breadcrumb "Мои задания" 'contests:assignment-list' %}
+{% endif %}
+{% breadcrumb assignment assignment %}
 {% breadcrumb attachment.filename %}
 {% endblock breadcrumbs %}
 
 {% block content %}
 <legend>
-    {{ problem }}
+    {{ assignment }}
     {% if display_aspose_controls %}
     <span class="pull-right">
         <a id="Change_mode" title="Изменить режим просмотра"><i class="fa fa-file-text-o" id="mode_view" style="color:#007BFF" aria-hidden="true"></i></a>
