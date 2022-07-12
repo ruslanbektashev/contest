@@ -1,11 +1,9 @@
 import json
 
-from django.core.exceptions import PermissionDenied
-from markdown import markdown
-
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
@@ -14,15 +12,16 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView, FormView, TemplateView
+from django.views.generic import CreateView, DeleteView, DetailView, FormView, ListView, TemplateView, UpdateView
+from markdown import markdown
 
-from accounts.forms import (AccountPartialForm, AccountListForm, AccountSetForm, CommentForm, StaffForm, StudentForm,
-                            AnnouncementForm)
-from accounts.models import Account, Comment, Faculty, Announcement, Notification
+from accounts.forms import (AccountListForm, AccountPartialForm, AccountSetForm, AnnouncementForm, CommentForm,
+                            StaffForm, StudentForm)
+from accounts.models import Account, Announcement, Comment, Faculty, Notification
 from accounts.templatetags.comments import get_comment_query_string
 from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
-from contest.templatetags.views import get_query_string, get_updated_query_string
 from contests.models import Course, Problem, Submission
+from contests.templatetags.views import get_query_string, get_updated_query_string
 from support.models import Question, Report
 
 """==================================================== Account ====================================================="""

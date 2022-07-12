@@ -16,7 +16,6 @@ from accounts.models import Account, Announcement, Faculty, Notification
 from contest.documents.viewer import to_html
 from contest.mixins import LeadershipOrMixin, LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
 from contest.soft_deletion import SoftDeletionDeleteView, SoftDeletionUpdateView
-from contest.templatetags.views import get_updated_query_string, has_leader_permission
 from contests.forms import (AssignmentEvaluateForm, AssignmentForm, AssignmentSetForm, AssignmentUpdateAttachmentForm,
                             AssignmentUpdateForm, AttendanceForm, AttendanceSetForm, ContestAttachmentForm, ContestForm,
                             ContestMoveForm, CourseFinishForm, CourseForm, CourseLeaderForm, CreditReportForm,
@@ -30,6 +29,7 @@ from contests.models import (Assignment, Attachment, Attendance, Contest, Course
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.contests import colorize
+from contests.templatetags.views import get_updated_query_string, has_leader_permission
 from schedule.models import Schedule
 
 """=================================================== Attachment ==================================================="""
