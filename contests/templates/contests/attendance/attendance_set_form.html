@@ -1,0 +1,130 @@
+{% extends 'base_wide.html' %}
+{% load views forms contests static %}
+
+{% block title %}
+Посещаемость
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb course course %}
+{% breadcrumb "Задания" 'contests:assignment-table' course.id %}
+{% breadcrumb "Посещаемость" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Посещаемость {% if debts %}должников{% endif %}</legend>
+<form action="" method="post">
+    {% csrf_token %}
+    <div class="form-row">
+        <label class="col-1 col-form-label" for="{{ form.date_interval.id_for_label }}">
+            {{ form.date_interval.label }}{{ form.date_interval.label_suffix }}
+        </label>
+        <div class="col-11">
+            {% with WIDGET_ERROR_CLASS="is-invalid" %}
+            {% render_field form.date_interval class+="form-control selectpicker" %}
+            {% endwith %}
+            {% if form.date_interval.field.append_text %}
+            <div class="input-group-append">
+                <span class="input-group-text">{{ form.date_interval.field.append_text }}</span>
+            </div>
+            {% endif %}
+            {% if form.date_interval.errors %}
+            <div class="invalid-feedback">
+                {% for error in form.date_interval.errors %}{{ error }}{% endfor %}
+            </div>
+            {% endif %}
+            {% if form.date_interval.help_text %}
+            <small class="form-text text-muted">{{ form.date_interval.help_text }}</small>
+            {% endif %}
+        </div>
+    </div>
+    {% render_field form.date_from %}
+    {% render_field form.date_to %}
+    {{ formset.management_form }}
+    {% include 'formset_errors.html' with formset=formset %}
+    {% if formset_not_valid %}
+    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        Посещаемость студентов в выбранном интервале уже отмечена.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    {% endif %}
+    <div class="table-responsive-lg mt-3">
+        <table class="table table-bordered table-sm table-hover">
+            <thead>
+                <tr>
+                    <th class="text-right" style="width: 4%;">№</th>
+                    <th style="width: 25%;">Студент</th>
+                    <th class="text-center" style="width: 4%;">
+                        <div class="custom-control custom-checkbox" data-toggle="tooltip" data-placement="top" title="Отметить всех студентов">
+                            <input id="check_all" type="checkbox" class="custom-control-input">
+                            <label for="check_all" class="custom-control-label ml-2"></label>
+                        </div>
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in formset %}
+                <tr>
+                    <td class="text-right text-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
+                    <td class="text-truncate"><a href="{{ form.account.get_absolute_url }}" data-toggle="tooltip" data-placement="bottom" title="{{ form.account.get_full_name }}">{{ form.account.get_short_name }}</a></td>
+                    <td class="text-center">
+                        <div class="custom-control custom-checkbox">
+                            {% render_field form.flag class+="custom-control-input check" %}
+                            <label for="{{ form.flag.id_for_label }}" class="custom-control-label ml-2"></label>
+                        </div>
+                    </td>
+                    <td>
+                        {% render_field form.user %}
+                        {% render_field form.course %}
+                        {% render_field form.date_from class+="formset-date-from-field" %}
+                        {% render_field form.date_to class+="formset-date-to-field" %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% render_submit_button value="Сохранить" %}
+</form>
+{% endblock content %}
+
+{% block javascript %}
+<script src="{% static 'moment/min/moment.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'moment/min/locales.min.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+let checkboxes = document.getElementsByClassName('check');
+document.getElementById('check_all').addEventListener('click', function (e) {
+    for (let checkbox of checkboxes) {
+        checkbox.checked = e.target.checked;
+    }
+});
+document.addEventListener("DOMContentLoaded", function() {
+    moment.updateLocale('ru', { week: { dow: 1 } });
+    let date_interval_field = document.getElementById("id_date_interval");
+    let date_from_field = document.getElementById("id_date_from");
+    let date_to_field = document.getElementById("id_date_to");
+    let formset_date_from_fields = document.getElementsByClassName("formset-date-from-field");
+    let formset_date_to_fields = document.getElementsByClassName("formset-date-to-field");
+    let datetime_format = "YYYY-MM-DD HH:mm:ss";
+    function f(event) {
+        let date_interval = date_interval_field.options[date_interval_field.selectedIndex].value;
+        let new_date_from = moment(date_interval, datetime_format, true);
+        let new_date_to =  moment(date_interval, datetime_format, true).add(90, 'minutes');
+        date_from_field.value = new_date_from.format(datetime_format);
+        date_to_field.value = new_date_to.format(datetime_format);
+        for (let formset_date_from_field of formset_date_from_fields) {
+            formset_date_from_field.value = date_from_field.value;
+        }
+        for (let formset_date_to_field of formset_date_to_fields) {
+            formset_date_to_field.value = date_to_field.value;
+        }
+    }
+    f();
+    date_interval_field.addEventListener('change', f);
+});
+</script>
+{% endblock javascript %}

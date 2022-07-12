@@ -1,3 +1,4 @@
+import datetime
 import os
 import re
 
@@ -5,14 +6,14 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
-from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
+from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
 
 from accounts.models import Account
 from contest.widgets import OptionCheckboxSelect, OptionRadioSelect
-from contests.models import (Assignment, Attachment, Contest, Course, CourseLeader, FNTest, Option, Problem, SubProblem,
-                             Submission, SubmissionPattern, UTTest)
+from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, FNTest, Option, Problem,
+                             Submission, SubmissionPattern, SubProblem, UTTest)
 
 
 class UserChoiceField(forms.ModelChoiceField):
@@ -260,6 +261,49 @@ class CreditReportForm(forms.Form):
         return self.cleaned_data
 
 
+"""=================================================== Attendance ==================================================="""
+
+
+def get_date_interval_choices_and_initial():
+    now = timezone.now()
+    today = now.date()
+    choices = [(datetime.datetime(today.year, today.month, today.day, 9), "1 пара (09:00 - 10:30)"),
+               (datetime.datetime(today.year, today.month, today.day, 10, 45), "2 пара (10:45 - 12:15)"),
+               (datetime.datetime(today.year, today.month, today.day, 13, 15), "3 пара (13:15 - 14:45)"),
+               (datetime.datetime(today.year, today.month, today.day, 15), "4 пара (15:00 - 16:30)"),
+               (datetime.datetime(today.year, today.month, today.day, 16, 45), "5 пара (16:45 - 18:15)"),
+               (datetime.datetime(today.year, today.month, today.day, 18, 30), "6 пара (18:30 - 20:00)")]
+    initial = choices[0]
+    for c, v in choices:
+        if now > timezone.make_aware(c):
+            initial = c
+    return choices, initial
+
+
+class AttendanceForm(forms.ModelForm):
+    class Meta:
+        model = Attendance
+        fields = ['user', 'course', 'flag', 'date_from', 'date_to']
+        widgets = {'user': forms.HiddenInput, 'course': forms.HiddenInput, 'date_from': forms.HiddenInput,
+                   'date_to': forms.HiddenInput}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.account = kwargs.get('initial').get('user').account
+
+
+class AttendanceSetForm(forms.Form):
+    date_interval = forms.ChoiceField(label="Сегодня")
+    date_from = forms.DateTimeField(widget=forms.HiddenInput)
+    date_to = forms.DateTimeField(widget=forms.HiddenInput)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        choices, initial = get_date_interval_choices_and_initial()
+        self.fields['date_interval'].choices = choices
+        self.fields['date_interval'].initial = initial
+
+
 """==================================================== Contest ====================================================="""
 
 
@@ -422,7 +466,7 @@ class ProblemTestForm(ProblemForm):
 
 
 class ProblemRollbackResultsForm(forms.Form):
-    submissions = forms.ModelMultipleChoiceField(Submission.objects.none(), required=False, label="Посылки")
+    submissions = forms.ModelMultipleChoiceField(queryset=Submission.objects.none(), required=False, label="Посылки")
 
     def __init__(self, *args, problem_id, **kwargs):
         super().__init__(*args, **kwargs)
@@ -551,7 +595,7 @@ class AssignmentForm(AssignmentUpdateForm):
     class Meta(AssignmentUpdateForm.Meta):
         pass
 
-    def __init__(self, course, contest=None, user=None, debts=False, **kwargs):
+    def __init__(self, course, contest=None, user=None, debts=0, **kwargs):
         super().__init__(course, contest, **kwargs)
         if debts:
             user_ids = Account.students.enrolled().debtors(course).values_list('user_id')

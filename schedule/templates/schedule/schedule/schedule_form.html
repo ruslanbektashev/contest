@@ -131,17 +131,17 @@ $(function () {
         let value = date_interval_field.val();
         if (value) {
             let new_date_from = moment(value, "DD.MM.YYYY").day(1);
-            let new_date_to =  moment(value, "DD.MM.YYYY").day(7)
+            let new_date_to =  moment(value, "DD.MM.YYYY").day(7);
             date_from_field.val(new_date_from.format("YYYY-MM-DD"));
             date_to_field.val(new_date_to.format("YYYY-MM-DD"));
-            date_interval_field.val(new_date_from.format("DD.MM.YYYY") + " - " + new_date_to.format("DD.MM.YYYY"))
+            date_interval_field.val(new_date_from.format("DD.MM.YYYY") + " - " + new_date_to.format("DD.MM.YYYY"));
         }
         else {
             let cur_date_from_value = date_from_field.val();
             let cur_date_to_value = date_to_field.val();
             let cur_date_from = moment(cur_date_from_value, "YYYY-MM-DD").format("DD.MM.YYYY");
             let cur_date_to = moment(cur_date_to_value, "YYYY-MM-DD").format("DD.MM.YYYY");
-            date_interval_field.val(cur_date_from + " - " + cur_date_to)
+            date_interval_field.val(cur_date_from + " - " + cur_date_to);
         }
     }
     f();

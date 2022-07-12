@@ -5,6 +5,7 @@
             <tr>
                 <th class="text-right" style="width: 4%;">№</th>
                 <th style="width: 25%;">Студент</th>
+                <th class="text-center" style="width: 4%;"><span data-toggle="tooltip" data-placement="top" title="Присутствие на текущей паре">П</span></th>
                 {% for contest in contests %}
                 <th class="lake text-truncate">
                     <a href="{{ contest.get_absolute_url }}" data-toggle="tooltip" data-placement="top" title="{{ contest }}">{{ contest.number }}</a>
@@ -18,7 +19,16 @@
             {% for row in table %}
             <tr>
                 <td class="text-right text-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
-                <td class="text-truncate"><a href="{{ row.student.get_absolute_url }}">{{ row.student }}</a></td>
+                <td class="text-truncate"><a href="{{ row.student.get_absolute_url }}" data-toggle="tooltip" data-placement="bottom" title="{{ row.student.get_full_name }}">{{ row.student.get_short_name }}</a></td>
+                <td class="text-center">
+                    {% if row.student.attendance_flag is None %}
+                    <i class="fa fa-minus fa-fw text-secondary"></i>
+                    {% elif row.student.attendance_flag %}
+                    <i class="fa fa-check fa-fw text-success"></i>
+                    {% else %}
+                    <i class="fa fa-times fa-fw text-danger"></i>
+                    {% endif %}
+                </td>
                 {% for col in row.columns %}
                 <td class="msu-problem-set lake text-truncate">
                     {% for assignment in col.assignments %}

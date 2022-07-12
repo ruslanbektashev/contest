@@ -53,15 +53,7 @@
     {% if type == 'Options' %}
     <h5 class="mb-3">Варианты ответа</h5>
     {{ formset.management_form }}
-    {% if formset.non_form_errors %}
-    <div class="form-group">
-        <div class="alert alert-danger">
-            {% for error in formset.non_form_errors %}
-            {{ error }}<br>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
+    {% include 'formset_errors.html' with formset=formset %}
     <div id="formset_wrapper">
         {% for form in formset %}
         {% for hidden in form.hidden_fields %}

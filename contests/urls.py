@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import include, path
 
 from contests import views
 
@@ -28,6 +28,7 @@ urlpatterns = [
             path('delete', views.CreditDelete.as_view(), name='credit-delete')
         ]))
     ])),
+    path('course/<int:course_id>/attendance/mark', views.AttendanceCreateSet.as_view(), name='attendance-mark'),
     path('filter/', include([
         path('create', views.FilterCreate.as_view(), name='filter-create'),
         path('delete', views.FilterDelete.as_view(), name='filter-delete'),

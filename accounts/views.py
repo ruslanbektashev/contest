@@ -1,7 +1,6 @@
 import json
 
 from django.core.exceptions import PermissionDenied
-from django.db.models import Q
 from markdown import markdown
 
 from django.apps import apps

@@ -43,7 +43,7 @@
                 </tr>
             </thead>
             <tbody>
-            {% render_form_errors formset %}
+            {% include 'formset_errors.html' with formset=formset %}
             {% for form in formset %}
                 <tr>
                 {% render_form_errors form %}

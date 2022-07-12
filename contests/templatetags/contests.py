@@ -234,7 +234,7 @@ def render_assignment_user_table(context, assignments, credits):
 
 
 @register.inclusion_tag('contests/assignment/assignment_course_table.html', takes_context=True)
-def render_assignment_course_table(context, course, students, assignments, debts=False):
+def render_assignment_course_table(context, course, students, assignments, debts=0):
     table = []
     contests = course.contest_set.all()
     nassignments, ncontests = len(assignments), len(contests)

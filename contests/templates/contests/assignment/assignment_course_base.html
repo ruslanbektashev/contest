@@ -19,6 +19,9 @@
         <a id="assignment_table_controls_add" href="{% url 'contests:assignment-create' course.id %}{% get_updated_query_string request %}" class="text-decoration-none text-success" data-toggle="tooltip" data-placement="left" title="Назначить новое задание"><i class="fa fa-plus fa-fw"></i></a>
         <a id="assignment_table_controls_random" href="{% url 'contests:assignment-randomize' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Распределить задания случайно"><i class="fa fa-random fa-fw"></i></a>
         {% endif %}
+        {% if perms.contests.add_attendance or request|has_leader_permission:course %}
+        <a id="assignment_table_controls_attendance" href="{% url 'contests:attendance-mark' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Отметить посещаемость"><i class="fa fa-calendar-check-o fa-fw"></i></a>
+        {% endif %}
         {% if debts %}
         <a href="{% url 'contests:assignment-table' course.id %}{% get_updated_query_string request debts=0 %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Перейти к таблице"><i class="fa fa-table fa-fw"></i></a>
         {% else %}
@@ -35,7 +38,7 @@
         {% endif %}
     </span>
 </legend>
-<form>
+<form class="mb-3">
     <div id="assignment_table_filters" class="form-row">
         {% if course.faculty.short_name == "МФК" %}
         <div class="col-4">
@@ -45,7 +48,6 @@
                 <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id %}" {% if faculty_id == faculty.id %}selected{% endif %}>{{ faculty }}</option>
                 {% endfor %}
             </select>
-            <label for="group_select"></label>
         </div>
         {% endif %}
         <div class="col-{% if course.faculty.short_name == "МФК" %}4{% else %}6{% endif %}">
@@ -55,7 +57,6 @@
                 <option value="{% get_full_path_with_updated_query_string request group=2 %}" {% if group == 2 %}selected{% endif %}>2 группа</option>
                 <option value="{% get_full_path_with_updated_query_string request group=3 %}" {% if group == 3 %}selected{% endif %}>3 группа</option>
             </select>
-            <label for="group_select"></label>
         </div>
         <div class="col-{% if course.faculty.short_name == "МФК" %}4{% else %}6{% endif %}">
             <select id="subgroup_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
@@ -64,7 +65,6 @@
                 <option value="{% get_full_path_with_updated_query_string request subgroup=2 %}" {% if subgroup == 2 %}selected{% endif %}>2 подгруппа</option>
                 <option value="{% get_full_path_with_updated_query_string request subgroup=3 %}" {% if subgroup == 3 %}selected{% endif %}>3 подгруппа</option>
             </select>
-            <label for="subgroup_select"></label>
         </div>
     </div>
 </form>

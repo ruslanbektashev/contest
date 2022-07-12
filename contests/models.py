@@ -1,20 +1,19 @@
-import docx
 import importlib
 import io
 import json
 import os
 import random
 import zipfile
-
 from statistics import mean
 
+import docx
 from ckeditor.fields import RichTextField
 from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.validators import validate_comma_separated_integer_list, MinValueValidator, MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, validate_comma_separated_integer_list
 from django.db import models
 from django.db.models import Q
 from django.dispatch import receiver
@@ -23,14 +22,14 @@ from django.utils import timezone
 
 from accounts.models import Account, Comment, Faculty, Notification
 from contest.abstract import CDEntry, CRDEntry, CRUDEntry
-from contest.soft_deletion import SoftDeletionModel, SoftDeletionManager, SoftDeletionQuerySet
+from contest.soft_deletion import SoftDeletionManager, SoftDeletionModel, SoftDeletionQuerySet
 from contest.utils import transliterate
 
 try:
     from tools.sandbox import get_sandbox_class
     from tools.utility import Status, diff
 except ImportError:
-    from contest.utils import get_sandbox_class, Status, diff
+    from contest.utils import Status, diff, get_sandbox_class
 
 
 """=================================================== Attachment ==================================================="""
@@ -365,6 +364,28 @@ class Credit(CRUDEntry):
 
     def __str__(self):
         return f"Зачет {self.user.account.get_short_name()} по курсу: {self.course}"
+
+
+"""=================================================== Attendance ==================================================="""
+
+
+class Attendance(CDEntry):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+', verbose_name="Владелец")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Студент")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Курс")
+
+    flag = models.BooleanField(default=False, verbose_name="Присутствие")
+    date_from = models.DateTimeField(verbose_name="Начало интервала")
+    date_to = models.DateTimeField(verbose_name="Конец интервала")
+
+    class Meta(CDEntry.Meta):
+        constraints = [models.UniqueConstraint(fields=('user', 'course', 'date_from', 'date_to'),
+                                               name='unique_attendance')]
+        verbose_name = "Посещение"
+        verbose_name_plural = "Посещаемость"
+
+    def __str__(self):
+        return f"{self.user.account} {'при' if self.flag else 'от'}сутствовал на курсе {self.course} c {self.date_from} по {self.date_to}"
 
 
 """===================================================== Filter ====================================================="""

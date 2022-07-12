@@ -9961,6 +9961,10 @@ label {
   user-select: none;
 }
 
+select {
+  -webkit-appearance: none;
+}
+
 .content {
   min-height: 850px;
 }

@@ -4,7 +4,7 @@ import math
 from statistics import mean
 
 from django.apps import apps
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group, User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -68,6 +68,12 @@ class StudentQuerySet(AccountQuerySet):
         queryset = self if course.faculty.short_name == "МФК" else self.filter(faculty=course.faculty)
         return (queryset.annotate(credit_id=models.Subquery(subquery.values('id')))
                         .annotate(credit_score=models.Subquery(subquery.values('score'))))
+
+    def with_attendance(self, course, at_datetime):
+        Attendance = apps.get_model('contests', 'Attendance')
+        subquery = Attendance.objects.filter(course=course, user_id=models.OuterRef('user_id'),
+                                             date_from__lte=at_datetime, date_to__gte=at_datetime)
+        return self.annotate(attendance_flag=models.Subquery(subquery.values('flag')))
 
     def allowed(self, course):
         return self.with_credits(course).filter(level__lte=course.level)
