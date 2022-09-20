@@ -63,3 +63,14 @@
     {% render_submit_button value="Начать" %}
 </form>
 {% endblock content %}
+
+{% block javascript %}
+<script type="text/javascript">
+let checkboxes = document.getElementsByClassName('check');
+document.getElementById('check_all').addEventListener('click', function (e) {
+    for (let checkbox of checkboxes) {
+        checkbox.checked = e.target.checked;
+    }
+});
+</script>
+{% endblock javascript %}
