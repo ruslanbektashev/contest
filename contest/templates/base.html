@@ -115,7 +115,7 @@
         <div class="btn-toolbar justify-content-center">
             {% if perms.support.delete_tutorialsteppass %}
             <div class="btn-group btn-group mb-3 mr-3" role="group">
-                <a href="{% url 'support:tutorial-reset' request.resolver_match.app_name|add:":"|add:request.resolver_match.url_name %}?from={{ request.path }}" id="contest_tutorial_reset" class="btn btn-light border" data-toggle="tooltip" data-placement="left" title="Пройти руководство на этой странице"><i class="fa fa-book"></i> Руководство</a>
+                <a href="{% url 'support:tutorial-reset' request.resolver_match.app_name|add:":"|add:request.resolver_match.url_name %}?from={{ request.get_full_path }}" id="contest_tutorial_reset" class="btn btn-light border" data-toggle="tooltip" data-placement="left" title="Пройти руководство на этой странице"><i class="fa fa-book"></i> Руководство</a>
             </div>
             {% endif %}
             <div id="global-font-size" class="btn-group btn-group mb-3" role="group" data-toggle="tooltip" data-placement="right" title="Размер шрифта">

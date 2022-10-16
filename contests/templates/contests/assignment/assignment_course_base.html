@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views contests %}
+{% load views contests tutorial %}
 
 {% block title %}
 Задания
@@ -84,3 +84,38 @@
     Показать легенду
 </button>
 {% endblock content %}
+
+{% block javascript %}
+<script type="text/javascript">
+driver.defineSteps([
+    {% if request.user.account.is_instructor or request.user.is_superuser %}
+    {% if students|length > 0 %}
+    {% if not request|have_passed_step:'attendance_column' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'attendance_column',
+        element: '#attendance_column',
+        popover: {
+            title: "Посещаемость",
+            description: "В этом столбце отображается количество пар посещенных каждым студентом.",
+            position: 'right'
+        }
+    },
+    {% endif %}
+    {% if not request|have_passed_step:'attendance_button' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'attendance_button',
+        element: '#assignment_table_controls_attendance',
+        popover: {
+            title: "Отметить посещаемость",
+            description: "Здесь можно отметить присутствующих на паре студентов.",
+            position: 'bottom'
+        }
+    },
+    {% endif %}
+    {% endif %}
+    {% endif %}
+])
+</script>
+{% endblock javascript %}

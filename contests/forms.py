@@ -303,6 +303,11 @@ class AttendanceSetForm(forms.Form):
         self.fields['date_interval'].choices = choices
         self.fields['date_interval'].initial = initial
 
+    def clean(self):
+        if timezone.now() < self.cleaned_data['date_from']:
+            raise ValidationError("Выбранная пара еще не началась.")
+        return super().clean()
+
 
 """==================================================== Contest ====================================================="""
 

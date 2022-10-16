@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views forms contests static %}
+{% load views forms contests tutorial static %}
 
 {% block title %}
 Посещаемость
@@ -16,7 +16,8 @@
 <legend>Посещаемость {% if debts %}должников{% endif %}</legend>
 <form action="" method="post">
     {% csrf_token %}
-    <div class="form-row">
+    {% render_form_errors form %}
+    <div id="field_date_interval" class="form-row">
         <label class="col-1 col-form-label" for="{{ form.date_interval.id_for_label }}">
             {{ form.date_interval.label }}{{ form.date_interval.label_suffix }}
         </label>
@@ -51,7 +52,7 @@
         </button>
     </div>
     {% endif %}
-    <div class="table-responsive-lg mt-3">
+    <div id="attendance_formset_table" class="table-responsive-lg mt-3">
         <table class="table table-bordered table-sm table-hover">
             <thead>
                 <tr>
@@ -88,7 +89,9 @@
             </tbody>
         </table>
     </div>
+    <div id="form_submit_button">
     {% render_submit_button value="Сохранить" %}
+    </div>
 </form>
 {% endblock content %}
 
@@ -126,5 +129,45 @@ document.addEventListener("DOMContentLoaded", function() {
     f();
     date_interval_field.addEventListener('change', f);
 });
+driver.defineSteps([
+    {% if request.user.account.is_instructor or request.user.is_superuser %}
+    {% if not request|have_passed_step:'field_date_interval' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'field_date_interval',
+        element: '#field_date_interval',
+        popover: {
+            title: "Пара",
+            description: "Выберите текущую или прошедшую сегодня пару.",
+            position: 'bottom'
+        }
+    },
+    {% endif %}
+    {% if not request|have_passed_step:'attendance_formset_table' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'attendance_formset_table',
+        element: '#attendance_formset_table',
+        popover: {
+            title: "Отметки",
+            description: "Отметьте присутствующих на паре студентов. Неотмеченные как присутствующие студенты будут учтены как отсутствующие.",
+            position: 'mid-center',
+        }
+    },
+    {% endif %}
+    {% if not request|have_passed_step:'form_submit_button' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'form_submit_button',
+        element: '#form_submit_button',
+        popover: {
+            title: "Сохранение",
+            description: "Чтобы сохранить отметки посещаемости, нажмите эту кнопку.",
+            position: 'top'
+        }
+    },
+    {% endif %}
+    {% endif %}
+])
 </script>
 {% endblock javascript %}
