@@ -55,7 +55,7 @@
     <div id="attendance_formset_table" class="table-responsive-lg mt-3">
         <table class="table table-bordered table-sm table-hover">
             <thead>
-                <tr>
+                <tr id="attendance_formset_table_header">
                     <th class="text-right" style="width: 4%;">№</th>
                     <th style="width: 25%;">Студент</th>
                     <th class="text-center" style="width: 4%;">
@@ -140,6 +140,18 @@ driver.defineSteps([
             title: "Пара",
             description: "Выберите текущую или прошедшую сегодня пару.",
             position: 'bottom'
+        }
+    },
+    {% endif %}
+    {% if not request|have_passed_step:'attendance_formset_table_header' %}
+    {
+        view: '{% tutorial_step_view request %}',
+        step: 'attendance_formset_table_header',
+        element: '#attendance_formset_table_header',
+        popover: {
+            title: "Отметки",
+            description: "В этой таблице отображены все студенты данного курса.",
+            position: 'bottom',
         }
     },
     {% endif %}
