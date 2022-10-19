@@ -1190,7 +1190,9 @@ class Submission(CRDEntry):
         if created and self.problem.type in ['Program'] or not created:
             self.update_assignment()
         if created and self.main_submission is None:
-            course_leaders = self.course.leaders.values_list('id', flat=True)
+            course_leaders = self.course.leaders.filter(Q(account__faculty=self.owner.account.faculty) |
+                                                        Q(account__faculty__short_name="МФК"))
+            course_leaders = course_leaders.values_list('id', flat=True)
             Notification.objects.notify(course_leaders, subject=self.owner, action="отправил посылку", object=self,
                                         relation="к задаче", reference=self.problem)
 
