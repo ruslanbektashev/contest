@@ -51,7 +51,7 @@ class TaskProgress {
         if (this.setState('finished')) {
             this.progress_bar_element.classList.add('bg-danger');
         }
-        this.progress_bar_message_element.textContent = "Произошла ошибка при получении статуса";
+        this.progress_bar_message_element.textContent = error;
         this.task_id = '';
     }
 
@@ -89,9 +89,11 @@ class TaskProgress {
         return json.complete;
     }
 
-    retryPoll(error) {
+    retryPoll(error, critical) {
         if (++this.retry < this.max_retries) {
-            this.btn_submission_evaluate_element.innerHTML = '<i class="text-danger fa fa-circle-o-notch fa-spin fa-fw"></i><span class="sr-only">Loading...</span>';
+            if (critical) {
+                this.btn_submission_evaluate_element.innerHTML = '<i class="text-danger fa fa-circle-o-notch fa-spin fa-fw"></i><span class="sr-only">Loading...</span>';
+            }
             this.delayPoll(this.poll_interval + this.retry * 500);
         } else {
             this.onError(error);
@@ -107,7 +109,11 @@ class TaskProgress {
         if (response.ok) {
             let progress = await response.json();
             if (!this.updateProgress(progress)) {
-                this.delayPoll(this.poll_interval);
+                if (progress.progress === 0 && progress.state === 'PENDING') {
+                    this.retryPoll("Система проверки перегружена. Попробуйте запустить проверку позже", false)
+                } else {
+                    this.delayPoll(this.poll_interval);
+                }
             } else {
                 response = await fetch(this.execution_list_url, {cache: "no-store"});
                 if (response.ok) {
@@ -115,13 +121,13 @@ class TaskProgress {
                 } else {
                     let err = Error('fetch(executions): http status ' + response.status);
                     console.log(err);
-                    this.retryPoll(err);
+                    this.retryPoll("Произошла ошибка при получении результатов проведенной проверки", true);
                 }
             }
         } else {
             let err = Error('fetch(progress): http status ' + response.status);
             console.log(err);
-            this.retryPoll(err);
+            this.retryPoll("Произошла ошибка при получении статуса проверки", true);
         }
     }
 
