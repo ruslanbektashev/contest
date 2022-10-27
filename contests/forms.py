@@ -587,10 +587,9 @@ class AssignmentUpdateForm(AssignmentEvaluateForm):
     class Meta(AssignmentEvaluateForm.Meta):
         fields = AssignmentEvaluateForm.Meta.fields + ['user', 'problem']
 
-    def __init__(self, course, contest=None, **kwargs):
+    def __init__(self, user_queryset, course, contest=None, **kwargs):
         super().__init__(**kwargs)
-        user_ids = Account.students.enrolled().with_credits(course).values_list('user_id')
-        self.fields['user'].queryset = User.objects.filter(id__in=user_ids)
+        self.fields['user'].queryset = user_queryset
         self.fields['problem'].choices = grouped_problems(course, contest)
 
 
@@ -600,12 +599,9 @@ class AssignmentForm(AssignmentUpdateForm):
     class Meta(AssignmentUpdateForm.Meta):
         pass
 
-    def __init__(self, course, contest=None, user=None, debts=0, **kwargs):
-        super().__init__(course, contest, **kwargs)
-        if debts:
-            user_ids = Account.students.enrolled().debtors(course).values_list('user_id')
-            self.fields['user'].queryset = User.objects.filter(id__in=user_ids)
-        if user:
+    def __init__(self, user_queryset, course, contest=None, user=None, **kwargs):
+        super().__init__(user_queryset, course, contest, **kwargs)
+        if user is not None:
             self.fields['user'].initial = user
 
 
@@ -851,10 +847,6 @@ class ToSubmissionsChoiceField(forms.ModelMultipleChoiceField):
 class SubmissionMossForm(forms.Form):
     to_submissions = ToSubmissionsChoiceField(queryset=Submission.objects.none(), required=True, label="С посылками")
 
-    def __init__(self, *args, **kwargs):
-        self.submission = kwargs.pop('submission')
+    def __init__(self, to_submissions_queryset, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        to_submissions = (Submission.objects.filter(problem_id=self.submission.problem_id,
-                                                    owner__account__enrolled=True)
-                                            .exclude(owner_id=self.submission.owner_id))
-        self.fields['to_submissions'].queryset = to_submissions
+        self.fields['to_submissions'].queryset = to_submissions_queryset

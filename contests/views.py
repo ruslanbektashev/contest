@@ -32,6 +32,24 @@ from contests.templatetags.contests import colorize
 from contests.templatetags.views import get_updated_query_string, has_leader_permission
 from schedule.models import Schedule
 
+
+def get_students_filter_dict(course, request):
+    filter_dict = dict(course=course)
+    if request.user.is_authenticated:
+        user_as_leader_queryset = CourseLeader.objects.filter(course=course, leader=request.user)
+        user_as_leader = user_as_leader_queryset.get() if user_as_leader_queryset.exists() else None
+        default_faculty_id = request.user.account.faculty_id
+        if course.faculty.is_interfaculty and request.user.account.faculty.is_interfaculty:
+            default_faculty_id = 0
+        default_group = user_as_leader.group if user_as_leader is not None else 0
+        default_subgroup = user_as_leader.subgroup if user_as_leader is not None else 0
+        filter_dict['faculty_id'] = int(request.GET.get('faculty_id') or default_faculty_id)
+        filter_dict['group'] = int(request.GET.get('group') or default_group)
+        filter_dict['subgroup'] = int(request.GET.get('subgroup') or default_subgroup)
+        filter_dict['debts'] = int(request.GET.get('debts') or 0)
+    return filter_dict
+
+
 """=================================================== Attachment ==================================================="""
 
 
@@ -272,9 +290,8 @@ class CreditReport(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
-        self.storage['faculty_id'] = int(request.GET.get('faculty_id') or 0)
-        self.storage['debts'] = int(request.GET.get('debts') or 0)
+        course = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        self.storage.update(get_students_filter_dict(course, request))
         return super().dispatch(request, *args, **kwargs)
 
     def has_ownership(self):
@@ -285,23 +302,15 @@ class CreditReport(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        course = self.storage['course']
-        students = Account.students.enrolled()
-        students = students.debtors(course) if self.storage['debts'] else students.current(course)
+        students = (Account.students.apply_common_filters(self.storage)
+                    .order_by('faculty__short_name', 'user__last_name', 'user__first_name'))
         examiners = Account.objects.filter(user__groups__name='Преподаватель')
-        if course.faculty.short_name == "МФК":
-            if self.storage['faculty_id'] > 0:
-                students = students.filter(faculty_id=self.storage['faculty_id'])
-                examiners = examiners.filter(faculty_id=self.storage['faculty_id'])
-            students = students.order_by('faculty__short_name', 'user__last_name', 'user__first_name')
-            examiners = examiners.order_by('faculty__short_name', 'user__last_name', 'user__first_name')
-        else:
-            students = students.order_by('user__last_name', 'user__first_name')
-            examiners = examiners.filter(faculty=course.faculty).order_by('faculty__short_name', 'user__last_name',
-                                                                          'user__first_name')
+        if self.storage['faculty_id'] > 0:
+            examiners = examiners.filter(faculty_id=self.storage['faculty_id'])
+        examiners = examiners.order_by('faculty__short_name', 'user__last_name', 'user__first_name')
         kwargs['students'] = students
         kwargs['examiners'] = examiners
-        kwargs['course'] = course
+        kwargs['course'] = self.storage['course']
         return kwargs
 
     def post(self, request, *args, **kwargs):
@@ -333,8 +342,8 @@ class CourseStart(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Permi
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
-        self.storage['faculty_id'] = int(request.GET.get('faculty_id') or 0)
+        course = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        self.storage.update(get_students_filter_dict(course, request))
         return super().dispatch(request, *args, **kwargs)
 
     def has_ownership(self):
@@ -346,13 +355,8 @@ class CourseStart(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Permi
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         course = self.storage['course']
-        students = Account.students.enrolled().allowed(course).filter(credit_id=None)
-        if course.faculty.short_name == "МФК":
-            if self.storage['faculty_id'] > 0:
-                students = students.filter(faculty_id=self.storage['faculty_id'])
-            students = students.order_by('faculty__short_name', '-level', 'user__last_name', 'user__first_name')
-        else:
-            students = students.order_by('-level', 'user__last_name', 'user__first_name')
+        students = (Account.students.apply_common_filters(self.storage).allowed(course).filter(credit_id=None)
+                    .order_by('faculty__short_name', '-level', 'user__last_name', 'user__first_name'))
         kwargs['runner_ups_queryset'] = students
         kwargs['course'] = course
         return kwargs
@@ -383,28 +387,16 @@ class CourseFinish(LoginRedirectMixin, PermissionRequiredMixin, FormView):
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
-        self.storage['faculty_id'] = int(request.GET.get('faculty_id') or 0)
-        self.storage['debts'] = int(request.GET.get('debts') or 0)
+        course = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        self.storage.update(get_students_filter_dict(course, request))
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        course = self.storage['course']
-        students = Account.students.enrolled()
-        if self.storage['debts']:
-            students = students.debtors(course)
-        else:
-            students = students.current(course)
-        students = students.filter(credit_score__gte=1)
-        if course.faculty.short_name == "МФК":
-            if self.storage['faculty_id'] > 0:
-                students = students.filter(faculty_id=self.storage['faculty_id'])
-            students = students.order_by('faculty__short_name', '-level', 'user__last_name', 'user__first_name')
-        else:
-            students = students.order_by('-level', 'user__last_name', 'user__first_name')
+        students = (Account.students.apply_common_filters(self.storage).filter(credit_score__gte=1)
+                    .order_by('faculty__short_name', '-level', 'user__last_name', 'user__first_name'))
         kwargs['level_ups_queryset'] = students
-        kwargs['course'] = course
+        kwargs['course'] = self.storage['course']
         return kwargs
 
     def post(self, request, *args, **kwargs):
@@ -481,20 +473,8 @@ class AttendanceCreateSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixi
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            course = get_object_or_404(Course, id=kwargs.pop('course_id'))
-            user_as_leader_queryset = CourseLeader.objects.filter(course=course, leader=request.user)
-            user_as_leader = user_as_leader_queryset.get() if user_as_leader_queryset.exists() else None
-            default_faculty_id = 0
-            if course.faculty.is_interfaculty and user_as_leader is not None:
-                default_faculty_id = user_as_leader.leader.account.faculty_id
-            default_group = user_as_leader.group if user_as_leader is not None else 0
-            default_subgroup = user_as_leader.subgroup if user_as_leader is not None else 0
-            self.storage['course'] = course
-            self.storage['faculty_id'] = int(request.GET.get('faculty_id') or default_faculty_id)
-            self.storage['group'] = int(request.GET.get('group') or default_group)
-            self.storage['subgroup'] = int(request.GET.get('subgroup') or default_subgroup)
-            self.storage['debts'] = int(request.GET.get('debts') or 0)
+        course = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        self.storage.update(get_students_filter_dict(course, request))
         return super().dispatch(request, *args, **kwargs)
 
     def has_ownership(self):
@@ -504,19 +484,7 @@ class AttendanceCreateSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixi
         return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
 
     def get_queryset(self):
-        course = self.storage['course']
-        students = Account.students.enrolled()
-        if self.storage['debts']:
-            students = students.debtors(course)
-        else:
-            students = students.current(course)
-        if self.storage['faculty_id'] > 0:
-            students = students.filter(faculty_id=self.storage['faculty_id'])
-        if self.storage['group'] > 0:
-            students = students.filter(group=self.storage['group'])
-        if self.storage['subgroup'] > 0:
-            students = students.filter(subgroup=self.storage['subgroup'])
-        return students
+        return Account.students.apply_common_filters(self.storage)
 
     def get_formset_kwargs(self):
         users = (User.objects.filter(id__in=self.get_queryset().values_list('user_id', flat=True))
@@ -873,6 +841,8 @@ class ProblemDetail(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin, Det
         if self.request.user.has_perm('contests.view_submission_list') or has_leader_permission(self.request,
                                                                                                 self.object.course):
             submissions = self.object.submission_set.all()
+            if not self.request.user.account.faculty.is_interfaculty:
+                submissions = submissions.filter(owner__account__faculty=self.request.user.account.faculty)
         else:
             submissions = self.object.submission_set.filter(owner_id=self.request.user.id)
         context['paginator'], context['page_obj'], context['submissions'], context['is_paginated'] = \
@@ -1666,8 +1636,8 @@ class AssignmentCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
-        self.storage['debts'] = int(request.GET.get('debts') or 0)
+        course = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        self.storage.update(get_students_filter_dict(course, request))
         return super().dispatch(request, *args, **kwargs)
 
     def has_ownership(self):
@@ -1685,7 +1655,13 @@ class AssignmentCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs.update(self.storage)
+        student_ids = Account.students.apply_common_filters(self.storage).values_list('user_id')
+        kwargs['user_queryset'] = User.objects.filter(id__in=student_ids)
+        kwargs['course'] = self.storage['course']
+        if 'contest' in self.storage:
+            kwargs['contest'] = self.storage['contest']
+        if 'user' in self.storage:
+            kwargs['user'] = self.storage['user']
         return kwargs
 
     def form_valid(self, form):
@@ -1714,23 +1690,11 @@ class AssignmentCreateRandomSet(LoginRedirectMixin, LeadershipOrMixin, Ownership
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            course = get_object_or_404(Course, id=kwargs.pop('course_id'))
-            user_as_leader_queryset = CourseLeader.objects.filter(course=course, leader=request.user)
-            user_as_leader = user_as_leader_queryset.get() if user_as_leader_queryset.exists() else None
-            default_faculty_id = 0
-            if course.faculty.is_interfaculty and user_as_leader is not None:
-                default_faculty_id = user_as_leader.leader.account.faculty_id
-            default_group = user_as_leader.group if user_as_leader is not None else 0
-            default_subgroup = user_as_leader.subgroup if user_as_leader is not None else 0
-            self.storage['course'] = course
-            self.storage['faculty_id'] = int(request.GET.get('faculty_id') or default_faculty_id)
-            self.storage['group'] = int(request.GET.get('group') or default_group)
-            self.storage['subgroup'] = int(request.GET.get('subgroup') or default_subgroup)
-            self.storage['debts'] = int(request.GET.get('debts') or 0)
-            contest_id = int(request.GET.get('contest_id') or 0)
-            if contest_id:
-                self.storage['contest'] = get_object_or_404(Contest, id=contest_id, course=self.storage['course'])
+        course = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        self.storage.update(get_students_filter_dict(course, request))
+        contest_id = int(request.GET.get('contest_id') or 0)
+        if contest_id:
+            self.storage['contest'] = get_object_or_404(Contest, id=contest_id, course=self.storage['course'])
         return super().dispatch(request, *args, **kwargs)
 
     def has_ownership(self):
@@ -1810,6 +1774,7 @@ class AssignmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         kwargs = super().get_form_kwargs()
         if self.storage['action'] is None:
             kwargs['course'] = self.object.course
+            kwargs['user_queryset'] = User.objects.filter(id__in=[self.object.user_id])  # limited queryset
         return kwargs
 
     def get_context_data(self, **kwargs):
@@ -1877,20 +1842,8 @@ class AssignmentCourseTable(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMi
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            course = get_object_or_404(Course, id=kwargs.pop('course_id'))
-            user_as_leader_queryset = CourseLeader.objects.filter(course=course, leader=request.user)
-            user_as_leader = user_as_leader_queryset.get() if user_as_leader_queryset.exists() else None
-            default_faculty_id = 0
-            if course.faculty.is_interfaculty and user_as_leader is not None:
-                default_faculty_id = user_as_leader.leader.account.faculty_id
-            default_group = user_as_leader.group if user_as_leader is not None else 0
-            default_subgroup = user_as_leader.subgroup if user_as_leader is not None else 0
-            self.storage['course'] = course
-            self.storage['faculty_id'] = int(request.GET.get('faculty_id') or default_faculty_id)
-            self.storage['group'] = int(request.GET.get('group') or default_group)
-            self.storage['subgroup'] = int(request.GET.get('subgroup') or default_subgroup)
-            self.storage['debts'] = int(request.GET.get('debts') or 0)
+        course = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        self.storage.update(get_students_filter_dict(course, request))
         return super().dispatch(request, *args, **kwargs)
 
     def has_ownership(self):
@@ -1900,25 +1853,16 @@ class AssignmentCourseTable(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMi
         return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
 
     def get_queryset(self):
-        course = self.storage['course']
-        students = Account.students.enrolled()
-        if self.storage['debts']:
-            students = students.debtors(course).with_attendance(course, timezone.now())
-        else:
-            students = students.current(course).with_attendance(course, timezone.now())
-        if self.storage['faculty_id'] > 0:
-            students = students.filter(faculty_id=self.storage['faculty_id'])
-        if self.storage['group'] > 0:
-            students = students.filter(group=self.storage['group'])
-        if self.storage['subgroup'] > 0:
-            students = students.filter(subgroup=self.storage['subgroup'])
-        self.storage['students'] = students
+        self.storage['students'] = (Account.students.apply_common_filters(self.storage)
+                                    .with_attendance(self.storage['course'], timezone.now()))
         bool(self.storage['students'])  # evaluate now
-        return Assignment.objects.for_course_table(course, self.storage['students'])
+        return Assignment.objects.for_course_table(self.storage['course'], self.storage['students'])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['faculties'] = Faculty.objects.exclude(short_name="МФК")
+        if self.storage['course'].faculty.is_interfaculty:
+            if self.request.user.account.faculty.is_interfaculty or self.request.user.is_superuser:
+                context['faculties'] = Faculty.objects.exclude(short_name="МФК")
         context.update(self.storage)
         return context
 
@@ -2311,7 +2255,11 @@ class SubmissionMoss(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Pe
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['submission'] = self.object
+        queryset = Submission.objects.filter(problem_id=self.object.problem_id, owner__account__enrolled=True)
+        if not self.request.user.account.faculty.is_interfaculty:
+            queryset = queryset.filter(owner__account__faculty=self.request.user.account.faculty)
+        queryset = queryset.exclude(owner_id=self.object.owner_id)
+        kwargs['to_submissions_queryset'] = queryset
         return kwargs
 
     def get_success_url(self):
@@ -2477,11 +2425,10 @@ class SubmissionList(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, Pe
         queryset = super().get_queryset().select_related('owner', 'problem', 'problem__contest')
         if 'course' in self.storage:
             queryset = queryset.filter(problem__contest__course_id=self.storage['course'].id)
+            if not self.request.user.account.faculty.is_interfaculty:
+                queryset = queryset.filter(owner__account__faculty=self.request.user.account.faculty)
         else:
-            course_ids = self.request.user.filter_set.values_list('course_id')
-            queryset = (queryset.filter(problem__contest__course_id__in=course_ids)
-                        .filter(problem__contest__course__faculty=self.request.user.account.faculty)
-                        .select_related('problem__contest__course'))
+            queryset = queryset.select_related('problem__contest__course')
         return queryset
 
     def get_context_data(self, **kwargs):

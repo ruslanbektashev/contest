@@ -81,7 +81,7 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 
 class CourseQuerySet(SoftDeletionQuerySet):
     def of_faculty(self, faculty):
-        if faculty.short_name == "МФК":
+        if faculty.is_interfaculty:
             return self.filter(faculty_id=faculty.id)
         else:
             return self.filter(Q(faculty_id=faculty.id) | Q(faculty__short_name="МФК")).distinct()
@@ -863,15 +863,7 @@ class AssignmentManager(models.Manager):
         """ create random set of assignments with problems of given contest
             aligning their number to limit_per_user for contest.course.level students """
         problem_ids = contest.problem_set.filter(type=type).order_by('number').values_list('id', flat=True)
-        students = Account.students.enrolled()
-        students = students.debtors(contest.course) if params['debts'] else students.current(contest.course)
-        if params['faculty_id'] > 0:
-            students = students.filter(faculty_id=params['faculty_id'])
-        if params['group'] > 0:
-            students = students.filter(group=params['group'])
-        if params['subgroup'] > 0:
-            students = students.filter(subgroup=params['subgroup'])
-        student_ids = students.values_list('user_id', flat=True)
+        student_ids = Account.students.apply_common_filters(params).values_list('user_id', flat=True)
         new_assignments = []
         for student_id in student_ids:
             assigned_problem_ids = (self.filter(user_id=student_id, problem_id__in=problem_ids)

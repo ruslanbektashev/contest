@@ -40,7 +40,7 @@
 </legend>
 <form class="mb-3">
     <div id="assignment_table_filters" class="form-row">
-        {% if course.faculty.short_name == "МФК" %}
+        {% if faculties %}
         <div class="col-4">
             <select id="group_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
                 <option value="{% get_full_path_with_updated_query_string request faculty_id=0 %}" {% if faculty_id == 0 %}selected{% endif %}>Все факультеты</option>
@@ -50,7 +50,7 @@
             </select>
         </div>
         {% endif %}
-        <div class="col-{% if course.faculty.short_name == "МФК" %}4{% else %}6{% endif %}">
+        <div class="col-{% if faculties %}4{% else %}6{% endif %}">
             <select id="group_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
                 <option value="{% get_full_path_with_updated_query_string request group=0 %}" {% if group == 0 %}selected{% endif %}>Все группы</option>
                 <option value="{% get_full_path_with_updated_query_string request group=1 %}" {% if group == 1 %}selected{% endif %}>1 группа</option>
@@ -58,7 +58,7 @@
                 <option value="{% get_full_path_with_updated_query_string request group=3 %}" {% if group == 3 %}selected{% endif %}>3 группа</option>
             </select>
         </div>
-        <div class="col-{% if course.faculty.short_name == "МФК" %}4{% else %}6{% endif %}">
+        <div class="col-{% if faculties %}4{% else %}6{% endif %}">
             <select id="subgroup_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
                 <option value="{% get_full_path_with_updated_query_string request subgroup=0 %}" {% if subgroup == 0 %}selected{% endif %}>Все подгруппы</option>
                 <option value="{% get_full_path_with_updated_query_string request subgroup=1 %}" {% if subgroup == 1 %}selected{% endif %}>1 подгруппа</option>

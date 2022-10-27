@@ -1,5 +1,4 @@
 import re
-
 from html.entities import name2codepoint
 from html.parser import HTMLParser
 
@@ -8,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.datetime_safe import datetime
 
-from accounts.models import Account, Comment, Announcement
+from accounts.models import Account, Announcement, Comment
 from accounts.templatetags.markdown import markdown
 from accounts.widgets import CommentWidget
 
@@ -111,7 +110,7 @@ class AccountSetForm(forms.ModelForm):
 
     def clean_faculty(self):
         faculty = self.cleaned_data['faculty']
-        if faculty.short_name == "МФК":
+        if faculty.is_interfaculty:
             raise ValidationError("В выбранный факультет нельзя добавить студентов", code='invalid_faculty')
         return faculty
 

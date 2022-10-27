@@ -65,7 +65,7 @@ class StudentQuerySet(AccountQuerySet):
     def with_credits(self, course):
         Credit = apps.get_model('contests', 'Credit')
         subquery = Credit.objects.filter(course=course, user_id=models.OuterRef('user_id'))
-        queryset = self if course.faculty.short_name == "МФК" else self.filter(faculty=course.faculty)
+        queryset = self if course.faculty.is_interfaculty else self.filter(faculty=course.faculty)
         return (queryset.annotate(credit_id=models.Subquery(subquery.values('id')))
                         .annotate(credit_score=models.Subquery(subquery.values('score'))))
 
@@ -108,6 +108,20 @@ class StudentQuerySet(AccountQuerySet):
     def get_distinct_groups(self):
         return self.order_by().values_list('group', flat=True).distinct()
 
+    def apply_common_filters(self, filters):
+        queryset = self.enrolled()
+        if filters['debts']:
+            queryset = queryset.debtors(filters['course'])
+        else:
+            queryset = queryset.current(filters['course'])
+        if filters['faculty_id'] > 0:
+            queryset = queryset.filter(faculty_id=filters['faculty_id'])
+        if filters['group'] > 0:
+            queryset = queryset.filter(group=filters['group'])
+        if filters['subgroup'] > 0:
+            queryset = queryset.filter(subgroup=filters['subgroup'])
+        return queryset
+
 
 class StaffManager(models.Manager):
     def get_queryset(self):
@@ -149,7 +163,7 @@ class StaffManager(models.Manager):
 
     def get_leader_queryset(self, faculty):
         leader_queryset = User.objects.filter(groups__name="Преподаватель")
-        if faculty.short_name != "МФК":
+        if not faculty.is_interfaculty:
             leader_queryset = leader_queryset.filter(Q(account__faculty=faculty) | Q(account__faculty__short_name="МФК")).distinct()
         leader_queryset = leader_queryset.order_by('account__faculty__short_name', 'last_name', 'first_name')
         return leader_queryset

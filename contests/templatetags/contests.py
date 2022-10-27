@@ -126,6 +126,14 @@ def course_filtered(request, course):
     return request.user.filter_set.filter(course=course).exists()
 
 
+@register.filter()
+def get_latest_submissions(course, request):
+    latest_submissions = course.get_latest_submissions()
+    if not request.user.account.faculty.is_interfaculty:
+        latest_submissions = latest_submissions.filter(owner__account__faculty=request.user.account.faculty)
+    return latest_submissions
+
+
 @register.simple_tag()
 def account_course_credit_score(account, course_id=None):
     return account.course_credit_score(course_id=course_id)
