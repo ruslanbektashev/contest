@@ -44,14 +44,6 @@
     {% render_field form.date_to %}
     {{ formset.management_form }}
     {% include 'formset_errors.html' with formset=formset %}
-    {% if formset_not_valid %}
-    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
-        Посещаемость студентов в выбранном интервале уже отмечена.
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    {% endif %}
     <div id="attendance_formset_table" class="table-responsive-lg mt-3">
         <table class="table table-bordered table-sm table-hover">
             <thead>

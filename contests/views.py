@@ -17,13 +17,13 @@ from contest.documents.viewer import to_html
 from contest.mixins import LeadershipOrMixin, LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
 from contest.soft_deletion import SoftDeletionDeleteView, SoftDeletionUpdateView
 from contests.forms import (AssignmentEvaluateForm, AssignmentForm, AssignmentSetForm, AssignmentUpdateAttachmentForm,
-                            AssignmentUpdateForm, AttendanceForm, AttendanceSetForm, ContestAttachmentForm, ContestForm,
-                            ContestMoveForm, CourseFinishForm, CourseForm, CourseLeaderForm, CreditReportForm,
-                            CreditSetForm, FNTestForm, OptionBaseFormSet, OptionForm, ProblemAttachmentForm,
-                            ProblemCommonForm, ProblemMoveForm, ProblemProgramForm, ProblemRollbackResultsForm,
-                            ProblemTestForm, SubmissionFilesForm, SubmissionMossForm, SubmissionOptionsForm,
-                            SubmissionPatternForm, SubmissionProgramForm, SubmissionTextForm, SubmissionUpdateForm,
-                            SubmissionVerbalForm, SubProblemForm, UTTestForm)
+                            AssignmentUpdateForm, AttendanceDateForm, AttendanceForm, AttendanceFormSet,
+                            ContestAttachmentForm, ContestForm, ContestMoveForm, CourseFinishForm, CourseForm,
+                            CourseLeaderForm, CreditReportForm, CreditSetForm, FNTestForm, OptionBaseFormSet,
+                            OptionForm, ProblemAttachmentForm, ProblemCommonForm, ProblemMoveForm, ProblemProgramForm,
+                            ProblemRollbackResultsForm, ProblemTestForm, SubmissionFilesForm, SubmissionMossForm,
+                            SubmissionOptionsForm, SubmissionPatternForm, SubmissionProgramForm, SubmissionTextForm,
+                            SubmissionUpdateForm, SubmissionVerbalForm, SubProblemForm, UTTestForm)
 from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, Execution,
                              Filter, FNTest, IOTest, Option, Problem, Submission, SubmissionPattern, SubProblem, UTTest)
 from contests.results import TaskProgress
@@ -464,7 +464,7 @@ class CreditDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
 
 
 class AttendanceCreateSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, FormView):
-    form_class = AttendanceSetForm
+    form_class = AttendanceDateForm
     template_name = 'contests/attendance/attendance_set_form.html'
     permission_required = 'contests.add_attendance'
 
@@ -497,7 +497,8 @@ class AttendanceCreateSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixi
 
     def get_formset_class(self):
         num_extra = self.get_queryset().count()
-        return modelformset_factory(Attendance, AttendanceForm, extra=num_extra, min_num=num_extra, max_num=num_extra)
+        return modelformset_factory(Attendance, AttendanceForm, formset=AttendanceFormSet, extra=num_extra,
+                                    min_num=num_extra, max_num=num_extra)
 
     def get_formset(self):
         formset_class = self.get_formset_class()
@@ -511,7 +512,6 @@ class AttendanceCreateSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixi
             formset.save()
             return super().form_valid(form)
         else:
-            self.storage['formset_not_valid'] = True
             return self.form_invalid(form)
 
     def get_context_data(self, **kwargs):

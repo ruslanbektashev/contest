@@ -292,7 +292,7 @@ class AttendanceForm(forms.ModelForm):
         self.account = kwargs.get('initial').get('user').account
 
 
-class AttendanceSetForm(forms.Form):
+class AttendanceDateForm(forms.Form):
     date_interval = forms.ChoiceField(label="Сегодня")
     date_from = forms.DateTimeField(widget=forms.HiddenInput)
     date_to = forms.DateTimeField(widget=forms.HiddenInput)
@@ -306,6 +306,15 @@ class AttendanceSetForm(forms.Form):
     def clean(self):
         if timezone.now() < self.cleaned_data['date_from']:
             raise ValidationError("Выбранная пара еще не началась.")
+        return super().clean()
+
+
+class AttendanceFormSet(forms.BaseModelFormSet):
+    def clean(self):
+        if self.total_form_count() == 0:
+            raise ValidationError("В таблице нет ни одного студента.")
+        if any(self.errors):
+            raise ValidationError("Посещаемость студентов в выбранном интервале уже отмечена.")
         return super().clean()
 
 
