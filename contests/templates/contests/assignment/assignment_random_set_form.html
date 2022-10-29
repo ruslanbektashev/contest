@@ -12,7 +12,7 @@
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb course course %}
-{% breadcrumb "Задания" 'contests:assignment-table' course.id %}
+{% breadcrumb "Задания" 'contests:assignment-table' course.id query_string=request|get_query_string %}
 {% breadcrumb "Случайные задания" %}
 {% endblock breadcrumbs %}
 

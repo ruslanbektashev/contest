@@ -55,10 +55,8 @@ def exists(file):
 def get_updated_query_string(request, **kwargs):
     _GET = request.GET.copy()
     _GET.update(kwargs)
-    if _GET:
-        return '?' + '&'.join(['{}={}'.format(key, value) for key, value in _GET.items()])  # _GET.urlencode()
-    else:
-        return ''
+    query_string = '&'.join(['{}={}'.format(key, value) for key, value in _GET.items()])  # _GET.urlencode()
+    return '?' + query_string if query_string else ''
 
 
 @register.simple_tag()
@@ -68,7 +66,8 @@ def get_full_path_with_updated_query_string(request, **kwargs):
 
 @register.filter()
 def get_query_string(request):
-    return '?' + '&'.join(['{}={}'.format(key, value) for key, value in request.GET.items()])
+    query_string = '&'.join(['{}={}'.format(key, value) for key, value in request.GET.items()])
+    return '?' + query_string if query_string else ''
 
 
 @register.inclusion_tag('page_nav.html', takes_context=True)
