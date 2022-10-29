@@ -28,7 +28,10 @@ urlpatterns = [
             path('delete', views.CreditDelete.as_view(), name='credit-delete')
         ]))
     ])),
-    path('course/<int:course_id>/attendance/mark', views.AttendanceCreateSet.as_view(), name='attendance-mark'),
+    path('course/<int:course_id>/attendance/', include([
+        path('mark', views.AttendanceCreateSet.as_view(), name='attendance-mark'),
+        path('table', views.AttendanceCourseTable.as_view(), name='attendance-table'),
+    ])),
     path('filter/', include([
         path('create', views.FilterCreate.as_view(), name='filter-create'),
         path('delete', views.FilterDelete.as_view(), name='filter-delete'),

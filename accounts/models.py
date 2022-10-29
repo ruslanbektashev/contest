@@ -69,14 +69,16 @@ class StudentQuerySet(AccountQuerySet):
         return (queryset.annotate(credit_id=models.Subquery(subquery.values('id')))
                         .annotate(credit_score=models.Subquery(subquery.values('score'))))
 
-    def with_attendance(self, course, at_datetime):
+    def with_attendance(self, course, at_datetime=None):
         Attendance = apps.get_model('contests', 'Attendance')
-        is_attending_now_subquery = Attendance.objects.filter(course=course, user_id=models.OuterRef('user_id'),
-                                                              date_from__lte=at_datetime, date_to__gte=at_datetime)
-        return (self.annotate(is_attending_now=models.Subquery(is_attending_now_subquery.values('flag')))
-                    .annotate(attendance_count=models.Count('user__attendance',
-                                                            filter=Q(user__attendance__course=course,
-                                                                     user__attendance__flag=True))))
+        queryset = self.annotate(attendance_sum=models.Count('user__attendance',
+                                                               filter=Q(user__attendance__course=course,
+                                                                        user__attendance__flag=True)))
+        if at_datetime is not None:
+            is_attending_now_subquery = Attendance.objects.filter(course=course, user_id=models.OuterRef('user_id'),
+                                                                  date_from__lte=at_datetime, date_to__gte=at_datetime)
+            queryset = queryset.annotate(is_attending_now=models.Subquery(is_attending_now_subquery.values('flag')))
+        return queryset
 
     def allowed(self, course):
         return self.with_credits(course).filter(level__lte=course.level)

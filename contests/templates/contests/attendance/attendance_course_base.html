@@ -1,0 +1,20 @@
+{% extends 'base_wide.html' %}
+{% load views contests tutorial %}
+
+{% block title %}
+Посещаемость
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb course course %}
+{% breadcrumb "Задания" 'contests:assignment-table' course.id query_string=request|get_query_string %}
+{% breadcrumb "Посещаемость" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>
+    Посещаемость
+</legend>
+{% render_attendance_course_table students attendance %}
+{% endblock content %}

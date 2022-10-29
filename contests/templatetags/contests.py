@@ -231,6 +231,28 @@ def get_assignment_style(assignment):
     return colorize(assignment.score)
 
 
+@register.inclusion_tag('contests/attendance/attendance_course_table.html', takes_context=True)
+def render_attendance_course_table(context, students, attendance):
+    table = []
+    days = attendance.dates('date_from', 'day', order='ASC')
+    attendance_num, days_num = len(attendance), len(days)
+    i = 0
+    for student in students:
+        row = {'student': student, 'columns': [{'day': day, 'attendance': [], 'sum': 0} for day in days]}
+        j = 0
+        while i < attendance_num and attendance[i].user_id == student.user_id:
+            while j < days_num and days[j] != attendance[i].date_from.date():
+                j += 1
+            if days[j] == attendance[i].date_from.date():
+                row['columns'][j]['attendance'].append(attendance[i])
+                if attendance[i].flag:
+                    row['columns'][j]['sum'] += 1
+                i += 1
+        table.append(row)
+    context.update(dict(days=days, table=table))
+    return context
+
+
 @register.inclusion_tag('contests/assignment/assignment_user_table.html', takes_context=True)
 def render_assignment_user_table(context, assignments, credits):
     for credit in credits:
@@ -242,27 +264,22 @@ def render_assignment_user_table(context, assignments, credits):
 
 
 @register.inclusion_tag('contests/assignment/assignment_course_table.html', takes_context=True)
-def render_assignment_course_table(context, course, students, assignments, debts=0):
+def render_assignment_course_table(context, course, students, assignments):
     table = []
     contests = course.contest_set.all()
-    nassignments, ncontests = len(assignments), len(contests)
+    assignments_num, contests_num = len(assignments), len(contests)
     i = 0
     for student in students:
         row = {'student': student, 'columns': [{'contest': contest, 'assignments': []} for contest in contests]}
         j = 0
-        while i < nassignments and assignments[i].user_id == student.user_id:
-            while j < ncontests and contests[j].id != assignments[i].problem.contest_id:
+        while i < assignments_num and assignments[i].user_id == student.user_id:
+            while j < contests_num and contests[j].id != assignments[i].problem.contest_id:
                 j += 1
             if contests[j].id == assignments[i].problem.contest_id:
                 row['columns'][j]['assignments'].append(assignments[i])
                 i += 1
         table.append(row)
-    context.update({
-        'course': course,
-        'contests': contests,
-        'table': table,
-        'debts': debts
-    })
+    context.update(dict(contests=contests, table=table))
     return context
 
 

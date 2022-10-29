@@ -20,12 +20,10 @@
         <a id="assignment_table_controls_random" href="{% url 'contests:assignment-randomize' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Распределить задания случайно"><i class="fa fa-random fa-fw"></i></a>
         {% endif %}
         {% if perms.contests.add_attendance or request|has_leader_permission:course %}
-        <a id="assignment_table_controls_attendance" href="{% url 'contests:attendance-mark' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Отметить посещаемость"><i class="fa fa-calendar-check-o fa-fw"></i></a>
+        <a id="assignment_table_controls_attendance" href="{% url 'contests:attendance-mark' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Отметить посещаемость"><i class="fa fa-calendar-check-o fa-fw"></i></a>
         {% endif %}
-        {% if debts %}
-        <a href="{% url 'contests:assignment-table' course.id %}{% get_updated_query_string request debts=0 %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Перейти к таблице"><i class="fa fa-table fa-fw"></i></a>
-        {% else %}
-        <a id="assignment_table_controls_debts" href="{% url 'contests:assignment-table' course.id %}{% get_updated_query_string request debts=1 %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Перейти к должникам"><i class="fa fa-columns fa-fw"></i></a>
+        {% if perms.contests.view_attendance or request|has_leader_permission:course %}
+        <a href="{% url 'contests:attendance-table' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Таблица посещаемости"><i class="fa fa-calendar fa-fw"></i></a>
         {% endif %}
         {% if perms.accounts.change_account %}
         <a id="assignment_table_controls_finish" href="{% url 'contests:course-finish' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Завершить курс"><i class="fa fa-stop fa-fw"></i></a>
@@ -41,7 +39,7 @@
 <form class="mb-3">
     <div id="assignment_table_filters" class="form-row">
         {% if faculties %}
-        <div class="col-4">
+        <div class="col-3">
             <select id="group_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
                 <option value="{% get_full_path_with_updated_query_string request faculty_id=0 %}" {% if faculty_id == 0 %}selected{% endif %}>Все факультеты</option>
                 {% for faculty in faculties %}
@@ -50,7 +48,7 @@
             </select>
         </div>
         {% endif %}
-        <div class="col-{% if faculties %}4{% else %}6{% endif %}">
+        <div class="col-{% if faculties %}3{% else %}4{% endif %}">
             <select id="group_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
                 <option value="{% get_full_path_with_updated_query_string request group=0 %}" {% if group == 0 %}selected{% endif %}>Все группы</option>
                 <option value="{% get_full_path_with_updated_query_string request group=1 %}" {% if group == 1 %}selected{% endif %}>1 группа</option>
@@ -58,7 +56,7 @@
                 <option value="{% get_full_path_with_updated_query_string request group=3 %}" {% if group == 3 %}selected{% endif %}>3 группа</option>
             </select>
         </div>
-        <div class="col-{% if faculties %}4{% else %}6{% endif %}">
+        <div class="col-{% if faculties %}3{% else %}4{% endif %}">
             <select id="subgroup_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
                 <option value="{% get_full_path_with_updated_query_string request subgroup=0 %}" {% if subgroup == 0 %}selected{% endif %}>Все подгруппы</option>
                 <option value="{% get_full_path_with_updated_query_string request subgroup=1 %}" {% if subgroup == 1 %}selected{% endif %}>1 подгруппа</option>
@@ -66,9 +64,15 @@
                 <option value="{% get_full_path_with_updated_query_string request subgroup=3 %}" {% if subgroup == 3 %}selected{% endif %}>3 подгруппа</option>
             </select>
         </div>
+        <div class="col-{% if faculties %}3{% else %}4{% endif %}">
+            <select id="debts_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+                <option value="{% get_full_path_with_updated_query_string request debts=0 %}" {% if debts == 0 %}selected{% endif %}>Без должников</option>
+                <option value="{% get_full_path_with_updated_query_string request debts=1 %}" {% if debts == 1 %}selected{% endif %}>Должники</option>
+            </select>
+        </div>
     </div>
 </form>
-{% render_assignment_course_table course students assignments debts %}
+{% render_assignment_course_table course students assignments %}
 {% render_assignment_progress assignments "Прогресс" %}
 <div class="collapse mt-3" id="assignments_legend">
     <div class="card card-body">

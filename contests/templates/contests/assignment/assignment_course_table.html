@@ -22,7 +22,7 @@
                 <td class="text-truncate"><a href="{{ row.student.get_absolute_url }}" data-toggle="tooltip" data-placement="bottom" title="{{ row.student.get_full_name }}">{{ row.student.get_short_name }}</a></td>
                 <td class="text-center">
                     <span class="badge badge-{% if row.student.is_attending_now is None %}light{% elif row.student.is_attending_now %}success{% else %}danger{% endif %}" style="position:relative; top:-0.06rem;">
-                        {{ row.student.attendance_count }}
+                        {{ row.student.attendance_sum }}
                     </span>
                 </td>
                 {% for col in row.columns %}

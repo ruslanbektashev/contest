@@ -528,6 +528,40 @@ class AttendanceCreateSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixi
         return base_url + query_string
 
 
+class AttendanceCourseTable(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, ListView):
+    model = Attendance
+    template_name = 'contests/attendance/attendance_course_base.html'
+    context_object_name = 'attendance'
+    permission_required = 'contests.view_attendance'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        course = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        self.storage.update(get_students_filter_dict(course, request))
+        return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['course'].owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
+
+    def get_queryset(self):
+        course = self.storage['course']
+        self.storage['students'] = Account.students.apply_common_filters(self.storage).with_attendance(course)
+        return (Attendance.objects
+                .filter(user__in=self.storage['students'].values_list('user_id', flat=True), course=course)
+                .order_by('user__account', 'date_from'))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(self.storage)
+        return context
+
+
 """===================================================== Filter ====================================================="""
 
 
