@@ -165,7 +165,7 @@ class CourseForm(forms.ModelForm):
 class CourseFinishForm(forms.Form):
     level_ups = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите студентов")
 
-    def __init__(self, course, level_ups_queryset, *args, **kwargs):
+    def __init__(self, level_ups_queryset, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['level_ups'].queryset = level_ups_queryset
         self.fields['level_ups'].initial = level_ups_queryset.filter(credit_score__gte=3)
@@ -264,19 +264,20 @@ class CreditReportForm(forms.Form):
 """=================================================== Attendance ==================================================="""
 
 
-def get_date_interval_choices_and_initial():
-    now = timezone.now()
+def get_time_interval_choices_and_initial():
+    now = timezone.localtime()
     today = now.date()
-    choices = [(datetime.datetime(today.year, today.month, today.day, 9), "1 пара (09:00 - 10:30)"),
-               (datetime.datetime(today.year, today.month, today.day, 10, 45), "2 пара (10:45 - 12:15)"),
-               (datetime.datetime(today.year, today.month, today.day, 13, 15), "3 пара (13:15 - 14:45)"),
-               (datetime.datetime(today.year, today.month, today.day, 15), "4 пара (15:00 - 16:30)"),
-               (datetime.datetime(today.year, today.month, today.day, 16, 45), "5 пара (16:45 - 18:15)"),
-               (datetime.datetime(today.year, today.month, today.day, 18, 30), "6 пара (18:30 - 20:00)")]
+    choices = [(datetime.time(9), "1 пара (09:00 - 10:30)"),
+               (datetime.time(10, 45), "2 пара (10:45 - 12:15)"),
+               (datetime.time(13, 15), "3 пара (13:15 - 14:45)"),
+               (datetime.time(15), "4 пара (15:00 - 16:30)"),
+               (datetime.time(16, 45), "5 пара (16:45 - 18:15)"),
+               (datetime.time(18, 30), "6 пара (18:30 - 20:00)")]
     initial = choices[0]
-    for c, v in choices:
-        if now > timezone.make_aware(c):
-            initial = c
+    for choice, _ in choices:
+        combined = datetime.datetime.combine(today, choice)
+        if now > timezone.make_aware(combined):
+            initial = choice
     return choices, initial
 
 
@@ -293,27 +294,48 @@ class AttendanceForm(forms.ModelForm):
 
 
 class AttendanceDateForm(forms.Form):
-    date_interval = forms.ChoiceField(label="Сегодня")
-    date_from = forms.DateTimeField(widget=forms.HiddenInput)
-    date_to = forms.DateTimeField(widget=forms.HiddenInput)
+    date = forms.DateField(label="Дата")
+    time_interval = forms.ChoiceField(label="Время")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        choices, initial = get_date_interval_choices_and_initial()
-        self.fields['date_interval'].choices = choices
-        self.fields['date_interval'].initial = initial
+        self.fields['date'].initial = timezone.localdate()
+        choices, initial = get_time_interval_choices_and_initial()
+        self.fields['time_interval'].choices = choices
+        self.fields['time_interval'].initial = initial
+
+    def clean_date(self):
+        date = self.cleaned_data['date']
+        if timezone.localdate() < date:
+            raise ValidationError("Выбранная дата еще не наступила.", code='date_in_future')
+        return self.cleaned_data['date']
 
     def clean(self):
-        if timezone.now() < self.cleaned_data['date_from']:
-            raise ValidationError("Выбранная пара еще не началась.")
-        return super().clean()
+        if all(k in self.cleaned_data for k in ('date', 'time_interval')):
+            datetime_combined = self.get_date()
+            if timezone.localtime() < timezone.make_aware(datetime_combined):
+                self.add_error('time_interval', ValidationError("Выбранная пара еще не началась.",
+                                                                code='datetime_in_future'))
+        return self.cleaned_data
+
+    def get_date(self):
+        time = datetime.datetime.strptime(self.cleaned_data['time_interval'], '%H:%M:%S').time()
+        return datetime.datetime.combine(self.cleaned_data['date'], time)
 
 
 class AttendanceFormSet(forms.BaseModelFormSet):
+    def __init__(self, *args, date=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if date is not None:
+            date_from, date_to = date, date + datetime.timedelta(minutes=90)
+            for i in range(self.total_form_count()):
+                self.data.update(dict([(self.add_prefix(i) + '-date_from', date_from),
+                                       (self.add_prefix(i) + '-date_to', date_to)]))
+
     def clean(self):
         if self.total_form_count() == 0:
-            raise ValidationError("В таблице нет ни одного студента.")
-        if any(self.errors):
+            raise ValidationError("В таблице нет ни одного студента.", code='empty_formset')
+        if any(filter(lambda x: '__all__' in x, self.errors)):
             raise ValidationError("Посещаемость студентов в выбранном интервале уже отмечена.")
         return super().clean()
 

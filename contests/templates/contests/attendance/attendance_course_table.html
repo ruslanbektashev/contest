@@ -1,10 +1,10 @@
 <div class="row mr-0">
-    <div class="col-3 pr-0">
+    <div class="col-9 col-sm-4 col-lg-3 pr-0">
         <table class="table table-bordered table-sm">
             <thead>
                 <tr>
                     <th class="text-right" style="width: 4%;">№</th>
-                    <th style="width: 25%;">Студент</th>
+                    <th>Студент</th>
                     <th class="text-center" style="width: 4%;"><span data-toggle="tooltip" data-placement="top" title="Посещаемость">П</span></th>
                 </tr>
             </thead>
@@ -23,7 +23,7 @@
             </tbody>
         </table>
     </div>
-    <div class="table-responsive-lg col-9 px-0" style="overflow-x: scroll;">
+    <div class="table-responsive-lg col-3 col-sm-8 col-lg-9 px-0" style="overflow-x: scroll;">
         <table class="table table-bordered table-sm table-hover border-left-0">
             <thead>
                 <tr>
@@ -32,7 +32,7 @@
                         {{ day|date:'d.m.y' }}
                     </th>
                     {% empty %}
-                    <th class="text-center">отметок посещаемости не обнаружено</th>
+                    <th class="text-center border-left-0">отметок посещаемости не обнаружено</th>
                     {% endfor %}
                 </tr>
             </thead>
@@ -52,7 +52,7 @@
                         {% endfor %}
                     </td>
                     {% empty %}
-                    <td class="text-center">&nbsp;</td></tr>
+                    <td class="text-center border-left-0">&nbsp;</td></tr>
                     {% endfor %}
                 </tr>
                 {% endfor %}

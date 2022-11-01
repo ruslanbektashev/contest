@@ -29,7 +29,7 @@ from contests.models import (Assignment, Attachment, Attendance, Contest, Course
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.contests import colorize
-from contests.templatetags.views import get_updated_query_string, has_leader_permission
+from contests.templatetags.views import get_query_string, has_leader_permission
 from schedule.models import Schedule
 
 
@@ -396,7 +396,6 @@ class CourseFinish(LoginRedirectMixin, PermissionRequiredMixin, FormView):
         students = (Account.students.apply_common_filters(self.storage).filter(credit_score__gte=1)
                     .order_by('faculty__short_name', '-level', 'user__last_name', 'user__first_name'))
         kwargs['level_ups_queryset'] = students
-        kwargs['course'] = self.storage['course']
         return kwargs
 
     def post(self, request, *args, **kwargs):
@@ -438,7 +437,7 @@ class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
 
     def get_success_url(self):
         success_url = reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
-        return success_url + get_updated_query_string(self.request)
+        return success_url + get_query_string(self.request)
 
 
 class CreditDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
@@ -486,13 +485,15 @@ class AttendanceCreateSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixi
     def get_queryset(self):
         return Account.students.apply_common_filters(self.storage)
 
-    def get_formset_kwargs(self):
+    def get_formset_kwargs(self, form=None):
         users = (User.objects.filter(id__in=self.get_queryset().values_list('user_id', flat=True))
                  .order_by('last_name', 'first_name', 'id'))
         kwargs = {'initial': [{'user': user, 'course': self.storage['course']} for user in users],
                   'queryset': Attendance.objects.none()}
         if self.request.method in ('POST', 'PUT'):
-            kwargs['data'] = self.request.POST
+            kwargs['data'] = self.request.POST.copy()  # pass mutable copy that will be updated
+            if form is not None:
+                kwargs['date'] = form.get_date()
         return kwargs
 
     def get_formset_class(self):
@@ -500,32 +501,36 @@ class AttendanceCreateSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixi
         return modelformset_factory(Attendance, AttendanceForm, formset=AttendanceFormSet, extra=num_extra,
                                     min_num=num_extra, max_num=num_extra)
 
-    def get_formset(self):
+    def get_formset(self, form=None):
         formset_class = self.get_formset_class()
-        return formset_class(**self.get_formset_kwargs())
+        return formset_class(**self.get_formset_kwargs(form))
 
     def form_valid(self, form):
-        formset = self.get_formset()
+        formset = self.get_formset(form)
         if formset.is_valid():
             for _form in formset:
                 _form.instance.owner = self.request.user
             formset.save()
             return super().form_valid(form)
         else:
-            return self.form_invalid(form)
+            return self.form_invalid(form, formset)
+
+    def form_invalid(self, form, formset=None):
+        kwargs = {'form': form}
+        if formset is not None:
+            kwargs['formset'] = formset
+        return self.render_to_response(self.get_context_data(**kwargs))
 
     def get_context_data(self, **kwargs):
+        if 'formset' not in kwargs:
+            kwargs['formset'] = self.get_formset()
         context = super().get_context_data(**kwargs)
-        context['formset'] = self.get_formset()
         context.update(self.storage)
         return context
 
     def get_success_url(self):
-        base_url = reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
-        query_string = get_updated_query_string(self.request, faculty_id=self.storage['faculty_id'],
-                                                group=self.storage['group'], subgroup=self.storage['subgroup'],
-                                                debts=self.storage['debts'])
-        return base_url + query_string
+        success_url = reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
+        return success_url + get_query_string(self.request)
 
 
 class AttendanceCourseTable(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, ListView):
@@ -1710,7 +1715,7 @@ class AssignmentCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
 
     def get_success_url(self):
         success_url = reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
-        return success_url + get_updated_query_string(self.request)
+        return success_url + get_query_string(self.request)
 
 
 class AssignmentCreateRandomSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
@@ -1765,7 +1770,7 @@ class AssignmentCreateRandomSet(LoginRedirectMixin, LeadershipOrMixin, Ownership
 
     def get_success_url(self):
         success_url = reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
-        return success_url + get_updated_query_string(self.request)
+        return success_url + get_query_string(self.request)
 
 
 class AssignmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
