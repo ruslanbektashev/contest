@@ -2,11 +2,11 @@
 {% load views forms static %}
 
 {% block title %}
-Сгенерировать ведомость
+Генератор ведомости
 {% endblock title %}
 
 {% block stylesheets %}
-<link href="{% static 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet"/>
+<link href="{% static 'tempus-dominus/css/tempus-dominus.css' %}" rel="stylesheet">
 {% endblock stylesheets %}
 
 {% block breadcrumbs %}
@@ -17,7 +17,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Сгенерировать ведомость</legend>
+<legend>Генератор ведомости</legend>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_form_errors form %}
@@ -37,27 +37,13 @@
 {% endblock content %}
 
 {% block javascript %}
-<script type="text/javascript" src="{% static 'moment/min/moment.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'moment/min/locales.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js' %}"></script>
+<script src="{% static 'popper/popper.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'tempus-dominus/js/tempus-dominus.js' %}" type="text/javascript"></script>
+<script src="{% static 'tempus-dominus/tempus-dominus.options.js' %}" type="text/javascript"></script>
 <script type="text/javascript">
-$(function () {
-    $("#id_date").datetimepicker({
-        locale: 'ru',
-        format: 'DD.MM.YYYY',
-        sideBySide: true,
-        icons: {
-            time: 'fa fa-clock-o fa-fw',
-            date: 'fa fa-calendar fa-fw',
-            up: 'fa fa-chevron-up fa-fw',
-            down: 'fa fa-chevron-down fa-fw',
-            previous: 'fa fa-chevron-left fa-fw',
-            next: 'fa fa-chevron-right fa-fw',
-            today: 'fa fa-map-marker fa-fw',
-            clear: 'fa fa-refresh fa-fw',
-            close: 'fa fa-times fa-fw'
-        }
-    });
+document.addEventListener("DOMContentLoaded", function() {
+    tdOptions.display.components.clock = false;
+    const picker = new tempusDominus.TempusDominus(document.getElementById('id_date'), tdOptions);
 });
 </script>
 {% endblock javascript %}

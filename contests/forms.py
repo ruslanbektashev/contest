@@ -237,6 +237,7 @@ class CreditReportForm(forms.Form):
         self.fields['faculty'].initial = course.faculty.short_name
         self.fields['discipline'].initial = course.title_official
         self.fields['semester'].initial = course.level
+        self.fields['date'].initial = timezone.localdate()
         self.storage = {'students': students, 'course': course}
 
     def clean(self):

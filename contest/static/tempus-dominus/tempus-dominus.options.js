@@ -81,12 +81,12 @@ var tdOptions = {
         locale: 'ru',
         startOfTheWeek: 1,
         dateFormats: {
-            LT: 'H:mm',
-            LTS: 'H:mm:ss',
-            L: 'DD.MM.YYYY',
-            LL: 'D MMMM YYYY г.',
-            LLL: 'D MMMM YYYY г., H:mm',
-            LLLL: 'dddd, D MMMM YYYY г., H:mm'
+            LT: 'HH:mm',
+            LTS: 'HH:mm:ss',
+            L: 'dd.MM.yyyy',
+            LL: 'D MMMM yyyy г.',
+            LLL: 'D MMMM yyyy г., H:mm',
+            LLLL: 'dddd, D MMMM yyyy г., H:mm'
         },
         ordinal: (n) => n,
         format: 'L LT'

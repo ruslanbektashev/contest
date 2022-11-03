@@ -6,7 +6,7 @@
 {% endblock title %}
 
 {% block stylesheets %}
-<link href="{% static 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet" />
+<link href="{% static 'tempus-dominus/css/tempus-dominus.css' %}" rel="stylesheet">
 {% endblock stylesheets %}
 
 {% block breadcrumbs %}
@@ -52,27 +52,15 @@
 {% endblock content %}
 
 {% block javascript %}
-<script type="text/javascript" src="{% static 'moment/min/moment.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'moment/min/locales.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js' %}"></script>
+<script src="{% static 'popper/popper.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'tempus-dominus/js/tempus-dominus.js' %}" type="text/javascript"></script>
+<script src="{% static 'tempus-dominus/plugins/custom-date-format.js' %}" type="text/javascript"></script>
+<script src="{% static 'tempus-dominus/tempus-dominus.options.js' %}" type="text/javascript"></script>
 <script type="text/javascript">
-$(function () {
-    $("#id_deadline").datetimepicker({
-        locale: 'ru',
-        format: 'DD.MM.YYYY HH:mm:ss',
-        sideBySide: true,
-        icons: {
-            time: 'fa fa-clock-o fa-fw',
-            date: 'fa fa-calendar fa-fw',
-            up: 'fa fa-chevron-up fa-fw',
-            down: 'fa fa-chevron-down fa-fw',
-            previous: 'fa fa-chevron-left fa-fw',
-            next: 'fa fa-chevron-right fa-fw',
-            today: 'fa fa-map-marker fa-fw',
-            clear: 'fa fa-refresh fa-fw',
-            close: 'fa fa-times fa-fw'
-        }
-    });
+tempusDominus.extend(tempusDominus.plugins.customDateFormat);
+document.addEventListener("DOMContentLoaded", function() {
+    tdOptions.localization.format = "dd.MM.yyyy HH:mm:ss";
+    const picker = new tempusDominus.TempusDominus(document.getElementById('id_deadline'), tdOptions);
 });
 </script>
 {% endblock javascript %}

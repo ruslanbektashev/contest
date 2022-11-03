@@ -23,7 +23,7 @@
     {% render_form_errors form %}
     <div id="field_date_interval" class="form-row">
         {% with WIDGET_ERROR_CLASS="is-invalid" %}
-        <div class="col-4 col-lg-2">
+        <div class="col-4 col-lg-3">
             {% render_field form.date class+="form-control" %}
             {% if form.date.errors %}
             <div class="invalid-feedback">
@@ -31,7 +31,7 @@
             </div>
             {% endif %}
         </div>
-        <div class="col-8 col-lg-10">
+        <div class="col-8 col-lg-9">
             {% render_field form.time_interval class+="form-control selectpicker" %}
             {% if form.time_interval.errors %}
             <div class="invalid-feedback">
@@ -96,8 +96,8 @@ document.getElementById('check_all').addEventListener('click', function (e) {
     }
 });
 document.addEventListener("DOMContentLoaded", function() {
+    tdOptions.display.components.clock = false;
     const picker = new tempusDominus.TempusDominus(document.getElementById('id_date'), tdOptions);
-    picker.updateOptions({ display: { components: { clock: false }}});
 });
 </script>
 <script type="text/javascript">
