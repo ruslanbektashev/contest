@@ -31,3 +31,13 @@ function toggleOpacity(firstElement, secondElement, firstTime, secondTime) {
     firstElement.addEventListener('transitionend', hider)
     firstElement.addEventListener('transitionend', shower)
 }
+
+function adjustStickyColumns(table_element, columns_num) {
+    for (let i = 0; i < table_element.rows.length; i++) {
+        let offsetSum = 0;
+        for (let j = 1; j < columns_num; j++) {
+            offsetSum += table_element.rows[i].cells[j - 1].offsetWidth;
+            table_element.rows[i].cells[j].style.left = (offsetSum - 1) + "px";
+        }
+    }
+}

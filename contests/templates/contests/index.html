@@ -48,8 +48,8 @@
                     {% for submission in latest_submissions %}
                     <tr>
                         <td class="text-right" style="width: 18%;">{{ submission.date_created|date:'d.m.y' }}</td>
-                        <td>
-                            <a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a>
+                        <td class="text-truncate">
+                            <a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account.get_short_name }}</a>
                         </td>
                         <td class="text-center" style="width: 13%;">
                             <a href="{{ submission.get_absolute_url }}" class="status status-{{ submission.status|colorize }}" data-toggle="tooltip" data-placement="bottom" title="{{ submission.get_status_display }}">

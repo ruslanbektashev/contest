@@ -1,11 +1,11 @@
 {% load views contests %}
-<div class="table-responsive-lg">
-    <table class="table table-bordered table-sm table-hover">
+<div class="table-responsive-lg" style="overflow-x: scroll;">
+    <table id="assignment_table" class="table table-sm table-hover assignment-table">
         <thead>
             <tr>
-                <th class="text-right" style="width: 4%;">№</th>
-                <th style="width: 25%;">Студент</th>
-                <th class="text-center" style="width: 4%;"><span id="attendance_column" data-toggle="tooltip" data-placement="top" title="Посещаемость">П</span></th>
+                <th class="sticky-column text-right" style="width: 4%;">№</th>
+                <th class="sticky-column" style="width: 25%;">Студент</th>
+                <th class="sticky-column text-center" style="width: 4%;"><span id="attendance_column" data-toggle="tooltip" data-placement="top" title="Посещаемость">П</span></th>
                 {% for contest in contests %}
                 <th class="lake text-truncate">
                     <a href="{{ contest.get_absolute_url }}" data-toggle="tooltip" data-placement="top" title="{{ contest }}">{{ contest.number }}</a>
@@ -18,9 +18,9 @@
         <tbody>
             {% for row in table %}
             <tr>
-                <td class="text-right text-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
-                <td class="text-truncate"><a href="{{ row.student.get_absolute_url }}" data-toggle="tooltip" data-placement="bottom" title="{{ row.student.get_full_name }}">{{ row.student.get_short_name }}</a></td>
-                <td class="text-center">
+                <td class="sticky-column text-right text-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
+                <td class="sticky-column text-truncate"><a href="{{ row.student.get_absolute_url }}" data-toggle="tooltip" data-placement="bottom" title="{{ row.student.get_full_name }}">{{ row.student.get_short_name }}</a></td>
+                <td class="sticky-column text-center">
                     <span class="badge badge-{% if row.student.is_attending_now is None %}light{% elif row.student.is_attending_now %}success{% else %}danger{% endif %}" style="position:relative; top:-0.06rem;">
                         {{ row.student.attendance_sum }}
                     </span>

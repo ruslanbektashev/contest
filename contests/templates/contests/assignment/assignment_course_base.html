@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views contests tutorial %}
+{% load views contests tutorial static %}
 
 {% block title %}
 Задания
@@ -90,6 +90,12 @@
 {% endblock content %}
 
 {% block javascript %}
+<script src="{% static 'js/utils.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function() {
+    adjustStickyColumns(document.getElementById("assignment_table"), 3);
+});
+</script>
 <script type="text/javascript">
 driver.defineSteps([
     {% if request.user.account.is_instructor or request.user.is_superuser %}

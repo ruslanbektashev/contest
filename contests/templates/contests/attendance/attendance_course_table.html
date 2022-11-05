@@ -1,62 +1,48 @@
-<div class="row mr-0">
-    <div class="col-9 col-sm-4 col-lg-3 pr-0">
-        <table class="table table-bordered table-sm">
-            <thead>
-                <tr>
-                    <th class="text-right" style="width: 4%;">№</th>
-                    <th>Студент</th>
-                    <th class="text-center" style="width: 4%;"><span data-toggle="tooltip" data-placement="top" title="Посещаемость">П</span></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for student in students %}
-                <tr>
-                    <td class="text-right text-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
-                    <td class="text-truncate"><a href="{{ student.get_absolute_url }}" data-toggle="tooltip" data-placement="bottom" title="{{ student.get_full_name }}">{{ student.get_short_name }}</a></td>
-                    <td class="text-center">
-                        <span class="badge badge-light" style="position:relative; top:-0.06rem;">
-                            {{ student.attendance_sum }}
-                        </span>
-                    </td>
-                </tr>
+<div class="table-responsive-lg" style="overflow-x: scroll;">
+    <table id="attendance_table" class="table table-sm table-hover assignment-table">
+        <thead>
+            <tr>
+                <th class="sticky-column text-right" style="width: 4%;">№</th>
+                <th class="sticky-column" style="width: 25%;">Студент</th>
+                <th class="sticky-column text-center" style="width: 4%;"><span data-toggle="tooltip" data-placement="top" title="Посещаемость">П</span></th>
+                {% for day in days %}
+                <th class="text-center">
+                    {{ day|date:'d.m.y' }}
+                </th>
+                {% empty %}
+                <th class="text-center">отметок посещаемости не обнаружено</th>
                 {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    <div class="table-responsive-lg col-3 col-sm-8 col-lg-9 px-0" style="overflow-x: scroll;">
-        <table class="table table-bordered table-sm table-hover border-left-0">
-            <thead>
-                <tr>
-                    {% for day in days %}
-                    <th class="text-center border-left-0">
-                        {{ day|date:'d.m.y' }}
-                    </th>
-                    {% empty %}
-                    <th class="text-center border-left-0">отметок посещаемости не обнаружено</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in table %}
+            <tr>
+                <td class="sticky-column text-right text-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
+                <td class="sticky-column text-truncate"><a href="{{ row.student.get_absolute_url }}" data-toggle="tooltip" data-placement="bottom" title="{{ row.student.get_full_name }}">{{ row.student.get_short_name }}</a></td>
+                <td class="sticky-column text-center">
+                    <span class="badge badge-light" style="position:relative; top:-0.06rem;">
+                        {{ row.student.attendance_sum }}
+                    </span>
+                </td>
+                {% for col in row.columns %}
+                <td class="text-truncate">
+                    {% for a in col.attendance %}
+                    <span data-toggle="tooltip" data-placement="bottom" title="{{ a.date_from|date:'H:i' }} - {{ a.date_to|date:'H:i' }}">
+                        {% if a.flag %}
+                        <i class="fa fa-check fa-fw text-success"></i>
+                        {% else %}
+                        <i class="fa fa-times fa-fw text-danger"></i>
+                        {% endif %}
+                    </span>
                     {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in table %}
-                <tr>
-                    {% for col in row.columns %}
-                    <td class="text-truncate border-left-0">
-                        {% for a in col.attendance %}
-                            <span data-toggle="tooltip" data-placement="top" title="{{ a.date_from|date:'H:i' }} - {{ a.date_to|date:'H:i' }}">
-                            {% if a.flag %}
-                                <i class="fa fa-check fa-fw text-success"></i>
-                            {% else %}
-                                <i class="fa fa-times fa-fw text-danger"></i>
-                            {% endif %}
-                            </span>
-                        {% endfor %}
-                    </td>
-                    {% empty %}
-                    <td class="text-center border-left-0">&nbsp;</td></tr>
-                    {% endfor %}
-                </tr>
+                </td>
+                {% empty %}
+                <td class="text-center">&nbsp;</td>
                 {% endfor %}
-            </tbody>
-        </table>
-    </div>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center">нет отметок посещаемости</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>

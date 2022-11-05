@@ -10133,4 +10133,49 @@ select {
   border-bottom: 1px dotted #0c5460;
 }
 
+.assignment-table {
+  border-collapse: separate !important;
+  border-spacing: 0;
+}
+
+.assignment-table th {
+  border-top: 1px solid #dee2e6;
+  border-right: 1px solid #dee2e6;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.assignment-table td {
+  border-top: 0;
+  border-right: 1px solid #dee2e6;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.assignment-table th:first-child,
+.assignment-table td:first-child {
+  border-left: 1px solid #dee2e6;
+  border-right: 1px solid #dee2e6;
+}
+
+.assignment-table th:nth-child(2),
+.assignment-table td:nth-child(2) {
+  border-left: 1px solid #dee2e6;
+  border-right: 0;
+}
+
+.assignment-table th:nth-child(3),
+.assignment-table td:nth-child(3) {
+  border-left: 1px solid #dee2e6;
+}
+
+.sticky-column {
+  position: sticky;
+  left: 0;
+  z-index: 1020;
+  background-color: white;
+}
+
+.assignment-table tbody tr:hover .sticky-column {
+  background-color: #eeeeee;
+}
+
 /*# sourceMappingURL=contest.css.map */
