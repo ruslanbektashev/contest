@@ -10174,7 +10174,7 @@ select {
   background-color: white;
 }
 
-.assignment-table tbody tr:hover .sticky-column {
+.assignment-table.table-hover tbody tr:hover .sticky-column {
   background-color: #eeeeee;
 }
 

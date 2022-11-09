@@ -13,19 +13,19 @@
 {% block content %}
 <legend>Фильтры</legend>
 <div class="table-responsive-lg">
-    <table class="table table-bordered">
+    <table class="table assignment-table">
         <thead>
             <tr>
-                <td></td>
+                <th class="sticky-column"></th>
                 {% for course in courses %}
-                <td class="text-center"><a href="{{ course.get_absolute_url }}">{{ course }}</a></td>
+                <th class="text-center"><a href="{{ course.get_absolute_url }}">{{ course }}</a></th>
                 {% endfor %}
             </tr>
         </thead>
         <tbody>
             {% for row in table %}
             <tr>
-                <td class="text-nowrap" style="width: 12%;"><a href="{{ row.user.account.get_absolute_url }}">{{ row.user.account.get_short_name }}</a></td>
+                <td class="sticky-column text-nowrap" style="width: 12%;"><a href="{{ row.user.account.get_absolute_url }}">{{ row.user.account.get_short_name }}</a></td>
                 {% for col in row.cols %}
                 <td class="text-center lake {% if col.exists %}bg-success{% endif %}">
                     {% if col.exists %}
