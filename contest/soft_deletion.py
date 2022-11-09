@@ -1,6 +1,6 @@
 from django.db import models
 from django.http import HttpResponseRedirect
-from django.views.generic import UpdateView, DeleteView
+from django.views.generic import DeleteView, UpdateView
 
 
 class SoftDeletionQuerySet(models.QuerySet):
@@ -53,7 +53,7 @@ class SoftDeletionModel(models.Model):
 class SoftDeletionUpdateView(UpdateView):
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-        if hasattr(self, 'storage') and getattr(self, 'storage').get('action', None) == 'restore':
+        if self.request.GET.get('action', None) == 'restore':
             form.instance.soft_deleted = 0
         return form
 
@@ -62,14 +62,13 @@ class SoftDeletionUpdateView(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if hasattr(self, 'storage'):
-            context['action'] = getattr(self, 'storage').get('action', None)
+        context['action'] = self.request.GET.get('action', None)
         return context
 
 
 class SoftDeletionDeleteView(DeleteView):
     def delete(self, request, *args, **kwargs):
-        if hasattr(self, 'storage') and getattr(self, 'storage').get('action', None) == 'delete_permanently':
+        if request.GET.get('action', None) == 'delete_permanently':
             self.object = self.get_object()
             success_url = self.get_success_url()
             self.object.hard_delete()
@@ -82,6 +81,5 @@ class SoftDeletionDeleteView(DeleteView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if hasattr(self, 'storage'):
-            context['action'] = getattr(self, 'storage').get('action', None)
+        context['action'] = self.request.GET.get('action', None)
         return context

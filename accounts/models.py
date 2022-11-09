@@ -681,7 +681,7 @@ class Notification(models.Model):
         verbose_name_plural = "Оповещения"
 
     def __str__(self):
-        context = {
+        data = {
             'recipient': self.recipient.account,
             'action': self.action,
             'object': '',
@@ -690,14 +690,14 @@ class Notification(models.Model):
             'reference': ''
         }
         if self.object:
-            context['object'] = self.object
+            data['object'] = self.object
         if self.reference:
-            context['slash'] = ' / '
-            context['reference'] = self.reference
+            data['slash'] = ' / '
+            data['reference'] = self.reference
         if self.relation:
-            context['relation'] = " {} ".format(self.relation)
+            data['relation'] = " {} ".format(self.relation)
         if isinstance(self.subject, User):
-            context['subject'] = self.subject.last_name
+            data['subject'] = self.subject.last_name
         else:
-            context['subject'] = self.subject
-        return "{subject} {action} {object}{slash}{relation}{reference}".format(**context)
+            data['subject'] = self.subject
+        return "{subject} {action} {object}{slash}{relation}{reference}".format(**data)

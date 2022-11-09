@@ -499,7 +499,7 @@ class AttendanceCreateSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixi
     def get_formset_class(self):
         num_extra = self.get_queryset().count()
         return modelformset_factory(Attendance, AttendanceForm, formset=AttendanceFormSet, extra=num_extra,
-                                    min_num=num_extra, max_num=num_extra)
+                                    min_num=num_extra, validate_min=True, max_num=num_extra, validate_max=True)
 
     def get_formset(self, form=None):
         formset_class = self.get_formset_class()
@@ -926,7 +926,7 @@ class ProblemRollbackResults(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrM
         self.storage = dict()
 
     def dispatch(self, request, *args, **kwargs):
-        self.storage['problem'] = get_object_or_404(Problem, id=self.kwargs.get('pk'))
+        self.storage['problem'] = get_object_or_404(Problem, id=kwargs.get('pk'))
         return super().dispatch(request, *args, **kwargs)
 
     def has_ownership(self):
@@ -957,7 +957,7 @@ class ProblemRollbackResults(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrM
         return context
 
     def get_success_url(self):
-        return get_object_or_404(Problem, id=self.kwargs.get('pk')).get_absolute_url()
+        return reverse('contests:problem-detail', kwargs={'pk': self.kwargs.get('pk')})
 
 
 class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):

@@ -255,7 +255,9 @@ class AccountUpdateSet(LoginRedirectMixin, PermissionRequiredMixin, FormView):
             form = StaffForm
         else:
             form = StudentForm
-        return modelformset_factory(Account, form=form, extra=0)
+        forms_num = self.get_queryset().count()
+        return modelformset_factory(Account, form=form, extra=0, min_num=forms_num, validate_min=True,
+                                    max_num=forms_num, validate_max=True)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -550,5 +552,6 @@ class NotificationList(LoginRequiredMixin, PaginatorMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         notifications = super().get_queryset().filter(recipient=self.request.user).actual()
-        context['paginator'], context['page_obj'], context['notifications'], context['is_paginated'] = self.paginate_queryset(notifications)
+        context['paginator'], context['page_obj'], context['notifications'], context['is_paginated'] = \
+            self.paginate_queryset(notifications)
         return context

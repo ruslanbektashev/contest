@@ -19,14 +19,14 @@ class FacultyAdmin(admin.ModelAdmin):
 class AccountAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'user', 'date_joined', 'last_login', 'faculty', 'level', 'admission_year')
     list_filter = ('department', 'faculty', 'level', 'type', 'admission_year', 'enrolled', 'graduated')
-    # filter_horizontal = ('comments_read',)
     search_fields = ('user__last_name', 'user__first_name')
     fieldsets = (
         ('Пользователь', {
             'fields': ('user',)
         }),
         ('Детали', {
-            'fields': ('patronymic', 'department', 'position', 'degree', 'image', 'faculty', 'level', 'type', 'admission_year', 'enrolled', 'graduated', 'record_book_id')
+            'fields': ('patronymic', 'department', 'position', 'degree', 'image', 'faculty', 'level', 'type',
+                       'admission_year', 'enrolled', 'graduated', 'record_book_id')
         }),
         ('Даты', {
             'fields': ('date_updated',)
@@ -65,11 +65,11 @@ class CommentAdmin(admin.ModelAdmin):
 
     def author_name(self, obj):
         return obj.author.get_full_name()
-    author_name.short_description = 'Автор'
+    author_name.short_description = "Автор"
 
     def short_text(self, obj):
-        return obj.text[:60] + (obj.text[60:] and '...')
-    short_text.short_description = 'Текст комментария'
+        return obj.text[:60] + (obj.text[60:] and "...")
+    short_text.short_description = "Текст комментария"
 
 
 @admin.register(Announcement)

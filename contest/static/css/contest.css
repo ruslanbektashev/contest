@@ -10170,7 +10170,7 @@ select {
 .sticky-column {
   position: sticky;
   left: 0;
-  z-index: 1020;
+  z-index: 990;
   background-color: white;
 }
 
