@@ -109,18 +109,19 @@ class StudentQuerySet(AccountQuerySet):
     def get_distinct_groups(self):
         return self.order_by().values_list('group', flat=True).distinct()
 
-    def apply_common_filters(self, filters):
+    def apply_common_filters(self, filters, with_credits=True):
         queryset = self.enrolled()
-        if filters['debts']:
-            queryset = queryset.debtors(filters['course'])
-        else:
-            queryset = queryset.current(filters['course'])
         if filters['faculty_id'] > 0:
             queryset = queryset.filter(faculty_id=filters['faculty_id'])
         if filters['group'] > 0:
             queryset = queryset.filter(group=filters['group'])
         if filters['subgroup'] > 0:
             queryset = queryset.filter(subgroup=filters['subgroup'])
+        if with_credits:
+            if filters['debts']:
+                queryset = queryset.debtors(filters['course'])
+            else:
+                queryset = queryset.current(filters['course'])
         return queryset
 
 

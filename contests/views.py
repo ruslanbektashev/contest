@@ -355,7 +355,8 @@ class CourseStart(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Permi
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         course = self.storage['course']
-        students = (Account.students.apply_common_filters(self.storage).allowed(course).filter(credit_id=None)
+        students = (Account.students.apply_common_filters(self.storage, with_credits=False).allowed(course)
+                    .filter(credit_id=None)
                     .order_by('faculty__short_name', '-level', 'user__last_name', 'user__first_name'))
         kwargs['runner_ups_queryset'] = students
         kwargs['course'] = course
