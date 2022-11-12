@@ -711,7 +711,7 @@ class SubmissionForm(forms.ModelForm):
             if self.assignment.deadline is not None and self.assignment.deadline < timezone.now():
                 raise ValidationError("Время приема посылок по Вашему заданию истекло",
                                       code='assignment_deadline_reached')
-            submission_count = self.assignment.get_submissions().count()
+            submission_count = self.assignment.submission_set.count()
             if submission_count >= self.assignment.submission_limit and self.main_submission is None:
                 raise ValidationError("Количество попыток исчерпано", code='submission_limit_reached')
         return super().clean()

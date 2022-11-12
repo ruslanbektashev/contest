@@ -951,9 +951,6 @@ class Assignment(CRUDEntry):
     def get_latest_submission(self):
         return self.problem.get_latest_submission_by(self.user)
 
-    def get_submissions(self):  # TODO: use self.submission_set instead
-        return self.problem.submission_set.filter(owner_id=self.user.id)
-
     def update(self, submission):
         if self.score_is_locked:
             return

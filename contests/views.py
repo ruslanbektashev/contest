@@ -1624,7 +1624,7 @@ class AssignmentDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        submissions = self.object.get_submissions()
+        submissions = self.object.submission_set.all()
         context['submission_paginator'], context['submission_page_obj'], context['submissions'], context[
             'submission_is_paginated'] = self.paginate_queryset(submissions)
         comments = self.object.comment_set.actual()

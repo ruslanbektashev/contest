@@ -1,4 +1,3 @@
-import datetime
 import enum
 import math
 from statistics import mean
@@ -70,11 +69,11 @@ class StudentQuerySet(AccountQuerySet):
                         .annotate(credit_score=models.Subquery(subquery.values('score'))))
 
     def with_attendance(self, course, at_datetime=None):
-        Attendance = apps.get_model('contests', 'Attendance')
         queryset = self.annotate(attendance_sum=models.Count('user__attendance',
-                                                               filter=Q(user__attendance__course=course,
-                                                                        user__attendance__flag=True)))
+                                                             filter=Q(user__attendance__course=course,
+                                                                      user__attendance__flag=True)))
         if at_datetime is not None:
+            Attendance = apps.get_model('contests', 'Attendance')
             is_attending_now_subquery = Attendance.objects.filter(course=course, user_id=models.OuterRef('user_id'),
                                                                   date_from__lte=at_datetime, date_to__gte=at_datetime)
             queryset = queryset.annotate(is_attending_now=models.Subquery(is_attending_now_subquery.values('flag')))
