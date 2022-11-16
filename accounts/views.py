@@ -11,15 +11,16 @@ from django.template.defaultfilters import date
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.datetime_safe import datetime
+from django.utils.text import get_text_list
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import CreateView, DeleteView, DetailView, FormView, ListView, TemplateView, UpdateView
 from markdown import markdown
 
 from accounts.forms import (AccountListForm, AccountPartialForm, AccountSetForm, AnnouncementForm, CommentForm,
                             StaffForm, StudentForm)
-from accounts.models import Account, Announcement, Comment, Faculty, Notification
+from accounts.models import Account, Action, Announcement, Comment, Faculty, Notification
 from accounts.templatetags.comments import get_comment_query_string
-from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
+from contest.mixins import LogChangeMixin, LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
 from contests.models import Course, Problem, Submission
 from contests.templatetags.views import get_query_string, get_updated_query_string
 from support.models import Question, Report
@@ -197,7 +198,7 @@ class AccountCreateSet(LoginRedirectMixin, PermissionRequiredMixin, FormView):
                                                                                   type=self.storage['type'])
 
 
-class AccountUpdate(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
+class AccountUpdate(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin, UpdateView):
     model = Account
     template_name = 'accounts/account/account_form.html'
     permission_required = 'accounts.change_account'
@@ -265,7 +266,8 @@ class AccountUpdateSet(LoginRedirectMixin, PermissionRequiredMixin, FormView):
         return kwargs
 
     def form_valid(self, form):
-        self.objects = form.save()
+        form.save()
+        Action.objects.log_change(self.request.user, formsets=[form])
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -289,21 +291,39 @@ class AccountFormList(AccountUpdateSet):
             accounts = form.cleaned_data['accounts']
             if action == 'reset_password':
                 self.request.session['credentials'] = accounts.reset_password()
+                details = [{
+                    'changed': {
+                        'name': Account._meta.verbose_name,
+                        'object': get_text_list(list(accounts), "и"),
+                        'fields': ['password']
+                    }
+                }]
+                Action.objects.log_change(self.request.user, details=details)
                 return HttpResponseRedirect(reverse('accounts:account-credentials') + get_query_string(request))
-            elif self.storage['type'] == 1:
-                if action == 'level_up':
-                    accounts.level_up()
-                elif action == 'level_down':
-                    accounts.level_down()
-                elif action == 'enroll':
-                    accounts.enroll()
-                elif action == 'expel':
-                    accounts.expel()
-                elif action == 'graduate':
-                    accounts.graduate()
-            else:
+            elif self.storage['type'] != 1:
                 form.add_error(None, "Недопустимое действие для данного типа пользователей.")
                 return self.form_invalid(form)
+            elif action == 'level_up':
+                accounts.level_up()
+            elif action == 'level_down':
+                accounts.level_down()
+            elif action == 'enroll':
+                accounts.enroll()
+            elif action == 'expel':
+                accounts.expel()
+            elif action == 'graduate':
+                accounts.graduate()
+            else:
+                form.add_error(None, "Недопустимое действие.")
+                return self.form_invalid(form)
+            details = [{
+                'changed': {
+                    'name': Account._meta.verbose_name,
+                    'object': get_text_list(list(accounts), "и"),
+                    'fields': [action]
+                }
+            }]
+            Action.objects.log_change(self.request.user, details=details)
             return self.form_valid(form)
         else:
             return self.form_invalid(form)

@@ -6,15 +6,17 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonRespons
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.text import get_text_list
 from django.views.generic import CreateView, DeleteView, DetailView, FormView, ListView, UpdateView
 from django.views.generic.base import TemplateView, View
 from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 
-from accounts.models import Account, Announcement, Faculty, Notification
+from accounts.models import Account, Action, Announcement, Faculty, Notification
 from contest.documents.viewer import to_html
-from contest.mixins import LeadershipOrMixin, LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
+from contest.mixins import (LeadershipOrMixin, LogAdditionMixin, LogChangeMixin, LogDeletionMixin, LoginRedirectMixin,
+                            OwnershipOrMixin, PaginatorMixin)
 from contest.soft_deletion import SoftDeletionDeleteView, SoftDeletionUpdateView
 from contests.forms import (AssignmentEvaluateForm, AssignmentForm, AssignmentSetForm, AssignmentUpdateAttachmentForm,
                             AssignmentUpdateForm, AttendanceDateForm, AttendanceForm, AttendanceFormSet,
@@ -133,7 +135,7 @@ class CourseDiscussion(LoginRedirectMixin, PaginatorMixin, DetailView):
         return context
 
 
-class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
+class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, LogAdditionMixin, CreateView):
     model = Course
     form_class = CourseForm
     template_name = 'contests/course/course_form.html'
@@ -164,7 +166,7 @@ class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
         return context
 
 
-class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
                    SoftDeletionUpdateView):
     model = Course
     form_class = CourseForm
@@ -187,7 +189,8 @@ class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         return context
 
 
-class CourseDelete(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, SoftDeletionDeleteView):
+class CourseDelete(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, LogDeletionMixin,
+                   SoftDeletionDeleteView):
     model = Course
     success_url = reverse_lazy('contests:course-list')
     template_name = 'contests/course/course_delete.html'
@@ -264,7 +267,8 @@ class CourseUpdateLeaders(LoginRedirectMixin, OwnershipOrMixin, PermissionRequir
         return kwargs
 
     def form_valid(self, form):
-        self.objects = form.save()
+        form.save()
+        Action.objects.log_change(self.request.user, formsets=[form])
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -362,12 +366,16 @@ class CourseStart(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Permi
         kwargs['course'] = course
         return kwargs
 
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        if form.is_valid():
-            Credit.objects.create_set(request.user, self.storage['course'], form.cleaned_data['runner_ups'])
-            return self.form_valid(form)
-        return self.form_invalid(form)
+    def form_valid(self, form):
+        credits = Credit.objects.create_set(self.request.user, self.storage['course'], form.cleaned_data['runner_ups'])
+        details = [{
+            'added': {
+                'name': Credit._meta.verbose_name,
+                'object': get_text_list(list(credits), "и")
+            }
+        }]
+        Action.objects.log_addition(self.request.user, details=details)
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -399,12 +407,18 @@ class CourseFinish(LoginRedirectMixin, PermissionRequiredMixin, FormView):
         kwargs['level_ups_queryset'] = students
         return kwargs
 
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        if form.is_valid():
-            form.cleaned_data['level_ups'].level_up()
-            return self.form_valid(form)
-        return self.form_invalid(form)
+    def form_valid(self, form):
+        accounts = form.cleaned_data['level_ups']
+        accounts.level_up()
+        details = [{
+            'changed': {
+                'name': Account._meta.verbose_name,
+                'object': get_text_list(list(accounts), "и"),
+                'fields': ['level']
+            }
+        }]
+        Action.objects.log_change(self.request.user, details=details)
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -415,7 +429,8 @@ class CourseFinish(LoginRedirectMixin, PermissionRequiredMixin, FormView):
         return reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
 
 
-class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
+class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
+                   UpdateView):
     model = Credit
     fields = ['score']
     template_name = 'contests/credit/credit_form.html'
@@ -441,7 +456,8 @@ class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         return success_url + get_query_string(self.request)
 
 
-class CreditDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
+class CreditDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogDeletionMixin,
+                   DeleteView):
     model = Credit
     template_name = 'contests/credit/credit_delete.html'
     permission_required = 'contests.delete_credit'
@@ -512,6 +528,7 @@ class AttendanceCreateSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixi
             for _form in formset:
                 _form.instance.owner = self.request.user
             formset.save()
+            # TODO: log action?
             return super().form_valid(form)
         else:
             return self.form_invalid(form, formset)
@@ -751,7 +768,8 @@ class ContestAttachment(LoginRedirectMixin, UserPassesTestMixin, AttachmentDetai
         return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
 
 
-class ContestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
+class ContestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogAdditionMixin,
+                    CreateView):
     model = Contest
     form_class = ContestForm
     template_name = 'contests/contest/contest_form.html'
@@ -789,7 +807,7 @@ class ContestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         return context
 
 
-class ContestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+class ContestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
                     SoftDeletionUpdateView):
     model = Contest
     template_name = 'contests/contest/contest_form.html'
@@ -841,7 +859,7 @@ class ContestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         return context
 
 
-class ContestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+class ContestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogDeletionMixin,
                     SoftDeletionDeleteView):
     model = Contest
     template_name = 'contests/contest/contest_delete.html'
@@ -941,16 +959,13 @@ class ProblemRollbackResults(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrM
         kwargs['problem_id'] = self.kwargs.get('pk')
         return kwargs
 
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        if form.is_valid():
-            submissions = form.cleaned_data['submissions']
-            assignments = Assignment.objects.to_rollback(submissions)
-            submissions.rollback_status()
-            assignments.rollback_score()
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+    def form_valid(self, form):
+        submissions = form.cleaned_data['submissions']
+        assignments = Assignment.objects.to_rollback(submissions)
+        submissions.rollback_status()
+        assignments.rollback_score()
+        # TODO: log action?
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -961,7 +976,8 @@ class ProblemRollbackResults(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrM
         return reverse('contests:problem-detail', kwargs={'pk': self.kwargs.get('pk')})
 
 
-class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
+class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogAdditionMixin,
+                    CreateView):
     model = Problem
     template_name = 'contests/problem/problem_form.html'
     permission_required = 'contests.add_problem'
@@ -974,6 +990,7 @@ class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
         self.storage['type'] = kwargs.get('type')
         if self.storage['type'] == 'Options':
+            # TODO: move formset init to method
             OptionFormSet = inlineformset_factory(parent_model=Problem, model=Option, form=OptionForm,
                                                   formset=OptionBaseFormSet, fields=('text', 'is_correct'), extra=0,
                                                   min_num=2, max_num=20, validate_min=True, validate_max=True)
@@ -1017,9 +1034,9 @@ class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         if self.storage['type'] == 'Options':
             formset = self.storage.get('formset')
             if formset.is_valid():
-                self.object = form.save()
-                formset.instance = self.object
+                formset.instance = form.save()
                 formset.save()
+                Action.objects.log_addition(self.request.user, form=form)
                 return HttpResponseRedirect(self.get_success_url())
             else:
                 self.storage['formset'] = formset
@@ -1038,7 +1055,7 @@ class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         return reverse('contests:contest-detail', kwargs={'pk': self.object.contest_id})
 
 
-class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
                     SoftDeletionUpdateView):
     model = Problem
     template_name = 'contests/problem/problem_form.html'
@@ -1095,8 +1112,9 @@ class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         if self.object.type == 'Options':
             formset = self.storage.get('formset')
             if formset.is_valid():
-                self.object = form.save()
+                form.save()
                 formset.save()
+                Action.objects.log_change(self.request.user, form=form, formsets=[formset])
                 return HttpResponseRedirect(self.get_success_url())
             else:
                 self.storage['formset'] = formset
@@ -1119,7 +1137,7 @@ class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         return context
 
 
-class ProblemDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+class ProblemDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogDeletionMixin,
                     SoftDeletionDeleteView):
     model = Problem
     template_name = 'contests/problem/problem_delete.html'
@@ -1208,7 +1226,7 @@ class SubmissionPatternDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOr
 
 
 class SubmissionPatternCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
-                              CreateView):
+                              LogAdditionMixin, CreateView):
     model = SubmissionPattern
     form_class = SubmissionPatternForm
     template_name = 'contests/submission_pattern/submission_pattern_form.html'
@@ -1245,7 +1263,7 @@ class SubmissionPatternCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOr
 
 
 class SubmissionPatternUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
-                              UpdateView):
+                              LogChangeMixin, UpdateView):
     model = SubmissionPattern
     form_class = SubmissionPatternForm
     context_object_name = 'submission_pattern'
@@ -1269,7 +1287,7 @@ class SubmissionPatternUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOr
 
 
 class SubmissionPatternDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
-                              DeleteView):
+                              LogDeletionMixin, DeleteView):
     model = SubmissionPattern
     context_object_name = 'submission_pattern'
     template_name = 'contests/submission_pattern/submission_pattern_delete.html'
@@ -1308,7 +1326,8 @@ class IOTestDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         return self.object.problem.course.leaders.filter(id=self.request.user.id).exists()
 
 
-class IOTestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
+class IOTestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogAdditionMixin,
+                   CreateView):
     model = IOTest
     fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input',
               'output']
@@ -1346,7 +1365,8 @@ class IOTestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
             return super().get_success_url()
 
 
-class IOTestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
+class IOTestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
+                   UpdateView):
     model = IOTest
     fields = ['title', 'compile_args', 'compile_args_override', 'launch_args', 'launch_args_override', 'input',
               'output']
@@ -1375,7 +1395,8 @@ class IOTestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
             return super().get_success_url()
 
 
-class IOTestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
+class IOTestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogDeletionMixin,
+                   DeleteView):
     model = IOTest
     template_name = 'contests/iotest/iotest_delete.html'
     permission_required = 'contests.delete_iotest'
@@ -1418,7 +1439,8 @@ class UTTestAttachment(LoginRedirectMixin, AttachmentDetail):
     template_name = 'contests/uttest/uttest_attachment.html'
 
 
-class UTTestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
+class UTTestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogAdditionMixin,
+                   CreateView):
     model = UTTest
     form_class = UTTestForm
     template_name = 'contests/uttest/uttest_form.html'
@@ -1455,7 +1477,8 @@ class UTTestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
             return super().get_success_url()
 
 
-class UTTestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
+class UTTestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
+                   UpdateView):
     model = UTTest
     form_class = UTTestForm
     template_name = 'contests/uttest/uttest_form.html'
@@ -1483,7 +1506,8 @@ class UTTestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
             return super().get_success_url()
 
 
-class UTTestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
+class UTTestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogDeletionMixin,
+                   DeleteView):
     model = UTTest
     template_name = 'contests/uttest/uttest_delete.html'
     permission_required = 'contests.delete_uttest'
@@ -1526,7 +1550,8 @@ class FNTestDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         return context
 
 
-class FNTestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
+class FNTestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogAdditionMixin,
+                   CreateView):
     model = FNTest
     form_class = FNTestForm
     template_name = 'contests/fntest/fntest_form.html'
@@ -1562,7 +1587,8 @@ class FNTestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         return context
 
 
-class FNTestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
+class FNTestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
+                   UpdateView):
     model = FNTest
     form_class = FNTestForm
     template_name = 'contests/fntest/fntest_form.html'
@@ -1584,7 +1610,8 @@ class FNTestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         return kwargs
 
 
-class FNTestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
+class FNTestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogDeletionMixin,
+                   DeleteView):
     model = FNTest
     template_name = 'contests/fntest/fntest_delete.html'
     permission_required = 'contests.delete_fntest'
@@ -1774,7 +1801,8 @@ class AssignmentCreateRandomSet(LoginRedirectMixin, LeadershipOrMixin, Ownership
         return success_url + get_query_string(self.request)
 
 
-class AssignmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
+class AssignmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
+                       UpdateView):
     model = Assignment
     template_name = 'contests/assignment/assignment_form.html'
     permission_required = 'contests.change_assignment'
@@ -1830,7 +1858,8 @@ class AssignmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         return context
 
 
-class AssignmentDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
+class AssignmentDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                       LogDeletionMixin, DeleteView):
     model = Assignment
     template_name = 'contests/assignment/assignment_delete.html'
     permission_required = 'contests.delete_assignment'

@@ -1,6 +1,7 @@
-from django.contrib.auth.mixins import AccessMixin, LoginRequiredMixin, PermissionRequiredMixin
+from django.apps import apps
+from django.contrib.auth.mixins import AccessMixin
 from django.contrib.auth.views import redirect_to_login
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
 
 class LoginRedirectMixin(AccessMixin):
@@ -51,3 +52,26 @@ class PaginatorMixin:
     def get_context_data(self, **kwargs):
         kwargs.update(focus_page=self.page_kwarg in self.request.GET)
         return super().get_context_data(**kwargs)
+
+
+class LogAdditionMixin:
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        action_model = apps.get_model('accounts.Action')
+        action_model.objects.log_addition(self.request.user, form=form)
+        return response
+
+
+class LogChangeMixin:
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        action_model = apps.get_model('accounts.Action')
+        action_model.objects.log_change(self.request.user, form=form)
+        return response
+
+
+class LogDeletionMixin:
+    def delete(self, request, *args, **kwargs):
+        action_model = apps.get_model('accounts.Action')
+        action_model.objects.log_deletion(request.user, obj=self.get_object())
+        return super().delete(request, *args, **kwargs)

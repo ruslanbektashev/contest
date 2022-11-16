@@ -1,4 +1,5 @@
 import enum
+import json
 import math
 from statistics import mean
 
@@ -11,6 +12,7 @@ from django.db.models import Q
 from django.db.transaction import atomic
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.text import get_text_list
 
 from contest.abstract import CRUDEntry
 from contest.utils import transliterate
@@ -701,3 +703,140 @@ class Notification(models.Model):
         else:
             data['subject'] = self.subject
         return "{subject} {action} {object}{slash}{relation}{reference}".format(**data)
+
+
+"""===================================================== Action ====================================================="""
+
+
+def construct_details(op, form=None, formsets=None, obj=None):
+    details = []
+    if op == 'addition' and hasattr(form, 'instance'):
+        details.append({
+            'added': {
+                'name': str(form.instance._meta.verbose_name),
+                'object': str(form.instance)
+            }
+        })
+    elif op == 'change' and hasattr(form, 'instance') and hasattr(form, 'changed_data'):
+        details.append({
+            'changed': {
+                'name': str(form.instance._meta.verbose_name),
+                'object': str(form.instance),
+                'fields': form.changed_data
+            }
+        })
+    elif op == 'deletion' and obj is not None:
+        details.append({
+            'deleted': {
+                'name': str(obj._meta.verbose_name),
+                'object': str(obj)
+            }
+        })
+    if formsets is not None:
+        for formset in formsets:
+            for added_object in formset.new_objects:
+                details.append({
+                    'added': {
+                        'name': str(added_object._meta.verbose_name),
+                        'object': str(added_object),
+                    }
+                })
+            for changed_object, changed_fields in formset.changed_objects:
+                details.append({
+                    'changed': {
+                        'name': str(changed_object._meta.verbose_name),
+                        'object': str(changed_object),
+                        'fields': changed_fields,
+                    }
+                })
+            for deleted_object in formset.deleted_objects:
+                details.append({
+                    'deleted': {
+                        'name': str(deleted_object._meta.verbose_name),
+                        'object': str(deleted_object),
+                    }
+                })
+    return details
+
+
+class ActionManager(models.Manager):
+    def log_action(self, user_id, action_type, details=""):
+        if isinstance(details, (list, dict)):
+            details = json.dumps(details)
+        return self.model.objects.create(user_id=user_id, action_type=action_type, details=details)
+
+    def log_authorization(self, user=None, details=""):
+        user_id = getattr(user, 'pk', None)
+        return self.log_action(user_id, Action.AUTHORIZATION, details)
+
+    def log_addition(self, user, details=None, obj=None, form=None, formsets=None):
+        if details is None:
+            details = construct_details(op='addition', obj=obj, form=form, formsets=formsets)
+        return self.log_action(user.pk, Action.ADDITION, details)
+
+    def log_change(self, user, details=None, obj=None, form=None, formsets=None):
+        if details is None:
+            details = construct_details(op='change', obj=obj, form=form, formsets=formsets)
+        return self.log_action(user.pk, Action.CHANGE, details)
+
+    def log_deletion(self, user, details=None, obj=None):
+        if details is None:
+            details = construct_details(op='deletion', obj=obj)
+        return self.log_action(user.pk, Action.DELETION, details)
+
+
+class Action(models.Model):
+    AUTHORIZATION = 1
+    ADDITION = 2
+    CHANGE = 3
+    DELETION = 4
+    ACTION_TYPE_CHOICES = (
+        (AUTHORIZATION, "Авторизация"),
+        (ADDITION, "Добавление"),
+        (CHANGE, "Изменение"),
+        (DELETION, "Удаление"),
+    )
+
+    user = models.ForeignKey(User, null=True, related_name='actions', on_delete=models.DO_NOTHING,
+                             verbose_name="Пользователь")
+
+    action_type = models.PositiveSmallIntegerField(choices=ACTION_TYPE_CHOICES, verbose_name="Тип действия")
+    details = models.TextField(blank=True, verbose_name="Подробности")
+
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+
+    objects = ActionManager()
+
+    class Meta:
+        ordering = ('-date_created',)
+        verbose_name = "Действие"
+        verbose_name_plural = "Действия"
+
+    def get_details(self):
+        try:
+            details = json.loads(self.details)
+        except json.JSONDecodeError:
+            return self.details
+        messages = []
+        for detail in details:
+            if 'added' in detail:
+                messages.append("Добавлен {name} \"{object}\".".format(**detail['added']))
+            elif 'changed' in detail:
+                detail['changed']['fields'] = get_text_list(detail['changed']['fields'], "и")
+                messages.append("Изменены поля {fields} в {name} \"{object}\".".format(**detail['changed']))
+            elif 'deleted' in detail:
+                messages.append("Удалён {name} \"{object}\".".format(**detail['deleted']))
+            elif 'action' in detail:
+                if detail['action'] == 'login':
+                    messages.append("Вход.")
+                elif detail['action'] == 'login_fail':
+                    messages.append("Попытка авторизации от имени пользователя {}."
+                                    .format(detail['credentials']['username']))
+                elif detail['action'] == 'logout':
+                    messages.append("Выход.")
+        details = " ".join(msg[0].upper() + msg[1:] for msg in messages)
+        return details or "Изменений нет."
+
+    def __str__(self):
+        messages = self.get_details()
+        return messages[:150] + (messages[150:] and "... (обрезано)")

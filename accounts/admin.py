@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Permission
 
-from accounts.models import Account, Comment, Faculty, Announcement, Notification
+from accounts.models import Account, Action, Announcement, Comment, Faculty, Notification
 
 
 @admin.register(Permission)
@@ -129,3 +129,29 @@ class NotificationAdmin(admin.ModelAdmin):
             'fields': ('date_created',)
         })
     )
+
+
+@admin.register(Action)
+class ActionAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'user_full_name', 'date_created')
+    list_filter = ('action_type',)
+    fieldsets = (
+        ('Мета', {
+            'fields': ('user', 'action_type')
+        }),
+        ('Подробности', {
+            'fields': ('details', 'get_details')
+        }),
+        ('Даты', {
+            'fields': ('date_created',)
+        })
+    )
+    readonly_fields = ('get_details', 'date_created')
+
+    def user_full_name(self, obj):
+        return obj.user.get_full_name()
+    user_full_name.short_description = "Пользователь"
+
+    def get_details(self, obj):
+        return obj.get_details()
+    get_details.short_description = "Расшифровка"
