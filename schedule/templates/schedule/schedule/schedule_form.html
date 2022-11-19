@@ -110,12 +110,12 @@ document.addEventListener("DOMContentLoaded", function() {
     tdOptions.display.components.clock = false;
     const picker = new tempusDominus.TempusDominus(date_interval_field, tdOptions);
 
-    moment.updateLocale('ru', { week: { dow: 1 } });
-    date_interval_field.addEventListener('change', function () {
+    moment.locale('ru');
+    function updateInterval() {
         let chosen_date = date_interval_field.value;
         if (chosen_date) {
-            let new_date_from = moment(chosen_date, "DD.MM.YYYY").day(1);
-            let new_date_to =  moment(chosen_date, "DD.MM.YYYY").day(7);
+            let new_date_from = moment(chosen_date, "DD.MM.YYYY").weekday(0);
+            let new_date_to =  moment(chosen_date, "DD.MM.YYYY").weekday(6);
             date_from_field.value = new_date_from.format("YYYY-MM-DD");
             date_to_field.value = new_date_to.format("YYYY-MM-DD");
             date_interval_field.value = new_date_from.format("DD.MM.YYYY") + " - " + new_date_to.format("DD.MM.YYYY");
@@ -124,7 +124,9 @@ document.addEventListener("DOMContentLoaded", function() {
             let cur_date_to = moment(date_to_field.value, "YYYY-MM-DD").format("DD.MM.YYYY");
             date_interval_field.value = cur_date_from + " - " + cur_date_to;
         }
-    });
+    }
+    updateInterval();
+    date_interval_field.addEventListener('change', updateInterval);
     bsCustomFileInput.init();
 });
 </script>
