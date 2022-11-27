@@ -4,8 +4,8 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import Account, Faculty
-from contests.models import (Course, Credit, Contest, Problem, SubmissionPattern, IOTest, UTTest, FNTest, Assignment,
-                             Submission)
+from contests.models import (Assignment, Contest, Course, Credit, FNTest, IOTest, Problem, Submission,
+                             SubmissionPattern, UTTest)
 
 """===================================================== Course ====================================================="""
 
@@ -138,7 +138,9 @@ class CreditViewsTest(TestCase):
     def setUpTestData(cls):
         faculty = Faculty.objects.create(name="Test Fac")
         admin = User.objects.create_superuser(cls.admin, 'admin@localhost', cls.admin)
+        Account.objects.create(user=admin, faculty=faculty)
         student = User.objects.create_user(cls.student, 'student@localhost', cls.student)
+        Account.objects.create(user=student, faculty=faculty)
         for i in range(1, cls.courses_num + 1):
             course = Course.objects.create(owner=admin, faculty=faculty, title_official="Test Course %s" % i,
                                            description="Test Description %s" % i, level=i)

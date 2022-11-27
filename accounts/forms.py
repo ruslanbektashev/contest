@@ -5,7 +5,6 @@ from html.parser import HTMLParser
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.utils.datetime_safe import datetime
 
 from accounts.models import Account, Announcement, Comment
 from accounts.templatetags.markdown import markdown
@@ -213,8 +212,6 @@ class AnnouncementForm(forms.ModelForm):
 
     def clean_actual(self):
         actual = self.cleaned_data['actual']
-        if actual is None:
-            actual = datetime.date((timezone.now() + timezone.timedelta(days=90)))
-        elif actual < timezone.now().date():
-            raise ValidationError("Укажите дату в будущем", code='invalid_actual')
+        if actual is not None and actual < timezone.localdate():
+            raise ValidationError("Укажите дату в будущем.", code='invalid_actual')
         return actual

@@ -589,6 +589,8 @@ class Announcement(CRUDEntry):
         verbose_name_plural = "Объявления"
 
     def save(self, *args, **kwargs):
+        if self.actual is None:
+            self.actual = timezone.localdate() + timezone.timedelta(days=90)
         created = self._state.adding
         super().save(*args, **kwargs)
         if self.group is not None:

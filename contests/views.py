@@ -1923,7 +1923,8 @@ class AssignmentCourseTable(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMi
 
     def get_queryset(self):
         self.storage['students'] = (Account.students.apply_common_filters(self.storage)
-                                    .with_attendance(self.storage['course'], timezone.now()))
+                                    .with_attendance(self.storage['course'], timezone.now())
+                                    .order_by('user__last_name', 'user__first_name', 'user_id'))
         bool(self.storage['students'])  # evaluate now
         return Assignment.objects.for_course_table(self.storage['course'], self.storage['students'])
 

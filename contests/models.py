@@ -31,7 +31,6 @@ try:
 except ImportError:
     from contest.utils import Status, diff, get_sandbox_class
 
-
 """=================================================== Attachment ==================================================="""
 
 
@@ -194,8 +193,10 @@ class CourseLeader(models.Model):
 """===================================================== Credit ====================================================="""
 
 
-def generate_credit_report(group_name, students, report_type, examiners, faculty, direction, discipline, semester, date):
-    months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
+def generate_credit_report(group_name, students, report_type, examiners, faculty, direction, discipline, semester,
+                           date):
+    months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября',
+              'декабря']
 
     f = open('contest/documents/blank_report.docx', 'rb')
 
@@ -409,7 +410,8 @@ class ContestManager(SoftDeletionManager):
 
     def get_queryset_for_problem(self, contest, user):
         queryset = self.get_queryset()
-        return queryset.filter(Q(id=contest.id) | Q(course__faculty=user.account.faculty, course__leaders__id=user.id)).distinct()
+        return (queryset.filter(Q(id=contest.id) | Q(course__faculty=user.account.faculty, course__leaders__id=user.id))
+                        .distinct())
 
 
 class Contest(SoftDeletionModel, CRUDEntry):
@@ -524,7 +526,8 @@ class Problem(SoftDeletionModel, CRUDEntry):
     score_for_5 = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_FOR_5, verbose_name="Баллов для 5")
     score_for_4 = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_FOR_4, verbose_name="Баллов для 4")
     score_for_3 = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_FOR_3, verbose_name="Баллов для 3")
-    difficulty = models.PositiveSmallIntegerField(choices=DIFFICULTY_CHOICES, default=DEFAULT_DIFFICULTY, verbose_name="Сложность")
+    difficulty = models.PositiveSmallIntegerField(choices=DIFFICULTY_CHOICES, default=DEFAULT_DIFFICULTY,
+                                                  verbose_name="Сложность")
     language = models.CharField(max_length=8, choices=LANGUAGE_CHOICES, default=DEFAULT_LANGUAGE, verbose_name="Язык")
     compile_args = models.CharField(max_length=255, blank=True, verbose_name="Параметры компиляции")
     launch_args = models.CharField(max_length=255, blank=True, verbose_name="Параметры запуска")
@@ -841,10 +844,10 @@ class AssignmentQuerySet(models.QuerySet):
                                                        problem_id=models.OuterRef('problem_id'))
                                                .order_by('-date_created')[:1])
         return (self.filter(user__in=students.values_list('user'), problem__contest__course=course)
-                    .select_related('user', 'problem')
-                    .annotate(latest_submission_status=models.Subquery(latest_submission.values_list('status')))
-                    .annotate(latest_submission_date_created=models.Subquery(latest_submission.values_list('date_created')))
-                    .order_by('user__account', 'problem__contest', 'date_created', 'problem__number'))
+                .select_related('user', 'problem')
+                .annotate(latest_submission_status=models.Subquery(latest_submission.values_list('status')))
+                .annotate(latest_submission_date_created=models.Subquery(latest_submission.values_list('date_created')))
+                .order_by('user__account', 'problem__contest', 'date_created', 'problem__number'))
 
     def rollback_score(self):
         return self.update(score=models.F('score') - 1)
@@ -1046,12 +1049,13 @@ class Submission(CRDEntry):
                                         verbose_name="Подпосылки")
     options = models.ManyToManyField(Option, verbose_name="Варианты ответа")
 
-    footprint = models.TextField(default="[]")
+    footprint = models.TextField()
     status = models.CharField(max_length=2, choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
     score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE, verbose_name="Оценка в баллах")
     text = RichTextField(null=True, blank=True, verbose_name="Текст ответа", config_name='minimal')
     task_id = models.UUIDField(null=True, blank=True, verbose_name="Идентификатор асинхронной задачи")
-    moss_to_submissions = models.CharField(max_length=200, null=True, validators=[validate_comma_separated_integer_list],
+    moss_to_submissions = models.CharField(max_length=200, null=True,
+                                           validators=[validate_comma_separated_integer_list],
                                            verbose_name="С посылками MOSS")
     moss_report_url = models.URLField(null=True, verbose_name="Ссылка на отчет MOSS")
 
@@ -1174,6 +1178,8 @@ class Submission(CRDEntry):
         return self.get_absolute_url()
 
     def save(self, *args, **kwargs):
+        if self.footprint is None:  # TODO: remove if not needed in frontend
+            self.footprint = "[]"
         created = self._state.adding
         super().save(*args, **kwargs)
         if created and self.problem.type in ['Program'] or not created:
