@@ -58,7 +58,7 @@ TEMPLATES = [
 
 FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
-# DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'  # TODO: uncomment if Django>=3.2
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 WSGI_APPLICATION = 'contest.wsgi.application'
 
