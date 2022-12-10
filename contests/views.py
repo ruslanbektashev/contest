@@ -574,7 +574,8 @@ class AttendanceCourseTable(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMi
 
     def get_queryset(self):
         course = self.storage['course']
-        self.storage['students'] = Account.students.apply_common_filters(self.storage).with_attendance(course)
+        self.storage['students'] = (Account.students.apply_common_filters(self.storage)
+                                    .with_attendance(course).order_by('user__last_name', 'user__first_name', 'user_id'))
         return (Attendance.objects
                 .filter(user__in=self.storage['students'].values_list('user_id', flat=True), course=course)
                 .order_by('user__account', 'date_from'))
