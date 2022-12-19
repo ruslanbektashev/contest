@@ -66,12 +66,12 @@ def to_html(attachment):
             xlsx2html(xlsx_file, current_sheet, locale='en', sheet=i)
             current_sheet.seek(0)
             current_sheet_html = current_sheet.read()
-            html_sheets[workbook.sheetnames[i]] = current_sheet_html
-        sheets = ''.join(f'<hr><h3 id="fsheet{id(sheet_name)}">{sheet_name}</h3><hr>{value}'
-                         for sheet_name, value in html_sheets.items())
-        nav = '<br><ul>{}</ul>'.format(''.join(f'<li><a href="#fsheet{id(sheet_name)}">{sheet_name}</a></li>'
+            html_sheets[workbook.sheetnames[i]] = f'<div class="slide "  id="slideslideIface{i+1}"> <hr> <h3 id="fsheet{id(workbook.sheetnames[i])}">{workbook.sheetnames[i]}</h3><hr> ' + current_sheet_html + '</div>'
+        sheets = ''.join(f'{value}' for sheet_name, value in html_sheets.items())
+
+        nav = '<ul>{}</ul>'.format(''.join(f'<li><a href="#fsheet{id(sheet_name)}">{sheet_name}</a></li>'
                                                for sheet_name in html_sheets.keys()))
-        result = (sheets + nav), False
+        result = (sheets + nav), True
     elif attachment_ext == '.csv':
         temp = TemporaryFile()
         workbook = Workbook()
