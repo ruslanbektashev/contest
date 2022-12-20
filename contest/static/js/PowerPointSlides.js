@@ -1,6 +1,6 @@
 $(".slide").css({opacity: 0, position: 'absolute', top: 0, height: 0, right: '-300px',left: 'unset', transition: '0.3s'});//display non
 $('#slideslideIface1').css({opacity: 1, position: 'relative', height: 'auto', right: 0,left: 'unset'})
-
+$(".excel_nav").css("display", "none");
 var $counter = 1;
 var $ind = 0;
 var $id;
@@ -69,6 +69,7 @@ $('#Change_mode').on('click', function () {
         $('#mode_view').removeClass('fa fa-file-text-o');
         $('#mode_view').addClass('fa fa-files-o');
         $flag = false;
+        $(".excel_nav").css("display", "block");
     } else {
         $('#mode_view').removeClass('fa fa-files-o');
         $('#mode_view').addClass('fa fa-file-text-o');
@@ -77,6 +78,7 @@ $('#Change_mode').on('click', function () {
         $('#slideslideIface1').css({opacity: 1, position: 'relative', height: 'auto', left: 'unset', right: 0});
         $counter = 1;
         $flag = true;
+        $(".excel_nav").css("display", "none");
     }
 });
 
