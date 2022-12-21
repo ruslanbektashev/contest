@@ -56,13 +56,14 @@ class MediaAttachmentMixin:
     FILE_SIZE_LIMIT = 256 * 1024 * 1024
     FILES_SIZE_LIMIT = 640 * 1024 * 1024
     FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-                                '.pdf', '.csv', '.aac', '.flac', '.mp3', '.wav', '.wma', '.webm', '.mkv', '.avi', '.mov',
-                                '.wmv', '.mp4', '.zip', '.djvu', '.sav']
+                                '.pdf', '.csv', '.aac', '.flac', '.mp3', '.wav', '.wma', '.webm', '.mkv', '.avi',
+                                '.mov', '.wmv', '.mp4', '.zip', '.djvu', '.sav']
 
 
 class SubmissionFilesAttachmentMixin:
     FILE_SIZE_LIMIT = 20 * 1024 * 1024
-    FILES_ALLOWED_EXTENSIONS = ['.txt', '.doc', '.docx', '.ppt', '.pptx', '.pdf', '.png', '.jpg', '.jpeg']
+    FILES_ALLOWED_EXTENSIONS = ['.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.pdf', '.png', '.jpg',
+                                '.jpeg']
 
 
 """=================================================== Attachment ==================================================="""
@@ -74,7 +75,7 @@ class AttachmentForm(forms.ModelForm):
     FILES_MIN = 0
     FILES_SIZE_LIMIT = -1
     FILES_ALLOWED_NAMES = tuple()
-    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt']
+    FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.xls', '.xlsx']
 
     files = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}), required=False, label="Файлы")
 
