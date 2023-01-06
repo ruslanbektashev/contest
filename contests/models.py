@@ -102,6 +102,10 @@ class Course(SoftDeletionModel, CRUDEntry):
         (6, "3 курс, VI семестр"),
         (7, "4 курс, VII семестр"),
         (8, "4 курс, VIII семестр"),
+        (9, "1 курс, I семестр, магистратура"),
+        (10, "1 курс, II семестр, магистратура"),
+        (11, "2 курс, III семестр, магистратура"),
+        (12, "2 курс, IV семестр, магистратура"),
     )
 
     faculty = models.ForeignKey(Faculty, on_delete=models.DO_NOTHING, verbose_name="Факультет")
