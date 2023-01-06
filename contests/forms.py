@@ -35,7 +35,7 @@ class AccountSelect(forms.Select):
         option = super().create_option(name, value, label, selected, index, subindex, attrs)
         if self.option_attrs is not None:
             for data_attr, values in self.option_attrs.items():
-                option['attrs'][data_attr] = values[option['value']]
+                option['attrs'][data_attr] = values[getattr(option['value'], 'value', option['value'])]
         return option
 
 
@@ -48,7 +48,7 @@ class AccountSelectMultiple(forms.SelectMultiple):
         option = super().create_option(name, value, label, selected, index, subindex, attrs)
         if self.option_attrs is not None:
             for data_attr, values in self.option_attrs.items():
-                option['attrs'][data_attr] = values[option['value']]
+                option['attrs'][data_attr] = values[getattr(option['value'], 'value', option['value'])]
         return option
 
 
