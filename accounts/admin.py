@@ -149,7 +149,10 @@ class ActionAdmin(admin.ModelAdmin):
     readonly_fields = ('get_details', 'date_created')
 
     def user_full_name(self, obj):
-        return obj.user.get_full_name()
+        if obj.user is not None:
+            return obj.user.get_full_name()
+        else:
+            return "<Аноним>"
     user_full_name.short_description = "Пользователь"
 
     def get_details(self, obj):
