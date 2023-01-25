@@ -22,7 +22,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if announcement %}Редактирование{% else %}Добавление{% endif %} объявления</legend>
+<legend><span class="text-truncate">{% if announcement %}Редактирование{% else %}Добавление{% endif %} объявления</span></legend>
 <form action="" method="post">
     {% csrf_token %}
     {% render_form_errors form %}

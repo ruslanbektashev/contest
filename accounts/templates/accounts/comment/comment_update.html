@@ -12,7 +12,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Редактирование комментария</legend>
+<legend><span class="text-truncate">Редактирование комментария</span></legend>
 <form action="" method="post">
     {% csrf_token %}
     {{ form.parent_id }}

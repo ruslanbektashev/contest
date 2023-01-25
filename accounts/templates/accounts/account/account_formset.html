@@ -12,7 +12,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Редактирование профилей {% if type == 1 %}студентов{% else %}сотрудников{% endif %}</legend>
+<legend><span class="text-truncate">Редактирование профилей {% if type == 1 %}студентов{% else %}сотрудников{% endif %}</span></legend>
 <form action="" method="post">
     {% csrf_token %}
     {{ formset.management_form }}

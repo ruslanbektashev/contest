@@ -16,7 +16,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{% if submission_pattern %}Редактирование{% else %}Добавление{% endif %} шаблона посылки</legend>
+<legend><span class="text-truncate">{% if submission_pattern %}Редактирование{% else %}Добавление{% endif %} шаблона посылки</span></legend>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
     {% render_form_errors form %}

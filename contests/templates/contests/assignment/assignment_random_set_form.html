@@ -18,7 +18,7 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Добавление случайного набора заданий</legend>
+<legend><span class="text-truncate">Добавление случайного набора заданий</span></legend>
 <form action="" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
