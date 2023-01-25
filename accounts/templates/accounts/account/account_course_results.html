@@ -14,7 +14,12 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>{{ account }}, {{ course }} <span class="text-muted pull-right">{{ course.get_level_display }}</span></legend>
+<legend>
+    <div class="d-flex justify-content-between">
+        <span class="text-truncate">{{ account }}, {{ course }}</span>
+        <span class="text-muted">{{ course.get_level_display }}</span>
+    </div>
+</legend>
 <div class="table-responsive-lg mt-3">
     <table class="table table-sm">
         <thead>

@@ -24,12 +24,14 @@
 
 {% block content %}
 <legend>
-    {{ contest }}
-    {% if display_aspose_controls %}
-    <span class="pull-right">
-        <a id="Change_mode" title="Изменить режим просмотра"><i class="fa fa-file-text-o" id="mode_view" style="color:#007BFF" aria-hidden="true"></i></a>
-    </span>
-    {% endif %}
+    <div class="d-flex justify-content-between">
+        <span class="text-truncate">{{ contest }}</span>
+        {% if display_aspose_controls %}
+        <span class="d-flex justify-content-between">
+            <a id="Change_mode" title="Изменить режим просмотра"><i class="fa fa-file-text-o" id="mode_view" style="color:#007BFF" aria-hidden="true"></i></a>
+        </span>
+        {% endif %}
+    </div>
 </legend>
 <samp>{{ attachment.filename }}</samp>
 {% if code is not None %}

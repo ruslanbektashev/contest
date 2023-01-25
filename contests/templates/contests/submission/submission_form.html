@@ -31,10 +31,12 @@
 
 {% block content %}
 <legend>
-    Отправка решения
-    {% if main_problem and assignment.deadline is not None and assignment.deadline > current_time %}
-    <span id="countdown_wrapper" class="text-muted pull-right">осталось: <span id="countdown_to_deadline"></span></span>
-    {% endif %}
+    <div class="d-flex justify-content-between">
+        <span class="text-truncate">Отправка решения</span>
+        {% if main_problem and assignment.deadline is not None and assignment.deadline > current_time %}
+        <span id="countdown_wrapper" class="text-muted d-flex justify-content-between">осталось: <span id="countdown_to_deadline"></span></span>
+        {% endif %}
+    </div>
 </legend>
 
 {% if problem.type == 'Text' or problem.type == 'Options' or problem.type == 'Files' %}

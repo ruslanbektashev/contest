@@ -12,12 +12,14 @@
 
 {% block content %}
 <legend>
-    Расписание
-    <span class="pull-right">
-    {% if perms.schedule.add_schedule %}
-        <a href="{% url 'schedule:schedule-create' %}" class="text-success text-decoration-none" data-toggle="tooltip" data-placement="left" title="Добавить расписание"><i class="fa fa-plus fa-fw"></i></a>
-    {% endif %}
-    </span>
+    <div class="d-flex justify-content-between">
+        <span class="text-truncate">Расписание</span>
+        <span class="d-flex justify-content-between">
+        {% if perms.schedule.add_schedule %}
+            <a href="{% url 'schedule:schedule-create' %}" class="text-success text-decoration-none" data-toggle="tooltip" data-placement="left" title="Добавить расписание"><i class="fa fa-plus fa-fw"></i></a>
+        {% endif %}
+        </span>
+    </div>
 </legend>
 {% now 'Y-m-d' as current_date %}
 {% if schedules %}

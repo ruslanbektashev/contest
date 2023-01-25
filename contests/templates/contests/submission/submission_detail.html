@@ -31,20 +31,22 @@
 
 {% block content %}
 <legend>
-    {{ submission.short_title }}
-    <span class="pull-right">
-    {% if request.user.is_superuser and submission.task_id %}
-        <a href="{% url 'contests:api-submission-clear-task' submission.id %}" class="text-secondary text-decoration-none" data-toggle="tooltip" data-placement="left" title="Стереть таску"><i class="fa fa-eraser fa-fw"></i></a>
-    {% endif %}
-    {% if submission.problem.type == 'Program' %}
-    {% if perms.contests.moss_submission or request|has_leader_permission:submission.course %}
-        <a href="{% url 'contests:submission-moss' submission.id %}" class="text-secondary text-decoration-none" data-toggle="tooltip" data-placement="left" title="MOSS"><i class="fa fa-maxcdn fa-fw"></i></a>
-    {% endif %}
-    {% endif %}
-    {% if perms.contests.delete_submission or request|has_leader_permission:submission.course %}
-        <a href="{% url 'contests:submission-delete' submission.id %}{% if from_assignment %}?from_assignment=1{% endif %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить посылку" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
-    {% endif %}
-    </span>
+    <div class="d-flex justify-content-between">
+        <span class="text-truncate">{{ submission.short_title }}</span>
+        <span class="d-flex justify-content-between">
+        {% if request.user.is_superuser and submission.task_id %}
+            <a href="{% url 'contests:api-submission-clear-task' submission.id %}" class="text-secondary text-decoration-none" data-toggle="tooltip" data-placement="left" title="Стереть таску"><i class="fa fa-eraser fa-fw"></i></a>
+        {% endif %}
+        {% if submission.problem.type == 'Program' %}
+        {% if perms.contests.moss_submission or request|has_leader_permission:submission.course %}
+            <a href="{% url 'contests:submission-moss' submission.id %}" class="text-secondary text-decoration-none" data-toggle="tooltip" data-placement="left" title="MOSS"><i class="fa fa-maxcdn fa-fw"></i></a>
+        {% endif %}
+        {% endif %}
+        {% if perms.contests.delete_submission or request|has_leader_permission:submission.course %}
+            <a href="{% url 'contests:submission-delete' submission.id %}{% if from_assignment %}?from_assignment=1{% endif %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить посылку" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
+        {% endif %}
+        </span>
+    </div>
 </legend>
 <table class="table table-sm">
     <tr><td class="text-right" style="width: 20%;">Автор</td><td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td></tr>
@@ -135,12 +137,14 @@
     {% endif %}
 </div>
 <legend>
-    Файлы
-    <span class="pull-right">
-    {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
-        <a href="{% url 'contests:submission-download' submission.id %}" data-toggle="tooltip" data-placement="left" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>
-    {% endif %}
-    </span>
+    <div class="d-flex justify-content-between">
+        <span class="text-truncate">Файлы</span>
+        <span class="d-flex justify-content-between">
+        {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
+            <a href="{% url 'contests:submission-download' submission.id %}" data-toggle="tooltip" data-placement="left" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>
+        {% endif %}
+        </span>
+    </div>
 </legend>
 <div class="list-group mb-3">
     {% for attachment in submission.attachment_set.all %}

@@ -13,15 +13,17 @@
 
 {% block content %}
 <legend>
-    {{ account }}
-    <span class="pull-right">
-    {% if account.user_id == request.user.id %}
-        <a href="{% url 'password-change' %}" class="text-secondary text-decoration-none" data-toggle="tooltip" data-placement="top" title="Изменить пароль" style="position: relative; top: -0.03rem;"><i class="fa fa-lock fa-fw"></i></a>
-    {% endif %}
-    {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
-        <a href="{% url 'accounts:account-update' account.user.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Редактировать профиль"><i class="fa fa-edit fa-fw"></i></a>
-    {% endif %}
-    </span>
+    <div class="d-flex justify-content-between">
+        <span class="text-truncate">{{ account }}</span>
+        <span class="d-flex justify-content-between">
+        {% if account.user_id == request.user.id %}
+            <a href="{% url 'password-change' %}" class="text-secondary text-decoration-none" data-toggle="tooltip" data-placement="top" title="Изменить пароль" style="position: relative; top: -0.03rem;"><i class="fa fa-lock fa-fw"></i></a>
+        {% endif %}
+        {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
+            <a href="{% url 'accounts:account-update' account.user.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Редактировать профиль"><i class="fa fa-edit fa-fw"></i></a>
+        {% endif %}
+        </span>
+    </div>
 </legend>
 <div class="row my-3">
     <div class="col-sm-12 col-md-3">
@@ -97,10 +99,12 @@
 {% if perms.accounts.view_account or account.user_id == request.user.id %}
 {% if credits %}
 <legend>
-    Результаты
-    <span class="pull-right">
-        <a href="{% if account.user_id == request.user.id %} {% url 'contests:assignment-list' %} {% else %} {% url 'accounts:account-assignment-list' account.user_id %} {% endif %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Задания" style="position: relative; top: -0.08rem;"><i class="fa fa-list-ol fa-fw"></i></a>
-    </span>
+    <div class="d-flex justify-content-between">
+        <span class="text-truncate">Результаты</span>
+        <span class="d-flex justify-content-between">
+            <a href="{% if account.user_id == request.user.id %} {% url 'contests:assignment-list' %} {% else %} {% url 'accounts:account-assignment-list' account.user_id %} {% endif %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Задания" style="position: relative; top: -0.08rem;"><i class="fa fa-list-ol fa-fw"></i></a>
+        </span>
+    </div>
 </legend>
 {% include 'accounts/account/account_results.html' %}
 <div class="table-responsive-lg mb-3">

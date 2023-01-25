@@ -12,7 +12,12 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Регистрация <span class="text-muted pull-right">{{ faculty }}</span></legend>
+<legend>
+    <div class="d-flex justify-content-between">
+        <span class="text-truncate">Регистрация</span>
+        <span class="text-muted">{{ faculty }}</span>
+    </div>
+</legend>
 <form action="" method="post">
     {% csrf_token %}
     {% render_form_errors form %}

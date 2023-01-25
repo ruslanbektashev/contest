@@ -11,7 +11,14 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
-<legend>Посылки{% if course %} <span class="text-muted pull-right">{{ course }}</span>{% endif %}</legend>
+<legend>
+    <div class="d-flex justify-content-between">
+        <span class="text-truncate">Посылки</span>
+        {% if course %}
+        <span class="text-muted">{{ course }}</span>
+        {% endif %}
+    </div>
+</legend>
 <div class="table-responsive-lg">
     <table id="p" class="table table-bordered table-sm">
         <thead>
