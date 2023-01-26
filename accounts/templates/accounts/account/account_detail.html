@@ -1,5 +1,5 @@
 {% extends 'base_wide.html' %}
-{% load views contests %}
+{% load views contests static %}
 
 {% block title %}
 Профиль
@@ -144,6 +144,7 @@
 {% endblock content %}
 
 {% block javascript %}
+<script src="{% static 'chart/chart.min.js' %}" type="text/javascript"></script>
 <script>
     const submissionsChartData = {
         labels: [{% for item in year_month_submissions_solutions_comments %} {% if year == 0 %} '{{ item.1 }} {{item.0}}' {% else %} '{{ item.1 }}' {% endif %}, {% endfor %}],
@@ -178,7 +179,7 @@
             }
         }
     };
-    var submissionsChart = new Chart(
+    const submissionsChart = new Chart(
         document.getElementById('submissionsChart'),
         submissionsChartConfig
     );
