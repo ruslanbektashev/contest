@@ -21,11 +21,11 @@ from contest.soft_deletion import SoftDeletionDeleteView, SoftDeletionUpdateView
 from contests.forms import (AssignmentEvaluateForm, AssignmentForm, AssignmentSetForm, AssignmentUpdateAttachmentForm,
                             AssignmentUpdateForm, AttendanceDateForm, AttendanceForm, AttendanceFormSet,
                             ContestAttachmentForm, ContestForm, ContestMoveForm, CourseFinishForm, CourseForm,
-                            CourseLeaderForm, CreditReportForm, CreditSetForm, FNTestForm, OptionBaseFormSet,
-                            OptionForm, ProblemAttachmentForm, ProblemCommonForm, ProblemMoveForm, ProblemProgramForm,
-                            ProblemRollbackResultsForm, ProblemTestForm, SubmissionFilesForm, SubmissionMossForm,
-                            SubmissionOptionsForm, SubmissionPatternForm, SubmissionProgramForm, SubmissionTextForm,
-                            SubmissionUpdateForm, SubmissionVerbalForm, SubProblemForm, UTTestForm)
+                            CourseLeaderForm, CreditReportForm, CreditSetForm, CreditUpdateForm, FNTestForm,
+                            OptionBaseFormSet, OptionForm, ProblemAttachmentForm, ProblemCommonForm, ProblemMoveForm,
+                            ProblemProgramForm, ProblemRollbackResultsForm, ProblemTestForm, SubmissionFilesForm,
+                            SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm, SubmissionProgramForm,
+                            SubmissionTextForm, SubmissionUpdateForm, SubmissionVerbalForm, SubProblemForm, UTTestForm)
 from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, Execution,
                              Filter, FNTest, IOTest, Option, Problem, Submission, SubmissionPattern, SubProblem, UTTest)
 from contests.results import TaskProgress
@@ -432,7 +432,7 @@ class CourseFinish(LoginRedirectMixin, PermissionRequiredMixin, FormView):
 class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
                    UpdateView):
     model = Credit
-    fields = ['score']
+    form_class = CreditUpdateForm
     template_name = 'contests/credit/credit_form.html'
     permission_required = 'contests.change_credit'
 

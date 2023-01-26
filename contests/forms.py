@@ -7,13 +7,13 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
-from django.template.defaultfilters import filesizeformat
+from django.template.defaultfilters import date, filesizeformat
 from django.utils import timezone
 
 from accounts.models import Account
 from contest.widgets import OptionCheckboxSelect, OptionRadioSelect
-from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, FNTest, Option, Problem,
-                             Submission, SubmissionPattern, SubProblem, UTTest)
+from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, FNTest, Option,
+                             Problem, Submission, SubmissionPattern, SubProblem, UTTest)
 
 
 class UserChoiceField(forms.ModelChoiceField):
@@ -195,6 +195,16 @@ class CourseLeaderForm(forms.ModelForm):
 
 
 """===================================================== Credit ====================================================="""
+
+
+class CreditUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Credit
+        fields = ['score']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['score'].help_text = "последнее изменение: " + date(self.instance.date_updated, 'd M Y г. в H:i')
 
 
 class CreditSetForm(forms.Form):
