@@ -78,7 +78,8 @@ celery.sh
 test.py
 contest/prepros.config
 
-# Private Tests
+# Private
+node/
 tools/
 static/
 static_release/

@@ -1,4 +1,4 @@
-var tdOptions = {
+let tdOptions = {
     restrictions: {
         minDate: undefined,
         maxDate: undefined,

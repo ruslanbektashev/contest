@@ -1,0 +1,9 @@
+.ck.ck-editor {
+    width: 100%;
+}
+
+.ck-editor__editable,
+.ck-editor__editable_inline,
+.ck-source-editing-area {
+    min-height: 15rem;
+}

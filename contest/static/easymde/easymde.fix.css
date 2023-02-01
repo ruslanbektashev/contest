@@ -1,0 +1,11 @@
+.EasyMDEContainer {
+    width: 100%;
+}
+
+.EasyMDEContainer .CodeMirror {
+    padding: 0;
+}
+
+/*.EasyMDEContainer .CodeMirror-linenumber {*/
+/*    font-family: monospace !important;*/
+/*}*/
