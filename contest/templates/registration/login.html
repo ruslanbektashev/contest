@@ -1,22 +1,29 @@
-{% extends 'base.html' %}
-{% load forms %}
-
-{% block title %}
-Вход
-{% endblock title %}
-
-{% block container %}
-<div class="d-flex justify-content-center align-items-center mt-5">
-    <form method="post" class="w-25">
-        {% csrf_token %}
-        {% render_form_errors form %}
-        <div class="form-group">
-            {% render_field form.username class+="form-control" placeholder="Логин" %}
+{% extends 'minimal.html' %}
+{% load forms static %}
+{% block html %}
+<html lang="ru" class="h-100">
+    {% block head %}{{ block.super }}{% endblock head %}
+    <body class="d-flex justify-content-center bg-light h-100 mt-0">
+        <div class="d-flex justify-content-center align-items-center flex-column">
+            <p class="mb-auto">&nbsp;</p>
+            <form method="post" class="form-signin text-center mb-4">
+                {% csrf_token %}
+                <img class="mb-4" src="{% static 'msu-logo.png' %}" alt="" width="100" height="100">
+                <h1 class="h3 mb-3 font-weight-normal">МГУ Контест</h1>
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger text-left">
+                    {% for error in form.non_field_errors %}
+                    {{ error }}<br>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% render_field form.username class+="form-control" placeholder="Логин" %}
+                {% render_field form.password class+="form-control" placeholder="Пароль" %}
+                {% comment %}<div class="mt-3"><a href="{% url 'password-reset' %}" class="text-muted">Забыли пароль?</a></div>{% endcomment %}
+                <button class="btn btn-primary btn-block btn-lg border mt-3" type="submit">Войти</button>
+            </form>
+            <p class="copyright text-nowrap mt-auto">Филиал МГУ им. М.В. Ломоносова в г. Ташкент &copy; {% now "Y" %}</p>
         </div>
-        <div class="form-group">
-            {% render_field form.password class+="form-control" placeholder="Пароль" %}
-        </div>
-        <button class="btn btn-light btn-block border" type="submit">Войти</button>
-    </form>
-</div>
-{% endblock container %}
+    </body>
+</html>
+{% endblock html %}
