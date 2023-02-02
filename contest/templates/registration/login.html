@@ -1,29 +1,37 @@
 {% extends 'minimal.html' %}
 {% load forms static %}
-{% block html %}
-<html lang="ru" class="h-100">
-    {% block head %}{{ block.super }}{% endblock head %}
-    <body class="d-flex justify-content-center bg-light h-100 mt-0">
-        <div class="d-flex justify-content-center align-items-center flex-column">
-            <p class="mb-auto">&nbsp;</p>
-            <form method="post" class="form-signin text-center mb-4">
-                {% csrf_token %}
-                <img class="mb-4" src="{% static 'msu-logo.png' %}" alt="" width="100" height="100">
-                <h1 class="h3 mb-3 font-weight-normal">МГУ Контест</h1>
-                {% if form.non_field_errors %}
-                <div class="alert alert-danger text-left">
-                    {% for error in form.non_field_errors %}
-                    {{ error }}<br>
-                    {% endfor %}
-                </div>
-                {% endif %}
+
+{% block links %}
+<link href="{% static 'login.css' %}" rel="stylesheet"/>
+{% endblock links %}
+
+{% block content %}
+<main class="d-flex h-100 mx-auto">
+    <div class="d-flex flex-column text-center">
+        <p class="mb-auto">&nbsp;</p>
+        <form class="form-signin align-self-center" method="post">
+            {% csrf_token %}
+            <img class="mb-4" src="{% static 'msu-logo.png' %}" alt="" width="72" height="72">
+            <h1 class="h3 mb-3 fw-normal">МГУ Контест</h1>
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger text-left">
+                {% for error in form.non_field_errors %}
+                {{ error }}<br>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="form-floating">
                 {% render_field form.username class+="form-control" placeholder="Логин" %}
+                <label for="id_username">Логин</label>
+            </div>
+            <div class="form-floating">
                 {% render_field form.password class+="form-control" placeholder="Пароль" %}
-                {% comment %}<div class="mt-3"><a href="{% url 'password-reset' %}" class="text-muted">Забыли пароль?</a></div>{% endcomment %}
-                <button class="btn btn-primary btn-block btn-lg border mt-3" type="submit">Войти</button>
-            </form>
-            <p class="copyright text-nowrap mt-auto">Филиал МГУ им. М.В. Ломоносова в г. Ташкент &copy; {% now "Y" %}</p>
-        </div>
-    </body>
-</html>
-{% endblock html %}
+                <label for="id_password">Пароль</label>
+            </div>
+            {% comment %}<div class="mt-3"><a href="{% url 'password-reset' %}" class="text-muted">Забыли пароль?</a></div>{% endcomment %}
+            <button class="btn btn-outline-primary btn-lg mt-3 w-100" type="submit">Войти</button>
+        </form>
+        <p class="copyright text-nowrap mt-auto">Филиал МГУ им. М.В. Ломоносова в г. Ташкент &copy; {% now "Y" %}</p>
+    </div>
+</main>
+{% endblock content %}

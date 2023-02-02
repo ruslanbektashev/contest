@@ -6,16 +6,17 @@
     <head>
         <meta charset="utf-8">
         <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
         <title>{% block title %}Вход{% endblock title %} | МГУ Контест</title>
-        <link href="{% static 'css/contest.css' %}" rel="stylesheet"/>
+        <link href="{% static 'bootstrap/bootstrap.min.css' %}" rel="stylesheet"/>
+        <link href="{% static 'contest.css' %}" rel="stylesheet"/>
         {% block links %}{% endblock links %}
     </head>
     {% endblock head %}
     {% block body %}
     <body>
-    {% block content %}{% endblock content %}
-    {% block scripts %}{% endblock scripts %}
+        {% block content %}{% endblock content %}
+        <script src="{% static 'bootstrap/bootstrap.min.js' %}" type="text/javascript"></script>
+        {% block scripts %}{% endblock scripts %}
     </body>
     {% endblock body %}
 </html>
