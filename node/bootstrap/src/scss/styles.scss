@@ -1,0 +1,94 @@
+// Import all of Bootstrap's CSS
+// @import "~bootstrap/scss/bootstrap";
+
+//$font-size-base: .875rem;
+//$custom-file-text: (
+//  en: "Browse",
+//  ru: "Выбрать"
+//);
+
+// Configuration
+@import "~bootstrap/scss/functions";
+
+//$primary:       $blue;
+//$secondary:     $gray-600;
+//$success:       $green;
+//$info:          $cyan;
+//$warning:       $yellow;
+//$danger:        $red;
+//$light:         $gray-100;
+//$dark:          $gray-900;
+
+//$container-max-widths: (
+//  sm: 540px,
+//  md: 720px,
+//  lg: 960px,
+//  xl: 1140px,
+//  xxl: 1320px
+//);
+
+$border-radius:             .25rem;
+$border-radius-sm:          .25rem;
+$border-radius-lg:          .375rem;
+$border-radius-xl:          0.5rem;
+$border-radius-2xl:         1rem;
+
+$font-size-base:            .875rem;
+
+$link-decoration:           none;
+$link-hover-decoration:     underline;
+
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/maps";
+@import "~bootstrap/scss/mixins";
+@import "~bootstrap/scss/utilities";
+
+$breadcrumb-font-size:      $font-size-sm;
+$breadcrumb-padding-y:      .5rem;
+$breadcrumb-padding-x:      $font-size-sm;
+$breadcrumb-margin-bottom:  .5rem;
+$breadcrumb-bg:             $light;
+$breadcrumb-border-radius:  $border-radius-sm;
+
+// Layout & components
+@import "~bootstrap/scss/root";
+@import "~bootstrap/scss/reboot";
+@import "~bootstrap/scss/type";
+@import "~bootstrap/scss/images";
+@import "~bootstrap/scss/containers";
+@import "~bootstrap/scss/grid";
+@import "~bootstrap/scss/tables";
+@import "~bootstrap/scss/forms";
+@import "~bootstrap/scss/buttons";
+@import "~bootstrap/scss/transitions";
+@import "~bootstrap/scss/dropdown";
+@import "~bootstrap/scss/button-group";
+@import "~bootstrap/scss/nav";
+@import "~bootstrap/scss/navbar";
+@import "~bootstrap/scss/card";
+@import "~bootstrap/scss/accordion";
+@import "~bootstrap/scss/breadcrumb";
+@import "~bootstrap/scss/pagination";
+@import "~bootstrap/scss/badge";
+@import "~bootstrap/scss/alert";
+@import "~bootstrap/scss/progress";
+@import "~bootstrap/scss/list-group";
+@import "~bootstrap/scss/close";
+@import "~bootstrap/scss/toasts";
+@import "~bootstrap/scss/modal";
+@import "~bootstrap/scss/tooltip";
+@import "~bootstrap/scss/popover";
+//@import "~bootstrap/scss/carousel";
+@import "~bootstrap/scss/spinners";
+@import "~bootstrap/scss/offcanvas";
+@import "~bootstrap/scss/placeholders";
+
+// Helpers
+@import "~bootstrap/scss/helpers";
+
+// Utilities
+@import "~bootstrap/scss/utilities/api";
+
+.text-danger-hover:hover {
+  color: #{$danger};
+}
