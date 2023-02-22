@@ -1,0 +1,71 @@
+.contest-status-number {
+  display: inline-block;
+  padding: 0.25rem 0.3rem;
+  font-size: .75rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.2rem;
+  color: #ffffff !important;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.contest-status {
+  @extend .contest-status-number;
+  min-width: 1.875rem;
+}
+
+.contest-status-number:hover,
+.contest-status:hover {
+  text-decoration: none;
+}
+
+.contest-status-default {
+  background-color: #777;
+}
+.contest-status-default[href]:hover,
+.contest-status-default[href]:focus {
+  background-color: #5e5e5e;
+}
+.contest-status-primary {
+  background-color: #AFE1AF;
+}
+.contest-status-primary[href]:hover,
+.contest-status-primary[href]:focus {
+  background-color: #50C878;
+}
+.contest-status-success {
+  background-color: #5cb85c;
+}
+.contest-status-success[href]:hover,
+.contest-status-success[href]:focus {
+  background-color: #449d44;
+}
+.contest-status-info {
+  background-color: #5bc0de;
+}
+.contest-status-info[href]:hover,
+.contest-status-info[href]:focus {
+  background-color: #31b0d5;
+}
+.contest-status-warning {
+  background-color: #f0ad4e;
+}
+.contest-status-warning[href]:hover,
+.contest-status-warning[href]:focus {
+  background-color: #ec971f;
+}
+.contest-status-danger {
+  background-color: #d9534f;
+}
+.contest-status-danger[href]:hover,
+.contest-status-danger[href]:focus {
+  background-color: #c9302c;
+}
+
+.bootstrap-select .dropdown-menu {
+  box-shadow:0 .5rem 1rem rgba(0, 0, 0, .15) !important // .shadow
+  //box-shadow:0 .125rem .25rem rgba(0, 0, 0, .075) !important // .shadow-sm
+}
