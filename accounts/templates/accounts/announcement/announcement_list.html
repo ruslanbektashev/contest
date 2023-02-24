@@ -16,7 +16,7 @@
         <span class="text-truncate">Объявления</span>
         <span class="d-flex justify-content-between">
         {% if perms.accounts.add_announcement %}
-            <a href="{% url 'accounts:announcement-create' %}" class="text-success text-decoration-none" data-toggle="tooltip" data-placement="left" title="Добавить объявление"><i class="fa fa-plus fa-fw"></i></a>
+            <a href="{% url 'accounts:announcement-create' %}" class="text-success" data-toggle="tooltip" data-placement="left" title="Добавить объявление"><i class="fa fa-plus fa-fw"></i></a>
         {% endif %}
         </span>
     </div>
@@ -24,21 +24,21 @@
 {% for announcement in announcements %}
 <div class="card{% if forloop.counter > 1 %} mt-3{% endif %}">
     <div class="card-header d-flex align-items-center">
-        <a href="{% url 'accounts:announcement-detail' announcement.id %}" class="text-primary mr-auto">{{ announcement.title }}</a>
+        <a href="{% url 'accounts:announcement-detail' announcement.id %}" class="text-primary me-auto">{{ announcement.title }}</a>
         <span class="text-muted mx-2">Актуально до: {{ announcement.actual }}</span>
         {% if perms.accounts.change_announcement %}
         <a href="{% url 'accounts:announcement-update' announcement.id %}" class="card-link" data-toggle="tooltip" data-placement="left" title="Редактировать объявление"><i class="fa fa-edit fa-lg fa-fw"></i></a>
         {% endif %}
         {% if perms.accounts.delete_announcement %}
-        <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="card-link text-danger ml-2" data-toggle="tooltip" data-placement="top" title="Удалить объявление" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-lg fa-fw"></i></a>
+        <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="card-link text-danger ms-2" data-toggle="tooltip" data-placement="top" title="Удалить объявление" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-lg fa-fw"></i></a>
         {% endif %}
     </div>
     <div class="card-body">
         <div class="card-text">{{ announcement.text|safe }}</div>
     </div>
     <div class="card-footer d-flex align-items-center">
-        <span class="text-muted mr-auto">{{ announcement.date_created|date:'' }}</span>
-        <span class="numtus badge-secondary">{{ announcement.group_name }}</span>
+        <span class="text-muted me-auto">{{ announcement.date_created|date:'' }}</span>
+        <span class="numtus bg-secondary">{{ announcement.group_name }}</span>
     </div>
 </div>
 {% empty %}

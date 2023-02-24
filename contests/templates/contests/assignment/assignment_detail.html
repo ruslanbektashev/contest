@@ -22,22 +22,22 @@
         <span class="text-truncate">Задание</span>
         <span class="d-flex justify-content-between">
         {% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %}
-            <a href="{% url 'contests:assignment-update' assignment.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Редактировать задание"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'contests:assignment-update' assignment.id %}" data-toggle="tooltip" data-placement="left" title="Редактировать задание"><i class="fa fa-edit fa-fw"></i></a>
         {% endif %}
         {% if perms.contests.delete_assignment or request|has_leader_permission:assignment.course %}
-            <a href="{% url 'contests:assignment-delete' assignment.id %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить задание" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
+            <a href="{% url 'contests:assignment-delete' assignment.id %}" class="text-danger" data-toggle="tooltip" data-placement="top" title="Удалить задание" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
         {% endif %}
         </span>
     </div>
 </legend>
 <table class="table table-sm">
-    <tr><td class="text-right" style="width: 20%;">Студент</td><td><a href="{{ assignment.user.account.get_absolute_url }}">{{ assignment.user.account }}</a></td></tr>
-    <tr><td class="text-right" style="width: 20%;">Задача</td><td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td></tr>
-    <tr><td class="text-right" style="width: 20%;">Назначено</td><td>{{ assignment.date_created }}</td></tr>
-    <tr><td class="text-right" style="width: 20%;">Обновлено</td><td>{{ assignment.date_updated }}</td></tr>
+    <tr><td class="text-end" style="width: 20%;">Студент</td><td><a href="{{ assignment.user.account.get_absolute_url }}">{{ assignment.user.account }}</a></td></tr>
+    <tr><td class="text-end" style="width: 20%;">Задача</td><td><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td></tr>
+    <tr><td class="text-end" style="width: 20%;">Назначено</td><td>{{ assignment.date_created }}</td></tr>
+    <tr><td class="text-end" style="width: 20%;">Обновлено</td><td>{{ assignment.date_updated }}</td></tr>
     {% if assignment.deadline is not None %}
     <tr>
-        <td class="text-right" style="width: 20%;">
+        <td class="text-end" style="width: 20%;">
         {% if assignment.deadline > current_time %}
             Посылки принимаются до</td><td>{{ assignment.deadline }} <span id="countdown_wrapper">(осталось: <span id="countdown_to_deadline"></span>)</span>
         {% else %}
@@ -46,26 +46,36 @@
         </td>
     </tr>
     {% endif %}
-    <tr><td class="text-right" style="width: 20%;">Посылок</td><td>{{ assignment.submission_set.count }} / {{ assignment.submission_limit }}</td></tr>
+    <tr><td class="text-end" style="width: 20%;">Посылок</td><td>{{ assignment.submission_set.count }} / {{ assignment.submission_limit }}</td></tr>
     <tr>
-        <td class="text-right" style="width: 20%;">Оценка</td>
+        <td class="text-end" style="width: 20%;">Оценка</td>
         <td>
             <span class="numtus status-{{ assignment|get_assignment_score:request|colorize }}">{{ assignment|get_assignment_score:request|default:'-' }}</span>{% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %} {% if assignment.score_max < 5 %}/ {{ assignment.score_max }}{% endif %}{% if assignment.score_is_locked %} <span class="numtus status-warning" data-toggle="tooltip" data-placement="right" title="Оценка заблокирована и не может быть изменена системой автоматической проверки посылок"><i class="fa fa-lock"></i></span>{% endif %}{% endif %}
         </td>
     </tr>
 </table>
 {% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %}
-<a href="{% url 'contests:assignment-update' assignment.id %}?action=evaluate" class="btn btn-block btn-light border mb-3"><i class="fa fa-pencil fa-fw"></i> Изменить оценку</a>
+<div class="d-grid">
+    <a href="{% url 'contests:assignment-update' assignment.id %}?action=evaluate" class="btn btn-light border mb-3"><i class="fa fa-pencil fa-fw"></i> Изменить оценку</a>
+</div>
 {% endif %}
 {% if perms.contests.add_submission and request|has_student_permission:assignment.user %}
 {% if not assignment.credit_incomplete %}
-<button class="btn btn-block btn-secondary mb-3" disabled>Курс завершен</button>
+<div class="d-grid mb-3">
+    <button class="btn btn-secondary" disabled>Курс завершен</button>
+</div>
 {% elif assignment.deadline is not None and assignment.deadline <= current_time %}
-<button class="btn btn-block btn-secondary mb-3" disabled>Время приема посылок истекло</button>
+<div class="d-grid mb-3">
+    <button class="btn btn-secondary" disabled>Время приема посылок истекло</button>
+</div>
 {% elif assignment.submission_limit <= assignment.submission_set.count %}
-<button class="btn btn-block btn-secondary mb-3" disabled>Все попытки потрачены</button>
+<div class="d-grid mb-3">
+    <button class="btn btn-secondary" disabled>Все попытки потрачены</button>
+</div>
 {% else %}
-<a href="{% url 'contests:submission-create' assignment.problem.id %}?from_assignment=1" class="btn btn-block btn-info mb-3"><i class="fa fa-file-o fa-fw"></i> Отправить решение</a>
+<div class="d-grid mb-3">
+    <a href="{% url 'contests:submission-create' assignment.problem.id %}?from_assignment=1" class="btn btn-info"><i class="fa fa-file-o fa-fw"></i> Отправить решение</a>
+</div>
 {% endif %}
 {% endif %}
 {% if assignment.remark %}
@@ -84,7 +94,9 @@
 <div class="w-100 mb-3">
 {% render_attachment_list assignment assignment.course %}
 {% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %}
-<a href="{% url 'contests:assignment-update' assignment.id %}?action=add_files" class="btn btn-block btn-light mb-3"><i class="fa fa-files-o fa-fw"></i> Прикрепить файлы</a>
+<div class="d-grid mb-3">
+    <a href="{% url 'contests:assignment-update' assignment.id %}?action=add_files" class="btn btn-light"><i class="fa fa-files-o fa-fw"></i> Прикрепить файлы</a>
+</div>
 {% endif %}
 </div>
 <div class="col-xs-12 col-md-6 mx-auto">
@@ -94,10 +106,12 @@
     {% endif %}
 </div>
 <legend>Комментарии</legend>
-<a class="btn btn-light btn-block border mb-3" href="{% url 'contests:assignment-discussion' assignment.id %}">
-    {% unread_comments_count request.user.account assignment as ucc %}
-    <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
-</a>
+<div class="d-grid mb-3">
+    <a class="btn btn-light border" href="{% url 'contests:assignment-discussion' assignment.id %}">
+        {% unread_comments_count request.user.account assignment as ucc %}
+        <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
+    </a>
+</div>
 {% include 'accounts/comment/comment_list.html' with obj=assignment without_form=True paginator=comment_paginator page_obj=comment_page_obj is_paginated=comment_is_paginated %}
 {% endblock content %}
 

@@ -16,18 +16,18 @@
         <span class="text-truncate">{% if type == 1 %}Студенты{% else %}Сотрудники{% endif %}{% if graduated %}: выпускники{% elif enrolled == False %}: отчисленные{% endif %}</span>
         <span class="d-flex justify-content-between">
             {% if perms.accounts.add_account %}
-            <a href="{% url 'accounts:account-create-set' %}?faculty_id={{ faculty.id }}" id="account_list_create_set" class="text-success text-decoration-none" data-toggle="tooltip" data-placement="top" title="Добавить пользователей"><i class="fa fa-user-plus fa-fw"></i></a>
+            <a href="{% url 'accounts:account-create-set' %}?faculty_id={{ faculty.id }}" id="account_list_create_set" class="text-success" data-toggle="tooltip" data-placement="top" title="Добавить пользователей"><i class="fa fa-user-plus fa-fw"></i></a>
             {% endif %}
             {% if perms.accounts.change_account %}
-            <a href="{% url 'accounts:account-update-set' %}{{ request|get_query_string }}" id="account_list_update_set" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Перейти в режим редактирования"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'accounts:account-update-set' %}{{ request|get_query_string }}" id="account_list_update_set" data-toggle="tooltip" data-placement="left" title="Перейти в режим редактирования"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
         </span>
     </div>
 </legend>
 <form>
-    <div class="form-row">
+    <div class="row">
         <div id="account_list_filters" class="col-12 col-md-8">
-            <div class="form-row">
+            <div class="row">
                 <div class="col-6 col-md-3">
                     <select id="type_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
                         <option value="{% get_full_path_with_updated_query_string request type=1 %}" {% if type == 1 %}selected{% endif %}>Студенты</option>
@@ -69,14 +69,14 @@
             </div>
         </div>
         {% if perms.accounts.change_account %}
-        <div class="col-12 col-md-4 ml-auto mb-3 mb-md-0">
+        <div class="col-12 col-md-4 ms-auto mb-3 mb-md-0">
             <div class="pull-right">
                 <div id="account_list_form_actions" class="btn-toolbar" style="visibility: hidden;" role="toolbar" aria-label="Toolbar with button groups">
                     <div class="btn-group" role="group" aria-label="First group">
                         <button type="submit" name="action" form="account_list_form" value="reset_password" class="btn btn-sm btn-info" data-toggle="tooltip" data-placement="top" title="Выставить новый пароль для профилей выбранных пользователей"><i class="fa fa-key fa-fw"></i></button>
                     </div>
                 {% if type == 1 %}
-                    <div class="btn-group ml-2" role="group" aria-label="Second group">
+                    <div class="btn-group ms-2" role="group" aria-label="Second group">
                         <button type="submit" name="action" form="account_list_form" value="level_up" class="btn btn-info" data-toggle="tooltip" data-placement="top" title="Повысить уровень выбранных студентов на 1"><i class="fa fa-level-up fa-fw"></i></button>
                         <button type="submit" name="action" form="account_list_form" value="level_down" class="btn btn-info" data-toggle="tooltip" data-placement="top" title="Понизить уровень выбранных студентов на 1"><i class="fa fa-level-down fa-fw"></i></button>
                         <button type="submit" name="action" form="account_list_form" value="enroll" class="btn btn-info" data-toggle="tooltip" data-placement="top" title="Восстановить выбранных отчисленных студентов"><i class="fa fa-undo fa-fw"></i></button>
@@ -99,13 +99,13 @@
             <tr>
                 {% if sort != 2 %}
                 <th class="text-center" style="width: 4%;">
-                    <div class="custom-control custom-checkbox" data-toggle="tooltip" data-placement="top" title="Выбрать всех пользователей">
-                        <input id="check_all" type="checkbox" class="custom-control-input">
-                        <label for="check_all" class="custom-control-label ml-2"></label>
+                    <div class="form-check" data-toggle="tooltip" data-placement="top" title="Выбрать всех пользователей">
+                        <input class="form-check-input" id="check_all" type="checkbox">
+                        <label class="form-check-label ms-2" for="check_all"></label>
                     </div>
                 </th>
                 {% endif %}
-                <th class="text-right" style="width: 4%;">№</th>
+                <th class="text-end" style="width: 4%;">№</th>
                 <th class="text-center">Ф.И.О.</th>
                 {% if sort == 2 %}
                     <th class="text-center" style="width: 10%;">Баллы</th>
@@ -118,13 +118,13 @@
             <tr>
                 {% if sort != 2 %}
                 <td class="text-center">
-                    <div class="custom-control custom-checkbox">
-                        <input id="check_{{ account.user_id }}" type="checkbox" class="custom-control-input check" name="accounts" value="{{ account.user_id }}">
-                        <label for="check_{{ account.user_id }}" class="custom-control-label ml-2"></label>
+                    <div class="form-check">
+                        <input class="form-check-input check" id="check_{{ account.user_id }}" type="checkbox" name="accounts" value="{{ account.user_id }}">
+                        <label class="form-check-label ms-2" for="check_{{ account.user_id }}"></label>
                     </div>
                 </td>
                 {% endif %}
-                <td class="text-right text-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
+                <td class="text-end font-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
                 <td class="text-nowrap"><a href="{{ account.get_absolute_url }}">{{ account }}</a></td>
                 {% if sort == 2 %}
                 {% account_course_credit_score account course as accs %}

@@ -33,7 +33,7 @@
     {% if perms.support.change_question %}
     {% render_field form.redirect_comment class+="form-control" %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" %}
-    {% render_field form.is_published class+="custom-control-input" %}
+    {% render_field form.is_published class+="form-check-input" %}
     {% endwith %}
     {% endif %}
     {% endwith %}

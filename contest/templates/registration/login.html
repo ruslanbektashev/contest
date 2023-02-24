@@ -14,7 +14,7 @@
             <img class="mb-4" src="{% static 'msu-logo.png' %}" alt="" width="72" height="72">
             <h1 class="h3 mb-3 fw-normal">МГУ Контест</h1>
             {% if form.non_field_errors %}
-            <div class="alert alert-danger text-left">
+            <div class="alert alert-danger text-start">
                 {% for error in form.non_field_errors %}
                 {{ error }}<br>
                 {% endfor %}

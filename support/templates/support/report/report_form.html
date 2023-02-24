@@ -30,7 +30,7 @@
     {% endwith %}
     {% if report %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" WIDGET_ERROR_CLASS="is-invalid" %}
-    {% render_field form.closed class+="custom-control-input" %}
+    {% render_field form.closed class+="form-check-input" %}
     {% endwith %}
     {% endif %}
     {% render_submit_button value="Отправить" %}

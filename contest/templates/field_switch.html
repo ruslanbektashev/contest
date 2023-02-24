@@ -1,11 +1,8 @@
-<div class="form-group">
-    <div class="custom-control custom-switch">
+<div class="mb-3 d-flex align-items-center">
+    <div class="form-check form-switch">
         {{ field }}
-        <label class="custom-control-label" for="{{ field.id_for_label }}">
+        <label class="form-check-label" for="{{ field.id_for_label }}">
             {{ field.label }}{{ field.label_suffix }}
         </label>
     </div>
-    {% if field.help_text %}
-    <small class="form-text text-muted">{{ field.help_text }}</small>
-    {% endif %}
 </div>

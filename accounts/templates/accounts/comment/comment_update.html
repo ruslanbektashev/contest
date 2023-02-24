@@ -19,7 +19,7 @@
     {{ form.object_type }}
     {{ form.object_id }}
     {% render_form_errors form %}
-    <div class="form-group">
+    <div class="mb-3">
         {% render_field_errors form.text %}
         {% render_field form.text class+="form-control" rows="5" placeholder="Ваш комментарий" %}
     </div>

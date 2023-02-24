@@ -16,7 +16,7 @@
     <div class="d-flex justify-content-between">
         <span class="text-truncate">Сообщения об ошибках</span>
         <span class="d-flex justify-content-between">
-            <a href="{% url 'support:report-create' %}?from={{ request.path }}" class="text-success text-decoration-none" data-toggle="tooltip" data-placement="left" title="Сообщить об ошибке"><i class="fa fa-plus fa-fw"></i></a>
+            <a href="{% url 'support:report-create' %}?from={{ request.path }}" class="text-success" data-toggle="tooltip" data-placement="left" title="Сообщить об ошибке"><i class="fa fa-plus fa-fw"></i></a>
         </span>
     </div>
 </legend>
@@ -24,8 +24,8 @@
 <div class="list-group mb-3">
     {% for report in reports %}
     <li class="list-group-item d-flex text-nowrap">
-        <a href="{{ report.get_absolute_url }}" class="mr-auto text-truncate">{{ report }}{% if request.user.is_superuser %} ({{ report.owner.account }}){% endif %}</a>
-        <span class="user-select-none ml-3">
+        <a href="{{ report.get_absolute_url }}" class="me-auto text-truncate">{{ report }}{% if request.user.is_superuser %} ({{ report.owner.account }}){% endif %}</a>
+        <span class="user-select-none ms-3">
             {% if report.closed %}
             <span class="numtus status-success">Закрыто</span>
             {% else %}

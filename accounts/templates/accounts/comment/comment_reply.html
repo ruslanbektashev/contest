@@ -18,12 +18,12 @@
 {% if parent %}
 <div class="comment-list">
     <div id="comment_{{ parent.id }}" class="d-flex comment-list-item mb-4">
-        <div class="comment-avatar mr-3">
+        <div class="comment-avatar me-3">
             <img src="{% static 'comment-avatar.png' %}" alt="Изображение профиля">
         </div>
         <div class="comment-main">
             <div class="comment-header mb-1 d-flex">
-                <div class="comment-user mr-2">
+                <div class="comment-user me-2">
                     <a href="{{ parent.author.account.get_absolute_url }}" class="{% if not parent.author.account.is_student %}text-success{% endif %}">
                         {{ parent.author.account }}
                     </a>
@@ -31,7 +31,7 @@
                 <div class="text-muted">
                     ∙
                 </div>
-                <div class="comment-timesince text-muted ml-2">
+                <div class="comment-timesince text-muted ms-2">
                     <small class="comment-naturaltime">{{ parent.date_created|naturaltime }}</small>
                     <small class="comment-datetime">{{ parent.date_created|date:'d b Y г. в H:i' }}</small>
                 </div>

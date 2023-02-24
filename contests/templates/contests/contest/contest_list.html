@@ -7,17 +7,17 @@
     <a href="{{ contest.get_absolute_url }}" class="list-group-item list-group-item-action d-flex">
         {{ contest }}
         {% if contest.hidden_from_students %}
-        <span class="ml-auto">
+        <span class="ms-auto">
             {% if request.user.account.is_student %}
             <i class="fa fa-unlock fa-fw"></i></span>
             {% else %}
-            <span class="ml-auto" data-toggle="tooltip" data-placement="left" title="Раздел скрыт от студентов"><i class="fa fa-lock fa-fw"></i>
+            <span class="ms-auto" data-toggle="tooltip" data-placement="left" title="Раздел скрыт от студентов"><i class="fa fa-lock fa-fw"></i>
             {% endif %}
         </span>
         {% endif %}
     </a>
     {% else %}
-    <span class="list-group-item d-flex text-muted">#{{ contest.number }}. Скрытый раздел <span class="ml-auto"><i class="fa fa-lock fa-fw"></i></span></span>
+    <span class="list-group-item d-flex text-muted">#{{ contest.number }}. Скрытый раздел <span class="ms-auto"><i class="fa fa-lock fa-fw"></i></span></span>
     {% endif %}
     {% endfor %}
 </div>

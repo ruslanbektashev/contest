@@ -3,7 +3,7 @@
     {% for group, options, index in widget.optgroups %}
     {% for option in options %}
     <li class="list-group-item">
-        <div class="custom-control custom-checkbox">
+        <div class="form-check">
             {% include option.template_name with widget=option %}
         </div>
     </li>

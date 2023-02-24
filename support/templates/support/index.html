@@ -24,7 +24,7 @@
             <div class="col-12 {% if perms.support.delete_tutorialsteppass %}col-md-6{% endif %}">
             {% unread_comments_count request.user.account discussion as ucc %}
                 <a href="{% url 'support:discussion-detail' 1 %}" class="btn btn-block btn-light">
-                    <i class="fa fa-comments fa-fw"></i> Чат с разработчиками{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+                    <i class="fa fa-comments fa-fw"></i> Чат с разработчиками{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
                 </a>
             </div>
             {% endif %}
@@ -45,7 +45,7 @@
         {% for question in questions %}
         <div class="card mb-3">
             <div class="card-body d-flex align-items-center">
-                <span class="text-primary mr-auto"><a href="{{ question.get_absolute_url }}">{{ question }}</a></span>
+                <span class="text-primary me-auto"><a href="{{ question.get_absolute_url }}">{{ question }}</a></span>
                 {% if question.addressee == request.user %}
                 <span class="text-warning">
                     <i class="fa fa-star fa-fw" data-toggle="tooltip" data-placement="bottom" title="Вопрос адресован вам"></i>
@@ -54,9 +54,9 @@
             </div>
             <div class="card-footer d-flex align-items-center">
                 {% if request.user.is_superuser %}
-                <span class="text-muted mr-auto">{{ question.owner.account }}</span>
+                <span class="text-muted me-auto">{{ question.owner.account }}</span>
                 {% endif %}
-                <span class="text-muted ml-auto">{{ question.date_created|naturaltime }}</span>
+                <span class="text-muted ms-auto">{{ question.date_created|naturaltime }}</span>
             </div>
         </div>
         {% endfor %}
@@ -85,7 +85,7 @@
         {% for report in reports %}
         <div class="card mb-3">
             <div class="card-body d-flex align-items-center">
-                <span class="text-primary mr-auto"><a href="{{ report.get_absolute_url }}">{{ report }}</a></span>
+                <span class="text-primary me-auto"><a href="{{ report.get_absolute_url }}">{{ report }}</a></span>
                 {% if report.closed %}
                 <span class="numtus status-success">Закрыто</span>
                 {% else %}
@@ -94,9 +94,9 @@
             </div>
             <div class="card-footer d-flex align-items-center">
                 {% if request.user.is_superuser %}
-                <span class="text-muted mr-auto">{{ report.owner.account }}</span>
+                <span class="text-muted me-auto">{{ report.owner.account }}</span>
                 {% endif %}
-                <span class="text-muted ml-auto">{{ report.date_created|naturaltime }}</span>
+                <span class="text-muted ms-auto">{{ report.date_created|naturaltime }}</span>
             </div>
         </div>
         {% endfor %}

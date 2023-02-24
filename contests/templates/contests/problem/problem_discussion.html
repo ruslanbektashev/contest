@@ -21,7 +21,7 @@
     </a>
     <a class="btn btn-light border col-6 disabled">
         {% unread_comments_count request.user.account problem as ucc %}
-        <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+        <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
     </a>
 </div>
 {% include 'accounts/comment/comment_list.html' with obj=problem %}

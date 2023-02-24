@@ -20,7 +20,7 @@
             {% if problem.type == 'Program' %}
             {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
             <span class="dropdown show" data-toggle="tooltip" data-placement="left" title="Добавить тест">
-                <a href="#" class="text-decoration-none text-success" role="button" id="dropdownAddTestMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-plus fa-fw"></i></a>
+                <a href="#" class="text-success" role="button" id="dropdownAddTestMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-plus fa-fw"></i></a>
                 <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownAddTestMenuLink">
                     <a href="{% url 'contests:iotest-create' problem.id %}" class="dropdown-item"><i class="fa fa-keyboard-o fa-fw"></i> IO-тест</a>
                     <a href="{% url 'contests:uttest-create' problem.id %}" class="dropdown-item"><i class="fa fa-keyboard-o fa-fw"></i> UT-тест</a>
@@ -31,15 +31,15 @@
             {% endif %}
             {% if problem.type == 'Program' or problem.type == 'Files' %}
             {% if perms.contests.add_submission_pattern or request|has_leader_permission:problem.course %}
-            <a href="{% url 'contests:submission-pattern-create' problem.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Добавить шаблон посылки"><i class="fa fa-clone fa-fw"></i></a>
+            <a href="{% url 'contests:submission-pattern-create' problem.id %}" data-toggle="tooltip" data-placement="top" title="Добавить шаблон посылки"><i class="fa fa-clone fa-fw"></i></a>
             {% endif %}
             {% endif %}
             {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
-            <a href="{% url 'contests:problem-update' problem.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'contests:problem-update' problem.id %}" data-toggle="tooltip" data-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.delete_problem or request|has_leader_permission:problem.course %}
             <span class="dropdown show">
-                <a href="#" class="text-decoration-none" role="button" id="dropdownMoreMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
+                <a href="#" role="button" id="dropdownMoreMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
                 <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownMoreMenuLink">
                     <a href="{% url 'contests:problem-update' problem.id %}?action=move" class="dropdown-item"><i class="fa fa-share-square-o fa-fw"></i> Переместить</a>
                     <a href="{% url 'contests:problem-delete' problem.id %}" class="dropdown-item text-danger"><i class="fa fa-trash-o fa-fw"></i> Удалить</a>
@@ -53,7 +53,7 @@
     <div class="card">
         <div class="card-header" id="problem_description">
             <h2 class="mb-0">
-                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                <button class="btn btn-link btn-block text-start" type="button" data-toggle="collapse"
                         data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
                     Условия задачи
                 </button>
@@ -71,7 +71,7 @@
                     <li class="list-group-item d-flex">
                         {{ option.text }}
                         {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
-                            {% if option.is_correct %}<span class="contest-correct-option text-success ml-auto d-none"><i class="fa fa-check fa-fw"></i></span>{% endif %}
+                            {% if option.is_correct %}<span class="contest-correct-option text-success ms-auto d-none"><i class="fa fa-check fa-fw"></i></span>{% endif %}
                         {% endif %}
                     </li>
                     {% endfor %}
@@ -81,9 +81,9 @@
                 {% for subproblem in subproblems %}
                 <div class="card mb-3">
                     <div class="card-header d-flex align-items-center">
-                        <small class="mr-3" data-toggle="tooltip" data-placement="top" title="Номер в тесте">{{ subproblem.number }}</small>
+                        <small class="me-3" data-toggle="tooltip" data-placement="top" title="Номер в тесте">{{ subproblem.number }}</small>
                         {% if subproblem.sub_problem.title %}
-                        <small class="mr-auto">
+                        <small class="me-auto">
                             <a href="{% url 'contests:problem-detail' subproblem.sub_problem.id %}" class="card-link">
                                 {{ subproblem.sub_problem.title }}
                             </a>
@@ -91,10 +91,10 @@
                         {% endif %}
                         <small>{{ subproblem.sub_problem.get_type_display }}</small>
                         {% if perms.contests.change_subproblem and perms.contests.delete_subproblem or request|has_leader_permission:problem.course %}
-                        <a href="{% url 'contests:subproblem-update' subproblem.id %}" class="card-link ml-2" data-toggle="tooltip" data-placement="top" title="Изменить номер">
+                        <a href="{% url 'contests:subproblem-update' subproblem.id %}" class="card-link ms-2" data-toggle="tooltip" data-placement="top" title="Изменить номер">
                             <i class="fa fa-edit fa-fw fa-lg"></i>
                         </a>
-                        <a href="{% url 'contests:subproblem-delete' subproblem.id %}" class="card-link text-danger ml-2" data-toggle="tooltip" data-placement="top" title="Удалить из теста" style="position: relative; top: -0.08rem;">
+                        <a href="{% url 'contests:subproblem-delete' subproblem.id %}" class="card-link text-danger ms-2" data-toggle="tooltip" data-placement="top" title="Удалить из теста" style="position: relative; top: -0.08rem;">
                             <i class="fa fa-trash-o fa-fw fa-lg"></i>
                         </a>
                         {% endif %}
@@ -108,7 +108,7 @@
                                 {% for option in subproblem.sub_problem.option_set.order_randomly %}
                                     <li class="list-group-item d-flex">{{ option.text }}
                                     {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
-                                        {% if option.is_correct %}<span class="contest-correct-option text-success ml-auto d-none"><i class="fa fa-check fa-fw"></i></span>{% endif %}
+                                        {% if option.is_correct %}<span class="contest-correct-option text-success ms-auto d-none"><i class="fa fa-check fa-fw"></i></span>{% endif %}
                                     {% endif %}
                                     </li>
                                 {% endfor %}
@@ -121,8 +121,8 @@
                 {% endif %}
                 {% if problem.type == 'Options' or problem.type == 'Test' %}
                 {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
-                <div class="text-right d-flex mb-3">
-                    <div class="text-right ml-auto" data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям">
+                <div class="text-end d-flex mb-3">
+                    <div class="text-end ms-auto" data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям">
                         <i class="fa fa-lock fa-fw"></i>
                         <button class="btn btn-light" type="button" onclick="toggleCorrectOptions(this, 'Показать верные ответы', 'Скрыть верные ответы')" data-toggle="button" aria-pressed="false">
                             Показать верные ответы
@@ -132,25 +132,25 @@
                 {% endif %}
                 {% endif %}
                 <table class="table table-sm">
-                    <tr><td class="text-right">Тип</td><td style="width: 20%;">{{ problem.get_type_display }}</td></tr>
+                    <tr><td class="text-end">Тип</td><td style="width: 20%;">{{ problem.get_type_display }}</td></tr>
                     {% if problem.type != 'Test' %}
-                    <tr><td class="text-right">Максимальная оценка в баллах</td><td style="width: 20%;">{{ problem.score_max }}</td></tr>
+                    <tr><td class="text-end">Максимальная оценка в баллах</td><td style="width: 20%;">{{ problem.score_max }}</td></tr>
                     {% endif %}
-                    <tr><td class="text-right">{% if problem.type == 'Test' %}Процентов{% else %}Баллов{% endif %} для <span class="numtus status-success">5</span></td><td style="width: 20%;">{{ problem.score_for_5 }}</td></tr>
-                    <tr><td class="text-right">{% if problem.type == 'Test' %}Процентов{% else %}Баллов{% endif %} для <span class="numtus status-success">4</span></td><td style="width: 20%;">{{ problem.score_for_4 }}</td></tr>
-                    <tr><td class="text-right">{% if problem.type == 'Test' %}Процентов{% else %}Баллов{% endif %} для <span class="numtus status-warning">3</span></td><td style="width: 20%;">{{ problem.score_for_3 }}</td></tr>
-                    <tr><td class="text-right">Сложность</td><td style="width: 20%;">{{ problem.get_difficulty_display }}</td></tr>
+                    <tr><td class="text-end">{% if problem.type == 'Test' %}Процентов{% else %}Баллов{% endif %} для <span class="numtus status-success">5</span></td><td style="width: 20%;">{{ problem.score_for_5 }}</td></tr>
+                    <tr><td class="text-end">{% if problem.type == 'Test' %}Процентов{% else %}Баллов{% endif %} для <span class="numtus status-success">4</span></td><td style="width: 20%;">{{ problem.score_for_4 }}</td></tr>
+                    <tr><td class="text-end">{% if problem.type == 'Test' %}Процентов{% else %}Баллов{% endif %} для <span class="numtus status-warning">3</span></td><td style="width: 20%;">{{ problem.score_for_3 }}</td></tr>
+                    <tr><td class="text-end">Сложность</td><td style="width: 20%;">{{ problem.get_difficulty_display }}</td></tr>
                     {% if problem.type == 'Program' %}
-                    <tr><td class="text-right">Язык</td><td style="width: 20%;">{{ problem.get_language_display }}</td></tr>
+                    <tr><td class="text-end">Язык</td><td style="width: 20%;">{{ problem.get_language_display }}</td></tr>
                     {% if problem.compile_args %}
-                    <tr><td class="text-right">Параметры компиляции</td><td style="width: 20%;"><code>{{ problem.compile_args|default:"-" }}</code></td></tr>
+                    <tr><td class="text-end">Параметры компиляции</td><td style="width: 20%;"><code>{{ problem.compile_args|default:"-" }}</code></td></tr>
                     {% endif %}
                     {% if problem.launch_args %}
-                    <tr><td class="text-right">Параметры запуска</td><td style="width: 20%;"><code>{{ problem.launch_args|default:"-" }}</code></td></tr>
+                    <tr><td class="text-end">Параметры запуска</td><td style="width: 20%;"><code>{{ problem.launch_args|default:"-" }}</code></td></tr>
                     {% endif %}
-                    <tr><td class="text-right">Ограничение по времени</td><td style="width: 20%;">{{ problem.time_limit }} с</td></tr>
-                    <tr><td class="text-right">Ограничение по памяти</td><td style="width: 20%;">{{ problem.memory_limit|filesizeformat }}</td></tr>
-                    <tr><td class="text-right">Доступно для тестирования</td><td style="width: 20%;">{{ problem.is_testable|yesno:'да,нет' }}</td></tr>
+                    <tr><td class="text-end">Ограничение по времени</td><td style="width: 20%;">{{ problem.time_limit }} с</td></tr>
+                    <tr><td class="text-end">Ограничение по памяти</td><td style="width: 20%;">{{ problem.memory_limit|filesizeformat }}</td></tr>
+                    <tr><td class="text-end">Доступно для тестирования</td><td style="width: 20%;">{{ problem.is_testable|yesno:'да,нет' }}</td></tr>
                     {% endif %}
                 </table>
                 {% if perms.contests.add_submission or request|has_leader_permission:problem.course %}
@@ -176,7 +176,7 @@
     <div class="card">
         <div class="card-header" id="contest_description">
             <h2 class="mb-0">
-                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                <button class="btn btn-link btn-block text-start" type="button" data-toggle="collapse"
                         data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
                     Описание раздела
                 </button>
@@ -196,7 +196,7 @@
     <div class="card">
         <div class="card-header" id="problem_submissions">
             <h2 class="mb-0">
-                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                <button class="btn btn-link btn-block text-start" type="button" data-toggle="collapse"
                         data-target="#collapseFour" aria-expanded="true" aria-controls="collapseFour">
                     Посылки
                 </button>
@@ -217,7 +217,7 @@
     <div class="card">
         <div class="card-header" id="problem_submission_patterns">
             <h2 class="mb-0">
-                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                <button class="btn btn-link btn-block text-start" type="button" data-toggle="collapse"
                         data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
                     Шаблоны посылок
                 </button>
@@ -235,7 +235,7 @@
     <div class="card">
         <div class="card-header" id="problem_tests">
             <h2 class="mb-0">
-                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                <button class="btn btn-link btn-block text-start" type="button" data-toggle="collapse"
                         data-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
                     Тесты
                 </button>
@@ -259,17 +259,17 @@
 </div>
 <div class="row mb-3">
     <div class="col-12 col-md-6">
-        <div class="col-12 text-muted text-left">Факультет: {{ problem.course.faculty }}</div>
-        <div class="col-12 text-muted text-left">Порядковый номер: {{ problem.number }}</div>
+        <div class="col-12 text-muted text-start">Факультет: {{ problem.course.faculty }}</div>
+        <div class="col-12 text-muted text-start">Порядковый номер: {{ problem.number }}</div>
     </div>
     <div class="col-12 col-md-6">
-        <div class="col-12 text-muted text-left text-md-right">Добавлена: {{ problem.date_created|date:'d E Y г.' }}</div>
-        <div class="col-12 text-muted text-left text-md-right">Добавил(а): <a href="{{ problem.owner.account.get_absolute_url }}" class="text-muted">{{ problem.owner.account }}</a></div>
+        <div class="col-12 text-muted text-start text-md-right">Добавлена: {{ problem.date_created|date:'d E Y г.' }}</div>
+        <div class="col-12 text-muted text-start text-md-right">Добавил(а): <a href="{{ problem.owner.account.get_absolute_url }}" class="text-muted">{{ problem.owner.account }}</a></div>
     </div>
 </div>
 <a class="btn btn-light btn-block border mb-3" href="{% url 'contests:problem-discussion' problem.id %}">
     {% unread_comments_count request.user.account problem as ucc %}
-    <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+    <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
 </a>
 {% endblock content %}
 

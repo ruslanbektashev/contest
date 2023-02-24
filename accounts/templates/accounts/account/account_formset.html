@@ -61,15 +61,15 @@
                     <td>{% render_field form.admission_year class+="form-control selectpicker" data-style="btn-light rounded-0" data-container="body" %}</td>
                     <td>{% render_field form.record_book_id class+="form-control rounded-0" %}</td>
                     <td class="text-center">
-                        <div class="custom-control custom-switch mt-2">
-                            {% render_field form.enrolled class+="custom-control-input" %}
-                            <label class="custom-control-label" for="{{ form.enrolled.id_for_label }}"></label>
+                        <div class="form-check mt-2">
+                            {% render_field form.enrolled class+="form-check-input" %}
+                            <label class="form-check-label" for="{{ form.enrolled.id_for_label }}"></label>
                         </div>
                     </td>
                     <td class="text-center">
-                        <div class="custom-control custom-switch mt-2">
-                            {% render_field form.graduated class+="custom-control-input" %}
-                            <label class="custom-control-label" for="{{ form.graduated.id_for_label }}"></label>
+                        <div class="form-check mt-2">
+                            {% render_field form.graduated class+="form-check-input" %}
+                            <label class="form-check-label" for="{{ form.graduated.id_for_label }}"></label>
                         </div>
                     </td>
                     {% else %}
@@ -79,9 +79,9 @@
                     <td>{% render_field form.type class+="form-control selectpicker" data-style="btn-light rounded-0" data-container="body" %}</td>
                     {% endif %}
                     <td class="text-center">
-                        <div class="custom-control custom-switch mt-2">
-                            {% render_field form.is_active class+="custom-control-input" %}
-                            <label class="custom-control-label" for="{{ form.is_active.id_for_label }}"></label>
+                        <div class="form-check mt-2">
+                            {% render_field form.is_active class+="form-check-input" %}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}"></label>
                         </div>
                     </td>
                 {% endwith %}
@@ -90,17 +90,8 @@
             </tbody>
         </table>
     </div>
-    <div class="mt-3">
-        <input class="btn btn-light btn-block border" type="submit" value="Сохранить" />
+    <div class="d-grid mt-3">
+        <input class="btn btn-light border" type="submit" value="Сохранить" />
     </div>
 </form>
 {% endblock content %}
-
-{% block javascript %}
-<script src="{% static 'js/bs-custom-file-input.min.js' %}" type="text/javascript"></script>
-<script type="text/javascript">
-$(function () {
-    bsCustomFileInput.init()
-});
-</script>
-{% endblock javascript %}

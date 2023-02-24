@@ -24,8 +24,8 @@
         Удаление комментария приведет к удалению всех ответов на него.
         {% endif %}
     </div>
-    <div class="form-group">
-        <input class="btn btn-danger btn-block" type="submit" value="Удалить" {% if not perms.accounts.delete_comment and thread_length > 1 %}disabled{% endif %}/>
+    <div class="d-grid">
+        <input class="btn btn-danger" type="submit" value="Удалить" {% if not perms.accounts.delete_comment and thread_length > 1 %}disabled{% endif %}/>
     </div>
 </form>
 {% endblock content %}

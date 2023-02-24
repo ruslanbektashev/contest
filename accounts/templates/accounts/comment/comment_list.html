@@ -3,18 +3,20 @@
 {% render_comment_form obj %}
 {% endif %}
 {% if page_obj.has_previous %}
-<a class="btn btn-block btn-link mb-4" href="?page=1"><i class="fa fa-ellipsis-h fa-lg"></i></a>
+<div class="d-grid">
+    <a class="btn btn-link mb-4" href="?page=1"><i class="fa fa-ellipsis-h fa-lg"></i></a>
+</div>
 {% endif %}
 <div id="comments" class="comment-list">
     {% for comment in comments %}
     <div class="d-flex comment-list-item col{{ comment.level|add:'-13' }} offset-{{ comment.level|add:'-1' }} mb-3 p-3 rounded {% if comment not in request.user.account.comments_read.all and comment.author_id != request.user.id %}bg-light" data-unread=true{% else %}"{% endif %} data-id={{ comment.id }} >
         <a id="comment_{{ comment.id }}" class="comment-anchor">&nbsp</a>
-        <div class="comment-avatar mr-3">
+        <div class="comment-avatar me-3">
             {% include 'accounts/account/account_image.html' with last_name=comment.author.account.last_name first_name=comment.author.account.first_name size=40 rounded=True %}
         </div>
         <div class="comment-main w-100">
             <div class="comment-header mb-1 d-flex lake">
-                <div class="comment-user text-nowrap mr-2">
+                <div class="comment-user text-nowrap me-2">
                     <a href="{{ comment.author.account.get_absolute_url }}" class="{% if not comment.author.account.is_student %}text-success{% endif %}">
                         {{ comment.author.account }}
                     </a>
@@ -22,7 +24,7 @@
                 <div class="text-muted">
                     ∙
                 </div>
-                <div class="comment-timesince text-muted text-nowrap ml-2">
+                <div class="comment-timesince text-muted text-nowrap ms-2">
                     <small class="comment-naturaltime">{{ comment.date_created|naturaltime }}</small>
                     <small class="comment-datetime"><a href="{{ comment.object.get_discussion_url }}{% get_comment_query_string page_obj.number %}#comment_{{ comment.id }}" class="text-muted">{{ comment.date_created|date:'d b Y г. в H:i' }}</a></small>
                 </div>
@@ -46,7 +48,9 @@
     {% endfor %}
 </div>
 {% if page_obj.has_next %}
-<a class="comment-list-more btn btn-block btn-link" href="?page={{ page_obj.next_page_number }}">еще</a>
+<div class="d-grid">
+    <a class="comment-list-more btn btn-link" href="?page={{ page_obj.next_page_number }}">еще</a>
+</div>
 {% endif %}
 
 {% block javascript %}

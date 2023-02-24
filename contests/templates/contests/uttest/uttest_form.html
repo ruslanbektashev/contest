@@ -29,19 +29,10 @@
     {% render_field form.compile_args_override class+="form-control" %}
     {% render_field form.launch_args class+="form-control" %}
     {% render_field form.launch_args_override class+="form-control" %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" %}
-    {% render_field form.files class+="custom-file-input" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.files class+="form-control" %}
     {% endwith %}
     {% endwith %}
     {% render_submit_button value="Сохранить" %}
 </form>
 {% endblock content %}
-
-{% block javascript %}
-<script src="{% static 'js/bs-custom-file-input.min.js' %}" type="text/javascript"></script>
-<script type="text/javascript">
-$(function () {
-    bsCustomFileInput.init()
-});
-</script>
-{% endblock javascript %}

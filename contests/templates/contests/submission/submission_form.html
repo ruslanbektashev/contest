@@ -72,23 +72,21 @@
 
     {% if problem.type == 'Program' or problem.type == 'Verbal' or problem.type == 'Files' %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
-    {% render_field form.files class+="custom-file-input"%}
+    {% render_field form.files class+="form-control"%}
     {% endwith %}
     {% endif %}
 
     {% if problem.type == 'Text' %}
     {{ form.media }}
-    <div class="form-group">
+    <div class="mb-3">
         <label for="{{ field.id_for_label }}">
             {{ form.text.label }}{{ form.text.label_suffix }}
         </label>
         {% if form.text.errors %}
-        <div class="form-group">
-            <div class="alert alert-danger">
-                {% for error in form.text.errors %}
-                {{ error }}<br>
-                {% endfor %}
-            </div>
+        <div class="alert alert-danger">
+            {% for error in form.text.errors %}
+            {{ error }}<br>
+            {% endfor %}
         </div>
         {% endif %}
         <div class="input-group">
@@ -110,18 +108,18 @@
     {% endif %}
 
     {% if problem.type == 'Text' %}
-    <div class="form-group">
-        <button id="form_proceed" class="btn btn-light btn-block border" type="button" onclick="showConfirmation()" style="opacity: 1;">Продолжить</button>
+    <div class="d-grid mb-3">
+        <button id="form_proceed" class="btn btn-light border" type="button" onclick="showConfirmation()" style="opacity: 1;">Продолжить</button>
     </div>
-    <div class="form-group">
-        <div id="form_confirm" class="btn-group btn-block" hidden style="opacity: 0;">
+    <div class="d-grid mb-3">
+        <div id="form_confirm" class="btn-group" hidden style="opacity: 0;">
             <input class="btn btn-info col-11" type="submit" value="Отправить" />
             <button class="btn btn-danger" type="button" onclick="hideConfirmation()">Отмена</button>
         </div>
     </div>
     {% else %}
-    <div class="form-group">
-        <input class="btn btn-light btn-block border" type="submit" value="Отправить"/>
+    <div class="d-grid">
+        <input class="btn btn-light border" type="submit" value="Отправить"/>
     </div>
     {% endif %}
 </form>
@@ -140,14 +138,6 @@
 {% endblock content %}
 
 {% block javascript %}
-{% if problem.type == 'Program' or problem.type == 'Files' %}
-<script src="{% static 'js/bs-custom-file-input.min.js' %}" type="text/javascript"></script>
-<script type="text/javascript">
-document.addEventListener("DOMContentLoaded", function() {
-    bsCustomFileInput.init()
-});
-</script>
-{% endif %}
 {% if problem.type == 'Text' %}
 <script type="text/javascript">
 const second = 1000;

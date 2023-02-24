@@ -18,13 +18,13 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm">
     <div class="container">
         <a id="contest_logo" class="navbar-brand" href="{% url 'contests:index' %}">
-            <img src="{% static 'msu-logo.png' %}" class="mr-2" style="width:30px; height: 30px;" alt="Московский Государственный Университет имени М.В. Ломоносова"><span>Контест</span><sup> β</sup>
+            <img src="{% static 'msu-logo.png' %}" class="me-2" style="width:30px; height: 30px;" alt="Московский Государственный Университет имени М.В. Ломоносова"><span>Контест</span><sup> β</sup>
         </a>
         <button aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#navbarToggler" data-toggle="collapse" type="button">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarToggler">
-            <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+            <ul class="navbar-nav me-auto mt-2 mt-lg-0">
                 {% if request.user.is_authenticated %}
                 <li>
                     <a class="nav-link" href="{% url 'accounts:announcement-list' %}">Объявления</a>
@@ -50,12 +50,12 @@
                 {% endif %}
                 <li>
                     {% with notification_count=request.user.notifications.unread.count %}
-                    <a class="nav-link" href="{% url 'accounts:notification-list' %}">Оповещения {% if notification_count %} <span id="unread_notifications_count" class="badge badge-pill badge-secondary align-middle" style="position: relative; top: -0.08rem;">{{ notification_count }}</span>{% endif %}</a>
+                    <a class="nav-link" href="{% url 'accounts:notification-list' %}">Оповещения {% if notification_count %} <span id="unread_notifications_count" class="badge rounded-pill bg-secondary align-middle" style="position: relative; top: -0.08rem;">{{ notification_count }}</span>{% endif %}</a>
                     {% endwith %}
                 </li>
                 {% endif %}
             </ul>
-            <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+            <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
                 {% if request.user.is_authenticated %}
                 <li class="nav-item dropdown">
                     <a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="navbarDropdown" role="button">
@@ -114,7 +114,7 @@
     <div class="container">
         <div class="btn-toolbar justify-content-center">
             {% if perms.support.delete_tutorialsteppass %}
-            <div class="btn-group btn-group mb-3 mr-3" role="group">
+            <div class="btn-group btn-group mb-3 me-3" role="group">
                 <a href="{% url 'support:tutorial-reset' request.resolver_match.app_name|add:":"|add:request.resolver_match.url_name %}?from={{ request.get_full_path }}" id="contest_tutorial_reset" class="btn btn-light border" data-toggle="tooltip" data-placement="left" title="Пройти руководство на этой странице"><i class="fa fa-book"></i> Руководство</a>
             </div>
             {% endif %}

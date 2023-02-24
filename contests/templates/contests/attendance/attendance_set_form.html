@@ -22,7 +22,7 @@
 <form action="" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
-    <div id="field_date_interval" class="form-row">
+    <div id="field_date_interval" class="row">
         {% with WIDGET_ERROR_CLASS="is-invalid" %}
         <div class="col-4 col-lg-3">
             {% render_field form.date class+="form-control" %}
@@ -48,12 +48,12 @@
         <table class="table table-bordered table-sm table-hover">
             <thead>
                 <tr id="attendance_formset_table_header">
-                    <th class="text-right" style="width: 4%;">№</th>
+                    <th class="text-end" style="width: 4%;">№</th>
                     <th style="width: 25%;">Студент</th>
                     <th class="text-center" style="width: 4%;">
-                        <div class="custom-control custom-checkbox" data-toggle="tooltip" data-placement="top" title="Отметить всех студентов">
-                            <input id="check_all" type="checkbox" class="custom-control-input">
-                            <label for="check_all" class="custom-control-label ml-2"></label>
+                        <div class="form-check" data-toggle="tooltip" data-placement="top" title="Отметить всех студентов">
+                            <input class="form-check-input" id="check_all" type="checkbox">
+                            <label class="form-check-label ms-2" for="check_all"></label>
                         </div>
                     </th>
                     <th></th>
@@ -62,12 +62,12 @@
             <tbody>
                 {% for form in formset %}
                 <tr>
-                    <td class="text-right text-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
+                    <td class="text-end font-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
                     <td class="text-truncate"><a href="{{ form.account.get_absolute_url }}" data-toggle="tooltip" data-placement="bottom" title="{{ form.account.get_full_name }}">{{ form.account.get_short_name }}</a></td>
                     <td class="text-center">
-                        <div class="custom-control custom-checkbox">
-                            {% render_field form.flag class+="custom-control-input check" %}
-                            <label for="{{ form.flag.id_for_label }}" class="custom-control-label ml-2"></label>
+                        <div class="form-check">
+                            {% render_field form.flag class+="form-check-input check" %}
+                            <label class="form-check-label ms-2" for="{{ form.flag.id_for_label }}"></label>
                         </div>
                     </td>
                     <td>

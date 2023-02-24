@@ -50,7 +50,7 @@
                                     <a href="{{ notification.reference.get_absolute_url }}"> {{ notification.reference }}</a>
                                 {% endif %}
                             </span>
-                            <span class="text-muted text-right">
+                            <span class="text-muted text-end">
                                 {% if notification.date_created|date:'Y' == current_year %}
                                     {{ notification.date_created|naturaltime_if_lt_week_ago:'j E в H:i' }}
                                 {% else %}
@@ -74,7 +74,7 @@
                             <span class="notification-body me-auto">
                                 {{ announcement.title }}
                             </span>
-                            <span class="text-muted text-right" style="width: 25%;">
+                            <span class="text-muted text-end" style="width: 25%;">
                                 {{ announcement.date_created|date:'' }}
                             </span>
                         </a>

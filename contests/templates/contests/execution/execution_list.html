@@ -3,11 +3,11 @@
 <div class="card">
     <div class="card-header d-flex">
         {% if execution.test_is_passed %}
-        <span class="badge badge-success p-1 mr-2 align-self-center" data-toggle="tooltip" data-placement="top" title="Тест пройден"><i class="fa fa-check fa-fw"></i></span>
+        <span class="badge bg-success p-1 me-2 align-self-center" data-toggle="tooltip" data-placement="top" title="Тест пройден"><i class="fa fa-check fa-fw"></i></span>
         {% else %}
-        <span class="badge badge-danger p-1 mr-2 align-self-center" data-toggle="tooltip" data-placement="top" title="Тест провален"><i class="fa fa-times fa-fw"></i></span>
+        <span class="badge bg-danger p-1 me-2 align-self-center" data-toggle="tooltip" data-placement="top" title="Тест провален"><i class="fa fa-times fa-fw"></i></span>
         {% endif %}
-        <span class="mr-auto">
+        <span class="me-auto">
             {% if perms.contests.view_submission and execution.test or request|has_leader_permission:course and execution.test %}
             <a href="{{ execution.test.get_absolute_url }}">{{ execution.test }}</a>
             {% else %}
@@ -15,59 +15,59 @@
             {% endif %}
         </span>
         <span class="text-muted" style="margin: 0 10px 0 0;">{{ execution.date_created }}</span>
-        <a class="collapse-toggle ml-2" href="#test_{{ execution.test.id }}_{{ forloop.counter }}" data-toggle="collapse" aria-expanded="{% if not execution.test_is_passed %}true{% else %}false{% endif %}" aria-controls="test_{{ execution.test.id }}_{{ forloop.counter }}">
+        <a class="collapse-toggle ms-2" href="#test_{{ execution.test.id }}_{{ forloop.counter }}" data-toggle="collapse" aria-expanded="{% if not execution.test_is_passed %}true{% else %}false{% endif %}" aria-controls="test_{{ execution.test.id }}_{{ forloop.counter }}">
             <i class="fa fa-angle-{% if not execution.test_is_passed %}up{% else %}down{% endif %} fa-lg"></i>
         </a>
     </div>
     <div class="collapse {% if not execution.test_is_passed %}show{% endif %}" id="test_{{ execution.test.id }}_{{ forloop.counter }}">
         <div class="card-body">
             <table class="table table-sm">
-                <tr><td class="text-right" style="width: 25%;">Команда компиляции</td><td><code>{{ execution.compilation_command|remove_pwd|default:"-" }}</code></td></tr>
-                <tr><td class="text-right" style="width: 25%;">Время компиляции</td><td>{{ execution.compilation_time|floatformat:"-4" }} с</td></tr>
-                <tr><td class="text-right" style="width: 25%;">Команда исполнения</td><td><code>{{ execution.execution_command|remove_pwd|default:"-" }}</code></td></tr>
-                <tr><td class="text-right" style="width: 25%;">Время исполнения</td><td>{{ execution.execution_time|floatformat:"-4" }} с</td></tr>
-                <tr><td class="text-right" style="width: 25%;">Код возврата</td><td>{{ execution.execution_returncode }}</td></tr>
-                <tr><td class="text-right" style="width: 25%;">Использовано памяти</td><td>{{ execution.execution_memory|filesizeformat }}</td></tr>
+                <tr><td class="text-end" style="width: 25%;">Команда компиляции</td><td><code>{{ execution.compilation_command|remove_pwd|default:"-" }}</code></td></tr>
+                <tr><td class="text-end" style="width: 25%;">Время компиляции</td><td>{{ execution.compilation_time|floatformat:"-4" }} с</td></tr>
+                <tr><td class="text-end" style="width: 25%;">Команда исполнения</td><td><code>{{ execution.execution_command|remove_pwd|default:"-" }}</code></td></tr>
+                <tr><td class="text-end" style="width: 25%;">Время исполнения</td><td>{{ execution.execution_time|floatformat:"-4" }} с</td></tr>
+                <tr><td class="text-end" style="width: 25%;">Код возврата</td><td>{{ execution.execution_returncode }}</td></tr>
+                <tr><td class="text-end" style="width: 25%;">Использовано памяти</td><td>{{ execution.execution_memory|filesizeformat }}</td></tr>
             </table>
             {% if execution.compilation_stdout %}
-            <span class="badge badge-secondary">Вывод компилятора в stdout:</span>
+            <span class="badge bg-secondary">Вывод компилятора в stdout:</span>
             <pre class="alert alert-secondary">{{ execution.compilation_stdout|remove_pwd }}</pre>
             {% endif %}
             {% if execution.compilation_stderr %}
-            <span class="badge badge-secondary">Вывод компилятора в stderr:</span>
+            <span class="badge bg-secondary">Вывод компилятора в stderr:</span>
             <pre class="alert alert-secondary">{{ execution.compilation_stderr|remove_pwd }}</pre>
             {% endif %}
             {% if execution.execution_stdout %}
             {% if perms.contests.view_submission or request|has_leader_permission:course %}
-            <span data-toggle="tooltip" data-placement="right" title="Отображается только для преподавателя" class="badge badge-warning"><i class="fa fa-lock fa-fw"></i>Вывод программы в stdout:</span>
+            <span data-toggle="tooltip" data-placement="right" title="Отображается только для преподавателя" class="badge bg-warning"><i class="fa fa-lock fa-fw"></i>Вывод программы в stdout:</span>
             <pre class="alert alert-secondary">{{ execution.execution_stdout }}</pre>
             {% endif %}
             {% endif %}
             {% if execution.execution_stderr %}
             {% if perms.contests.view_submission or request|has_leader_permission:course or not execution.test_is_passed %}
-            <span class="badge badge-secondary">Вывод программы в stderr:</span>
+            <span class="badge bg-secondary">Вывод программы в stderr:</span>
             <pre class="alert alert-secondary">{{ execution.execution_stderr|remove_pwd }}</pre>
             {% endif %}
             {% endif %}
             {% if execution.test_input %}
-            <span class="badge badge-secondary">Входные данные:</span>
+            <span class="badge bg-secondary">Входные данные:</span>
             <pre class="alert alert-secondary">{{ execution.test_input|linebreaksbr }}</pre>
             {% endif %}
             {% if execution.test_output %}
-            <span class="badge badge-secondary">Выходные данные:</span>
+            <span class="badge bg-secondary">Выходные данные:</span>
             <pre class="alert alert-secondary">{{ execution.test_output|linebreaksbr }}</pre>
             {% endif %}
             {% if execution.test_output_correct %}
-            <span class="badge badge-secondary">Верные выходные данные:</span>
+            <span class="badge bg-secondary">Верные выходные данные:</span>
             <pre class="alert alert-secondary">{{ execution.test_output_correct|linebreaksbr }}</pre>
             {% endif %}
             {% if execution.test_summary %}
-            <span class="badge badge-secondary">Сводка:</span>
+            <span class="badge bg-secondary">Сводка:</span>
             <pre class="alert alert-secondary">{{ execution.test_summary|linebreaksbr }}</pre>
             {% endif %}
             {% if execution.exception %}
             {% if perms.contests.view_submission or request|has_leader_permission:course %}
-            <span data-toggle="tooltip" data-placement="right" title="Отображается только для преподавателя" class="badge badge-warning">Исключение: <i class="fa fa-lock fa-fw"></i></span>
+            <span data-toggle="tooltip" data-placement="right" title="Отображается только для преподавателя" class="badge bg-warning">Исключение: <i class="fa fa-lock fa-fw"></i></span>
             <pre class="alert alert-secondary">{{ execution.exception }}</pre>
             {% endif %}
             {% endif %}

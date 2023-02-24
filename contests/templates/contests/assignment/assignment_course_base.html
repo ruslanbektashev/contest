@@ -17,29 +17,29 @@
         <span class="text-truncate">Таблица заданий {% if debts %}должников{% endif %}</span>
         <span id="assignment_table_controls" class="d-flex justify-content-between">
             {% if perms.contests.add_assignment or request|has_leader_permission:course %}
-            <a id="assignment_table_controls_add" href="{% url 'contests:assignment-create' course.id %}{% get_updated_query_string request %}" class="text-decoration-none text-success" data-toggle="tooltip" data-placement="left" title="Назначить новое задание"><i class="fa fa-plus fa-fw"></i></a>
-            <a id="assignment_table_controls_random" href="{% url 'contests:assignment-randomize' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Распределить задания случайно"><i class="fa fa-random fa-fw"></i></a>
+            <a id="assignment_table_controls_add" href="{% url 'contests:assignment-create' course.id %}{% get_updated_query_string request %}" class="text-success" data-toggle="tooltip" data-placement="left" title="Назначить новое задание"><i class="fa fa-plus fa-fw"></i></a>
+            <a id="assignment_table_controls_random" href="{% url 'contests:assignment-randomize' course.id %}{% get_updated_query_string request %}" data-toggle="tooltip" data-placement="top" title="Распределить задания случайно"><i class="fa fa-random fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.add_attendance or request|has_leader_permission:course %}
-            <a id="assignment_table_controls_attendance" href="{% url 'contests:attendance-mark' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Отметить посещаемость"><i class="fa fa-calendar-check-o fa-fw"></i></a>
+            <a id="assignment_table_controls_attendance" href="{% url 'contests:attendance-mark' course.id %}{% get_updated_query_string request %}" data-toggle="tooltip" data-placement="top" title="Отметить посещаемость"><i class="fa fa-calendar-check-o fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.view_attendance or request|has_leader_permission:course %}
-            <a href="{% url 'contests:attendance-table' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Таблица посещаемости"><i class="fa fa-calendar fa-fw"></i></a>
+            <a href="{% url 'contests:attendance-table' course.id %}{% get_updated_query_string request %}" data-toggle="tooltip" data-placement="top" title="Таблица посещаемости"><i class="fa fa-calendar fa-fw"></i></a>
             {% endif %}
             {% if perms.accounts.change_account %}
-            <a id="assignment_table_controls_finish" href="{% url 'contests:course-finish' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Завершить курс"><i class="fa fa-stop fa-fw"></i></a>
+            <a id="assignment_table_controls_finish" href="{% url 'contests:course-finish' course.id %}{% get_updated_query_string request %}" data-toggle="tooltip" data-placement="top" title="Завершить курс"><i class="fa fa-stop fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.add_credit or request|has_leader_permission:course %}
-            <a id="assignment_table_controls_start" href="{% url 'contests:course-start' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Начать курс"><i class="fa fa-play fa-fw"></i></a>
+            <a id="assignment_table_controls_start" href="{% url 'contests:course-start' course.id %}{% get_updated_query_string request %}" data-toggle="tooltip" data-placement="top" title="Начать курс"><i class="fa fa-play fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.report_credit or request|has_leader_permission:course %}
-            <a id="assignment_table_controls_report" href="{% url 'contests:credit-report' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Создать ведомость"><i class="fa fa-file-word-o fa-fw"></i></a>
+            <a id="assignment_table_controls_report" href="{% url 'contests:credit-report' course.id %}{% get_updated_query_string request %}" data-toggle="tooltip" data-placement="top" title="Создать ведомость"><i class="fa fa-file-word-o fa-fw"></i></a>
             {% endif %}
         </span>
     </div>
 </legend>
 <form class="mb-3">
-    <div id="assignment_table_filters" class="form-row">
+    <div id="assignment_table_filters" class="row">
         {% if faculties %}
         <div class="col-3">
             <select id="group_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
@@ -86,9 +86,11 @@
         <p class="mb-0"><span class="numtus status-default">#</span> - посылок нет</p>
     </div>
 </div>
-<button class="btn btn-light btn-block mt-3" type="button" data-toggle="collapse" data-target="#assignments_legend" aria-expanded="false" aria-controls="assignments_legend">
-    Показать легенду
-</button>
+<div class="d-grid mt-3">
+    <button class="btn btn-light" type="button" data-toggle="collapse" data-target="#assignments_legend" aria-expanded="false" aria-controls="assignments_legend">
+        Показать легенду
+    </button>
+</div>
 {% endblock content %}
 
 {% block javascript %}

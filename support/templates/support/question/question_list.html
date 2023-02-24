@@ -17,7 +17,7 @@
         <span class="text-truncate">Вопросы</span>
         <span class="d-flex justify-content-between">
             {% if perms.support.add_question %}
-            <a href="{% url 'support:question-create' %}" class="text-success text-decoration-none" data-toggle="tooltip" data-placement="left" title="Задать вопрос"><i class="fa fa-plus fa-fw"></i></a>
+            <a href="{% url 'support:question-create' %}" class="text-success" data-toggle="tooltip" data-placement="left" title="Задать вопрос"><i class="fa fa-plus fa-fw"></i></a>
             {% endif %}
         </span>
     </div>

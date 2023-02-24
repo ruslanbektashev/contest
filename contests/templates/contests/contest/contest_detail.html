@@ -18,7 +18,7 @@
         <span class="d-flex justify-content-between">
             {% if perms.contests.add_problem or request|has_leader_permission:contest.course %}
             <span class="dropdown show" data-toggle="tooltip" data-placement="left" title="Добавить задачу">
-                <a href="#" class="text-decoration-none text-success" role="button" id="dropdownAddProblemMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-plus fa-fw"></i></a>
+                <a href="#" class="text-success" role="button" id="dropdownAddProblemMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-plus fa-fw"></i></a>
                 <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownAddProblemMenuLink">
                     <a href="{% url 'contests:problem-create' contest.id 'Text' %}" class="dropdown-item"><i class="fa fa-keyboard-o fa-fw"></i> С ответом в виде текста</a>
                     <a href="{% url 'contests:problem-create' contest.id 'Files' %}" class="dropdown-item"><i class="fa fa-file-text-o fa-fw"></i> С ответом в виде файлов</a>
@@ -31,11 +31,11 @@
             </span>
             {% endif %}
             {% if perms.contests.change_contest or request|has_leader_permission:contest.course %}
-            <a id="btn_contest_update" href="{% url 'contests:contest-update' contest.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
+            <a id="btn_contest_update" href="{% url 'contests:contest-update' contest.id %}" data-toggle="tooltip" data-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.delete_contest or request|has_leader_permission:contest.course %}
             <span class="dropdown show">
-                <a href="#" class="text-decoration-none" role="button" id="dropdownMoreMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
+                <a href="#" role="button" id="dropdownMoreMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
                 <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownMoreMenuLink">
                     <a href="{% url 'contests:contest-update' contest.id %}?action=move" class="dropdown-item"><i class="fa fa-share-square-o fa-fw"></i> Переместить</a>
                     <a href="{% url 'contests:contest-delete' contest.id %}" class="dropdown-item text-danger"><i class="fa fa-trash-o fa-fw"></i> Удалить</a>
@@ -49,7 +49,7 @@
     <div class="card">
         <div class="card-header" id="contest_description">
             <h2 class="mb-0">
-                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                <button class="btn btn-link btn-block text-start" type="button" data-toggle="collapse"
                         data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
                     Описание раздела
                 </button>
@@ -64,9 +64,11 @@
                     {% render_attachment_list contest contest.course %}
                 </div>
                 {% if perms.contests.change_contest or request|has_leader_permission:contest.course %}
-                <a href="{% url 'contests:contest-update' contest.id %}?action=add_files" class="btn btn-block btn-light">
-                    <i class="fa fa-files-o fa-fw"></i> Добавить файлы
-                </a>
+                <div class="d-grid">
+                    <a href="{% url 'contests:contest-update' contest.id %}?action=add_files" class="btn btn-light">
+                        <i class="fa fa-files-o fa-fw"></i> Добавить файлы
+                    </a>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -74,7 +76,7 @@
     <div class="card">
         <div class="card-header" id="contest_problems">
             <h2 class="mb-0">
-                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                <button class="btn btn-link btn-block text-start" type="button" data-toggle="collapse"
                         data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
                     Задачи
                 </button>
@@ -111,18 +113,20 @@
 {% endif %}
 <div class="row mb-3">
     <div class="col-12 col-md-6">
-        <div class="col-12 text-muted text-left">Факультет: {{ contest.course.faculty }}</div>
-        <div class="col-12 text-muted text-left">Порядковый номер: {{ contest.number }}</div>
+        <div class="col-12 text-muted text-start">Факультет: {{ contest.course.faculty }}</div>
+        <div class="col-12 text-muted text-start">Порядковый номер: {{ contest.number }}</div>
     </div>
     <div class="col-12 col-md-6">
-        <div class="col-12 text-muted text-left text-md-right">Добавлен: {{ contest.date_created|date:'d E Y г.' }}</div>
-        <div class="col-12 text-muted text-left text-md-right">Добавил(а): <a href="{{ contest.owner.account.get_absolute_url }}" class="text-muted">{{ contest.owner.account }}</a></div>
+        <div class="col-12 text-muted text-start text-md-right">Добавлен: {{ contest.date_created|date:'d E Y г.' }}</div>
+        <div class="col-12 text-muted text-start text-md-right">Добавил(а): <a href="{{ contest.owner.account.get_absolute_url }}" class="text-muted">{{ contest.owner.account }}</a></div>
     </div>
 </div>
-<a class="btn btn-light btn-block border mb-3" href="{% url 'contests:contest-discussion' contest.id %}">
-    {% unread_comments_count request.user.account contest as ucc %}
-    <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
-</a>
+<div class="d-grid">
+    <a class="btn btn-light border mb-3" href="{% url 'contests:contest-discussion' contest.id %}">
+        {% unread_comments_count request.user.account contest as ucc %}
+        <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
+    </a>
+</div>
 {% endblock content %}
 
 {% block javascript %}

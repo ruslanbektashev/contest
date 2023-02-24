@@ -26,9 +26,9 @@
         <thead>
             <tr>
                 <th class="text-center" style="width: 4%;">
-                    <div class="custom-control custom-checkbox" data-toggle="tooltip" data-placement="top" title="Выбрать все посылки">
-                        <input id="check_all" type="checkbox" class="custom-control-input">
-                        <label for="check_all" class="custom-control-label ml-2"></label>
+                    <div class="form-check" data-toggle="tooltip" data-placement="top" title="Выбрать все посылки">
+                        <input class="form-check-input" id="check_all" type="checkbox">
+                        <label class="form-check-label ms-2" for="check_all"></label>
                     </div>
                 </th>
                 <th class="text-center" style="width: 13%;">Дата</th>
@@ -41,9 +41,9 @@
             {% for submission in form.submissions.field.queryset %}
             <tr>
                 <td class="text-center">
-                    <div class="custom-control custom-checkbox">
-                        <input id="check_{{ submission.id }}" type="checkbox" class="custom-control-input check" name="submissions" value="{{ submission.id }}">
-                        <label for="check_{{ submission.id }}" class="custom-control-label ml-2"></label>
+                    <div class="form-check">
+                        <input class="form-check-input check" id="check_{{ submission.id }}" type="checkbox" name="submissions" value="{{ submission.id }}">
+                        <label class="form-check-label ms-2" for="check_{{ submission.id }}"></label>
                     </div>
                 </td>
                 <td class="text-center">{{ submission.date_created|date:'d b Y' }}</td>
