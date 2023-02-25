@@ -13,7 +13,7 @@
 <legend>
     <div class="d-flex justify-content-between">
         <span class="text-truncate">{{ account }}</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
         {% if account.user_id == request.user.id %}
             <a href="{% url 'password-change' %}" class="text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Изменить пароль"><i class="fa fa-lock fa-fw"></i></a>
         {% endif %}
@@ -97,7 +97,7 @@
 <legend>
     <div class="d-flex justify-content-between">
         <span>Результаты</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
             <a href="{% if account.user_id == request.user.id %} {% url 'contests:assignment-list' %} {% else %} {% url 'accounts:account-assignment-list' account.user_id %} {% endif %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Задания"><i class="fa fa-list-ol fa-fw"></i></a>
         </span>
     </div>
