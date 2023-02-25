@@ -17,7 +17,7 @@
         <span class="text-truncate">Расписание: {{ schedule }}</span>
         <span class="d-flex justify-content-between">
             {% if perms.schedule.delete_schedule %}
-            <a href="{% url 'schedule:schedule-delete' schedule.id %}" class="text-danger" data-toggle="tooltip" data-placement="left" title="Удалить расписание" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
+            <a href="{% url 'schedule:schedule-delete' schedule.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="left" title="Удалить расписание" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
             {% endif %}
         </span>
     </div>

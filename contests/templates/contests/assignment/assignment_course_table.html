@@ -5,11 +5,11 @@
             <tr>
                 <th class="sticky-column text-end" style="width: 4%;">№</th>
                 <th class="sticky-column" style="width: 25%;">Студент</th>
-                <th class="sticky-column text-center" style="width: 4%;"><span id="attendance_column" data-toggle="tooltip" data-placement="top" title="Посещаемость">П</span></th>
+                <th class="sticky-column text-center" style="width: 4%;"><span id="attendance_column" data-bs-toggle="tooltip" data-bs-placement="top" title="Посещаемость">П</span></th>
                 {% for contest in contests %}
                 <th class="lake text-truncate">
-                    <a href="{{ contest.get_absolute_url }}" data-toggle="tooltip" data-placement="top" title="{{ contest }}">{{ contest.number }}</a>
-                    <a href="{% url 'contests:assignment-randomize' course.id %}{% get_updated_query_string request contest_id=contest.id %}" class="numtus status-info pebble" data-toggle="tooltip" data-placement="top" title="Распределить задания случайно в этом разделе"><i class="fa fa-random"></i></a>
+                    <a href="{{ contest.get_absolute_url }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ contest }}">{{ contest.number }}</a>
+                    <a href="{% url 'contests:assignment-randomize' course.id %}{% get_updated_query_string request contest_id=contest.id %}" class="numtus status-info pebble" data-bs-toggle="tooltip" data-bs-placement="top" title="Распределить задания случайно в этом разделе"><i class="fa fa-random"></i></a>
                 </th>
                 {% endfor %}
                 <th class="text-center" style="width: 6%;">Зачет</th>
@@ -19,7 +19,7 @@
             {% for row in table %}
             <tr>
                 <td class="sticky-column text-end font-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
-                <td class="sticky-column text-truncate"><a href="{{ row.student.get_absolute_url }}" data-toggle="tooltip" data-placement="bottom" title="{{ row.student.get_full_name }}">{{ row.student.get_short_name }}</a></td>
+                <td class="sticky-column text-truncate"><a href="{{ row.student.get_absolute_url }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ row.student.get_full_name }}">{{ row.student.get_short_name }}</a></td>
                 <td class="sticky-column text-center">
                     <span class="badge badge-{% if row.student.is_attending_now is None %}light{% elif row.student.is_attending_now %}success{% else %}danger{% endif %}" style="position:relative; top:-0.06rem;">
                         {{ row.student.attendance_sum }}
@@ -28,20 +28,20 @@
                 {% for col in row.columns %}
                 <td class="msu-problem-set lake text-truncate">
                     {% for assignment in col.assignments %}
-                    <a href="{% url 'contests:assignment-detail' assignment.id %}" class="numtus status-{{ assignment|get_assignment_style }}" data-toggle="tooltip" data-placement="bottom" title="{{ assignment.remark }}">
+                    <a href="{% url 'contests:assignment-detail' assignment.id %}" class="numtus status-{{ assignment|get_assignment_style }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ assignment.remark }}">
                         {{ assignment.problem.number }}<sup>{{ assignment.remark.0 }}</sup>
                     </a>
                     {% if forloop.last %}
-                    <a href="{% url 'contests:assignment-create' course.id %}{% get_updated_query_string request user_id=assignment.user_id contest_id=assignment.problem.contest_id %}" class="numtus status-info pebble" data-toggle="tooltip" data-placement="bottom" title="Добавить задачу"><i class="fa fa-plus"></i></a>
+                    <a href="{% url 'contests:assignment-create' course.id %}{% get_updated_query_string request user_id=assignment.user_id contest_id=assignment.problem.contest_id %}" class="numtus status-info pebble" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Добавить задачу"><i class="fa fa-plus"></i></a>
                     {% endif %}
                     {% empty %}
-                    <a href="{% url 'contests:assignment-create' course.id %}{% get_updated_query_string request user_id=row.student.user_id contest_id=col.contest.id %}" class="numtus status-info pebble" data-toggle="tooltip" data-placement="bottom" title="Добавить задачу"><i class="fa fa-plus"></i></a>
+                    <a href="{% url 'contests:assignment-create' course.id %}{% get_updated_query_string request user_id=row.student.user_id contest_id=col.contest.id %}" class="numtus status-info pebble" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Добавить задачу"><i class="fa fa-plus"></i></a>
                     {% endfor %}
                 </td>
                 {% endfor %}
                 <td class="text-center">
                     {% if row.student.credit_id %}
-                    <a href="{% url 'contests:credit-update' row.student.credit_id %}{% get_updated_query_string request %}" class="numtus status-{{ row.student.credit_score|colorize }}" data-toggle="tooltip" data-placement="bottom" title="Оценка">
+                    <a href="{% url 'contests:credit-update' row.student.credit_id %}{% get_updated_query_string request %}" class="numtus status-{{ row.student.credit_score|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Оценка">
                         {{ row.student.credit_score|default:'-' }}
                     </a>
                     {% endif %}

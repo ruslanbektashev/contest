@@ -18,10 +18,10 @@
         <span class="text-truncate">Вопрос {{ question.id }}</span>
         <span class="d-flex justify-content-between">
             {% if perms.support.change_question %}
-            <a href="{% url 'support:question-update' question.id %}" data-toggle="tooltip" data-placement="left" title="Редактировать вопрос"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'support:question-update' question.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать вопрос"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
             {% if perms.support.delete_question %}
-            <a href="{% url 'support:question-delete' question.id %}" class="text-danger" data-toggle="tooltip" data-placement="top" title="Удалить вопрос" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
+            <a href="{% url 'support:question-delete' question.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить вопрос" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
             {% endif %}
         </span>
     </div>

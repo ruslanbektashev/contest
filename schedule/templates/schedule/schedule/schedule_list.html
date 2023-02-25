@@ -16,7 +16,7 @@
         <span class="text-truncate">Расписание</span>
         <span class="d-flex justify-content-between">
         {% if perms.schedule.add_schedule %}
-            <a href="{% url 'schedule:schedule-create' %}" class="text-success" data-toggle="tooltip" data-placement="left" title="Добавить расписание"><i class="fa fa-plus fa-fw"></i></a>
+            <a href="{% url 'schedule:schedule-create' %}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить расписание"><i class="fa fa-plus fa-fw"></i></a>
         {% endif %}
         </span>
     </div>

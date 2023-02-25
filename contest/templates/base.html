@@ -115,10 +115,10 @@
         <div class="btn-toolbar justify-content-center">
             {% if perms.support.delete_tutorialsteppass %}
             <div class="btn-group btn-group mb-3 me-3" role="group">
-                <a href="{% url 'support:tutorial-reset' request.resolver_match.app_name|add:":"|add:request.resolver_match.url_name %}?from={{ request.get_full_path }}" id="contest_tutorial_reset" class="btn btn-light border" data-toggle="tooltip" data-placement="left" title="Пройти руководство на этой странице"><i class="fa fa-book"></i> Руководство</a>
+                <a href="{% url 'support:tutorial-reset' request.resolver_match.app_name|add:":"|add:request.resolver_match.url_name %}?from={{ request.get_full_path }}" id="contest_tutorial_reset" class="btn btn-light border" data-bs-toggle="tooltip" data-bs-placement="left" title="Пройти руководство на этой странице"><i class="fa fa-book"></i> Руководство</a>
             </div>
             {% endif %}
-            <div id="global-font-size" class="btn-group btn-group mb-3" role="group" data-toggle="tooltip" data-placement="right" title="Размер шрифта">
+            <div id="global-font-size" class="btn-group btn-group mb-3" role="group" data-bs-toggle="tooltip" data-bs-placement="right" title="Размер шрифта">
                 <button type="button" class="btn btn-light border" value="">А</button>
                 <button type="button" class="btn btn-light border" value="0.95rem" style="font-size: 0.95rem;">А</button>
                 <button type="button" class="btn btn-light border" value="1.02rem" style="font-size: 1.02rem;">А</button>
@@ -137,7 +137,7 @@
         $('.selectpicker').selectpicker();
     });
     $(function () {
-        let tooltips = $('[data-toggle="tooltip"]');
+        let tooltips = $('[data-bs-toggle="tooltip"]');
         tooltips.tooltip({
             container: 'body',
             delay: {'show': 1000, 'hide': 100}
@@ -147,7 +147,7 @@
         });
     });
     function closeTooltips() {
-        $('[data-toggle="tooltip"]').tooltip('hide');
+        $('[data-bs-toggle="tooltip"]').tooltip('hide');
     }
     document.addEventListener("DOMContentLoaded", () => {
         const fontSizeButtons = document.getElementById('global-font-size').querySelectorAll('button');

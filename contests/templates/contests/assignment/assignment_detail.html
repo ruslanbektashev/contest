@@ -22,10 +22,10 @@
         <span class="text-truncate">Задание</span>
         <span class="d-flex justify-content-between">
         {% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %}
-            <a href="{% url 'contests:assignment-update' assignment.id %}" data-toggle="tooltip" data-placement="left" title="Редактировать задание"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'contests:assignment-update' assignment.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать задание"><i class="fa fa-edit fa-fw"></i></a>
         {% endif %}
         {% if perms.contests.delete_assignment or request|has_leader_permission:assignment.course %}
-            <a href="{% url 'contests:assignment-delete' assignment.id %}" class="text-danger" data-toggle="tooltip" data-placement="top" title="Удалить задание" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
+            <a href="{% url 'contests:assignment-delete' assignment.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить задание" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
         {% endif %}
         </span>
     </div>
@@ -50,7 +50,7 @@
     <tr>
         <td class="text-end" style="width: 20%;">Оценка</td>
         <td>
-            <span class="numtus status-{{ assignment|get_assignment_score:request|colorize }}">{{ assignment|get_assignment_score:request|default:'-' }}</span>{% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %} {% if assignment.score_max < 5 %}/ {{ assignment.score_max }}{% endif %}{% if assignment.score_is_locked %} <span class="numtus status-warning" data-toggle="tooltip" data-placement="right" title="Оценка заблокирована и не может быть изменена системой автоматической проверки посылок"><i class="fa fa-lock"></i></span>{% endif %}{% endif %}
+            <span class="numtus status-{{ assignment|get_assignment_score:request|colorize }}">{{ assignment|get_assignment_score:request|default:'-' }}</span>{% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %} {% if assignment.score_max < 5 %}/ {{ assignment.score_max }}{% endif %}{% if assignment.score_is_locked %} <span class="numtus status-warning" data-bs-toggle="tooltip" data-bs-placement="right" title="Оценка заблокирована и не может быть изменена системой автоматической проверки посылок"><i class="fa fa-lock"></i></span>{% endif %}{% endif %}
         </td>
     </tr>
 </table>
@@ -80,7 +80,7 @@
 {% endif %}
 {% if assignment.remark %}
 {% if perms.contests.view_assignment_table or request|has_leader_permission:assignment.course %}
-<div class="alert alert-warning" data-toggle="tooltip" data-placement="bottom" title="Отображается только преподавателям">{{ assignment.remark }}</div>
+<div class="alert alert-warning" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Отображается только преподавателям">{{ assignment.remark }}</div>
 {% endif %}
 {% endif %}
 {% if assignment.hidden_from_students %}

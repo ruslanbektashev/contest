@@ -3,9 +3,9 @@
 <div class="card">
     <div class="card-header d-flex">
         {% if execution.test_is_passed %}
-        <span class="badge bg-success p-1 me-2 align-self-center" data-toggle="tooltip" data-placement="top" title="Тест пройден"><i class="fa fa-check fa-fw"></i></span>
+        <span class="badge bg-success p-1 me-2 align-self-center" data-bs-toggle="tooltip" data-bs-placement="top" title="Тест пройден"><i class="fa fa-check fa-fw"></i></span>
         {% else %}
-        <span class="badge bg-danger p-1 me-2 align-self-center" data-toggle="tooltip" data-placement="top" title="Тест провален"><i class="fa fa-times fa-fw"></i></span>
+        <span class="badge bg-danger p-1 me-2 align-self-center" data-bs-toggle="tooltip" data-bs-placement="top" title="Тест провален"><i class="fa fa-times fa-fw"></i></span>
         {% endif %}
         <span class="me-auto">
             {% if perms.contests.view_submission and execution.test or request|has_leader_permission:course and execution.test %}
@@ -39,7 +39,7 @@
             {% endif %}
             {% if execution.execution_stdout %}
             {% if perms.contests.view_submission or request|has_leader_permission:course %}
-            <span data-toggle="tooltip" data-placement="right" title="Отображается только для преподавателя" class="badge bg-warning"><i class="fa fa-lock fa-fw"></i>Вывод программы в stdout:</span>
+            <span data-bs-toggle="tooltip" data-bs-placement="right" title="Отображается только для преподавателя" class="badge bg-warning"><i class="fa fa-lock fa-fw"></i>Вывод программы в stdout:</span>
             <pre class="alert alert-secondary">{{ execution.execution_stdout }}</pre>
             {% endif %}
             {% endif %}
@@ -67,7 +67,7 @@
             {% endif %}
             {% if execution.exception %}
             {% if perms.contests.view_submission or request|has_leader_permission:course %}
-            <span data-toggle="tooltip" data-placement="right" title="Отображается только для преподавателя" class="badge bg-warning">Исключение: <i class="fa fa-lock fa-fw"></i></span>
+            <span data-bs-toggle="tooltip" data-bs-placement="right" title="Отображается только для преподавателя" class="badge bg-warning">Исключение: <i class="fa fa-lock fa-fw"></i></span>
             <pre class="alert alert-secondary">{{ execution.exception }}</pre>
             {% endif %}
             {% endif %}

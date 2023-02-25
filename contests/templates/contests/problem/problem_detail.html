@@ -19,7 +19,7 @@
         <span class="d-flex justify-content-between">
             {% if problem.type == 'Program' %}
             {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
-            <span class="dropdown show" data-toggle="tooltip" data-placement="left" title="Добавить тест">
+            <span class="dropdown show" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить тест">
                 <a href="#" class="text-success" role="button" id="dropdownAddTestMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-plus fa-fw"></i></a>
                 <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownAddTestMenuLink">
                     <a href="{% url 'contests:iotest-create' problem.id %}" class="dropdown-item"><i class="fa fa-keyboard-o fa-fw"></i> IO-тест</a>
@@ -31,11 +31,11 @@
             {% endif %}
             {% if problem.type == 'Program' or problem.type == 'Files' %}
             {% if perms.contests.add_submission_pattern or request|has_leader_permission:problem.course %}
-            <a href="{% url 'contests:submission-pattern-create' problem.id %}" data-toggle="tooltip" data-placement="top" title="Добавить шаблон посылки"><i class="fa fa-clone fa-fw"></i></a>
+            <a href="{% url 'contests:submission-pattern-create' problem.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Добавить шаблон посылки"><i class="fa fa-clone fa-fw"></i></a>
             {% endif %}
             {% endif %}
             {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
-            <a href="{% url 'contests:problem-update' problem.id %}" data-toggle="tooltip" data-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'contests:problem-update' problem.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.delete_problem or request|has_leader_permission:problem.course %}
             <span class="dropdown show">
@@ -81,7 +81,7 @@
                 {% for subproblem in subproblems %}
                 <div class="card mb-3">
                     <div class="card-header d-flex align-items-center">
-                        <small class="me-3" data-toggle="tooltip" data-placement="top" title="Номер в тесте">{{ subproblem.number }}</small>
+                        <small class="me-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Номер в тесте">{{ subproblem.number }}</small>
                         {% if subproblem.sub_problem.title %}
                         <small class="me-auto">
                             <a href="{% url 'contests:problem-detail' subproblem.sub_problem.id %}" class="card-link">
@@ -91,10 +91,10 @@
                         {% endif %}
                         <small>{{ subproblem.sub_problem.get_type_display }}</small>
                         {% if perms.contests.change_subproblem and perms.contests.delete_subproblem or request|has_leader_permission:problem.course %}
-                        <a href="{% url 'contests:subproblem-update' subproblem.id %}" class="card-link ms-2" data-toggle="tooltip" data-placement="top" title="Изменить номер">
+                        <a href="{% url 'contests:subproblem-update' subproblem.id %}" class="card-link ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Изменить номер">
                             <i class="fa fa-edit fa-fw fa-lg"></i>
                         </a>
-                        <a href="{% url 'contests:subproblem-delete' subproblem.id %}" class="card-link text-danger ms-2" data-toggle="tooltip" data-placement="top" title="Удалить из теста" style="position: relative; top: -0.08rem;">
+                        <a href="{% url 'contests:subproblem-delete' subproblem.id %}" class="card-link text-danger ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить из теста" style="position: relative; top: -0.08rem;">
                             <i class="fa fa-trash-o fa-fw fa-lg"></i>
                         </a>
                         {% endif %}
@@ -122,7 +122,7 @@
                 {% if problem.type == 'Options' or problem.type == 'Test' %}
                 {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
                 <div class="text-end d-flex mb-3">
-                    <div class="text-end ms-auto" data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям">
+                    <div class="text-end ms-auto" data-bs-toggle="tooltip" data-bs-placement="left" title="Отображается только преподавателям">
                         <i class="fa fa-lock fa-fw"></i>
                         <button class="btn btn-light" type="button" onclick="toggleCorrectOptions(this, 'Показать верные ответы', 'Скрыть верные ответы')" data-toggle="button" aria-pressed="false">
                             Показать верные ответы

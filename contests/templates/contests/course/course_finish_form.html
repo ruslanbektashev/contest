@@ -28,7 +28,7 @@
         <thead>
             <tr>
                 <th class="text-center" style="width: 4%;">
-                    <div class="form-check" data-toggle="tooltip" data-placement="top" title="Выбрать всех пользователей">
+                    <div class="form-check" data-bs-toggle="tooltip" data-bs-placement="top" title="Выбрать всех пользователей">
                         <input class="form-check-input" id="check_all" type="checkbox" {% if form.level_ups.field.initial.exists %}checked="checked"{% endif %}>
                         <label class="form-check-label ms-2" for="check_all"></label>
                     </div>
@@ -54,7 +54,7 @@
                 <td class="text-center">{{ account.faculty.short_name }}</td>
                 <td class="text-center text-nowrap">{% if account.is_student %}{{ account.get_level_display }}{% else %}{{ account.get_type_display }}{% endif %}</td>
                 <td class="text-center">
-                    <a href="{% url 'contests:credit-update' account.credit_id %}" class="numtus status-{{ account.credit_score|colorize }}" data-toggle="tooltip" data-placement="bottom" title="Оценка">
+                    <a href="{% url 'contests:credit-update' account.credit_id %}" class="numtus status-{{ account.credit_score|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Оценка">
                         {{ account.credit_score|default:'-' }}
                     </a>
                 </td>

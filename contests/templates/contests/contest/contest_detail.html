@@ -17,7 +17,7 @@
         <span class="text-truncate"><span class="text-muted">№{{ contest.number }}</span> {{ contest.title }}</span>
         <span class="d-flex justify-content-between">
             {% if perms.contests.add_problem or request|has_leader_permission:contest.course %}
-            <span class="dropdown show" data-toggle="tooltip" data-placement="left" title="Добавить задачу">
+            <span class="dropdown show" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить задачу">
                 <a href="#" class="text-success" role="button" id="dropdownAddProblemMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-plus fa-fw"></i></a>
                 <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownAddProblemMenuLink">
                     <a href="{% url 'contests:problem-create' contest.id 'Text' %}" class="dropdown-item"><i class="fa fa-keyboard-o fa-fw"></i> С ответом в виде текста</a>
@@ -31,7 +31,7 @@
             </span>
             {% endif %}
             {% if perms.contests.change_contest or request|has_leader_permission:contest.course %}
-            <a id="btn_contest_update" href="{% url 'contests:contest-update' contest.id %}" data-toggle="tooltip" data-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
+            <a id="btn_contest_update" href="{% url 'contests:contest-update' contest.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.delete_contest or request|has_leader_permission:contest.course %}
             <span class="dropdown show">

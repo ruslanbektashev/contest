@@ -17,7 +17,7 @@
         <div class="row mb-3">
             {% if perms.support.delete_tutorialsteppass %}
             <div class="col-12 {% if perms.support.view_discussion %}col-md-6{% endif %}">
-                <a href="{% url 'support:tutorial-reset' '__all__' %}?from=/" class="btn btn-block btn-light" data-toggle="tooltip" data-placement="bottom" title="Пройти руководство на всех страницах еще раз"><i class="fa fa-book"></i> Пройти руководство заново</a>
+                <a href="{% url 'support:tutorial-reset' '__all__' %}?from=/" class="btn btn-block btn-light" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Пройти руководство на всех страницах еще раз"><i class="fa fa-book"></i> Пройти руководство заново</a>
             </div>
             {% endif %}
             {% if perms.support.view_discussion %}
@@ -48,7 +48,7 @@
                 <span class="text-primary me-auto"><a href="{{ question.get_absolute_url }}">{{ question }}</a></span>
                 {% if question.addressee == request.user %}
                 <span class="text-warning">
-                    <i class="fa fa-star fa-fw" data-toggle="tooltip" data-placement="bottom" title="Вопрос адресован вам"></i>
+                    <i class="fa fa-star fa-fw" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Вопрос адресован вам"></i>
                 </span>
                 {% endif %}
             </div>

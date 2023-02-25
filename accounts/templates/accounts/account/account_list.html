@@ -16,10 +16,10 @@
         <span class="text-truncate">{% if type == 1 %}Студенты{% else %}Сотрудники{% endif %}{% if graduated %}: выпускники{% elif enrolled == False %}: отчисленные{% endif %}</span>
         <span class="d-flex justify-content-between">
             {% if perms.accounts.add_account %}
-            <a href="{% url 'accounts:account-create-set' %}?faculty_id={{ faculty.id }}" id="account_list_create_set" class="text-success" data-toggle="tooltip" data-placement="top" title="Добавить пользователей"><i class="fa fa-user-plus fa-fw"></i></a>
+            <a href="{% url 'accounts:account-create-set' %}?faculty_id={{ faculty.id }}" id="account_list_create_set" class="text-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Добавить пользователей"><i class="fa fa-user-plus fa-fw"></i></a>
             {% endif %}
             {% if perms.accounts.change_account %}
-            <a href="{% url 'accounts:account-update-set' %}{{ request|get_query_string }}" id="account_list_update_set" data-toggle="tooltip" data-placement="left" title="Перейти в режим редактирования"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'accounts:account-update-set' %}{{ request|get_query_string }}" id="account_list_update_set" data-bs-toggle="tooltip" data-bs-placement="left" title="Перейти в режим редактирования"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
         </span>
     </div>
@@ -73,15 +73,15 @@
             <div class="pull-right">
                 <div id="account_list_form_actions" class="btn-toolbar" style="visibility: hidden;" role="toolbar" aria-label="Toolbar with button groups">
                     <div class="btn-group" role="group" aria-label="First group">
-                        <button type="submit" name="action" form="account_list_form" value="reset_password" class="btn btn-sm btn-info" data-toggle="tooltip" data-placement="top" title="Выставить новый пароль для профилей выбранных пользователей"><i class="fa fa-key fa-fw"></i></button>
+                        <button type="submit" name="action" form="account_list_form" value="reset_password" class="btn btn-sm btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Выставить новый пароль для профилей выбранных пользователей"><i class="fa fa-key fa-fw"></i></button>
                     </div>
                 {% if type == 1 %}
                     <div class="btn-group ms-2" role="group" aria-label="Second group">
-                        <button type="submit" name="action" form="account_list_form" value="level_up" class="btn btn-info" data-toggle="tooltip" data-placement="top" title="Повысить уровень выбранных студентов на 1"><i class="fa fa-level-up fa-fw"></i></button>
-                        <button type="submit" name="action" form="account_list_form" value="level_down" class="btn btn-info" data-toggle="tooltip" data-placement="top" title="Понизить уровень выбранных студентов на 1"><i class="fa fa-level-down fa-fw"></i></button>
-                        <button type="submit" name="action" form="account_list_form" value="enroll" class="btn btn-info" data-toggle="tooltip" data-placement="top" title="Восстановить выбранных отчисленных студентов"><i class="fa fa-undo fa-fw"></i></button>
-                        <button type="submit" name="action" form="account_list_form" value="graduate" class="btn btn-success" data-toggle="tooltip" data-placement="top" title="Пометить выбранных студентов как выпускников"><i class="fa fa-graduation-cap fa-fw"></i></button>
-                        <button type="submit" name="action" form="account_list_form" value="expel" class="btn btn-danger" data-toggle="tooltip" data-placement="top" title="Пометить выбранных студентов как отчисленных"><i class="fa fa-ban fa-fw"></i></button>
+                        <button type="submit" name="action" form="account_list_form" value="level_up" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Повысить уровень выбранных студентов на 1"><i class="fa fa-level-up fa-fw"></i></button>
+                        <button type="submit" name="action" form="account_list_form" value="level_down" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Понизить уровень выбранных студентов на 1"><i class="fa fa-level-down fa-fw"></i></button>
+                        <button type="submit" name="action" form="account_list_form" value="enroll" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Восстановить выбранных отчисленных студентов"><i class="fa fa-undo fa-fw"></i></button>
+                        <button type="submit" name="action" form="account_list_form" value="graduate" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Пометить выбранных студентов как выпускников"><i class="fa fa-graduation-cap fa-fw"></i></button>
+                        <button type="submit" name="action" form="account_list_form" value="expel" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Пометить выбранных студентов как отчисленных"><i class="fa fa-ban fa-fw"></i></button>
                     </div>
                 {% endif %}
                 </div>
@@ -99,7 +99,7 @@
             <tr>
                 {% if sort != 2 %}
                 <th class="text-center" style="width: 4%;">
-                    <div class="form-check" data-toggle="tooltip" data-placement="top" title="Выбрать всех пользователей">
+                    <div class="form-check" data-bs-toggle="tooltip" data-bs-placement="top" title="Выбрать всех пользователей">
                         <input class="form-check-input" id="check_all" type="checkbox">
                         <label class="form-check-label ms-2" for="check_all"></label>
                     </div>

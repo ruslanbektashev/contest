@@ -37,15 +37,15 @@
             {% now 'Y' as current_year %}
             {% for submission in page_obj %}
             <tr>
-                <td class="text-center text-nowrap" data-toggle="tooltip" data-placement="bottom" title="{{ submission.date_created|naturaltime }}">{% if submission.date_created|date:'Y' == current_year %}{{ submission.date_created|date:'d b в H:i' }}{% else %}{{ submission.date_created|date:'d b y г. в H:i' }}{% endif %}</td>
+                <td class="text-center text-nowrap" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ submission.date_created|naturaltime }}">{% if submission.date_created|date:'Y' == current_year %}{{ submission.date_created|date:'d b в H:i' }}{% else %}{{ submission.date_created|date:'d b y г. в H:i' }}{% endif %}</td>
                 <td class="text-truncate text-nowrap"><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>
                 {% if not course %}
                 <td class="text-truncate"><a href="{{ submission.course.get_absolute_url }}">{{ submission.course }}</a></td>
                 {% endif %}
                 <td class="text-truncate"><a href="{{ submission.contest.get_absolute_url }}">{{ submission.contest }}</a></td>
-                <td><a href="{{ submission.problem.get_absolute_url }}" data-toggle="tooltip" data-placement="bottom" title="{{ submission.problem.title }}">{{ submission.problem.number }}</a></td>
+                <td><a href="{{ submission.problem.get_absolute_url }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ submission.problem.title }}">{{ submission.problem.number }}</a></td>
                 <td class="text-center">
-                    <a href="{{ submission.get_absolute_url }}?from={{ request.get_full_path }}" class="status status-{{ submission.status|colorize }}" data-toggle="tooltip" data-placement="bottom" title="{{ submission.get_status_display }}">
+                    <a href="{{ submission.get_absolute_url }}?from={{ request.get_full_path }}" class="status status-{{ submission.status|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ submission.get_status_display }}">
                         {{ submission.status }}
                     </a>
                 </td>

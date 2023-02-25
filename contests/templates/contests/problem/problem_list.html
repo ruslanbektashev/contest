@@ -8,7 +8,7 @@
         {% if problem.type == 'Test' %}
         <span class="ms-auto me-2 text-muted">[{% get_problem_subproblems problem %}]</span>
         {% endif %}
-        <span class="{% if problem.type != 'Test' %}ms-auto{% endif %}" data-toggle="tooltip" data-placement="left" title="{{ problem.get_type_display }}"><i class="fa {% get_problem_icon problem %} fa-fw"></i></span>
+        <span class="{% if problem.type != 'Test' %}ms-auto{% endif %}" data-bs-toggle="tooltip" data-bs-placement="left" title="{{ problem.get_type_display }}"><i class="fa {% get_problem_icon problem %} fa-fw"></i></span>
     </a>
     {% endfor %}
 </div>
