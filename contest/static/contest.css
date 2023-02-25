@@ -75,6 +75,26 @@
   background-color: #c9302c;
 }
 
+.contest-list-add {
+  border-style: dashed;
+  color: #6c757d !important;
+  background-color: #f8f9fa !important;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+.contest-list-add i {
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+.contest-list-add:hover {
+  color: #212529 !important;
+  background-color: #ffffff !important;
+}
+
+.contest-list-add:hover i.fa-plus {
+  color: #5cb85c !important;
+}
+
 .bootstrap-select .dropdown-menu {
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }

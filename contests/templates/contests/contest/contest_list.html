@@ -1,4 +1,4 @@
-{% load contests %}
+{% load views contests %}
 
 {% if contests.exists %}
 <div class="list-group mb-0">
@@ -20,6 +20,11 @@
     <span class="list-group-item d-flex text-muted">#{{ contest.number }}. Скрытый раздел <span class="ms-auto"><i class="fa fa-lock fa-fw"></i></span></span>
     {% endif %}
     {% endfor %}
+    {% if perms.contests.add_contest or request|has_leader_permission:course %}
+    <a href="{% url 'contests:contest-create' course.id %}" class="list-group-item list-group-item-action text-center contest-list-add">
+        <i class="fa fa-plus fa-fw"></i> Добавить раздел
+    </a>
+    {% endif %}
 </div>
 {% else %}
 <div class="alert alert-info mb-0" role="alert">Разделы еще не добавлены</div>
