@@ -116,3 +116,12 @@ let easymdeConfig = {
         ]
     }
 }
+
+function initMDEditor(element) {
+    easymdeConfig['default']['element'] = element;
+    window.editor = new EasyMDE(easymdeConfig['default']);
+}
+
+function dropMDEditor() {
+    window.editor.toTextArea();
+}
