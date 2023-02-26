@@ -1,9 +1,12 @@
-{% extends 'base_wide.html' %}
-{% load views forms %}
+{% extends 'base_main.html' %}
+{% load views forms static %}
 
-{% block title %}
-Комментарий
-{% endblock title %}
+{% block title %}Комментарий{% endblock title %}
+
+{% block main_links %}
+<link href="{% static 'easymde/easymde.min.css' %}" rel="stylesheet">
+<link href="{% static 'easymde/easymde.fix.css' %}" rel="stylesheet">
+{% endblock main_links %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,18 +14,36 @@
 {% breadcrumb "Редактирование" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend><span class="text-truncate">Редактирование комментария</span></legend>
 <form action="" method="post">
     {% csrf_token %}
     {{ form.parent_id }}
     {{ form.object_type }}
     {{ form.object_id }}
+    {% for message in messages %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
     {% render_form_errors form %}
     <div class="mb-3">
         {% render_field_errors form.text %}
-        {% render_field form.text class+="form-control" rows="5" placeholder="Ваш комментарий" %}
+        {% render_field form.text class+="form-control" rows="3" placeholder="Ваш комментарий" %}
     </div>
-    {% render_submit_button value="Сохранить" %}
+    <div class="d-grid">
+        <input class="btn btn-light border" type="submit" value="Сохранить" />
+    </div>
 </form>
-{% endblock content %}
+{% endblock main_content %}
+
+{% block main_scripts %}
+<script src="{% static 'easymde/easymde.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'easymde/easymde.config.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function(event) {
+    initMDEditor(document.getElementById('id_text'), 'comments');
+});
+</script>
+{% endblock main_scripts %}

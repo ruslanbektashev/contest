@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Комментарий
-{% endblock title %}
+{% block title %}Комментарий{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,11 +9,11 @@
 {% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Удаление комментария</legend>
 <form action="" method="post">
     {% csrf_token %}
-    <div class="alert alert-warning" role="alert">
+    <div class="alert alert-warning text-center" role="alert">
         {% if not perms.accounts.delete_comment and thread_length > 1 %}
         Вы не можете удалить цепочку комментариев.<br>
         <a href="{{ comment.get_absolute_url }}">Вернуться к комментарию</a>
@@ -28,4 +26,4 @@
         <input class="btn btn-danger" type="submit" value="Удалить" {% if not perms.accounts.delete_comment and thread_length > 1 %}disabled{% endif %}/>
     </div>
 </form>
-{% endblock content %}
+{% endblock main_content %}

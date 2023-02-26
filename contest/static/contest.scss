@@ -85,6 +85,22 @@
   color: #5cb85c !important;
 }
 
+.contest-comment-anchor {
+  display: block;
+  position: relative;
+  width: 0;
+  margin-top: -70px;
+}
+
+.contest-comment-main .contest-comment-hidden {
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.contest-comment-main:hover .contest-comment-hidden {
+  opacity: 1;
+}
+
 .bootstrap-select .dropdown-menu {
   box-shadow:0 .5rem 1rem rgba(0, 0, 0, .15) !important // .shadow
   //box-shadow:0 .125rem .25rem rgba(0, 0, 0, .075) !important // .shadow-sm

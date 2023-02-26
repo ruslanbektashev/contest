@@ -34,6 +34,7 @@ $border-radius-xl:          0.5rem;
 $border-radius-2xl:         1rem;
 
 $font-size-base:            .875rem;
+$code-font-size:            $font-size-base;
 
 $link-decoration:           none;
 $link-hover-decoration:     underline;
@@ -88,6 +89,16 @@ $breadcrumb-border-radius:  $border-radius-sm;
 
 // Utilities
 @import "~bootstrap/scss/utilities/api";
+
+blockquote {
+  padding: 0.25rem 0.5rem;
+  border-left: 3px solid #{$gray-400};
+  background-color: #{$gray-200};
+}
+
+blockquote *:last-child {
+  margin-bottom: 0;
+}
 
 .text-danger-hover:hover {
   color: #{$danger};

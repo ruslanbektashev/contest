@@ -39,7 +39,7 @@ class ReadWatcher {
             let is_unread = JSON.parse(comment.getAttribute('data-unread'));
             if (is_unread) {
                 let comment_id = parseInt(comment.getAttribute('data-id'));
-                let comment_footer = comment.getElementsByClassName('comment-footer')[0];
+                let comment_footer = comment.getElementsByClassName('contest-comment-footer')[0];
                 if (this.isInViewPoint(comment_footer) && !this.unread_comments_ids.includes(comment_id)) {
                     comment.classList.remove('bg-light');
                     comment.removeAttribute('data-unread');
