@@ -139,7 +139,7 @@ class MarkdownValidationParser(HTMLParser):
         super().__init__(*args, **kwargs)
         self.safe_tags = ['p', 'em', 'strong', 'hr', 'ol', 'ul', 'li', 'a', 'blockquote', 'code', 'br', 'pre', 'h1',
                           'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td']
-        self.safe_attrs = ['href', 'alt', 'src']
+        self.safe_attrs = ['href', 'alt', 'src', 'class']
 
     def handle_startendtag(self, tag, attrs):
         if tag not in self.safe_tags:
