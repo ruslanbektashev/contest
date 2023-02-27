@@ -1,20 +1,18 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views contests %}
 
-{% block title %}
-Курсы
-{% endblock title %}
+{% block title %}Курсы{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb "Курсы" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>
     <div class="d-flex justify-content-between">
         <span class="text-truncate">Курсы</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
         {% if perms.contests.add_course %}
             <a href="{% url 'contests:course-create' %}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
         {% endif %}
@@ -28,34 +26,23 @@
         {% endfor %}
     </div>
 </div>
-{% if courses %}
-<div class="table-responsive-lg mb-3">
-    <table class="table">
-        <thead>
-            <th>Название</th>
-            <th class="text-end">Уровень</th>
-{#            <th class="text-center">Средняя оценка</th>#}
-{#            <th class="text-center">Сложность</th>#}
-        </thead>
-        <tbody>
-            {% for course in courses %}
-            <tr>
-                <td style="vertical-align: middle;"><a href="{{ course.get_absolute_url }}" class="me-auto text-truncate">{{ course }}</a></td>
-                <td class="text-end text-truncate" style="width: 15%;">{{ course.get_level_display }}</td>
-{#                <td class="text-center" style="vertical-align: middle; width: 14%;">#}
-{#                    <span class="text-{{ course.avg_credit_score|colorize_course_avg_score }}"><strong>{{ course.avg_credit_score }}</strong></span>#}
-{#                </td>#}
-{#                <td class="text-center" style="vertical-align: middle; width: 14%;">#}
-{#                    <span class="numtus status-{{ course.difficulty|colorize_course_difficulty }}">{{ course.difficulty|course_difficulty }}</span>#}
-{#                </td>#}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="d-flex flex-column">
+    {% for course in courses %}
+    {% ifchanged course.level %}
+    {% if not forloop.first %}</div>{% endif %}
+    <h5>{{ course.get_level_display }}</h5>
+    <div class="d-flex flex-wrap gap-2 mb-3">
+    {% endifchanged %}
+        <div class="contest-course-card card">
+            <div class="card-body">
+                <a class="card-title h6 stretched-link text-reset text-decoration-none" href="{{ course.get_absolute_url }}">{{ course }}</a>
+            </div>
+        </div>
+    {% if forloop.last %}</div>{% endif %}
+    {% empty %}
+    <div class="alert alert-info" role="alert">
+        Курсы еще не добавлены
+    </div>
+    {% endfor %}
 </div>
-{% else %}
-<div class="alert alert-info mb-3" role="alert">
-    Курсы еще не добавлены
-</div>
-{% endif %}
-{% endblock content %}
+{% endblock main_content %}

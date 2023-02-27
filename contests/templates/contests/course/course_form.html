@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
             if (event.target.checked) {
                 if (event.target.id === 'markdown') {
                     dropCKEditor();
-                    initMDEditor(document.getElementById('id_description'));
+                    initMDEditor(document.getElementById('id_description'), 'default');
                     //initCKEditor(document.getElementById('id_description'), 'markdown');
                 } else {
                     dropMDEditor();

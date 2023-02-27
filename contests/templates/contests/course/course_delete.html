@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Курс
-{% endblock title %}
+{% block title %}Курс{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,7 +9,7 @@
 {% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Удаление курса</legend>
 {% if action == 'delete_permanently' %}
 <form action="" method="post">
@@ -35,4 +33,4 @@
 {% else %}
 {% render_delete_form course %}
 {% endif %}
-{% endblock content %}
+{% endblock main_content %}

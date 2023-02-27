@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Курс
-{% endblock title %}
+{% block title %}Курс{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,9 +9,9 @@
 {% breadcrumb "Ведущие преподаватели" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>{{ course }}</legend>
-<form action="" method="post" class="form-horizontal">
+<form action="" method="post">
     {% csrf_token %}
     {{ formset.management_form }}
     {% include 'formset_errors.html' with formset=formset %}
@@ -59,7 +57,9 @@
                 </tr>
                 <tr>
                     <td colspan="3">
-                        <button id="add_empty_form_row" type="button" class="btn btn-light btn-block text-success" onclick="addEmptyForm()"><i class="fa fa-plus fa-lg"></i></button>
+                        <div class="d-grid">
+                            <button id="add_empty_form_row" type="button" class="btn btn-light text-success" onclick="addEmptyForm()"><i class="fa fa-plus fa-lg"></i></button>
+                        </div>
                     </td>
                 </tr>
             </tbody>
@@ -69,9 +69,9 @@
         <input class="btn btn-light border" type="submit" value="Сохранить" />
     </div>
 </form>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
+{% block main_scripts %}
 <script type="text/javascript">
 function addEmptyForm() {
     let total_form_field = document.getElementById('id_form-TOTAL_FORMS');
@@ -108,4 +108,4 @@ function markAsDeleted(element) {
     }
 }
 </script>
-{% endblock %}
+{% endblock main_scripts %}

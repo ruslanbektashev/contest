@@ -111,6 +111,14 @@
   opacity: 1;
 }
 
+.contest-course-card {
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.contest-course-card:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
 .bootstrap-select .dropdown-menu {
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }

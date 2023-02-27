@@ -1,18 +1,16 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms contests %}
 
-{% block title %}
-Начать курс
-{% endblock title %}
+{% block title %}Начало курса{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb course course %}
 {% breadcrumb "Задания" 'contests:assignment-table' course.id query_string=request|get_query_string %}
-{% breadcrumb "Начать курс" %}
+{% breadcrumb "Начало курса" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Начало курса {{ course }}</legend>
 <div class="alert alert-info alert-dismissible fade show">
     В таблице ниже представлены студенты, которым можно назначить зачет по курсу &laquo;{{ course }}&raquo;, после чего они появятся в таблице заданий у преподавателей.<br>
@@ -20,20 +18,19 @@
     <hr>
     Студенты, чей уровень совпадает с уровнем курса или меньше его на 1, отмечены по-умолчанию.
 </div>
-<form action="" method="post" class="form-horizontal">
+<form action="" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
     {% render_field_errors form.runner_ups %}
     <table class="table table-bordered table-sm table-hover">
         <thead>
             <tr>
-                <th class="text-center" style="width: 4%;">
-                    <div class="form-check" data-bs-toggle="tooltip" data-bs-placement="top" title="Выбрать всех пользователей">
-                        <input class="form-check-input" id="check_all" type="checkbox" {% if form.runner_ups.field.initial.exists %}checked="checked"{% endif %}>
-                        <label class="form-check-label ms-2" for="check_all"></label>
+                <th style="width: 2%;">
+                    <div class="form-check ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Выбрать всех студентов">
+                        <input class="form-check-input" id="check_all" type="checkbox" {% if form.runner_ups.field.initial.exists %}checked="checked"{% endif %} aria-label="Выбрать всех студентов">
                     </div>
                 </th>
-                <th class="text-end" style="width: 4%;">№</th>
+                <th class="text-end" style="width: 3%;">№</th>
                 <th class="text-center">Ф.И.О.</th>
                 <th class="text-center" style="width: 12%;">Факультет</th>
                 <th class="text-center" style="width: 17%;">Уровень</th>
@@ -42,10 +39,9 @@
         <tbody>
             {% for account in form.runner_ups.field.queryset %}
             <tr>
-                <td class="text-center">
-                    <div class="form-check">
-                        <input class="form-check-input check" id="check_{{ account.user_id }}" type="checkbox" name="runner_ups" value="{{ account.user_id }}" {% if account in form.runner_ups.field.initial %}checked="checked"{% endif %}>
-                        <label class="form-check-label ms-2" for="check_{{ account.user_id }}"></label>
+                <td>
+                    <div class="form-check ms-2">
+                        <input class="form-check-input check" id="check_{{ account.user_id }}" type="checkbox" name="runner_ups" value="{{ account.user_id }}" {% if account in form.runner_ups.field.initial %}checked="checked"{% endif %} aria-label="Выбрать студента">
                     </div>
                 </td>
                 <td class="text-end font-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
@@ -62,9 +58,9 @@
     </table>
     {% render_submit_button value="Начать" %}
 </form>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
+{% block main_scripts %}
 <script type="text/javascript">
 let checkboxes = document.getElementsByClassName('check');
 document.getElementById('check_all').addEventListener('click', function (e) {
@@ -73,4 +69,4 @@ document.getElementById('check_all').addEventListener('click', function (e) {
     }
 });
 </script>
-{% endblock javascript %}
+{% endblock main_scripts %}

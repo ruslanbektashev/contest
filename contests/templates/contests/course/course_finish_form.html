@@ -1,18 +1,16 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms contests %}
 
-{% block title %}
-Завершить курс
-{% endblock title %}
+{% block title %}Завершение курса{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb course course %}
 {% breadcrumb "Задания" 'contests:assignment-table' course.id query_string=request|get_query_string %}
-{% breadcrumb "Завершить курс" %}
+{% breadcrumb "Завершение курса" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Завершение курса {{ course }}</legend>
 <div class="alert alert-info alert-dismissible fade show">
     В таблице ниже представлены студенты курса &laquo;{{ course }}&raquo;, которым ранее был назначен зачет.<br>
@@ -20,20 +18,19 @@
     <hr>
     Студенты с оценкой в зачет выше &laquo;2&raquo; отмечены по-умолчанию.
 </div>
-<form action="" method="post" class="form-horizontal">
+<form action="" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
     {% render_field_errors form.level_ups %}
     <table class="table table-bordered table-sm table-hover">
         <thead>
             <tr>
-                <th class="text-center" style="width: 4%;">
-                    <div class="form-check" data-bs-toggle="tooltip" data-bs-placement="top" title="Выбрать всех пользователей">
-                        <input class="form-check-input" id="check_all" type="checkbox" {% if form.level_ups.field.initial.exists %}checked="checked"{% endif %}>
-                        <label class="form-check-label ms-2" for="check_all"></label>
+                <th style="width: 2%;">
+                    <div class="form-check ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Выбрать всех пользователей">
+                        <input class="form-check-input" id="check_all" type="checkbox" {% if form.level_ups.field.initial.exists %}checked="checked"{% endif %} aria-label="Выбрать всех студентов">
                     </div>
                 </th>
-                <th class="text-end" style="width: 4%;">№</th>
+                <th class="text-end" style="width: 3%;">№</th>
                 <th class="text-center">Ф.И.О.</th>
                 <th class="text-center" style="width: 12%;">Факультет</th>
                 <th class="text-center" style="width: 17%;">Уровень</th>
@@ -43,10 +40,9 @@
         <tbody>
             {% for account in form.level_ups.field.queryset %}
             <tr>
-                <td class="text-center">
-                    <div class="form-check">
-                        <input id="check_{{ account.user_id }}" type="checkbox" class="form-check-input check" name="level_ups" value="{{ account.user_id }}" {% if account in form.level_ups.field.initial %}checked="checked"{% endif %}>
-                        <label for="check_{{ account.user_id }}" class="form-check-label ms-2"></label>
+                <td>
+                    <div class="form-check ms-2">
+                        <input id="check_{{ account.user_id }}" type="checkbox" class="form-check-input check" name="level_ups" value="{{ account.user_id }}" {% if account in form.level_ups.field.initial %}checked="checked"{% endif %} aria-label="Выбрать студента">
                     </div>
                 </td>
                 <td class="text-end font-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
@@ -54,7 +50,7 @@
                 <td class="text-center">{{ account.faculty.short_name }}</td>
                 <td class="text-center text-nowrap">{% if account.is_student %}{{ account.get_level_display }}{% else %}{{ account.get_type_display }}{% endif %}</td>
                 <td class="text-center">
-                    <a href="{% url 'contests:credit-update' account.credit_id %}" class="numtus status-{{ account.credit_score|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Оценка">
+                    <a href="{% url 'contests:credit-update' account.credit_id %}" class="contest-status-number contest-status-{{ account.credit_score|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Оценка">
                         {{ account.credit_score|default:'-' }}
                     </a>
                 </td>
@@ -68,9 +64,9 @@
     </table>
     {% render_submit_button value="Завершить" %}
 </form>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
+{% block main_scripts %}
 <script type="text/javascript">
 document.getElementById('check_all').addEventListener('click', function (e) {
     let checkboxes = document.getElementsByName('level_ups');
@@ -79,4 +75,4 @@ document.getElementById('check_all').addEventListener('click', function (e) {
     });
 });
 </script>
-{% endblock javascript %}
+{% endblock main_scripts %}

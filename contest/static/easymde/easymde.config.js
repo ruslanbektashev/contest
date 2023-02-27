@@ -2,8 +2,9 @@ let easyMDEConfig = {
     'default': {
         autofocus: true,
         forceSync: true,
-        lineNumbers: true,
+        lineNumbers: false,
         tabSize: 4,
+        minHeight: "220px",
         spellChecker: false,
         sideBySideFullscreen: false,
         status: false,
