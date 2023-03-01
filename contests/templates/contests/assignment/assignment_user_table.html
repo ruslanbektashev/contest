@@ -25,18 +25,18 @@
                 {% endif %}
                 <td style="vertical-align: middle;"><a href="{{ assignment.problem.get_absolute_url }}">{{ assignment.problem }}</a></td>
                 <td class="text-center" style="vertical-align: middle;">
-                    <a href="{% url 'contests:assignment-detail' assignment.id %}" class="numtus status-{{ assignment|get_assignment_score:request|colorize }}">
+                    <a href="{% url 'contests:assignment-detail' assignment.id %}" class="contest-status-number contest-status-{{ assignment|get_assignment_score:request|colorize }}">
                         {{ assignment|get_assignment_score:request|default:'-' }}
                     </a>
                 </td>
                 {% if forloop.parentloop.first and forloop.first and assignment.attached_credit %}
                 <td class="text-center" rowspan="{{ course_assignments|length }}" style="vertical-align: middle;">
                     {% if perms.contests.change_credit or request|has_leader_permission:course %}
-                    <a href="{% url 'contests:credit-update' assignment.attached_credit.id %}" class="numtus status-{{ assignment.attached_credit.score|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ assignment.attached_credit.get_score_display }}">
+                    <a href="{% url 'contests:credit-update' assignment.attached_credit.id %}" class="contest-status-number contest-status-{{ assignment.attached_credit.score|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ assignment.attached_credit.get_score_display }}">
                         {{ assignment.attached_credit.score|default:'-' }}
                     </a>
                     {% else  %}
-                    <span class="numtus status-{{ assignment.attached_credit.score|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ assignment.attached_credit.get_score_display }}">
+                    <span class="contest-status-number contest-status-{{ assignment.attached_credit.score|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ assignment.attached_credit.get_score_display }}">
                         {{ assignment.attached_credit.score|default:'-' }}
                     </span>
                     {% endif %}

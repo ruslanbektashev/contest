@@ -37,7 +37,9 @@ function adjustStickyColumns(table_element, columns_num) {
         let offsetSum = 0;
         for (let j = 1; j < columns_num; j++) {
             offsetSum += table_element.rows[i].cells[j - 1].offsetWidth;
-            table_element.rows[i].cells[j].style.left = (offsetSum - 1) + "px";
+            if (j === columns_num - 1)
+                offsetSum -= 1;
+            table_element.rows[i].cells[j].style.left = offsetSum + "px";
         }
     }
 }

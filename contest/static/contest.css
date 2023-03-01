@@ -102,12 +102,14 @@
   margin-top: -70px;
 }
 
-.contest-comment-main .contest-comment-hidden {
+.contest-comment-main .contest-comment-hidden,
+.contest-table-cell .contest-table-cell-hidden {
   opacity: 0;
   transition: opacity 0.15s ease-in-out;
 }
 
-.contest-comment-main:hover .contest-comment-hidden {
+.contest-comment-main:hover .contest-comment-hidden,
+.contest-table-cell:hover .contest-table-cell-hidden {
   opacity: 1;
 }
 
@@ -119,8 +121,53 @@
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
+.contest-assignment-table {
+  border-collapse: separate !important;
+  border-spacing: 0;
+}
+
+.contest-assignment-table th {
+  border-top: 1px solid #dee2e6;
+  border-right: 1px solid #dee2e6;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.contest-assignment-table td {
+  border-top: 0;
+  border-right: 1px solid #dee2e6;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.contest-assignment-table th:first-child,
+.contest-assignment-table td:first-child {
+  border-left: 1px solid #dee2e6;
+  border-right: 1px solid #dee2e6;
+}
+
+.contest-assignment-table th:nth-child(2),
+.contest-assignment-table td:nth-child(2) {
+  border-left: 1px solid #dee2e6;
+  border-right: 0;
+}
+
+.contest-assignment-table th:nth-child(3),
+.contest-assignment-table td:nth-child(3) {
+  border-left: 1px solid #dee2e6;
+}
+
+.contest-sticky-column {
+  position: sticky;
+  left: 0;
+  z-index: 990;
+  background-color: white !important;
+}
+
+.contest-assignment-table.table-hover tbody tr:hover .contest-sticky-column {
+  background-color: #eeeeee;
+}
+
 .bootstrap-select .dropdown-menu {
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
 }
 
 /*# sourceMappingURL=contest.css.map */
