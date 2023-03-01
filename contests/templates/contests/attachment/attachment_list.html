@@ -1,5 +1,6 @@
 {% load views %}
-<ul class="list-group w-100">
+{% if attachments %}
+<ul class="list-group mb-3">
     {% for attachment in attachments %}
     <li class="list-group-item d-flex">
         <a class="text-truncate me-auto" href="{% url path_name obj.id attachment.id %}" target="_blank">
@@ -18,3 +19,4 @@
     </li>
     {% endfor %}
 </ul>
+{% endif %}
