@@ -156,6 +156,32 @@
   background-color: #eeeeee;
 }
 
+.contest-form-check {
+  width: 1.2rem;
+  height: 1.2rem;
+  text-align: center;
+  cursor: pointer;
+  border: 0;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.contest-form-check::after {
+  pointer-events: none;
+  font: normal normal normal 14px/1 FontAwesome;
+  font-size: 1.2rem;
+}
+
+.contest-form-check::after {
+  content: "\f00d";
+  color: #d9534f;
+}
+
+.contest-form-check:checked::after {
+  content: "\f00c";
+  color: #5cb85c;
+}
+
 .bootstrap-select .dropdown-menu {
   //box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important // .shadow
   box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075) !important // .shadow-sm

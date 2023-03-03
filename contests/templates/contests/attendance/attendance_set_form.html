@@ -1,14 +1,12 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms contests tutorial static %}
 
-{% block title %}
-Посещаемость
-{% endblock title %}
+{% block title %}Посещаемость{% endblock title %}
 
-{% block stylesheets %}
+{% block main_links %}
 <link href="{% static 'tempus-dominus/css/tempus-dominus.css' %}" rel="stylesheet">
 <link href="{% static 'tempus-dominus/css/tempus-dominus.patch.css' %}" rel="stylesheet">
-{% endblock stylesheets %}
+{% endblock main_links %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -17,12 +15,12 @@
 {% breadcrumb "Посещаемость" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Посещаемость</legend>
 <form action="" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
-    <div id="field_date_interval" class="row">
+    <div id="field_date_interval" class="row g-3">
         {% with WIDGET_ERROR_CLASS="is-invalid" %}
         <div class="col-4 col-lg-3">
             {% render_field form.date class+="form-control" %}
@@ -49,14 +47,11 @@
             <thead>
                 <tr id="attendance_formset_table_header">
                     <th class="text-end" style="width: 4%;">№</th>
-                    <th style="width: 25%;">Студент</th>
-                    <th class="text-center" style="width: 4%;">
-                        <div class="form-check" data-bs-toggle="tooltip" data-bs-placement="top" title="Отметить всех студентов">
-                            <input class="form-check-input" id="check_all" type="checkbox">
-                            <label class="form-check-label ms-2" for="check_all"></label>
-                        </div>
+                    <th class="col-9 col-md-3">Студент</th>
+                    <th class="text-center" style="width: 2%;">
+                        <input class="contest-form-check" id="check_all" type="checkbox" data-bs-toggle="tooltip" data-bs-placement="top" title="Отметить всех студентов" aria-label="Отметить всех студентов">
                     </th>
-                    <th></th>
+                    <th><label class="d-block" for="check_all">&nbsp;</label></th>
                 </tr>
             </thead>
             <tbody>
@@ -65,12 +60,10 @@
                     <td class="text-end font-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
                     <td class="text-truncate"><a href="{{ form.account.get_absolute_url }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ form.account.get_full_name }}">{{ form.account.get_short_name }}</a></td>
                     <td class="text-center">
-                        <div class="form-check">
-                            {% render_field form.flag class+="form-check-input check" %}
-                            <label class="form-check-label ms-2" for="{{ form.flag.id_for_label }}"></label>
-                        </div>
+                        {% render_field form.flag class+="contest-form-check check" aria-label="Отметить всех студентов" %}
                     </td>
                     <td>
+                        <label class="d-block" for="{{ form.flag.id_for_label }}">&nbsp;</label>
                         {% render_field form.user %}
                         {% render_field form.course %}
                     </td>
@@ -83,9 +76,9 @@
     {% render_submit_button value="Сохранить" %}
     </div>
 </form>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
+{% block main_scripts %}
 <script src="{% static 'popper/popper.min.js' %}" type="text/javascript"></script>
 <script src="{% static 'tempus-dominus/js/tempus-dominus.js' %}" type="text/javascript"></script>
 <script src="{% static 'tempus-dominus/tempus-dominus.options.js' %}" type="text/javascript"></script>
@@ -155,4 +148,4 @@ driver.defineSteps([
     {% endif %}
 ])
 </script>
-{% endblock javascript %}
+{% endblock main_scripts %}

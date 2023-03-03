@@ -1,10 +1,10 @@
 <div class="table-responsive-lg" style="overflow-x: scroll;">
-    <table id="attendance_table" class="table table-sm table-hover assignment-table">
+    <table id="attendance_table" class="table table-sm table-hover contest-assignment-table">
         <thead>
             <tr>
-                <th class="sticky-column text-end" style="width: 4%;">№</th>
-                <th class="sticky-column" style="width: 25%;">Студент</th>
-                <th class="sticky-column text-center" style="width: 4%;"><span data-bs-toggle="tooltip" data-bs-placement="top" title="Посещаемость">П</span></th>
+                <th class="contest-sticky-column text-end" style="width: 4%;">№</th>
+                <th class="contest-sticky-column" style="width: 25%;">Студент</th>
+                <th class="contest-sticky-column text-center" style="width: 4%;"><span data-bs-toggle="tooltip" data-bs-placement="top" title="Посещаемость">П</span></th>
                 {% for day in days %}
                 <th class="text-center">
                     {{ day|date:'d.m.y' }}
@@ -17,10 +17,10 @@
         <tbody>
             {% for row in table %}
             <tr>
-                <td class="sticky-column text-end font-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
-                <td class="sticky-column text-truncate"><a href="{{ row.student.get_absolute_url }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ row.student.get_full_name }}">{{ row.student.get_short_name }}</a></td>
-                <td class="sticky-column text-center">
-                    <span class="badge bg-light" style="position:relative; top:-0.06rem;">
+                <td class="contest-sticky-column text-end font-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
+                <td class="contest-sticky-column text-truncate"><a href="{{ row.student.get_absolute_url }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ row.student.get_full_name }}">{{ row.student.get_short_name }}</a></td>
+                <td class="contest-sticky-column text-center">
+                    <span class="badge text-bg-light" style="position:relative; top:-0.06rem;">
                         {{ row.student.attendance_sum }}
                     </span>
                 </td>
