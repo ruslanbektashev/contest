@@ -26,7 +26,6 @@
     {% csrf_token %}
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-    {{ form.media }}
     <div id="field_title_official">
         {% render_field form.title_official class+="form-control" %}
     </div>
@@ -53,9 +52,7 @@
         </label>
         {% if form.description.errors %}
         <div class="alert alert-danger mb-3">
-            {% for error in form.description.errors %}
-            {{ error }}<br>
-            {% endfor %}
+            {% for error in form.description.errors %}{{ error }}<br>{% endfor %}
         </div>
         {% endif %}
         <div class="input-group">
@@ -81,7 +78,6 @@
 <script src="{% static 'ckeditor/ckeditor.config.js' %}" type="text/javascript"></script>
 <script src="{% static 'easymde/easymde.min.js' %}" type="text/javascript"></script>
 <script src="{% static 'easymde/easymde.config.js' %}" type="text/javascript"></script>
-<script src="{% static 'MathJax/es5/tex-chtml.js' %}" type="text/javascript"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function(event) {
     {% if form.description_type.value == 1 %}

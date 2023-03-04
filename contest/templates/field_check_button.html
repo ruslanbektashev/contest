@@ -1,0 +1,11 @@
+<div class="mb-3">
+    <div class="d-grid btn-group" role="group" aria-label="{{ field.label }}{{ field.label_suffix }}">
+        {{ field }}
+        <label class="btn btn-outline-secondary" for="{{ field.id_for_label }}">
+            {{ field.label }}{{ field.label_suffix }}
+        </label>
+    </div>
+    {% if field.help_text %}
+    <div class="form-text">{{ field.help_text }}</div>
+    {% endif %}
+</div>

@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views accounts contests tutorial markdown static %}
 
-{% block title %}
-Раздел
-{% endblock title %}
+{% block title %}Раздел{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,22 +9,22 @@
 {% breadcrumb contest %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between flex-column flex-md-row">
+    <span class="d-flex justify-content-between flex-column flex-md-row">
         <span class="text-truncate"><span class="text-muted">№{{ contest.number }}</span> {{ contest.title }}</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
             {% if perms.contests.add_problem or request|has_leader_permission:contest.course %}
-            <span class="dropdown show" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить задачу">
-                <a href="#" class="text-success" role="button" id="dropdownAddProblemMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-plus fa-fw"></i></a>
-                <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownAddProblemMenuLink">
-                    <a href="{% url 'contests:problem-create' contest.id 'Text' %}" class="dropdown-item"><i class="fa fa-keyboard-o fa-fw"></i> С ответом в виде текста</a>
-                    <a href="{% url 'contests:problem-create' contest.id 'Files' %}" class="dropdown-item"><i class="fa fa-file-text-o fa-fw"></i> С ответом в виде файлов</a>
-                    <a href="{% url 'contests:problem-create' contest.id 'Program' %}" class="dropdown-item"><i class="fa fa-file-code-o fa-fw"></i> С ответом в виде программы</a>
-                    <a href="{% url 'contests:problem-create' contest.id 'Options' %}" class="dropdown-item"><i class="fa fa-check-square-o fa-fw"></i> С вариантами ответа</a>
-                    <a href="{% url 'contests:problem-create' contest.id 'Verbal' %}" class="dropdown-item"><i class="fa fa-microphone fa-fw"></i> С устным ответом</a>
-                    <div class="dropdown-divider"></div>
-                    <a href="{% url 'contests:problem-create' contest.id 'Test' %}" class="dropdown-item"><i class="fa fa-folder-o fa-fw"></i> Тест</a>
+            <span class="dropstart" data-bs-toggle="tooltip" data-bs-placement="top" title="Добавить задачу">
+                <a href="#" class="text-success" role="button" id="dropdownAddProblemMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-plus fa-fw"></i></a>
+                <span class="dropdown-menu shadow-sm" aria-labelledby="dropdownAddProblemMenuLink">
+                    <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Text' %}"><i class="fa fa-keyboard-o fa-fw"></i> С ответом в виде текста</a>
+                    <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Files' %}"><i class="fa fa-file-text-o fa-fw"></i> С ответом в виде файлов</a>
+                    <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Program' %}"><i class="fa fa-file-code-o fa-fw"></i> С ответом в виде программы</a>
+                    <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Options' %}"><i class="fa fa-check-square-o fa-fw"></i> С вариантами ответа</a>
+                    <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Verbal' %}"><i class="fa fa-microphone fa-fw"></i> С устным ответом</a>
+                    <span><hr class="dropdown-divider"></span>
+                    <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Test' %}"><i class="fa fa-folder-o fa-fw"></i> Тест</a>
                 </span>
             </span>
             {% endif %}
@@ -34,73 +32,48 @@
             <a id="btn_contest_update" href="{% url 'contests:contest-update' contest.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.delete_contest or request|has_leader_permission:contest.course %}
-            <span class="dropdown show">
-                <a href="#" role="button" id="dropdownMoreMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
-                <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownMoreMenuLink">
+            <span class="dropstart">
+                <a href="#" role="button" id="dropdownMoreMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
+                <span class="dropdown-menu shadow-sm" aria-labelledby="dropdownMoreMenuLink">
                     <a href="{% url 'contests:contest-update' contest.id %}?action=move" class="dropdown-item"><i class="fa fa-share-square-o fa-fw"></i> Переместить</a>
                     <a href="{% url 'contests:contest-delete' contest.id %}" class="dropdown-item text-danger"><i class="fa fa-trash-o fa-fw"></i> Удалить</a>
                 </span>
             </span>
             {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
-<div class="accordion mb-3" id="contest_details">
-    <div class="card">
-        <div class="card-header" id="contest_description">
-            <h2 class="mb-0">
-                <button class="btn btn-link btn-block text-start" type="button" data-toggle="collapse"
-                        data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                    Описание раздела
-                </button>
-            </h2>
-        </div>
-        <div id="collapseOne" class="collapse show" aria-labelledby="contest_description">
-            <div class="card-body">
-                <div class="w-100">
-                    {{ contest.description|markdown|safe }}
-                </div>
+<div class="accordion mb-3" id="contestDetails">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="contestDescriptionHeader">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#contestDescriptionCollapse" aria-expanded="true" aria-controls="contestDescriptionCollapse">
+                Описание раздела
+            </button>
+        </h2>
+        <div class="accordion-collapse collapse show" id="contestDescriptionCollapse" aria-labelledby="contestDescriptionHeader">
+            <div class="accordion-body ck-content overflow-scroll">
+            {% if contest.get_description_type_display == 'markdown' %}
+                {{ contest.description|markdown|safe }}
+            {% else %}
+                {{ contest.description|safe }}
+            {% endif %}
                 <div class="w-100 mt-3">
                     {% render_attachment_list contest contest.course %}
                 </div>
-                {% if perms.contests.change_contest or request|has_leader_permission:contest.course %}
-                <div class="d-grid">
-                    <a href="{% url 'contests:contest-update' contest.id %}?action=add_files" class="btn btn-light">
-                        <i class="fa fa-files-o fa-fw"></i> Добавить файлы
-                    </a>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
-    <div class="card">
-        <div class="card-header" id="contest_problems">
-            <h2 class="mb-0">
-                <button class="btn btn-link btn-block text-start" type="button" data-toggle="collapse"
-                        data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
-                    Задачи
-                </button>
-            </h2>
-        </div>
-        <div id="collapseTwo" class="collapse show" aria-labelledby="contest_problems">
-            <div class="card-body" style="min-height: 300px;">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="contestProblemsHeader">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#contestProblemsCollapse" aria-expanded="true" aria-controls="contestProblemsCollapse">
+                Задачи
+            </button>
+        </h2>
+        <div class="accordion-collapse collapse show" id="contestProblemsCollapse" aria-labelledby="contestProblemsHeader">
+            <div class="accordion-body">
                 {% include 'contests/problem/problem_list.html' with problems=contest.problem_set.all %}
-                {% if perms.contests.add_problem or request|has_leader_permission:contest.course %}
-                <div id="dropdown_menu_problem_create" class="dropdown">
-                    <button id="btn_problem_create" class="btn btn-block btn-light" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fa fa-plus fa-fw"></i> Добавить задачу
-                    </button>
-                    <div id="menu_problem_create" class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="btn_problem_create">
-                        <a href="{% url 'contests:problem-create' contest.id 'Text' %}" class="dropdown-item"><i class="fa fa-keyboard-o fa-fw"></i> С ответом в виде текста</a>
-                        <a href="{% url 'contests:problem-create' contest.id 'Files' %}" class="dropdown-item"><i class="fa fa-file-text-o fa-fw"></i> С ответом в виде файлов</a>
-                        <a href="{% url 'contests:problem-create' contest.id 'Program' %}" class="dropdown-item"><i class="fa fa-file-code-o fa-fw"></i> С ответом в виде программы</a>
-                        <a href="{% url 'contests:problem-create' contest.id 'Options' %}" class="dropdown-item"><i class="fa fa-check-square-o fa-fw"></i> С вариантами ответа</a>
-                        <a href="{% url 'contests:problem-create' contest.id 'Verbal' %}" class="dropdown-item"><i class="fa fa-microphone fa-fw"></i> С устным ответом</a>
-                        <div class="dropdown-divider"></div>
-                        <a href="{% url 'contests:problem-create' contest.id 'Test' %}" class="dropdown-item"><i class="fa fa-folder-o fa-fw"></i> Тест</a>
-                    </div>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -117,8 +90,8 @@
         <div class="col-12 text-muted text-start">Порядковый номер: {{ contest.number }}</div>
     </div>
     <div class="col-12 col-md-6">
-        <div class="col-12 text-muted text-start text-md-right">Добавлен: {{ contest.date_created|date:'d E Y г.' }}</div>
-        <div class="col-12 text-muted text-start text-md-right">Добавил(а): <a href="{{ contest.owner.account.get_absolute_url }}" class="text-muted">{{ contest.owner.account }}</a></div>
+        <div class="col-12 text-muted text-start text-md-end">Добавлен: {{ contest.date_created|date:'d E Y г.' }}</div>
+        <div class="col-12 text-muted text-start text-md-end">Добавил(а): <a href="{{ contest.owner.account.get_absolute_url }}" class="text-muted">{{ contest.owner.account }}</a></div>
     </div>
 </div>
 <div class="d-grid">
@@ -127,9 +100,9 @@
         <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
     </a>
 </div>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
+{% block main_scripts %}
 <script src="{% static 'MathJax/es5/tex-chtml.js' %}" type="text/javascript"></script>
 <script>
 driver.defineSteps([
@@ -212,4 +185,4 @@ dropdown_to_fix.on('hidden.bs.dropdown', function () {
     }).detach());
 });
 </script>
-{% endblock javascript %}
+{% endblock main_scripts %}

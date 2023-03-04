@@ -5,6 +5,14 @@
     <div class="col-md-10 d-flex align-items-center">
         <div class="form-check form-switch">
             {{ field }}
+            {% if field.errors %}
+            <div class="invalid-feedback">
+                {% for error in field.errors %}{{ error }} {% endfor %}
+            </div>
+            {% endif %}
+            {% if field.help_text %}
+            <div class="form-text">{{ field.help_text }}</div>
+            {% endif %}
         </div>
     </div>
 </div>

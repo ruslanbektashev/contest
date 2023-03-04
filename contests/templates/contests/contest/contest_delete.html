@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Раздел
-{% endblock title %}
+{% block title %}Раздел{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -12,7 +10,7 @@
 {% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Удаление раздела</legend>
 {% if action == 'delete_permanently' %}
 <form action="" method="post">
@@ -29,10 +27,10 @@
         Вы точно хотите удалить раздел: {{ contest }}?
     </div>
     <div class="d-grid">
-        <input class="btn btn-secondary" type="submit" value="Удалить" />
+        <input class="btn btn-danger" type="submit" value="Удалить" />
     </div>
 </form>
 {% else %}
 {% render_delete_form contest %}
 {% endif %}
-{% endblock content %}
+{% endblock main_content %}

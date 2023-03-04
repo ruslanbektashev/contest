@@ -1,9 +1,8 @@
 {% load views %}
-{% if attachments %}
-<ul class="list-group mb-3">
+<ul class="list-group mb-0">
     {% for attachment in attachments %}
     <li class="list-group-item d-flex">
-        <a class="text-truncate me-auto" href="{% url path_name obj.id attachment.id %}" target="_blank">
+        <a class="text-truncate me-auto" href="{% url detail_view_name obj.id attachment.id %}" target="_blank">
             <samp>{{ attachment.filename }}</samp>
         </a>
         <span class="text-muted text-nowrap me-2">{% if attachment.file|exists %}{{ attachment.file.size|filesizeformat }} ∙ {% endif %}{{ attachment.date_created|date:'d b Y H:i' }}</span>
@@ -18,5 +17,9 @@
         {% endif %}
     </li>
     {% endfor %}
+    {% if perms.contests.change_contest or request|has_leader_permission:contest.course %}
+    <a href="{% url update_view_name obj.id %}?action=add_files" class="list-group-item list-group-item-action text-center contest-list-add">
+        <i class="fa fa-files-o fa-fw"></i> Добавить файлы
+    </a>
+    {% endif %}
 </ul>
-{% endif %}

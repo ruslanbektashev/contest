@@ -82,10 +82,6 @@
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
 }
 
-.contest-list-add i {
-  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
-}
-
 .contest-list-add:hover {
   color: #212529 !important;
   background-color: #ffffff !important;
