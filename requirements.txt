@@ -20,3 +20,5 @@ currency-symbols==2.0.1
 openpyxl==3.0.9
 aspose.slides==22.1
 aspose-words==22.5.0
+billiard~=3.6.4.0
+pyTelegramBotAPI>=4.10.0

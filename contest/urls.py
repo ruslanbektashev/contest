@@ -39,6 +39,7 @@ urlpatterns = [
     path('', include('contests.urls')),
     path('schedule/', include('schedule.urls')),
     path('support/', include('support.urls')),
+    path('', include('contest_telegram_bot.urls')),
     path('admin/', admin.site.urls),
     re_path(r'^ckeditor/', include('ckeditor_uploader.urls')),
 ] + (static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) +
