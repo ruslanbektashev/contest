@@ -1,14 +1,12 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms static %}
 
-{% block title %}
-Генератор ведомости
-{% endblock title %}
+{% block title %}Генератор ведомости{% endblock title %}
 
-{% block stylesheets %}
+{% block main_links %}
 <link href="{% static 'tempus-dominus/css/tempus-dominus.css' %}" rel="stylesheet">
 <link href="{% static 'tempus-dominus/css/tempus-dominus.patch.css' %}" rel="stylesheet">
-{% endblock stylesheets %}
+{% endblock main_links %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -17,9 +15,9 @@
 {% breadcrumb "Генератор ведомости" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Генератор ведомости</legend>
-<form action="" method="post" class="form-horizontal">
+<form action="" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
@@ -35,9 +33,9 @@
     {% endwith %}
     {% render_submit_button value="Сгенерировать" %}
 </form>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
+{% block main_scripts %}
 <script src="{% static 'popper/popper.min.js' %}" type="text/javascript"></script>
 <script src="{% static 'tempus-dominus/js/tempus-dominus.js' %}" type="text/javascript"></script>
 <script src="{% static 'tempus-dominus/tempus-dominus.options.js' %}" type="text/javascript"></script>
@@ -47,4 +45,4 @@ document.addEventListener("DOMContentLoaded", function() {
     const picker = new tempusDominus.TempusDominus(document.getElementById('id_date'), tdOptions);
 });
 </script>
-{% endblock javascript %}
+{% endblock main_scripts %}

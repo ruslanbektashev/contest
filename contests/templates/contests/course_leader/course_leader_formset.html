@@ -41,24 +41,24 @@
                         {% if form.instance.id %}
                         {% render_field form.DELETE class+="d-none" %}
                         {% endif %}
-                        <button type="button" class="btn btn-link btn-sm text-secondary" {% if form.instance.id %}onclick="markAsDeleted(this)" data-target="{{ form.DELETE.id_for_label }}" {% else %}onclick="removeEmptyForm(this)"{% endif %}><i class="fa fa-times fa-2x"></i></button>
+                        <button class="btn btn-link btn-sm text-secondary" type="button" {% if form.instance.id %}onclick="markAsDeleted(this)" data-target="{{ form.DELETE.id_for_label }}" {% else %}onclick="removeEmptyForm(this)" {% endif %} data-bs-toggle="tooltip" data-bs-placement="left" title="Удалить запись"><i class="fa fa-times fa-2x"></i></button>
                     </td>
                     {% endwith %}
                 </tr>
                 {% endfor %}
-                <tr id="empty_form_row" class="d-none">
+                <tr class="d-none" id="empty_form_row">
                     {% render_field formset.empty_form.course %}
                     <td>{% render_field formset.empty_form.leader class+="form-control" data-container="body" %}</td>
                     <td>{% render_field formset.empty_form.group class+="form-control" data-container="body" %}</td>
                     <td>{% render_field formset.empty_form.subgroup class+="form-control" data-container="body" %}</td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-link btn-sm text-secondary" onclick="removeEmptyForm(this)"><i class="fa fa-times fa-2x"></i></button>
+                        <button class="btn btn-link btn-sm text-secondary" type="button" onclick="removeEmptyForm(this)" data-bs-toggle="tooltip" data-bs-placement="left" title="Удалить запись"><i class="fa fa-times fa-2x"></i></button>
                     </td>
                 </tr>
                 <tr>
                     <td colspan="3">
                         <div class="d-grid">
-                            <button id="add_empty_form_row" type="button" class="btn btn-light text-success" onclick="addEmptyForm()"><i class="fa fa-plus fa-lg"></i></button>
+                            <button class="btn btn-light text-success" id="add_empty_form_row" type="button" onclick="addEmptyForm()"><i class="fa fa-plus fa-lg"></i></button>
                         </div>
                     </td>
                 </tr>

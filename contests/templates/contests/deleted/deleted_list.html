@@ -1,26 +1,26 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views contests %}
 
-{% block title %}
-Корзина
-{% endblock title %}
+{% block title %}Корзина{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb "Корзина" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Корзина</legend>
 {% if deleted_courses.exists or deleted_contests.exists or deleted_problems.exists %}
 <div class="table-responsive-lg">
     <table class="table">
         <thead>
-            <th>Тип</th>
-            <th>Название</th>
-            <th class="text-end">Дата удаления</th>
-            <th></th>
-            <th></th>
+            <tr>
+                <th>Тип</th>
+                <th>Название</th>
+                <th class="text-end">Дата удаления</th>
+                <th></th>
+                <th></th>
+            </tr>
         </thead>
         <tbody>
             {% for course in deleted_courses %}
@@ -54,8 +54,8 @@
     </table>
 </div>
 {% else %}
-<div class="alert alert-info mb-3" role="alert">
+<div class="alert alert-info" role="alert">
     Корзина пуста
 </div>
 {% endif %}
-{% endblock content %}
+{% endblock main_content %}
