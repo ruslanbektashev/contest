@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views %}
 
-{% block title %}
-IO-Тест
-{% endblock title %}
+{% block title %}IO-Тест{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -13,11 +11,11 @@ IO-Тест
 {% breadcrumb iotest %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between">
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">{{ iotest }}</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
             {% if perms.contests.change_iotest or request|has_leader_permission:iotest.course %}
             <a href="{% url 'contests:iotest-update' iotest.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать IO-тест"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
@@ -25,7 +23,7 @@ IO-Тест
             <a href="{% url 'contests:iotest-delete' iotest.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить IO-тест" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
             {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
 <table class="table table-sm">
     <tr>
@@ -59,4 +57,4 @@ IO-Тест
 <div class="alert alert-secondary">
     <samp>{{ iotest.output|linebreaksbr }}</samp>
 </div>
-{% endblock content %}
+{% endblock main_content %}

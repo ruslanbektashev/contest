@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Тест
-{% endblock title %}
+{% block title %}FN-Тест{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,7 +9,7 @@
 {% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Удаление FN-теста</legend>
 {% render_delete_form fntest %}
-{% endblock content %}
+{% endblock main_content %}
