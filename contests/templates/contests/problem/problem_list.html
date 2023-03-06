@@ -12,10 +12,10 @@
     <div class="alert alert-info mb-0" role="alert">Задачи еще не добавлены</div>
     {% endfor %}
     {% if perms.contests.add_problem or request|has_leader_permission:contest.course %}
-    <button id="btn_problem_create" class="list-group-item contest-list-add" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <button class="list-group-item contest-list-add" id="btn_problem_create" type="button" data-bs-toggle="dropdown" aria-expanded="false">
         <i class="fa fa-plus fa-fw"></i> Добавить задачу
     </button>
-    <div id="menu_problem_create" class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="btn_problem_create">
+    <div class="dropdown-menu shadow-sm" aria-labelledby="btn_problem_create">
         <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Text' %}"><i class="fa fa-keyboard-o fa-fw"></i> С ответом в виде текста</a>
         <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Files' %}"><i class="fa fa-file-text-o fa-fw"></i> С ответом в виде файлов</a>
         <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Program' %}"><i class="fa fa-file-code-o fa-fw"></i> С ответом в виде программы</a>

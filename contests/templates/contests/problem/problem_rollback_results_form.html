@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms contests %}
 
-{% block title %}
-Задача
-{% endblock title %}
+{% block title %}Задача{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -13,12 +11,12 @@
 {% breadcrumb "Откат результатов" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
-<legend>Откат результатов задачи {{ problem }}</legend>
-<p>В таблице выведены посылки со статусом <span class="numtus status-success">Задача решена</span> всех студентов, которые не имеют оценки в зачете.</p>
-<p>Выберите посылки, которым следует изменить статус на <span class="numtus status-warning">Требуется проверка</span>.</p>
+{% block main_content %}
+<legend class="text-truncate">Откат результатов задачи {{ problem }}</legend>
+<p>В таблице выведены посылки со статусом <span class="contest-status-number contest-status-success">Задача решена</span> всех студентов, которые не имеют оценки в зачете.</p>
+<p>Выберите посылки, которым следует изменить статус на <span class="contest-status-number contest-status-warning">Требуется проверка</span>.</p>
 <p>Оценки за задания, соответствующие выбранным посылкам, также будут понижены.</p>
-<form action="" method="post" class="form-horizontal">
+<form action="" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
     {% render_field_errors form.submissions %}
@@ -43,18 +41,18 @@
                 <td class="text-center">
                     <div class="form-check">
                         <input class="form-check-input check" id="check_{{ submission.id }}" type="checkbox" name="submissions" value="{{ submission.id }}">
-                        <label class="form-check-label ms-2" for="check_{{ submission.id }}"></label>
+                        <label class="form-check-label" for="check_{{ submission.id }}"></label>
                     </div>
                 </td>
                 <td class="text-center">{{ submission.date_created|date:'d b Y' }}</td>
                 <td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>
                 <td class="text-center">
                     {% if submission.assignment %}
-                    <a href="{{ submission.assignment.get_absolute_url }}" class="numtus status-{{ submission.assignment.score|colorize }}">
+                    <a href="{{ submission.assignment.get_absolute_url }}" class="contest-status-number contest-status-{{ submission.assignment.score|colorize }}">
                         {{ submission.assignment.score }}
                     </a>
                     <i class="fa fa-arrow-right"></i>
-                    <span class="numtus status-{{ submission.assignment.score|add:'-1'|colorize }}">
+                    <span class="contest-status-number contest-status-{{ submission.assignment.score|add:'-1'|colorize }}">
                         {{ submission.assignment.score|add:'-1' }}
                     </span>
                     {% else %}
@@ -62,27 +60,27 @@
                     {% endif %}
                 </td>
                 <td class="text-center">
-                    <a href="{{ submission.get_absolute_url }}" class="status status-{{ submission.status|colorize }}">
+                    <a href="{{ submission.get_absolute_url }}" class="contest-status contest-status-{{ submission.status|colorize }}">
                         {{ submission.status }}
                     </a>
                     <i class="fa fa-arrow-right"></i>
-                    <span class="status status-{{ 'TR'|colorize }}">
+                    <span class="contest-status contest-status-{{ 'TR'|colorize }}">
                         TR
                     </span>
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td class="text-center" colspan="4">здесь ничего нет</td>
+                <td class="text-center" colspan="5"><div class="alert alert-info mb-0">здесь ничего нет</div></td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% render_submit_button value="Откатить" %}
 </form>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
+{% block main_scripts %}
 <script type="text/javascript">
 document.getElementById('check_all').addEventListener('click', function (e) {
     let checkboxes = document.getElementsByName('submissions');
@@ -91,4 +89,4 @@ document.getElementById('check_all').addEventListener('click', function (e) {
     });
 });
 </script>
-{% endblock javascript %}
+{% endblock main_scripts %}

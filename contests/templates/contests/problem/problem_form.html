@@ -1,9 +1,14 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms static %}
 
-{% block title %}
-Задача
-{% endblock title %}
+{% block title %}Задача{% endblock title %}
+
+{% block main_links %}
+<link href="{% static 'ckeditor/ckeditor.min.css' %}" rel="stylesheet">
+<link href="{% static 'ckeditor/ckeditor.fix.css' %}" rel="stylesheet">
+<link href="{% static 'easymde/easymde.min.css' %}" rel="stylesheet">
+<link href="{% static 'easymde/easymde.fix.css' %}" rel="stylesheet">
+{% endblock main_links %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -17,9 +22,9 @@
 {% endif %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>{{ title }}</legend>
-<form action="" method="post" enctype="multipart/form-data" class="form-horizontal">
+<form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% render_form_errors form %}
     {% if action == 'restore' or action == None %}
@@ -29,24 +34,21 @@
     {% render_field form.score_max %}
     {% endif %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-    {{ form.media }}
     {% render_field form.title class+="form-control" %}
-    <div class="mb-3">
-        <label for="{{ field.id_for_label }}">
+    {% endwith %}
+    <div class="mb-3" id="field_description">
+        <label class="form-label" for="{{ form.description.id_for_label }}">
             {{ form.description.label }}{{ form.description.label_suffix }}
         </label>
         {% if form.description.errors %}
-        <div class="alert alert-danger">
-            {% for error in form.description.errors %}
-            {{ error }}<br>
-            {% endfor %}
+        <div class="alert alert-danger mb-3">
+            {% for error in form.description.errors %}{{ error }}<br>{% endfor %}
         </div>
         {% endif %}
         <div class="input-group">
-            {{ form.description }}
+            {% render_field form.description class+="form-control" %}
         </div>
     </div>
-    {% endwith %}
 
     {% if type == 'Options' %}
     <h5 class="mb-3">Варианты ответа</h5>
@@ -74,8 +76,7 @@
         </div>
         {% endfor %}
     </div>
-
-    <div id="emptyform_wrapper" class="d-none">
+    <div class="d-none" id="empty_form_wrapper">
         <div class="card mb-3">
             <div class="card-body">
                 {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
@@ -92,8 +93,9 @@
             </div>
         </div>
     </div>
-
-    <input type="button" class="btn btn-block btn-light border mb-3" value="Добавить ещё вариант" id="add_more">
+    <div class="d-grid mb-3">
+        <button class="btn btn-light" type="button" onclick="addEmptyForm()"><i class="fa fa-plus fa-lg text-success"></i> Добавить вариант</button>
+    </div>
     {% endif %}
     {% endif %}
 
@@ -113,45 +115,7 @@
     {% if action == 'restore' or action == None %}
     <div class="row">
         <div class="col-4 mb-3">
-            <label for="{{ form.score_for_5.id_for_label }}">
-                {{ form.score_for_5.label }}{{ form.score_for_5.label_suffix }}
-            </label>
-            <div class="input-group has-validation">
-                {% render_field form.score_for_5 class+="form-control" %}
-                {% if form.score_for_5.field.append_text %}
-                <span class="input-group-text">{{ form.score_for_5.field.append_text }}</span>
-                {% endif %}
-                {% if form.score_for_5.errors %}
-                <div class="invalid-feedback">
-                    {% for error in form.score_for_5.errors %}{{ error }}{% endfor %}
-                </div>
-                {% endif %}
-            </div>
-            {% if form.score_for_5.help_text %}
-            <small class="form-text text-muted">{{ form.score_for_5.help_text }}</small>
-            {% endif %}
-        </div>
-        <div class="col-4 mb-3">
-            <label for="{{ form.score_for_4.id_for_label }}">
-                {{ form.score_for_4.label }}{{ form.score_for_4.label_suffix }}
-            </label>
-            <div class="input-group has-validation">
-                {% render_field form.score_for_4 class+="form-control" %}
-                {% if form.score_for_4.field.append_text %}
-                <span class="input-group-text">{{ form.score_for_4.field.append_text }}</span>
-                {% endif %}
-                {% if form.score_for_4.errors %}
-                <div class="invalid-feedback">
-                    {% for error in form.score_for_4.errors %}{{ error }}{% endfor %}
-                </div>
-                {% endif %}
-            </div>
-            {% if form.score_for_4.help_text %}
-            <small class="form-text text-muted">{{ form.score_for_4.help_text }}</small>
-            {% endif %}
-        </div>
-        <div class="col-4 mb-3">
-            <label for="{{ form.score_for_3.id_for_label }}">
+            <label class="form-label" for="{{ form.score_for_3.id_for_label }}">
                 {{ form.score_for_3.label }}{{ form.score_for_3.label_suffix }}
             </label>
             <div class="input-group has-validation">
@@ -166,7 +130,45 @@
                 {% endif %}
             </div>
             {% if form.score_for_3.help_text %}
-            <small class="form-text text-muted">{{ form.score_for_3.help_text }}</small>
+            <small class="form-text">{{ form.score_for_3.help_text }}</small>
+            {% endif %}
+        </div>
+        <div class="col-4 mb-3">
+            <label class="form-label" for="{{ form.score_for_4.id_for_label }}">
+                {{ form.score_for_4.label }}{{ form.score_for_4.label_suffix }}
+            </label>
+            <div class="input-group has-validation">
+                {% render_field form.score_for_4 class+="form-control" %}
+                {% if form.score_for_4.field.append_text %}
+                <span class="input-group-text">{{ form.score_for_4.field.append_text }}</span>
+                {% endif %}
+                {% if form.score_for_4.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.score_for_4.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% if form.score_for_4.help_text %}
+            <small class="form-text">{{ form.score_for_4.help_text }}</small>
+            {% endif %}
+        </div>
+        <div class="col-4 mb-3">
+            <label class="form-label" for="{{ form.score_for_5.id_for_label }}">
+                {{ form.score_for_5.label }}{{ form.score_for_5.label_suffix }}
+            </label>
+            <div class="input-group has-validation">
+                {% render_field form.score_for_5 class+="form-control" %}
+                {% if form.score_for_5.field.append_text %}
+                <span class="input-group-text">{{ form.score_for_5.field.append_text }}</span>
+                {% endif %}
+                {% if form.score_for_5.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.score_for_5.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% if form.score_for_5.help_text %}
+            <small class="form-text">{{ form.score_for_5.help_text }}</small>
             {% endif %}
         </div>
     </div>
@@ -202,16 +204,28 @@
 
     {% render_submit_button value="Сохранить" %}
 </form>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
+{% block main_scripts %}
+<script src="{% static 'ckeditor/ckeditor.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'ckeditor/ckeditor.config.js' %}" type="text/javascript"></script>
+<script src="{% static 'easymde/easymde.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'easymde/easymde.config.js' %}" type="text/javascript"></script>
 <script type="text/javascript">
-$('#add_more').click(function () {
-    let total_form = $('#id_option_set-TOTAL_FORMS');
-    let form_idx = total_form.val();
-
-    $('#formset_wrapper').append($('#emptyform_wrapper').html().replace(/__prefix__/g, form_idx));
-    total_form.val(parseInt(form_idx) + 1);
+document.addEventListener("DOMContentLoaded", function(event) {
+    initCKEditor(document.getElementById('id_description'), 'default');
 });
+
+function addEmptyForm() {
+    let total_form_field = document.getElementById('id_option_set-TOTAL_FORMS');
+    let total_form_max = parseInt(document.getElementById('id_option_set-MAX_NUM_FORMS').value);
+    let total_form_count = parseInt(total_form_field.value);
+    if (total_form_count < total_form_max) {
+        let formset_wrapper = document.getElementById('formset_wrapper');
+        let empty_form_row = document.getElementById('empty_form_wrapper');
+        formset_wrapper.insertAdjacentHTML('beforeend', empty_form_row.innerHTML.replace(/__prefix__/g, total_form_field.value));
+        total_form_field.value = total_form_count + 1;
+    }
+}
 </script>
-{% endblock javascript %}
+{% endblock main_scripts %}

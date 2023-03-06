@@ -104,7 +104,7 @@
 
 {% block main_scripts %}
 <script src="{% static 'MathJax/es5/tex-chtml.js' %}" type="text/javascript"></script>
-<script>
+<script type="text/javascript">
 driver.defineSteps([
     {% if request.user.account.is_instructor or request.user.is_superuser %}
     {% if not request|have_passed_step:'contest_detail' %}
@@ -167,22 +167,5 @@ driver.defineSteps([
     {% endif %}
     {% endif %}
 ])
-</script>
-<script>
-let dropdown_to_fix = $('#dropdown_menu_problem_create');
-dropdown_to_fix.on('show.bs.dropdown', function () {
-    $('body').append($('#menu_problem_create').css({
-        position: 'absolute',
-        left: dropdown_to_fix.offset().left,
-        top: dropdown_to_fix.offset().top
-    }).detach());
-});
-dropdown_to_fix.on('hidden.bs.dropdown', function () {
-    dropdown_to_fix.append($('#menu_problem_create').css({
-        position: false,
-        left: false,
-        top: false
-    }).detach());
-});
 </script>
 {% endblock main_scripts %}
