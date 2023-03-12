@@ -36,18 +36,10 @@
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.title class+="form-control" %}
     {% endwith %}
-    <div class="mb-3" id="field_description">
-        <label class="form-label" for="{{ form.description.id_for_label }}">
-            {{ form.description.label }}{{ form.description.label_suffix }}
-        </label>
-        {% if form.description.errors %}
-        <div class="alert alert-danger mb-3">
-            {% for error in form.description.errors %}{{ error }}<br>{% endfor %}
-        </div>
-        {% endif %}
-        <div class="input-group">
-            {% render_field form.description class+="form-control" %}
-        </div>
+    <div id="field_description">
+        {% with WIDGET_RENDER_TO_TEMPLATE="field_textarea.html" %}
+        {% render_field form.description class+="form-control" %}
+        {% endwith %}
     </div>
 
     {% if type == 'Options' %}

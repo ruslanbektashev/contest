@@ -89,11 +89,6 @@
 {% endif %}
 <div class="w-100 mb-3">
 {% render_attachment_list assignment assignment.course %}
-{% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %}
-<div class="d-grid mb-3">
-    <a href="{% url 'contests:assignment-update' assignment.id %}?action=add_files" class="btn btn-light"><i class="fa fa-files-o fa-fw"></i> Прикрепить файлы</a>
-</div>
-{% endif %}
 </div>
 <div class="col-xs-12 col-md-6 mx-auto">
     {% if submissions %}

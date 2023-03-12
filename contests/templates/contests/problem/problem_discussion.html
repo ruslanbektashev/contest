@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views accounts contests comments markdown static %}
 
-{% block title %}
-Задача
-{% endblock title %}
+{% block title %}Задача{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -13,16 +11,16 @@
 {% breadcrumb "Обсуждение" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Обсуждение задачи <span class="text-muted">№{{ problem.number }}</span> {{ problem.title }}</legend>
 <div class="btn-group btn-block mb-3">
-    <a class="btn btn-light border col-6" href="{% url 'contests:problem-detail' problem.id %}">
+    <a class="btn btn-light border col-md-2" href="{% url 'contests:problem-detail' problem.id %}">
         <i class="fa fa-chevron-left fa-fw"></i> Вернуться к задаче
     </a>
-    <a class="btn btn-light border col-6 disabled">
+    <a class="btn btn-light border col-md-10 disabled">
         {% unread_comments_count request.user.account problem as ucc %}
         <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
     </a>
 </div>
 {% include 'accounts/comment/comment_list.html' with obj=problem %}
-{% endblock content %}
+{% endblock main_content %}

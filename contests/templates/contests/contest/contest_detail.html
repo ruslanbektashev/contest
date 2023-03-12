@@ -3,6 +3,10 @@
 
 {% block title %}Раздел{% endblock title %}
 
+{% block main_links %}
+<link href="{% static 'ckeditor/ckeditor.content.css' %}" rel="stylesheet">
+{% endblock main_links %}
+
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb contest.course contest.course %}

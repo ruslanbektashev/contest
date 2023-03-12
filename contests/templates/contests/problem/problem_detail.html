@@ -3,6 +3,10 @@
 
 {% block title %}Задача{% endblock title %}
 
+{% block main_links %}
+<link href="{% static 'ckeditor/ckeditor.content.css' %}" rel="stylesheet">
+{% endblock main_links %}
+
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb problem.course problem.course %}
@@ -203,7 +207,7 @@
     {% if perms.contests.view_submission_pattern or request|has_leader_permission:problem.course %}
     <div class="accordion-item">
         <h2 class="accordion-header" id="problemSubmissionPatternsHeader">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                     data-bs-target="#problemSubmissionPatternsCollapse" aria-expanded="false" aria-controls="problemSubmissionPatternsCollapse">
                 Шаблоны посылок
             </button>
@@ -219,7 +223,7 @@
     {% if perms.contests.view_iotest or perms.contests.view_uttest or perms.contests.view_fntest or request|has_leader_permission:problem.course %}
     <div class="accordion-item">
         <h2 class="accordion-header" id="problemTestsHeader">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                     data-bs-target="#problemTestsCollapse" aria-expanded="false" aria-controls="problemTestsCollapse">
                 Тесты
             </button>
