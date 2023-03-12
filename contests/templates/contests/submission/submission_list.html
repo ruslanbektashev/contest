@@ -1,23 +1,21 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views contests humanize %}
 
-{% block title %}
-Посылки
-{% endblock title %}
+{% block title %}Посылки{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb "Посылки" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between">
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">Посылки</span>
         {% if course %}
         <span class="text-muted">{{ course }}</span>
         {% endif %}
-    </div>
+    </span>
 </legend>
 <div class="table-responsive-lg">
     <table id="p" class="table table-bordered table-sm">
@@ -45,7 +43,7 @@
                 <td class="text-truncate"><a href="{{ submission.contest.get_absolute_url }}">{{ submission.contest }}</a></td>
                 <td><a href="{{ submission.problem.get_absolute_url }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ submission.problem.title }}">{{ submission.problem.number }}</a></td>
                 <td class="text-center">
-                    <a href="{{ submission.get_absolute_url }}?from={{ request.get_full_path }}" class="status status-{{ submission.status|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ submission.get_status_display }}">
+                    <a href="{{ submission.get_absolute_url }}?from={{ request.get_full_path }}" class="contest-status contest-status-{{ submission.status|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ submission.get_status_display }}">
                         {{ submission.status }}
                     </a>
                 </td>
@@ -57,4 +55,4 @@
     </table>
 </div>
 {% render_page_nav %}
-{% endblock content %}
+{% endblock main_content %}

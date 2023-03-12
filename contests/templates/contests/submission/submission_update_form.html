@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
-{% load views forms static %}
+{% extends 'base_main.html' %}
+{% load views forms %}
 
-{% block title %}
-Посылка
-{% endblock title %}
+{% block title %}Посылка{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -31,9 +29,9 @@
 {% breadcrumb "Редактирование" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Изменение статуса посылки</legend>
-<form action="" id="submission-form" method="post" class="form-horizontal">
+<form id="submission-form" action="" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
@@ -42,4 +40,4 @@
     {% endwith %}
     {% render_submit_button value="Сохранить" %}
 </form>
-{% endblock %}
+{% endblock main_content %}
