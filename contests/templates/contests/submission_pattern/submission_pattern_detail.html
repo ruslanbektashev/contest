@@ -1,20 +1,18 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views %}
 
-{% block title %}
-Шаблон посылки
-{% endblock title %}
+{% block title %}Шаблон посылки{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb submission_pattern %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between">
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">{{ submission_pattern }}</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
             {% if perms.contests.change_submission_pattern or request|has_leader_permission:course %}
             <a href="{% url 'contests:submission-pattern-update' submission_pattern.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать шаблон посылки"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
@@ -22,7 +20,7 @@
             <a href="{% url 'contests:submission-pattern-delete' submission_pattern.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить шаблон посылки" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
             {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
 <div>
     <h6>Описание:</h6>
@@ -35,4 +33,4 @@
     </div>
     {% include 'list.html' with lst=submission_pattern.problems.all title="Задачи:" %}
 </div>
-{% endblock content %}
+{% endblock main_content %}

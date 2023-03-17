@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Шаблон посылки
-{% endblock title %}
+{% block title %}Шаблон посылки{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -15,9 +13,9 @@
 {% endif %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend><span class="text-truncate">{% if submission_pattern %}Редактирование{% else %}Добавление{% endif %} шаблона посылки</span></legend>
-<form action="" method="post" class="form-horizontal">
+<form action="" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
@@ -28,4 +26,4 @@
     {% endwith %}
     {% render_submit_button value="Сохранить" %}
 </form>
-{% endblock content %}
+{% endblock main_content %}
