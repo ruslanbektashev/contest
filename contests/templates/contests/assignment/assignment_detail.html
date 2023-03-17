@@ -72,7 +72,7 @@
 </div>
 {% else %}
 <div class="d-grid mb-3">
-    <a href="{% url 'contests:submission-create' assignment.problem.id %}?from_assignment=1" class="btn btn-info"><i class="fa fa-file-o fa-fw"></i> Отправить решение</a>
+    <a class="btn btn-primary" href="{% url 'contests:submission-create' assignment.problem.id %}?from_assignment=1"><i class="fa fa-file-o fa-fw"></i> Отправить решение</a>
 </div>
 {% endif %}
 {% endif %}
