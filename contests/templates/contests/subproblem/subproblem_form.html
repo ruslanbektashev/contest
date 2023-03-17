@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms static %}
 
-{% block title %}
-Подзадача
-{% endblock title %}
+{% block title %}Подзадача{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -14,9 +12,9 @@
 {% breadcrumb "Редактирование" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Изменение номера подзадачи в тесте</legend>
-<form action="" method="post" class="form-horizontal">
+<form action="" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
     {% render_field form.problem %}
@@ -25,4 +23,4 @@
     {% endwith %}
     {% render_submit_button value="Сохранить" %}
 </form>
-{% endblock content %}
+{% endblock main_content %}

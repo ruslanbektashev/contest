@@ -102,7 +102,9 @@
                         {% endif %}
                     </div>
                     <div class="card-body">
-                        {{ subproblem.sub_problem.description|safe }}
+                        <div class="ck-content overflow-scroll">
+                            {{ subproblem.sub_problem.description|safe }}
+                        </div>
                         {% if subproblem.sub_problem.type == 'Options' %}
                         <h6 class="text-muted">Варианты ответа:</h6>
                         <div class="card">
