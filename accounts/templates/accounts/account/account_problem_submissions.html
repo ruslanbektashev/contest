@@ -24,7 +24,7 @@
         <tbody>
             {% for submission in submissions %}
                 <tr>
-                    <td class="text-center" style="width: 50%;">{% if submission.date_created|date:'Y' == current_year %}{{ submission.date_created|date:'d b в H:i' }}{% else %}{{ submission.date_created|date:'d b y г. в H:i' }}{% endif %}</td>
+                    <td class="text-center" style="width: 50%;">{% if submission.date_created|date:'Y' == current_year %}{{ submission.date_created|date:'d E в H:i' }}{% else %}{{ submission.date_created|date:'d E y г. в H:i' }}{% endif %}</td>
                     <td class="text-center">
                         <a href="{{ submission.get_absolute_url }}" class="status status-{{ submission.status|colorize }}" title="{{ submission.get_status_display }}">
                             {{ submission.status }}

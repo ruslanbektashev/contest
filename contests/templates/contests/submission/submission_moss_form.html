@@ -46,7 +46,7 @@
                         <label class="form-check-label ms-2" for="check_{{ submission.id }}"></label>
                     </div>
                 </td>
-                <td class="text-center">{{ submission.date_created|date:'d b y г. в H:i' }}</td>
+                <td class="text-center">{{ submission.date_created|date:'d E y г. в H:i' }}</td>
                 <td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>
                 <td class="text-center">{{ submission.owner.account.get_level_display }}</td>
                 <td class="text-center">{{ submission.owner.account.get_group_name }}</td>

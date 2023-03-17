@@ -30,7 +30,7 @@
                     ∙
                 </div>
                 <div class="text-muted text-nowrap ms-2">
-                    <small data-bs-toggle="tooltip" data-bs-placement="top" title="{{ parent.date_created|date:'d b Y г. в H:i' }}">
+                    <small data-bs-toggle="tooltip" data-bs-placement="top" title="{{ parent.date_created|date:'d E Y г. в H:i' }}">
                         <a class="text-muted" href="{{ parent.object.get_discussion_url }}{% get_comment_query_string page_obj.number %}#comment_{{ parent.id }}">{{ parent.date_created|naturaltime }}</a>
                     </small>
                 </div>

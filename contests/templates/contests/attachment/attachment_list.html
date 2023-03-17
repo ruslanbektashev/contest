@@ -5,7 +5,7 @@
         <a class="text-truncate me-auto" href="{% url detail_view_name obj.id attachment.id %}" target="_blank">
             <samp>{{ attachment.filename }}</samp>
         </a>
-        <span class="text-muted text-nowrap me-2">{% if attachment.file|exists %}{{ attachment.file.size|filesizeformat }} ∙ {% endif %}{{ attachment.date_created|date:'d b Y H:i' }}</span>
+        <span class="text-muted text-nowrap me-2">{% if attachment.file|exists %}{{ attachment.file.size|filesizeformat }} ∙ {% endif %}{{ attachment.date_created|date:'d E Y H:i' }}</span>
         {% if attachment.extension == '.pdf' or attachment.extension == '.ppt' or attachment.extension == '.pptx' or attachment.extension == '.doc' or attachment.extension == '.docx' or attachment.extension == '.xls' or attachment.extension == '.xlsx' or attachment.extension == '.csv' %}
         <a href="https://docs.google.com/viewer?url=https://contest.msu.uz{{ attachment.file.url }}" class="me-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Смотреть в Google Docs" target="_blank"><i class="fa fa-external-link"></i></a>
         {% endif %}
@@ -17,7 +17,7 @@
         {% endif %}
     </li>
     {% endfor %}
-    {% if perms.contests.change_contest or request|has_leader_permission:contest.course %}
+    {% if perms.contests.add_attachment or request|has_leader_permission:course %}
     <a href="{% url update_view_name obj.id %}?action=add_files" class="list-group-item list-group-item-action text-center contest-list-add">
         <i class="fa fa-files-o fa-fw"></i> Добавить файлы
     </a>
