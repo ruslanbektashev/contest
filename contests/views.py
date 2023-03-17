@@ -1035,7 +1035,7 @@ class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         if self.storage['type'] == 'Options':
             formset = self.storage.get('formset')
             if formset.is_valid():
-                formset.instance = form.save()
+                self.object = formset.instance = form.save()
                 formset.save()
                 Action.objects.log_addition(self.request.user, form=form)
                 return HttpResponseRedirect(self.get_success_url())
@@ -1051,9 +1051,6 @@ class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         context['formset'] = self.storage.get('formset')
         context['title'] = "Добавление задачи"
         return context
-
-    def get_success_url(self):
-        return reverse('contests:contest-detail', kwargs={'pk': self.object.contest_id})
 
 
 class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,

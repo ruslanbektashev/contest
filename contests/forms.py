@@ -781,7 +781,11 @@ class SubmissionTextForm(SubmissionForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['text'].required = True
+
+    def clean_text(self):
+        if self.cleaned_data['text'].strip() == "":
+            raise ValidationError("Текст ответа не может быть пустым", code='text_empty')
+        return self.cleaned_data['text']
 
 
 class SubmissionVerbalForm(SubmissionAttachmentForm):
