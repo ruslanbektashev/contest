@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Объявление
-{% endblock title %}
+{% block title %}Объявление{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -12,7 +10,7 @@
 {% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Удаление объявления</legend>
 {% render_delete_form announcement %}
-{% endblock content %}
+{% endblock main_content %}

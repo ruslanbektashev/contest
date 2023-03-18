@@ -1,36 +1,34 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views %}
 
-{% block title %}
-Объявления
-{% endblock title %}
+{% block title %}Объявления{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb "Объявления" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between">
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">Объявления</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
         {% if perms.accounts.add_announcement %}
-            <a href="{% url 'accounts:announcement-create' %}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить объявление"><i class="fa fa-plus fa-fw"></i></a>
+            <a class="text-success" href="{% url 'accounts:announcement-create' %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить объявление"><i class="fa fa-plus fa-fw"></i></a>
         {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
 {% for announcement in announcements %}
 <div class="card{% if forloop.counter > 1 %} mt-3{% endif %}">
-    <div class="card-header d-flex align-items-center">
-        <a href="{% url 'accounts:announcement-detail' announcement.id %}" class="text-primary me-auto">{{ announcement.title }}</a>
-        <span class="text-muted mx-2">Актуально до: {{ announcement.actual }}</span>
+    <div class="card-header d-flex align-items-center gap-2">
+        <a class="text-primary me-auto" href="{% url 'accounts:announcement-detail' announcement.id %}">{{ announcement.title }}</a>
+        <span class="text-muted">Актуально до: {{ announcement.actual }}</span>
         {% if perms.accounts.change_announcement %}
-        <a href="{% url 'accounts:announcement-update' announcement.id %}" class="card-link" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать объявление"><i class="fa fa-edit fa-lg fa-fw"></i></a>
+        <a href="{% url 'accounts:announcement-update' announcement.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать объявление"><i class="fa fa-edit fa-lg fa-fw"></i></a>
         {% endif %}
         {% if perms.accounts.delete_announcement %}
-        <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="card-link text-danger ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить объявление" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-lg fa-fw"></i></a>
+        <a class="text-danger" href="{% url 'accounts:announcement-delete' announcement.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить объявление" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-lg fa-fw"></i></a>
         {% endif %}
     </div>
     <div class="card-body">
@@ -38,7 +36,7 @@
     </div>
     <div class="card-footer d-flex align-items-center">
         <span class="text-muted me-auto">{{ announcement.date_created }}</span>
-        <span class="numtus bg-secondary">{{ announcement.group_name }}</span>
+        <span class="contest-status-number bg-secondary">{{ announcement.group_name }}</span>
     </div>
 </div>
 {% empty %}
@@ -46,4 +44,4 @@
     Актуальных объявлений нет
 </div>
 {% endfor %}
-{% endblock content %}
+{% endblock main_content %}
