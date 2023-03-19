@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms tutorial %}
 
-{% block title %}
-Регистрация
-{% endblock title %}
+{% block title %}Регистрация{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,40 +9,35 @@
 {% breadcrumb "Регистрация" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
-<legend>
-    <div class="d-flex justify-content-between">
-        <span class="text-truncate">Регистрация</span>
-        <span class="text-muted">{{ faculty }}</span>
-    </div>
-</legend>
+{% block main_content %}
+<legend><span class="text-truncate">Регистрация</span></legend>
 <form action="" method="post">
     {% csrf_token %}
     {% render_form_errors form %}
     {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     <div id="field_faculty">
-    {% render_field form.faculty class+="form-control selectpicker" %}
+        {% render_field form.faculty class+="form-control selectpicker" %}
     </div>
     <div id="field_level">
-    {% render_field form.level class+="form-control selectpicker" %}
+        {% render_field form.level class+="form-control selectpicker" %}
     </div>
     <div id="field_type">
-    {% render_field form.type class+="form-control selectpicker" %}
+        {% render_field form.type class+="form-control selectpicker" %}
     </div>
     <div id="field_admission_year">
-    {% render_field form.admission_year class+="form-control selectpicker" %}
+        {% render_field form.admission_year class+="form-control selectpicker" %}
     </div>
     <div id="field_names">
-    {% render_field form.names class+="form-control" placeholder="в формате: Фамилия Имя Отчество" %}
+        {% render_field form.names class+="form-control" placeholder="в формате: Фамилия Имя Отчество" %}
     </div>
     {% endwith %}
     <div id="form_submit_button">
-    {% render_submit_button value="Зарегистрировать" %}
+        {% render_submit_button value="Зарегистрировать" %}
     </div>
 </form>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
+{% block main_scripts %}
 <script>
 driver.defineSteps([
     {% if request.user.account.is_moderator or request.user.is_superuser %}
@@ -141,4 +134,4 @@ driver.defineSteps([
     {% endif %}
 ]);
 </script>
-{% endblock %}
+{% endblock main_scripts %}

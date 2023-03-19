@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms static %}
 
-{% block title %}
-Пользователи
-{% endblock title %}
+{% block title %}Пользователи{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,20 +9,20 @@
 {% breadcrumb "Редактирование" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend><span class="text-truncate">Редактирование профилей {% if type == 1 %}студентов{% else %}сотрудников{% endif %}</span></legend>
 <form action="" method="post">
     {% csrf_token %}
     {{ formset.management_form }}
     <div class="table-responsive-lg" style="overflow-x: scroll;">
-        <table class="table table-borderless table-sm">
+        <table class="table table-sm table-borderless">
             <thead>
                 <tr>
-                    <th class="sticky-column"><div style="width: 12em;">Фамилия</div></th>
+                    <th class="contest-sticky-column"><div style="width: 12em;">Фамилия</div></th>
                     <th><div style="width: 12em;">Имя</div></th>
                     <th><div style="width: 12em;">Отчество</div></th>
                     <th><div style="width: 20em;">e-mail</div></th>
-                    <th><div style="width: 15em;">Факультет</div></th>
+                    <th><div style="width: 10em;">Факультет</div></th>
                     {% if type == 1 %}
                     <th><div style="width: 12em;">Уровень</div></th>
                     <th><div style="width: 6em;">Группа</div></th>
@@ -32,7 +30,7 @@
                     <th><div style="width: 10em;">Год поступления</div></th>
                     <th><div style="width: 12em;">№ зачетной книжки</div></th>
                     <th class="text-center"><div style="width: 6em;">Обучается</div></th>
-                    <th class="text-center"><div style="width: 6em;">Закончил обучение</div></th>
+                    <th class="text-center"><div style="width: 6em;">Выпускник</div></th>
                     {% else %}
                     <th><div style="width: 12em;">Кафедра</div></th>
                     <th><div style="width: 15em;">Ученое звание</div></th>
@@ -43,13 +41,13 @@
                 </tr>
             </thead>
             <tbody>
-            {% include 'formset_errors.html' with formset=formset %}
-            {% for form in formset %}
+                {% include 'formset_errors.html' with formset=formset %}
+                {% for form in formset %}
                 <tr>
-                {% render_form_errors form %}
-                {% render_field form.user %}
-                {% with WIDGET_ERROR_CLASS="is-invalid" %}
-                    <td class="sticky-column">{% render_field form.last_name class+="form-control rounded-0" %}</td>
+                    {% render_form_errors form %}
+                    {% render_field form.user %}
+                    {% with WIDGET_ERROR_CLASS="is-invalid" %}
+                    <td class="contest-sticky-column">{% render_field form.last_name class+="form-control rounded-0" %}</td>
                     <td>{% render_field form.first_name class+="form-control rounded-0" %}</td>
                     <td>{% render_field form.patronymic class+="form-control rounded-0" %}</td>
                     <td>{% render_field form.email class+="form-control rounded-0" %}</td>
@@ -62,14 +60,12 @@
                     <td>{% render_field form.record_book_id class+="form-control rounded-0" %}</td>
                     <td class="text-center">
                         <div class="form-check mt-2">
-                            {% render_field form.enrolled class+="form-check-input" %}
-                            <label class="form-check-label" for="{{ form.enrolled.id_for_label }}"></label>
+                            {% render_field form.enrolled class+="form-check-input" aria-label=form.enrolled.label %}
                         </div>
                     </td>
                     <td class="text-center">
                         <div class="form-check mt-2">
-                            {% render_field form.graduated class+="form-check-input" %}
-                            <label class="form-check-label" for="{{ form.graduated.id_for_label }}"></label>
+                            {% render_field form.graduated class+="form-check-input" aria-label=form.graduated.label %}
                         </div>
                     </td>
                     {% else %}
@@ -80,13 +76,12 @@
                     {% endif %}
                     <td class="text-center">
                         <div class="form-check mt-2">
-                            {% render_field form.is_active class+="form-check-input" %}
-                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}"></label>
+                            {% render_field form.is_active class+="form-check-input" aria-label=form.is_active.label %}
                         </div>
                     </td>
-                {% endwith %}
+                    {% endwith %}
                 </tr>
-            {% endfor %}
+                {% endfor %}
             </tbody>
         </table>
     </div>
@@ -94,4 +89,4 @@
         <input class="btn btn-light border" type="submit" value="Сохранить" />
     </div>
 </form>
-{% endblock content %}
+{% endblock main_content %}
