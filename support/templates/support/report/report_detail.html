@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views accounts %}
 
-{% block title %}
-Сообщение об ошибке
-{% endblock title %}
+{% block title %}Сообщение об ошибке{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -12,11 +10,11 @@
 {% breadcrumb report %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between">
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">{{ report }}</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
             {% if perms.support.change_report or request.user.id == report.owner.id %}
             <a href="{% url 'support:report-update' report.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать сообщение"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
@@ -24,16 +22,22 @@
             <a href="{% url 'support:report-delete' report.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить сообщение" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
             {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
 <div class="alert alert-warning">
     {{ report.text }}
 </div>
-<p>
+<div class="row mb-3">
     {% if perms.support.change_report or report.owner == request.user %}
-    От: <a href="{{ report.owner.account.get_absolute_url }}">{{ report.owner.account }}</a><br>
+    <div class="col-12 col-md-6">
+        Отправитель: <a href="{{ report.owner.account.get_absolute_url }}">{{ report.owner.account }}</a>
+    </div>
     {% endif %}
-    Со страницы: <a href="{{ report.page_url }}">{{ report.page_url }}</a><br>
-    Отправлено: {{ report.date_created|date }}
-</p>
-{% endblock content %}
+    <div class="col-12 col-md-6 text-md-end">
+        Со страницы: <a href="{{ report.page_url }}">{{ report.page_url }}</a>
+    </div>
+    <div class="col-12">
+        Отправлено: {{ report.date_created|date }}
+    </div>
+</div>
+{% endblock main_content %}

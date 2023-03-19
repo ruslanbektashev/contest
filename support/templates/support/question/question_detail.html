@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views comments %}
 
-{% block title %}
-Вопрос
-{% endblock title %}
+{% block title %}Вопрос{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -12,11 +10,11 @@
 {% breadcrumb question %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between">
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">Вопрос {{ question.id }}</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
             {% if perms.support.change_question %}
             <a href="{% url 'support:question-update' question.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать вопрос"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
@@ -24,7 +22,7 @@
             <a href="{% url 'support:question-delete' question.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить вопрос" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
             {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
 <div class="alert alert-secondary">
     <h5 class="alert-heading">Вопрос</h5>
@@ -36,21 +34,29 @@
     <hr>
     {{ answer|safe }}
 </div>
-<p>
+<div class="row mb-3">
     {% if perms.support.change_question or question.owner == request.user %}
-    От: <a href="{{ question.owner.account.get_absolute_url }}">{{ question.owner.account }}</a><br>
+    <div class="col-12">
+        Отправитель: <a href="{{ question.owner.account.get_absolute_url }}">{{ question.owner.account }}</a>
+    </div>
     {% if question.addressee %}
-    Кому: <a href="{{ question.addressee.account.get_absolute_url }}">{{ question.addressee.account }}</a><br>
+    <div class="col-12">
+        Получатель: <a href="{{ question.addressee.account.get_absolute_url }}">{{ question.addressee.account }}</a>
+    </div>
     {% endif %}
     {% if question.redirect_comment %}
-    Комментарий к переадресации: {{ question.redirect_comment|safe }}
+    <div class="col-12">
+        Комментарий к переадресации: {{ question.redirect_comment|safe }}
+    </div>
     {% endif %}
     {% endif %}
-    Отправлен: {{ question.date_created|date }}<br>
-</p>
-<div class="pull-right text-end">
+    <div class="col-12">
+        Отправлен: {{ question.date_created|date }}
+    </div>
     {% if perms.support.change_question %}
-    <p>{{ question.is_published|yesno:'опубликован,скрыт' }}</p>
+    <div class="col-12">
+        {{ question.is_published|yesno:'опубликован,скрыт' }}
+    </div>
     {% endif %}
 </div>
-{% endblock content %}
+{% endblock main_content %}
