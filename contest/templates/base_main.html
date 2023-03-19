@@ -57,7 +57,7 @@
 const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl, {
     container: 'body',
-    delay: {'show': 1000, 'hide': 100}
+    delay: {'show': 500, 'hide': 100}
 }));
 </script>
 <script src="{% static 'bootstrap-select/js/jquery.slim.min.js' %}" type="text/javascript"></script>
