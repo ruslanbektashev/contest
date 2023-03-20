@@ -8,7 +8,7 @@
 {% endblock links %}
 
 {% block content %}
-<nav class="navbar navbar-expand-lg sticky-top bg-light shadow-sm">
+<nav class="navbar navbar-expand-lg sticky-top bg-light shadow-sm" id="contestNavBar">
     <div class="container-xl">
         <a class="navbar-brand" id="contestLogo" href="{% url 'contests:index' %}">
             <img src="{% static 'msu-logo.png' %}" class="me-2" width="36" height="36"
@@ -35,7 +35,7 @@
         </div>
     </div>
 </nav>
-<div class="container-xl" id="contest_main">
+<div class="container-xl d-flex flex-column" id="contest_main" style="min-height: 100vh;">
     <nav class="d-flex mt-2" aria-label="breadcrumb">
         <ol class="breadcrumb w-100">
             {% block breadcrumbs %}{% endblock breadcrumbs %}
@@ -139,6 +139,10 @@ function startJourney() {
 
 document.addEventListener("DOMContentLoaded", function(event) {
     setTimeout(startJourney, 500);
+    let mainContainer = document.getElementById('contest_main');
+    let mainNavBar = document.getElementById('contestNavBar');
+    mainContainer.style.minHeight = (mainContainer.offsetHeight - mainNavBar.offsetHeight).toString() + "px";
+
 });
 </script>
 {% block main_scripts %}{% endblock main_scripts %}
