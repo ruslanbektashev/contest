@@ -14,7 +14,7 @@
 <form action="" method="post">
     {% csrf_token %}
     {{ formset.management_form }}
-    {% include 'formset_errors.html' with formset=formset %}
+    {% include 'forms/errors/non_form_errors.html' with formset=formset %}
     <div class="table-responsive-lg">
         <table class="table table-borderless table-sm">
             <thead>
@@ -28,7 +28,7 @@
             <tbody id="formset_table_body">
                 {% for form in formset %}
                 <tr>
-                    {% render_form_errors form %}
+                    {% include 'forms/errors/non_field_errors.html' %}
                     {% if form.instance.id %}
                     {% render_field form.id %}
                     {% endif %}

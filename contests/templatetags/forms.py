@@ -188,28 +188,3 @@ class FieldAttributeNode(template.Node):
             context_dict['field'] = bounded_field
             return render_to_string(context['WIDGET_RENDER_TO_TEMPLATE'], context_dict)
         return str(bounded_field)
-
-
-@register.inclusion_tag('submit_button.html')
-def render_submit_button(value):
-    return {'value': value}
-
-
-@register.inclusion_tag('form_errors.html')
-def render_form_errors(form):
-    return {'form': form}
-
-
-@register.inclusion_tag('formset_errors.html')
-def render_formset_errors(formset):
-    return {'formset': formset}
-
-
-@register.inclusion_tag('field_errors.html')
-def render_field_errors(field):
-    return {'field': field}
-
-
-@register.inclusion_tag('delete_form.html')
-def render_delete_form(obj):
-    return {'obj': obj}

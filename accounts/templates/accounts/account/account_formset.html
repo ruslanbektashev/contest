@@ -41,10 +41,10 @@
                 </tr>
             </thead>
             <tbody>
-                {% include 'formset_errors.html' with formset=formset %}
+                {% include 'forms/errors/non_form_errors.html' with formset=formset %}
                 {% for form in formset %}
                 <tr>
-                    {% render_form_errors form %}
+                    {% include 'forms/errors/non_field_errors.html' %}
                     {% render_field form.user %}
                     {% with WIDGET_ERROR_CLASS="is-invalid" %}
                     <td class="contest-sticky-column">{% render_field form.last_name class+="form-control rounded-0" %}</td>

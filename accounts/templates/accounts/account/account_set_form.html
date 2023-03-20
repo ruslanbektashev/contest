@@ -13,8 +13,8 @@
 <legend><span class="text-truncate">Регистрация</span></legend>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     <div id="field_faculty">
         {% render_field form.faculty class+="form-control selectpicker" %}
     </div>
@@ -32,7 +32,7 @@
     </div>
     {% endwith %}
     <div id="form_submit_button">
-        {% render_submit_button value="Зарегистрировать" %}
+        {% include 'forms/submit_button.html' with value="Зарегистрировать" %}
     </div>
 </form>
 {% endblock main_content %}

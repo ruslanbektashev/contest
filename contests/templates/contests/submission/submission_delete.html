@@ -31,5 +31,5 @@
 
 {% block main_content %}
 <legend>Удаление посылки</legend>
-{% render_delete_form submission %}
+{% include 'forms/delete_form.html' with obj=submission %}
 {% endblock main_content %}

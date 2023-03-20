@@ -12,5 +12,5 @@
 
 {% block main_content %}
 <legend>Удаление объявления</legend>
-{% render_delete_form announcement %}
+{% include 'forms/delete_form.html' with obj=announcement %}
 {% endblock main_content %}

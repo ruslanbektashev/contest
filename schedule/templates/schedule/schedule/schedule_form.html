@@ -23,7 +23,7 @@
 <legend>{% if schedule %}Редактирование{% else %}Добавление{% endif %} расписания</legend>
 <form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {% render_form_errors form %}
+    {% include 'forms/errors/non_field_errors.html' %}
     <div class="mb-3">
         <label for="id_date_interval">В интервале</label>
         <input class="form-control {% if form.date_from.errors %}is-invalid{% endif %}" id="id_date_interval" type="text"/>
@@ -36,11 +36,7 @@
     {{ form.date_from.as_hidden }}
     {{ form.date_to.as_hidden }}
     {{ attachment_formset.management_form }}
-    {% if attachment_formset.non_form_errors %}
-    <div class="alert alert-danger mb-3">
-        {% for error in attachment_formset.non_form_errors %}{{ error }}<br>{% endfor %}
-    </div>
-    {% endif %}
+    {% include 'forms/errors/non_form_errors.html' with formset=attachment_formset %}
     {% for form in attachment_formset %}
     {% with WIDGET_ERROR_CLASS="is-invalid" %}
     <div class="row mb-3">
@@ -74,7 +70,7 @@
     </div>
     {% endwith %}
     {% endfor %}
-    {% render_submit_button value="Сохранить" %}
+    {% include 'forms/submit_button.html' with value="Сохранить" %}
 </form>
 {% endblock main_content %}
 

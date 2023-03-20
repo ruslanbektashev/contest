@@ -19,8 +19,8 @@
 <legend>{% if question %}Редактирование вопроса{% else %}Задайте вопрос{% endif %}</legend>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.question class+="form-control" %}
     {% if perms.support.change_question %}
     {% render_field form.answer class+="form-control" %}
@@ -30,11 +30,11 @@
     {% endif %}
     {% if perms.support.change_question %}
     {% render_field form.redirect_comment class+="form-control" %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch.html" %}
     {% render_field form.is_published class+="form-check-input" %}
     {% endwith %}
     {% endif %}
     {% endwith %}
-    {% render_submit_button value="Сохранить" %}
+    {% include 'forms/submit_button.html' with value="Сохранить" %}
 </form>
 {% endblock main_content %}

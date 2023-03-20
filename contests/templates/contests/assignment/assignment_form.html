@@ -24,8 +24,8 @@
 <legend>{{ title }}</legend>
 <form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% if action is None %}
     {% render_field form.user class+="form-control selectpicker" %}
     {% render_field form.problem class+="form-control selectpicker" %}
@@ -33,7 +33,7 @@
     {% if action == 'evaluate' or action is None %}
     {% render_field form.score class+="form-control" %}
     {% render_field form.score_max class+="form-control" %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch.html" %}
     {% render_field form.score_is_locked class+="form-check-input" %}
     {% endwith %}
     {% render_field form.submission_limit class+="form-control" %}
@@ -41,12 +41,12 @@
     {% render_field form.remark class+="form-control" %}
     {% endif %}
     {% if action == 'add_files' or action == 'evaluate' %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/file.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.files class+="form-control" %}
     {% endwith %}
     {% endif %}
     {% endwith %}
-    {% render_submit_button value="Сохранить" %}
+    {% include 'forms/submit_button.html' with value="Сохранить" %}
 </form>
 {% endblock main_content %}
 

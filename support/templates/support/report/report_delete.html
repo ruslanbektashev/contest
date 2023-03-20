@@ -13,5 +13,5 @@
 
 {% block main_content %}
 <legend>Удаление сообщения об ошибке</legend>
-{% render_delete_form report %}
+{% include 'forms/delete_form.html' with obj=report %}
 {% endblock main_content %}

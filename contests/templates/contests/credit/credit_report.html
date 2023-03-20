@@ -19,8 +19,8 @@
 <legend>Генератор ведомости</legend>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.group class+="form-control selectpicker" title="..." %}
     {% render_field form.group_name class+="form-control" %}
     {% render_field form.students class+="form-control selectpicker" title="..." data-actions-box="true" data-selected-text-format="count > 3" %}
@@ -31,7 +31,7 @@
     {% render_field form.semester class+="form-control" %}
     {% render_field form.date class+="form-control" %}
     {% endwith %}
-    {% render_submit_button value="Сгенерировать" %}
+    {% include 'forms/submit_button.html' with value="Сгенерировать" %}
 </form>
 {% endblock main_content %}
 

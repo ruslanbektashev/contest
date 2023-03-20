@@ -25,23 +25,23 @@
 <legend>{{ title }}</legend>
 <form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {% render_form_errors form %}
+    {% include 'forms/errors/non_field_errors.html' %}
     {% if action == 'restore' or action == None %}
     {% render_field form.course %}
     {% endif %}
     {% if action == 'restore' or action == None %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     <div id="field_title">
         {% render_field form.title class+="form-control" %}
     </div>
     {% endwith %}
     <div id="field_description">
-        {% with WIDGET_RENDER_TO_TEMPLATE="field_textarea.html" %}
+        {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/textarea.html" %}
         {% render_field form.description class+="form-control" %}
         {% endwith %}
     </div>
     {% endif %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% if action == 'move' %}
     {% render_field form.course class+="form-control selectpicker" %}
     {% endif %}
@@ -52,19 +52,19 @@
     {% endif %}
     {% endwith %}
     {% if action == 'add_files' or action == 'restore' or action == None %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/file.html" WIDGET_ERROR_CLASS="is-invalid" %}
     <div id="field_files">
         {% render_field form.files class+="form-control" %}
     </div>
     {% endwith %}
     {% endif %}
     {% if action == 'restore' or action == None %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_check_button.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/check_button.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.hidden class+="btn-check" autocomplete="off" %}
     {% endwith %}
     {% endif %}
     <div id="form_submit_button">
-        {% render_submit_button value="Сохранить" %}
+        {% include 'forms/submit_button.html' with value="Сохранить" %}
     </div>
 </form>
 {% endblock main_content %}

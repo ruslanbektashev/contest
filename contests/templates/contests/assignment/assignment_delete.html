@@ -13,5 +13,5 @@
 
 {% block main_content %}
 <legend>Удаление задания</legend>
-{% render_delete_form assignment %}
+{% include 'forms/delete_form.html' with obj=assignment %}
 {% endblock main_content %}

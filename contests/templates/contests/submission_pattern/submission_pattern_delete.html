@@ -11,5 +11,5 @@
 
 {% block main_content %}
 <legend>Удаление шаблона посылки</legend>
-{% render_delete_form submission_pattern %}
+{% include 'forms/delete_form.html' with obj=submission_pattern %}
 {% endblock main_content %}

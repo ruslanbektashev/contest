@@ -13,5 +13,5 @@
 
 {% block main_content %}
 <legend>Удаление зачета</legend>
-{% render_delete_form credit %}
+{% include 'forms/delete_form.html' with obj=credit %}
 {% endblock main_content %}

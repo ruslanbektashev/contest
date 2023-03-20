@@ -19,7 +19,7 @@
 <legend>Посещаемость</legend>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_form_errors form %}
+    {% include 'forms/errors/non_field_errors.html' %}
     <div id="field_date_interval" class="row g-3">
         {% with WIDGET_ERROR_CLASS="is-invalid" %}
         <div class="col-4 col-lg-3">
@@ -41,7 +41,7 @@
         {% endwith %}
     </div>
     {{ formset.management_form }}
-    {% include 'formset_errors.html' with formset=formset %}
+    {% include 'forms/errors/non_form_errors.html' with formset=formset %}
     <div id="attendance_formset_table" class="table-responsive-lg mt-3">
         <table class="table table-bordered table-sm table-hover">
             <thead>
@@ -73,7 +73,7 @@
         </table>
     </div>
     <div id="form_submit_button">
-    {% render_submit_button value="Сохранить" %}
+    {% include 'forms/submit_button.html' with value="Сохранить" %}
     </div>
 </form>
 {% endblock main_content %}

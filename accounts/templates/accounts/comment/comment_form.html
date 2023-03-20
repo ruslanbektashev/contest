@@ -12,9 +12,9 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
     </div>
     {% endfor %}
-    {% render_form_errors form %}
+    {% include 'forms/errors/non_field_errors.html' %}
     <div class="mb-3">
-        {% render_field_errors form.text %}
+        {% include 'forms/errors/field_errors.html' with field=form.text %}
         {% render_field form.text class+="form-control" rows="3" placeholder="Ваш комментарий" %}
     </div>
     <div class="d-grid">

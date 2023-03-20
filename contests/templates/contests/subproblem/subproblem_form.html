@@ -16,11 +16,11 @@
 <legend>Изменение номера подзадачи в тесте</legend>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_form_errors form %}
+    {% include 'forms/errors/non_field_errors.html' %}
     {% render_field form.problem %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.number class+="form-control" %}
     {% endwith %}
-    {% render_submit_button value="Сохранить" %}
+    {% include 'forms/submit_button.html' with value="Сохранить" %}
 </form>
 {% endblock main_content %}

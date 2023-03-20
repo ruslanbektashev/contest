@@ -31,6 +31,6 @@
     </div>
 </form>
 {% else %}
-{% render_delete_form problem %}
+{% include 'forms/delete_form.html' with obj=problem %}
 {% endif %}
 {% endblock main_content %}

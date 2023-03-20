@@ -12,5 +12,5 @@
 
 {% block main_content %}
 <legend>Удаление файла</legend>
-{% render_delete_form attachment %}
+{% include 'forms/delete_form.html' with obj=attachment %}
 {% endblock main_content %}

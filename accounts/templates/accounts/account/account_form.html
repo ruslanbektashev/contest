@@ -14,8 +14,8 @@
 <legend>Редактирование профиля</legend>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_left_labeled.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field_left_labeled.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.email class+="form-control" %}
     {% if perms.accounts.change_account %}
     {% render_field form.first_name class+="form-control" %}
@@ -28,7 +28,7 @@
     {% render_field form.subgroup class+="form-control selectpicker" %}
     {% render_field form.admission_year class+="form-control selectpicker" %}
     {% render_field form.record_book_id class+="form-control" %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_left_labeled_switch.html" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch_left_labeled.html" %}
     {% render_field form.enrolled class+="form-check-input" %}
     {% render_field form.graduated class+="form-check-input" %}
     {% endwith %}
@@ -38,11 +38,11 @@
     {% render_field form.position class+="form-control" %}
     {% render_field form.type class+="form-control selectpicker" %}
     {% endif %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_left_labeled_switch.html" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch_left_labeled.html" %}
     {% render_field form.is_active class+="form-check-input" %}
     {% endwith %}
     {% endif %}
     {% endwith %}
-    {% render_submit_button value="Сохранить" %}
+    {% include 'forms/submit_button.html' with value="Сохранить" %}
 </form>
 {% endblock main_content %}

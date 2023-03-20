@@ -26,18 +26,18 @@
 <legend>{{ title }}</legend>
 <form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {% render_form_errors form %}
+    {% include 'forms/errors/non_field_errors.html' %}
     {% if action == 'restore' or action == None %}
     {% render_field form.contest %}
     {% render_field form.type %}
     {% if type == 'Test' %}
     {% render_field form.score_max %}
     {% endif %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.title class+="form-control" %}
     {% endwith %}
     <div id="field_description">
-        {% with WIDGET_RENDER_TO_TEMPLATE="field_textarea.html" %}
+        {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/textarea.html" %}
         {% render_field form.description class+="form-control" %}
         {% endwith %}
     </div>
@@ -45,7 +45,7 @@
     {% if type == 'Options' %}
     <h5 class="mb-3">Варианты ответа</h5>
     {{ formset.management_form }}
-    {% include 'formset_errors.html' with formset=formset %}
+    {% include 'forms/errors/non_form_errors.html' with formset=formset %}
     <div id="formset_wrapper">
         {% for form in formset %}
         {% for hidden in form.hidden_fields %}
@@ -53,7 +53,7 @@
         {% endfor %}
         <div class="card mb-3">
             <div class="card-body">
-                {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+                {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
                 {% render_field form.text class+="form-control" %}
                 {% endwith %}
                 <div class="form-check form-check-inline">
@@ -71,7 +71,7 @@
     <div class="d-none" id="empty_form_wrapper">
         <div class="card mb-3">
             <div class="card-body">
-                {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+                {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
                 {% render_field formset.empty_form.text class+="form-control" %}
                 {% endwith %}
                 <div class="form-check form-check-inline">
@@ -91,7 +91,7 @@
     {% endif %}
     {% endif %}
 
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% if action == 'move' %}
     {% render_field form.contest class+="form-control selectpicker" %}
     {% endif %}
@@ -164,37 +164,37 @@
             {% endif %}
         </div>
     </div>
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.difficulty class+="form-control selectpicker" %}
     {% endwith %}
 
     {% if type == 'Program' %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.language class+="form-control selectpicker" %}
     {% render_field form.compile_args class+="form-control" %}
     {% render_field form.launch_args class+="form-control" %}
     {% render_field form.time_limit class+="form-control" %}
     {% render_field form.memory_limit class+="form-control" %}
     {% endwith %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.is_testable class+="form-check-input" %}
     {% endwith %}
     {% endif %}
 
     {% if type == 'Test' %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.sub_problems class+="form-control selectpicker" title="..." data-actions-box="true" data-selected-text-format="count > 3" %}
     {% endwith %}
     {% endif %}
 
     {% endif %}
     {% if action == 'add_files' or action == 'restore' or action == None %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/file.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.files class+="form-control" %}
     {% endwith %}
     {% endif %}
 
-    {% render_submit_button value="Сохранить" %}
+    {% include 'forms/submit_button.html' with value="Сохранить" %}
 </form>
 {% endblock main_content %}
 

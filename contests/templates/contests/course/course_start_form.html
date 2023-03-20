@@ -20,8 +20,8 @@
 </div>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% render_field_errors form.runner_ups %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% include 'forms/errors/field_errors.html' with field=form.runner_ups %}
     <table class="table table-bordered table-sm table-hover">
         <thead>
             <tr>
@@ -56,7 +56,7 @@
             {% endfor %}
         </tbody>
     </table>
-    {% render_submit_button value="Начать" %}
+    {% include 'forms/submit_button.html' with value="Начать" %}
 </form>
 {% endblock main_content %}
 

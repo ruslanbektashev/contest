@@ -11,5 +11,5 @@
 
 {% block main_content %}
 <legend>Удаление FN-теста</legend>
-{% render_delete_form fntest %}
+{% include 'forms/delete_form.html' with obj=fntest %}
 {% endblock main_content %}

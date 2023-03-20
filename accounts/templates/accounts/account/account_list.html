@@ -86,8 +86,8 @@
 </form>
 <form class="table-responsive-lg" id="account_list_form" action="{{ request.get_full_path }}" method="post" style="overflow-x: scroll;">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% render_field_errors form.accounts %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% include 'forms/errors/field_errors.html' with field=form.accounts %}
     <table class="table table-sm table-bordered table-hover" id="account_list_table">
         <thead>
             <tr>

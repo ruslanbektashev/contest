@@ -17,12 +17,12 @@
 <legend>{% if fntest %}Редактирование{% else %}Добавление{% endif %} FN-теста</legend>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.title class+="form-control" %}
     {% render_field form.problems class+="form-control selectpicker" data-actions-box="true" %}
     {% render_field form.handler class+="form-control selectpicker" %}
     {% endwith %}
-    {% render_submit_button value="Сохранить" %}
+    {% include 'forms/submit_button.html' with value="Сохранить" %}
 </form>
 {% endblock main_content %}

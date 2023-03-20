@@ -19,15 +19,15 @@
 <legend><span class="text-truncate">Добавление случайного набора заданий</span></legend>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.contest class+="form-control selectpicker" %}
     {% render_field form.type class+="form-control selectpicker" %}
     {% render_field form.limit_per_user class+="form-control selectpicker" %}
     {% render_field form.submission_limit class+="form-control" %}
     {% render_field form.deadline class+="form-control" placeholder="Неограниченно" %}
     {% endwith %}
-    {% render_submit_button value="Распределить" %}
+    {% include 'forms/submit_button.html' with value="Распределить" %}
 </form>
 {% endblock main_content %}
 

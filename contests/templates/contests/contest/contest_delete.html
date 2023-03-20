@@ -31,6 +31,6 @@
     </div>
 </form>
 {% else %}
-{% render_delete_form contest %}
+{% include 'forms/delete_form.html' with obj=contest %}
 {% endif %}
 {% endblock main_content %}

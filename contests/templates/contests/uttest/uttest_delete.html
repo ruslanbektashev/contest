@@ -14,5 +14,5 @@
 
 {% block main_content %}
 <legend>Удаление UT-теста</legend>
-{% render_delete_form uttest %}
+{% include 'forms/delete_form.html' with obj=uttest %}
 {% endblock main_content %}
