@@ -20,7 +20,7 @@
                 <td class="contest-sticky-column text-end font-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
                 <td class="contest-sticky-column text-truncate"><a href="{{ row.student.get_absolute_url }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ row.student.get_full_name }}">{{ row.student.get_short_name }}</a></td>
                 <td class="contest-sticky-column text-center">
-                    <span class="badge text-bg-light" style="position:relative; top:-0.06rem;">
+                    <span class="badge text-bg-light">
                         {{ row.student.attendance_sum }}
                     </span>
                 </td>

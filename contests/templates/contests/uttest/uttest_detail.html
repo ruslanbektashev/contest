@@ -20,7 +20,7 @@
             <a href="{% url 'contests:uttest-update' uttest.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать UT-тест"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.delete_uttest or request|has_leader_permission:uttest.course %}
-            <a href="{% url 'contests:uttest-delete' uttest.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить UT-тест" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
+            <a href="{% url 'contests:uttest-delete' uttest.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить UT-тест"><i class="fa fa-trash-o fa-fw"></i></a>
             {% endif %}
         </span>
     </span>
@@ -31,9 +31,9 @@
         <td>
             <code class="me-2">{{ uttest.compile_args|default:"не указаны" }}</code>
             {% if uttest.compile_args_override %}
-            <span title="Затирают параметры задачи!" class="badge bg-danger" style="position: relative; top: -0.08rem;"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+            <span title="Затирают параметры задачи!" class="badge bg-danger"><i class="fa fa-exclamation-circle fa-fw"></i></span>
             {% else %}
-            <span title="Дополняют параметры задачи!" class="badge bg-info" style="position: relative; top: -0.08rem;"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+            <span title="Дополняют параметры задачи!" class="badge bg-info"><i class="fa fa-exclamation-circle fa-fw"></i></span>
             {% endif %}
         </td>
     </tr>
@@ -42,9 +42,9 @@
         <td>
             <code class="me-2">{{ uttest.launch_args|default:"не указаны" }}</code>
             {% if uttest.launch_args_override %}
-            <span title="Затирают параметры задачи!" class="badge bg-danger" style="position: relative; top: -0.08rem;"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+            <span title="Затирают параметры задачи!" class="badge bg-danger"><i class="fa fa-exclamation-circle fa-fw"></i></span>
             {% else %}
-            <span title="Дополняют параметры задачи!" class="badge bg-info" style="position: relative; top: -0.08rem;"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+            <span title="Дополняют параметры задачи!" class="badge bg-info"><i class="fa fa-exclamation-circle fa-fw"></i></span>
             {% endif %}
         </td>
     </tr>

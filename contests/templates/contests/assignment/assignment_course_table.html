@@ -21,7 +21,7 @@
                 <td class="contest-sticky-column text-end font-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
                 <td class="contest-sticky-column text-truncate"><a href="{{ row.student.get_absolute_url }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ row.student.get_full_name }}">{{ row.student.get_short_name }}</a></td>
                 <td class="contest-sticky-column text-center">
-                    <span class="badge text-bg-{% if row.student.is_attending_now is None %}light{% elif row.student.is_attending_now %}success{% else %}danger{% endif %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Посещено пар: {{ row.student.attendance_sum }}" style="position:relative; top:-0.06rem;">
+                    <span class="badge text-bg-{% if row.student.is_attending_now is None %}light{% elif row.student.is_attending_now %}success{% else %}danger{% endif %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Посещено пар: {{ row.student.attendance_sum }}">
                         {{ row.student.attendance_sum }}
                     </span>
                 </td>

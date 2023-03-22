@@ -26,7 +26,7 @@
                 <a class="nav-link text-center" href="{% url 'admin:index' %}"><i class="fa fa-cogs fa-lg"></i> Админка</a>
                 {% with notification_count=request.user.notifications.unread.count %}
                 <a class="nav-link text-center" href="{% url 'accounts:notification-list' %}">
-                    <i class="fa fa-bell-o fa-lg"></i> Оповещения{% if notification_count %} <span id="unread_notifications_count" class="badge text-bg-danger rounded-pill" style="position: relative; top: -0.1rem;">{{ notification_count }}</span>{% endif %}
+                    <i class="fa fa-bell-o fa-lg"></i> Оповещения{% if notification_count %} <span id="unread_notifications_count" class="badge text-bg-danger rounded-pill">{{ notification_count }}</span>{% endif %}
                 </a>
                 {% endwith %}
                 <a class="nav-link text-center my-2 my-lg-0 ms-0 ms-lg-auto me-0 me-lg-3" href="{{ request.user.account.get_absolute_url }}">{{ request.user.account.get_full_name }}</a>

@@ -13,7 +13,7 @@
         <span class="text-truncate d-none d-md-flex">Главная</span>
         <span class="d-flex justify-content-between gap-1">
             {% if perms.contests.add_course %}
-            <a href="{% url 'contests:course-create' %}" id="btn_course_create" class="text-success" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
+            <a href="{% url 'contests:course-create' %}" class="text-success" id="btn_course_create" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
             {% endif %}
             <a href="{% url 'contests:course-list' %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Все курсы"><i class="fa fa-book fa-fw"></i></a>
             {% if perms.contests.view_submission_list %}

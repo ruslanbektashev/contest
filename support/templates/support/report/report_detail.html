@@ -19,7 +19,7 @@
             <a href="{% url 'support:report-update' report.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать сообщение"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
             {% if perms.support.delete_report %}
-            <a href="{% url 'support:report-delete' report.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить сообщение" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
+            <a href="{% url 'support:report-delete' report.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить сообщение"><i class="fa fa-trash-o fa-fw"></i></a>
             {% endif %}
         </span>
     </span>

@@ -20,7 +20,7 @@
 <form action="" method="post">
     {% csrf_token %}
     {% include 'forms/errors/non_field_errors.html' %}
-    <div id="field_date_interval" class="row g-3">
+    <div id="field_date_interval" class="row g-3 mb-3">
         {% with WIDGET_ERROR_CLASS="is-invalid" %}
         <div class="col-4 col-lg-3">
             {% render_field form.date class+="form-control" %}
@@ -60,7 +60,7 @@
                     <td class="text-end font-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
                     <td class="text-truncate"><a href="{{ form.account.get_absolute_url }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ form.account.get_full_name }}">{{ form.account.get_short_name }}</a></td>
                     <td class="text-center">
-                        {% render_field form.flag class+="contest-form-check check" aria-label="Отметить всех студентов" %}
+                        {% render_field form.flag class+="contest-form-check check" %}
                     </td>
                     <td>
                         <label class="d-block" for="{{ form.flag.id_for_label }}">&nbsp;</label>

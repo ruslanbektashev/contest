@@ -18,7 +18,7 @@
             <a href="{% url 'accounts:announcement-update' announcement.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать объявление"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
             {% if perms.accounts.delete_announcement %}
-            <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить объявление" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
+            <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить объявление"><i class="fa fa-trash-o fa-fw"></i></a>
             {% endif %}
         </span>
     </span>
