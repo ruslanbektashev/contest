@@ -516,7 +516,7 @@ class AttendanceCreateSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixi
     def get_formset_class(self):
         num_extra = self.get_queryset().count()
         return modelformset_factory(Attendance, AttendanceForm, formset=AttendanceFormSet, extra=num_extra,
-                                    min_num=num_extra, validate_min=True, max_num=num_extra, validate_max=True)
+                                    min_num=num_extra, max_num=num_extra, validate_max=True)
 
     def get_formset(self, form=None):
         formset_class = self.get_formset_class()
