@@ -2,7 +2,7 @@
 {% load views static %}
 
 {% block main_links %}
-<link href="{% static 'css/highlight.css' %}" rel="stylesheet">
+<link href="{% static 'contest/css/highlight.css' %}" rel="stylesheet">
 {% if display_aspose_controls %}
 <style>
     table td {
@@ -70,6 +70,6 @@
 
 {% block main_scripts %}
 {% if display_aspose_controls %}
-<script src="{% static 'js/pptx_xlsx_nav.js' %}"></script>
+<script src="{% static 'contest/js/pptx_xlsx_nav.js' %}"></script>
 {% endif %}
 {% endblock main_scripts %}

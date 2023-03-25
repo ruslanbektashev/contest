@@ -1,6 +1,5 @@
 let easyMDEConfig = {
     'default': {
-        autofocus: true,
         forceSync: true,
         lineNumbers: false,
         tabSize: 4,
@@ -119,7 +118,6 @@ let easyMDEConfig = {
         ]
     },
     'comments': {
-        autofocus: true,
         forceSync: true,
         lineNumbers: false,
         tabSize: 4,
@@ -231,7 +229,7 @@ let easyMDEConfig = {
             "|",
             {
                 name: 'guide',
-                action: "https://www.markdownguide.org/basic-syntax/",
+                action: "https://markdown.ru/syntax.md",
                 className: "fa fa-question-circle",
                 title: "Помощь по Markdown"
             },
