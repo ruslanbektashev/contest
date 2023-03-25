@@ -31,12 +31,12 @@
 }
 
 .contest-status-primary {
-  background-color: #AFE1AF;
+  background-color: #337ab7;
 }
 
 .contest-status-primary[href]:hover,
 .contest-status-primary[href]:focus {
-  background-color: #50C878;
+  background-color: #286090;
 }
 
 .contest-status-success {
@@ -73,6 +73,56 @@
 .contest-status-danger[href]:hover,
 .contest-status-danger[href]:focus {
   background-color: #c9302c;
+}
+
+.contest-progress {
+  border-radius: 0.25rem 0.25rem 0 0;
+}
+
+.contest-progress-message {
+  font-weight: bold;
+  background-color: #e9ecef;
+  border-radius: 0 0 0.25rem 0.25rem;
+}
+
+.contest-accordion-header {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  padding: var(--bs-accordion-btn-padding-y) var(--bs-accordion-btn-padding-x);
+  font-size: 0.875rem;
+  color: var(--bs-accordion-btn-color);
+  border: 0;
+  border-radius: 0;
+  transition: var(--bs-accordion-transition);
+  line-height: 1.45;
+}
+
+.contest-accordion-button {
+  background-color: unset;
+}
+
+.contest-accordion-header:not(.collapsed),
+.contest-accordion-button:not(.collapsed) {
+  color: var(--bs-accordion-active-color);
+  background-color: unset;
+  box-shadow: inset 0 calc(-1 * var(--bs-accordion-border-width)) 0 var(--bs-accordion-border-color);
+}
+
+.accordion-item:first-of-type .contest-accordion-header {
+  border-top-left-radius: var(--bs-accordion-inner-border-radius);
+}
+
+.accordion-item:first-of-type .contest-accordion-button {
+  border-top-right-radius: var(--bs-accordion-inner-border-radius) !important;
+}
+
+.accordion-item:last-of-type .contest-accordion-header.collapsed {
+  border-bottom-left-radius: var(--bs-accordion-inner-border-radius);
+}
+
+.accordion-item:last-of-type .contest-accordion-button.collapsed {
+  border-bottom-right-radius: var(--bs-accordion-inner-border-radius) !important;
 }
 
 .contest-list-add {
@@ -190,6 +240,15 @@
 
 .bootstrap-select .dropdown-menu {
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+.rounded-0-bottom {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.rounded-0-top-left {
+  border-top-left-radius: 0;
 }
 
 /*# sourceMappingURL=contest.css.map */

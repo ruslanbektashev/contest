@@ -1095,6 +1095,9 @@ class Submission(CRDEntry):
     def is_un(self):
         return self.status == 'UN'
 
+    def get_score_percentage(self):
+        return self.score * 100 // self.problem.score_max
+
     def moss_to_submissions_list(self):
         return self.moss_to_submissions.split(',')
 

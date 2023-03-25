@@ -1,0 +1,144 @@
+{% load views contests %}
+<div class="accordion mb-3" id="subSubmissionsAccordion">
+    {% for sub_form in forms %}
+    <div class="accordion-item">
+        <div class="accordion-header d-flex align-items-center" id="heading_{{ sub_form.instance.id }}">
+            <div class="contest-accordion-header bg-light pe-0 gap-2 gap-md-3 {% if sub_form.instance|get_submission_status:request == 'OK' %}collapsed{% endif %}" style="min-width: 0;">
+                <a class="contest-status contest-status-{{ sub_form.instance|get_submission_status:request|colorize }}" id="status-{{ forloop.counter0 }}" href="{{ sub_form.instance.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ sub_form.instance|get_submission_status_display:request }}">
+                    {{ sub_form.instance|get_submission_status:request }}
+                </a>
+                {% if sub_form.instance.problem.title %}
+                <span class="d-none d-sm-inline text-truncate">
+                    <a href="{% url 'contests:problem-detail' sub_form.instance.problem.id %}">
+                        {{ sub_form.instance.problem.title }}
+                    </a>
+                </span>
+                {% endif %}
+                <span class="text-muted ms-auto" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ sub_form.instance.problem.get_type_display }}"><i class="fa {% get_problem_icon sub_form.instance.problem %} fa-fw fa-lg"></i></span>
+                {% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
+                {% if not sub_form.instance.problem.is_testable %}
+                <form class="d-flex align-items-center gap-3" id="submission-update-form-{{ forloop.counter0 }}" action="{% url 'contests:api-submission-update' sub_form.instance.id %}" method="POST" data-sub-submission-id="{{ sub_form.instance.id }}" style="min-width: 0;">
+                    {% csrf_token %}
+                    <input id="{{ sub_form.status.id_for_label }}" type="hidden" name="{{ sub_form.status.html_name }}" {% if sub_form.status.value != None %} value="{{ sub_form.status.value|stringformat:'s' }}"{% endif %} style="border: none; background-color: transparent; width: 50px;">
+                    <small class="d-none d-sm-inline text-muted">Оценка: </small>
+                    <small>
+                        <input id="{{ sub_form.score.id_for_label }}" type="{{ sub_form.score.field.widget.input_type }}" name="{{ sub_form.score.html_name }}" max="{{ sub_form.score.field.widget.attrs.max }}" min="{{ sub_form.score.field.widget.attrs.min }}" {% if sub_form.score.value != None %} value="{{ sub_form.score.value|stringformat:'s' }}"{% endif %} aria-label="Оценка" style="border: none; background-color: transparent; width: 40px;">
+                    </small>
+                    <button class="invisible" id="submission-update-button-{{ forloop.counter0 }}" style="border: none; background-color: transparent; padding: 0;">
+                        <a href><i class="fa fa-floppy-o fa-fw fa-lg" data-bs-toggle="tooltip" data-bs-placement="top" title="Сохранить оценку"></i></a>
+                    </button>
+                </form>
+                {% else %}
+                <small class="text-muted">Оценка: </small>
+                <small>{{ sub_form.instance.score }}</small>
+                {% endif %}
+                <a href="{{ sub_form.instance.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}">
+                    <i class="fa fa-edit fa-fw fa-lg" data-bs-toggle="tooltip" data-bs-placement="top" title="Изменить статус или оценку"></i>
+                </a>
+            </div>
+            {% endif %}
+            <button class="contest-accordion-button accordion-button bg-light w-auto {% if sub_form.instance|get_submission_status:request == 'OK' %}collapsed{% endif %}" data-bs-toggle="collapse" data-bs-target="#sub_submission_{{ sub_form.instance.id }}" aria-expanded="{% if sub_form.instance|get_submission_status:request != 'OK' %}true{% else %}false{% endif %}" aria-controls="sub_submission_{{ sub_form.instance.id }}"></button>
+        </div>
+        <div class="contest-accordion-collapse accordion-collapse collapse {% if sub_form.instance|get_submission_status:request != 'OK' %}show{% endif %}" id="sub_submission_{{ sub_form.instance.id }}" aria-labelledby="heading_{{ sub_form.instance.id }}">
+            <div class="accordion-body">
+                <div class="ck-content overflow-scroll">
+                    {{ sub_form.instance.problem.description|safe }}
+                </div>
+                <div class="d-flex justify-content-between">
+                    <h6 class="text-muted">Ответ:</h6>
+                    {% if sub_form.instance.problem.type == 'Text' %}
+                    {% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
+                    {% if sub_form.instance.has_footprint_increments %}
+                    <span class="text-warning" data-bs-toggle="tooltip" data-bs-placement="left" title="Обнаружена вставка текста"><i class="fa fa-exclamation-triangle fa-fw fa-lg"></i></span>
+                    {% endif %}
+                    {% endif %}
+                    {% endif %}
+                </div>
+                {% if sub_form.instance.problem.type == 'Program' or sub_form.instance.problem.type == 'Files' %}
+                <div class="text-end text-muted">
+                    {% if sub_form.instance.moss_to_submissions %}
+                    {% if perms.contests.moss_submission or request|has_leader_permission:submission.course %}
+                    <p class="text-warning text-wrap" data-bs-toggle="tooltip" data-bs-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>с посылками MOSS: {% for to_submission_id in sub_form.instance.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+                    <p class="text-warning text-wrap" data-bs-toggle="tooltip" data-bs-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>ссылка на отчет MOSS: {% if sub_form.instance.moss_report_url %}<a href="{{ sub_form.instance.moss_report_url }}" target="_blank">{{ sub_form.instance.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
+                    {% endif %}
+                    {% endif %}
+                </div>
+                <h6 class="text-muted">
+                    Файлы
+                    <span class="float-end">
+                    {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
+                        <a href="{% url 'contests:submission-download' sub_form.instance.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>
+                    {% endif %}
+                    </span>
+                </h6>
+                <div class="list-group">
+                    {% for attachment in sub_form.instance.attachment_set.all %}
+                    <span class="list-group-item d-flex">
+                        {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
+                        <a class="me-auto" href="{% url 'contests:submission-attachment' sub_form.instance.id attachment.id %}"><samp>{{ attachment.filename }}</samp></a>
+                        <a href="{{ attachment.file.url }}" data-bs-toggle="tooltip" data-bs-placement="left" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
+                        {% else %}
+                        <samp>{{ attachment.filename }}</samp>
+                        {% endif %}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% if sub_form.instance.problem.type == 'Text' %}
+                <div class="card">
+                    <div class="card-body ck-content overflow-scroll">
+                        {{ sub_form.instance.text|safe }}
+                    </div>
+                </div>
+                {% endif %}
+                {% if sub_form.instance.problem.type == 'Options' %}
+                <ul class="list-group">
+                    {% with submission_options=sub_form.instance.options.all %}
+                    {% if submission|is_hidden_from_user:request %}
+                    {% for option in sub_form.instance.problem.option_set.order_randomly %}
+                    <li class="list-group-item d-flex">
+                        {{ option.text }}
+                        {% if option in submission_options %}
+                        <span class="ms-auto"><i class="fa fa-check fa-fw" aria-hidden="true"></i></span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                    {% else %}
+                    {% for option in sub_form.instance.problem.option_set.order_randomly %}
+                    <li class="list-group-item d-flex {% if option in submission_options %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
+                        {{ option.text }}
+                        {% if option in submission_options %}
+                        <span class="ms-auto" data-bs-toggle="tooltip" data-bs-placement="left" title="Выбранный вариант ответа">
+                            {% if option.is_correct %}
+                            <i class="fa fa-check fa-fw" aria-hidden="true"></i>
+                            {% else %}
+                            <i class="fa fa-times fa-fw" aria-hidden="true"></i>
+                            {% endif %}
+                        </span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function(event) {
+    if (window.contestAccordionCollapseFixAdded !== undefined)
+        return;
+    window.contestAccordionCollapseFixAdded = true;
+    const accordionCollapseList = document.querySelectorAll('.contest-accordion-collapse');
+    for (let accordionCollapse of accordionCollapseList) {
+        for (let eventType of ['show.bs.collapse', 'hide.bs.collapse']) {
+            accordionCollapse.addEventListener(eventType, event => {
+                event.target.previousElementSibling.firstElementChild.classList.toggle('collapsed');
+            });
+        }
+    }
+});
+</script>

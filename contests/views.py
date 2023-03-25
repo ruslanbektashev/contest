@@ -2265,6 +2265,7 @@ class SubmissionUpdateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixi
                     'status': self.object.status,
                     'status_display': self.object.get_status_display(),
                     'score': self.object.score,
+                    'score_percentage': self.object.get_score_percentage(),
                     'color': colorize(self.object.status)
                 }
             ]
@@ -2275,6 +2276,7 @@ class SubmissionUpdateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixi
                 'status': self.object.main_submission.status,
                 'status_display': self.object.main_submission.get_status_display(),
                 'score': self.object.main_submission.score,
+                'score_percentage': self.object.main_submission.get_score_percentage(),
                 'color': colorize(self.object.main_submission.status)
             })
         Notification.objects.notify(self.object.owner, subject=self.request.user, action="изменил оценку Вашей посылки",

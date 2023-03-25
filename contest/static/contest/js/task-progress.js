@@ -16,15 +16,10 @@ class TaskProgress {
 
     onProgress(json) {
         if (this.setState('progress')) {
-            this.progress_bar_element.classList.add('bg-info');
+            this.progress_bar_element.classList.add('contest-status-info');
         }
         if (json.progress > 0) {
             this.progress_bar_element.style.width = json.progress + '%';
-            if (json.progress <= 50 && this.progress_bar_message_element.style.color === 'white') {
-                this.progress_bar_message_element.style.color = 'black';
-            } else if (json.progress > 50 && this.progress_bar_message_element.style.color === 'black') {
-                this.progress_bar_message_element.style.color = 'white';
-            }
             if (json.state === 'PENDING') {
                 this.progress_bar_message_element.textContent = "Ждем своей очереди";
             } else if (json.state === 'STARTED') {
@@ -37,7 +32,7 @@ class TaskProgress {
 
     onSuccess(json) {
         if (this.setState('finished')) {
-            this.progress_bar_element.classList.add('bg-' + json.class);
+            this.progress_bar_element.classList.add('contest-status-' + json.class);
         }
         if (json.success) {
             this.progress_bar_message_element.textContent = json.result;
@@ -49,7 +44,7 @@ class TaskProgress {
 
     onError(error) {
         if (this.setState('finished')) {
-            this.progress_bar_element.classList.add('bg-danger');
+            this.progress_bar_element.classList.add('contest-status-danger');
         }
         this.progress_bar_message_element.textContent = error;
         this.task_id = '';
@@ -58,7 +53,8 @@ class TaskProgress {
     setState(state) {
         if (this.state !== state) {
             this.state = state;
-            this.progress_bar_element.classList.remove('bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-secondary', 'bg-primary');
+            this.progress_bar_element.classList.remove('contest-status-success', 'contest-status-info',
+                'contest-status-warning', 'contest-status-danger', 'contest-status-secondary', 'contest-status-primary');
             if (state === 'progress') {
                 this.btn_submission_evaluate_element.innerHTML = '<i class="fa fa-circle-o-notch fa-spin fa-fw"></i><span class="sr-only">Проверяется...</span>';
                 this.btn_submission_evaluate_element.classList.add('disabled');
@@ -66,7 +62,6 @@ class TaskProgress {
                 this.btn_submission_evaluate_element.innerHTML = this.btn_submission_evaluate_text;
                 this.btn_submission_evaluate_element.classList.remove('disabled');
                 this.progress_bar_element.style.width = '100%';
-                this.progress_bar_message_element.style.color = 'white';
             }
             return true;
         }
@@ -75,8 +70,7 @@ class TaskProgress {
 
     clearProgressBar() {
         this.progress_bar_element.style.width = '0%';
-        this.progress_bar_message_element.style.color = 'black';
-        this.progress_bar_message_element.textContent = "";
+        this.progress_bar_message_element.textContent = "...";
         this.execution_list_element.innerHTML = '';
     }
 
@@ -92,7 +86,7 @@ class TaskProgress {
     retryPoll(error, critical) {
         if (++this.retry < this.max_retries) {
             if (critical) {
-                this.btn_submission_evaluate_element.innerHTML = '<i class="text-danger fa fa-circle-o-notch fa-spin fa-fw"></i><span class="sr-only">Loading...</span>';
+                this.btn_submission_evaluate_element.innerHTML = '<i class="text-danger fa fa-circle-o-notch fa-spin fa-fw"></i><span class="sr-only">Проверяется...</span>';
             }
             this.delayPoll(this.poll_interval + this.retry * 500);
         } else {
