@@ -13,9 +13,11 @@ from contest_telegram_bot.constants import login_btn_text, logout_btn_text
 from contest_telegram_bot.models import TelegramUser
 from contest_telegram_bot.utils import get_telegram_user, start_keyboard_non_authorized, \
     get_account_by_tg_id, json_get, student_table_keyboard, staff_table_keyboard, \
-    tg_authorisation_wrapper
+    tg_authorisation_wrapper, problem_detail_keyboard, submissions_list_keyboard
 
 import telebot
+
+from contests.models import Problem, Submission
 
 tbot = telebot.TeleBot(BOT_TOKEN)
 
@@ -139,10 +141,45 @@ def goback_callback(outer_call: types.CallbackQuery):
         if action_type == 'go':
             if destination == 'contest':
                 keyboard = student_table_keyboard(table_type='problems', contest_user=user, table_id=destination_id)
+            elif destination == 'problem':
+                keyboard = problem_detail_keyboard(contest_user=user, problem_id=destination_id)
         else:
             if destination == 'courses_list':
                 keyboard = student_table_keyboard(table_type='courses', contest_user=user, table_id=destination_id)
+            elif destination == 'contest':
+                keyboard = student_table_keyboard(table_type='problems', contest_user=user, table_id=destination_id)
+            elif destination == 'problem':
+                keyboard = problem_detail_keyboard(contest_user=user, problem_id=destination_id)
         tbot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id, reply_markup=keyboard)
+
+    unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
+@tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'problem')
+def problem_callback(outer_call: types.CallbackQuery):
+    def callback_for_authorized(call: types.CallbackQuery):
+        user = get_telegram_user(chat_id=call.message.chat.id).contest_user
+        problem_id = json_get(call.data, 'id')
+        problem_item = json_get(call.data, 'item')
+        if problem_item == 'description':
+            tbot.answer_callback_query(callback_query_id=call.id,
+                                       text=f'{Problem.objects.get(pk=problem_id).description}', show_alert=True)
+        elif problem_item == 'submissions':
+            try:
+                tbot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id, reply_markup=submissions_list_keyboard(contest_user=user, problem_id=problem_id))
+            except Exception as e:
+                print(e)
+
+    unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
+@tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'status')
+def status_callback(outer_call: types.CallbackQuery):
+    def callback_for_authorized(call: types.CallbackQuery):
+        submission_id = int(json_get(call.data, 'status_obj_id'))
+        tbot.answer_callback_query(callback_query_id=call.id,
+                                   text=f'{Submission.objects.get(pk=submission_id).get_status_display()}',
+                                   show_alert=True)
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
