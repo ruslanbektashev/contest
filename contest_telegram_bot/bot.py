@@ -11,9 +11,9 @@ from contest.settings import BOT_TOKEN, LOCALHOST_DOMAIN
 # from telebot.custom_filters import Filter
 from contest_telegram_bot.constants import login_btn_text, logout_btn_text
 from contest_telegram_bot.models import TelegramUser
-from contest_telegram_bot.utils import get_telegram_user, start_keyboard_non_authorized, \
-    get_account_by_tg_id, json_get, student_table_keyboard, staff_table_keyboard, \
-    tg_authorisation_wrapper, problem_detail_keyboard, submissions_list_keyboard
+from contest_telegram_bot.utils import get_telegram_user, get_account_by_tg_id, json_get, tg_authorisation_wrapper
+from contest_telegram_bot.keyboards import start_keyboard_non_authorized, student_table_keyboard, \
+    staff_table_keyboard, problem_detail_keyboard, submissions_list_keyboard
 
 import telebot
 
@@ -165,10 +165,9 @@ def problem_callback(outer_call: types.CallbackQuery):
             tbot.answer_callback_query(callback_query_id=call.id,
                                        text=f'{Problem.objects.get(pk=problem_id).description}', show_alert=True)
         elif problem_item == 'submissions':
-            try:
-                tbot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id, reply_markup=submissions_list_keyboard(contest_user=user, problem_id=problem_id))
-            except Exception as e:
-                print(e)
+            tbot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id,
+                                           reply_markup=submissions_list_keyboard(contest_user=user,
+                                                                                  problem_id=problem_id))
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
