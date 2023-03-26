@@ -8,7 +8,7 @@ from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMar
 
 from accounts.models import Account
 from contest_telegram_bot.constants import help_btn_text, login_btn_text, logout_btn_text, courses_emoji, contest_emoji, \
-    bot_settings_emoji, user_settings_emoji, problem_emoji
+    bot_settings_emoji, user_settings_emoji, problem_emoji, submission_status_emojis
 
 from contest_telegram_bot.models import TelegramUser
 from contests.models import Assignment, Contest, Course, Problem
@@ -184,15 +184,16 @@ def submissions_list_keyboard(contest_user: User, problem_id: int):
     problem = Problem.objects.get(pk=problem_id)
     submissions_list = list(problem.submission_set.filter(assignment__user=contest_user))
     title = [f'{problem_emoji} {problem.title}. Посылки']
-    header = ['Посылка', 'Статус']
+    header = ['Посылка', 'Статус'] if submissions_list else ['Посылок нет']
     none_type_row(keyboard, title)
     none_type_row(keyboard, header)
     locale.setlocale(locale.LC_TIME, "Russian")
     for submission in submissions_list:
         keyboard.row(InlineKeyboardButton(text=submission.date_created.strftime('%d %b %Y г. в %H:%M').lower(),
                                           callback_data=json.dumps({'type': 'go', 'to': 'submission'})),
-                     InlineKeyboardButton(text=submission.status, callback_data=json.dumps({'type': 'status',
-                                                                                            'status_obj_id': submission.id})))
+                     InlineKeyboardButton(text=f'{submission_status_emojis[submission.status]} {submission.status}',
+                                          callback_data=json.dumps({'type': 'status',
+                                                                    'status_obj_id': submission.id})))
 
     keyboard.row(goback_button(goback_type='back', to='problem', to_id=problem_id))
     return keyboard
