@@ -1,4 +1,5 @@
 import json
+import locale
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -7,10 +8,10 @@ from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMar
 
 from accounts.models import Account
 from contest_telegram_bot.constants import help_btn_text, login_btn_text, logout_btn_text, courses_emoji, contest_emoji, \
-    bot_settings_emoji, user_settings_emoji
+    bot_settings_emoji, user_settings_emoji, problem_emoji
 
 from contest_telegram_bot.models import TelegramUser
-from contests.models import Assignment, Contest, Course
+from contests.models import Assignment, Contest, Course, Problem
 
 
 def get_telegram_user(chat_id: int):
@@ -61,6 +62,10 @@ def none_type_row(keyboard: InlineKeyboardMarkup, titles: list):
     keyboard.row(*buttons)
 
 
+def none_type_button(btn_text: str):
+    return InlineKeyboardButton(text=btn_text, callback_data=json.dumps({'type': 'none'}))
+
+
 def score_button(score: int, btn_type: str = 'inline'):
     if btn_type == 'inline':
         return InlineKeyboardButton(text=emojize(f':keycap_{str(score)}:') if score > 0 else '-',
@@ -85,7 +90,8 @@ def staff_table_keyboard(contest_user: User, table_id: int = None):
     keyboard = InlineKeyboardMarkup(row_width=1)
     table_header = ['Ваши курсы']
     none_type_row(keyboard, table_header)
-    table_list = list(course for course in Course.objects.filter(leaders__account=Account.objects.get(user=contest_user)))
+    table_list = list(
+        course for course in Course.objects.filter(leaders__account=Account.objects.get(user=contest_user)))
     for course in table_list:
         keyboard.row(InlineKeyboardButton(text=str(course), callback_data=json.dumps({'type': 'course'})))
 
@@ -93,6 +99,7 @@ def staff_table_keyboard(contest_user: User, table_id: int = None):
 
 
 # TODO:
+#  2. Problems interface: description, submissions list, send submission
 #  3. Non_auth -> unauth VEZDE!!
 #  4. Bot settings and user settings;
 #  5. Logout keyboard (inline or ordinary?)
@@ -132,7 +139,7 @@ def student_table_keyboard(table_type: str, contest_user: User, table_id: int = 
     if table_type in ['courses', 'problems']:
         for table_obj, score in table_list:
             keyboard.row(
-                goback_button(goback_type='go', to='course', to_id=table_obj.id, text=str(table_obj)),
+                goback_button(goback_type='go', to=table_type[0:-1], to_id=table_obj.id, text=str(table_obj)),
                 score_button(score)
             )
     else:
@@ -140,14 +147,63 @@ def student_table_keyboard(table_type: str, contest_user: User, table_id: int = 
             keyboard.row(goback_button(goback_type='go', to='contest', to_id=contest.id, text=str(contest)))
 
     if table_type == 'courses':
-        keyboard.row(InlineKeyboardButton(text=f'{user_settings_emoji} Настройки пользователя', callback_data=json.dumps({'type': 'setting'})))
-        keyboard.row(InlineKeyboardButton(text=f'{bot_settings_emoji} Настройки бота', callback_data=json.dumps({'type': 'setting'})))
+        keyboard.row(InlineKeyboardButton(text=f'{user_settings_emoji} Настройки пользователя',
+                                          callback_data=json.dumps({'type': 'setting'})))
+        keyboard.row(InlineKeyboardButton(text=f'{bot_settings_emoji} Настройки бота',
+                                          callback_data=json.dumps({'type': 'setting'})))
         keyboard.row(InlineKeyboardButton(text=logout_btn_text,
                                           callback_data=json.dumps({'type': 'exit'})))
 
     if back_btn is not None:
         keyboard.row(back_btn)
     return keyboard
+
+
+def problem_detail_keyboard(contest_user: User, problem_id: int):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    problem = Problem.objects.get(pk=problem_id)
+    header = [f'{problem_emoji} {problem.title}']
+    description_btn = InlineKeyboardButton(text='Описание задачи', callback_data=json.dumps({'type': 'problem',
+                                                                                             'item': 'description',
+                                                                                             'id': problem_id}))
+    submissions_btn = InlineKeyboardButton(text='Посылки к задаче', callback_data=json.dumps({'type': 'problem',
+                                                                                              'item': 'submissions',
+                                                                                              'id': problem_id}))
+    discussion_btn = InlineKeyboardButton(text='Обсуждение задачи', callback_data=json.dumps({'type': 'problem',
+                                                                                              'item': 'discussion',
+                                                                                              'id': problem_id}))
+    back_btn = goback_button(goback_type='back', to='contest', to_id=problem.contest_id)
+
+    none_type_row(keyboard, header)
+    keyboard.add(description_btn, submissions_btn, discussion_btn, back_btn)
+    return keyboard
+
+
+def submissions_list_keyboard(contest_user: User, problem_id: int):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    problem = Problem.objects.get(pk=problem_id)
+    submissions_list = list(problem.submission_set.filter(assignment__user=contest_user))
+    title = [f'{problem_emoji} {problem.title}. Посылки']
+    header = ['Посылка', 'Статус']
+    none_type_row(keyboard, title)
+    none_type_row(keyboard, header)
+    locale.setlocale(locale.LC_TIME, "Russian")
+    for submission in submissions_list:
+        keyboard.row(InlineKeyboardButton(text=submission.date_created.strftime('%d %b %Y г. в %H:%M').lower(),
+                                          callback_data=json.dumps({'type': 'go', 'to': 'submission'})),
+                     InlineKeyboardButton(text=submission.status, callback_data=json.dumps({'type': 'status',
+                                                                                            'status_obj_id': submission.id})))
+
+    keyboard.row(goback_button(goback_type='back', to='problem', to_id=problem_id))
+    return keyboard
+
+
+def cyrillic_encode(cyrillic: str):
+    return list(cyrillic.encode('utf-8'))
+
+
+def cyrillic_decode(cyrillic_codes: list):
+    return bytes(cyrillic_codes).decode('utf-8')
 
 
 def tg_authorisation_wrapper(
