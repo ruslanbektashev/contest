@@ -5,11 +5,12 @@ from django.contrib.auth.models import User
 from emoji import emojize
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 
-from accounts.models import Account
+from accounts.models import Account, Comment
 from contest.common_settings import CONTEST_DOMAIN
 from contest_telegram_bot.constants import courses_emoji, contest_emoji, user_settings_emoji, bot_settings_emoji, \
     logout_btn_text, problem_emoji, submission_status_emojis, login_btn_text, help_btn_text, send_emoji, comments_emoji
-from contests.models import Course, Contest, Problem, Assignment
+from contests.models import Course, Contest, Problem, Assignment, Submission
+from support.models import Question, Report
 
 
 def start_keyboard_authorized():
@@ -74,10 +75,10 @@ def staff_table_keyboard(contest_user: User, table_id: int = None):
 
 
 # TODO:
-#  2. Problems interface: description, submissions list, send submission
+#  0. Notification refs: SUBMISSION
+#  1. Submission sending mechanism
 #  3. Non_auth -> unauth VEZDE!!
 #  4. Bot settings and user settings;
-#  5. Logout keyboard (inline or ordinary?)
 
 def student_table_keyboard(table_type: str, contest_user: User, table_id: int = None):
     keyboard = InlineKeyboardMarkup(row_width=1)
@@ -189,6 +190,15 @@ def notification_keyboard(obj):
     elif isinstance(obj, Assignment):
         obj_id = obj.problem.id
         button = goback_button(goback_type='go', to='problem', to_id=obj_id, text='Перейти к задаче')
+    elif isinstance(obj, Comment):
+        button = InlineKeyboardButton(text='Перейти к комментарию', url=f'{CONTEST_DOMAIN}{obj.get_absolute_url()}')
+    elif isinstance(obj, Question):
+        button = InlineKeyboardButton(text='Перейти к вопросу', url=f'{CONTEST_DOMAIN}{obj.get_absolute_url()}')
+    elif isinstance(obj, Report):
+        button = InlineKeyboardButton(text='Перейти к сообщению об ошибке', url=f'{CONTEST_DOMAIN}{obj.get_absolute_url()}')
+    elif isinstance(obj, Submission):
+        # TODO: разделение на переход к посылке у преподавателей и у студентов
+        pass
     else:
         return None
 
