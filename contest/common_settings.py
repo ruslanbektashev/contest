@@ -103,6 +103,8 @@ USE_L10N = True
 
 USE_TZ = True
 
+CONTEST_DOMAIN = 'contest.msu.uz'
+
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
 

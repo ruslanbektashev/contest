@@ -6,8 +6,9 @@ from emoji import emojize
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 
 from accounts.models import Account
+from contest.common_settings import CONTEST_DOMAIN
 from contest_telegram_bot.constants import courses_emoji, contest_emoji, user_settings_emoji, bot_settings_emoji, \
-    logout_btn_text, problem_emoji, submission_status_emojis, login_btn_text, help_btn_text
+    logout_btn_text, problem_emoji, submission_status_emojis, login_btn_text, help_btn_text, send_emoji, comments_emoji
 from contests.models import Course, Contest, Problem, Assignment
 
 
@@ -137,19 +138,26 @@ def problem_detail_keyboard(contest_user: User, problem_id: int):
     keyboard = InlineKeyboardMarkup(row_width=1)
     problem = Problem.objects.get(pk=problem_id)
     header = [f'{problem_emoji} {problem.title}']
+    problem_comments = problem.comment_set.actual()
     description_btn = InlineKeyboardButton(text='Описание задачи', callback_data=json.dumps({'type': 'problem',
                                                                                              'item': 'description',
                                                                                              'id': problem_id}))
     submissions_btn = InlineKeyboardButton(text='Посылки к задаче', callback_data=json.dumps({'type': 'problem',
                                                                                               'item': 'submissions',
                                                                                               'id': problem_id}))
-    discussion_btn = InlineKeyboardButton(text='Обсуждение задачи', callback_data=json.dumps({'type': 'problem',
-                                                                                              'item': 'discussion',
-                                                                                              'id': problem_id}))
+    discussion_btn = InlineKeyboardButton(text=f'Обсуждение задачи ({comments_emoji} {problem_comments.count()})'
+                                          if problem_comments.count() != 0 else 'Обсуждение задачи',
+                                          url=f'{CONTEST_DOMAIN}{problem.get_absolute_url()}')
     back_btn = goback_button(goback_type='back', to='contest', to_id=problem.contest_id)
 
     none_type_row(keyboard, header)
-    keyboard.add(description_btn, submissions_btn, discussion_btn, back_btn)
+    keyboard.add(description_btn, submissions_btn, discussion_btn)
+    if Assignment.objects.get(user=contest_user, problem=problem).credit_incomplete:
+        keyboard.add(
+            InlineKeyboardButton(text=f'{send_emoji} Отправить решение', callback_data=json.dumps({'type': 'submission',
+                                                                                                   'action': 'send',
+                                                                                                   'id': problem_id})))
+    keyboard.add(back_btn)
     return keyboard
 
 
