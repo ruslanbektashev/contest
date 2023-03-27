@@ -36,7 +36,7 @@ def get_account_by_tg_id(chat_id: int):
         return None
 
 
-def telegram_user_not_authorized(chat_id: int):
+def telegram_user_unauthorized(chat_id: int):
     tg_user = get_telegram_user(chat_id)
     if tg_user is not None:
         if tg_user.contest_user is None:

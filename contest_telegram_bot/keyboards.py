@@ -24,7 +24,7 @@ def start_keyboard_authorized():
     return keyboard
 
 
-def start_keyboard_non_authorized():
+def start_keyboard_unauthorized():
     login_btn = KeyboardButton(login_btn_text)
     help_btn = KeyboardButton(help_btn_text)
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1, one_time_keyboard=True).add(login_btn, help_btn)
@@ -75,10 +75,11 @@ def staff_table_keyboard(contest_user: User, table_id: int = None):
 
 
 # TODO:
-#  0. Notification refs: SUBMISSION
-#  1. Submission sending mechanism
-#  3. Non_auth -> unauth VEZDE!!
-#  4. Bot settings and user settings;
+#  0. Submission sending mechanism
+#  1. Notification refs: SUBMISSION
+#  2. Webhook deletion on server stopping
+#  3. Submission deadline notification and connection with bot settings (user can set time interval for these type of notification)
+#  4. Bot settings and user settings (new model TelegramUserSettings?);
 
 def student_table_keyboard(table_type: str, contest_user: User, table_id: int = None):
     keyboard = InlineKeyboardMarkup(row_width=1)

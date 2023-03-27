@@ -12,7 +12,7 @@ from contest.settings import BOT_TOKEN, LOCALHOST_DOMAIN
 from contest_telegram_bot.constants import login_btn_text, logout_btn_text
 from contest_telegram_bot.models import TelegramUser
 from contest_telegram_bot.utils import get_telegram_user, get_account_by_tg_id, json_get, tg_authorisation_wrapper
-from contest_telegram_bot.keyboards import start_keyboard_non_authorized, student_table_keyboard, \
+from contest_telegram_bot.keyboards import start_keyboard_unauthorized, student_table_keyboard, \
     staff_table_keyboard, problem_detail_keyboard, submissions_list_keyboard
 
 import telebot
@@ -43,7 +43,7 @@ def welcome_handler(outer_message: types.Message, welcome_text: str = ", доб�
         start_message_text = message.chat.first_name
         if message.chat.last_name is not None:
             start_message_text += " " + message.chat.last_name
-        keyboard = start_keyboard_non_authorized()
+        keyboard = start_keyboard_unauthorized()
         send_welcome_message(text=start_message_text, message=message, keyboard=keyboard)
 
     all_callbacks_kwargs = {'message': outer_message}
@@ -108,7 +108,7 @@ def unauth_callback_inline_keyboard(outer_call: types.CallbackQuery, callback_fo
 @tbot.message_handler(text=logout_btn_text, chat_types=['private'])
 def logout_handler(message: types.Message):
     if get_telegram_user(chat_id=message.chat.id) is not None:
-        keyboard = start_keyboard_non_authorized()
+        keyboard = start_keyboard_unauthorized()
         tbot.send_message(chat_id=message.chat.id, text=f"Вы успешно вышли из аккаунта "
                                                         f"{get_account_by_tg_id(chat_id=message.chat.id)}.",
                           reply_markup=keyboard)
