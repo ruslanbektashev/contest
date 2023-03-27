@@ -161,9 +161,10 @@ def problem_callback(outer_call: types.CallbackQuery):
         user = get_telegram_user(chat_id=call.message.chat.id).contest_user
         problem_id = json_get(call.data, 'id')
         problem_item = json_get(call.data, 'item')
+        problem = Problem.objects.get(pk=problem_id)
         if problem_item == 'description':
             tbot.answer_callback_query(callback_query_id=call.id,
-                                       text=f'{Problem.objects.get(pk=problem_id).description}', show_alert=True)
+                                       text=f'{problem.description}', show_alert=True)
         elif problem_item == 'submissions':
             tbot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id,
                                            reply_markup=submissions_list_keyboard(contest_user=user,
