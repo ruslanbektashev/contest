@@ -8,6 +8,8 @@ contest_emoji = emojize(":open_book:")
 problem_emoji = emojize(":clipboard:")
 bot_settings_emoji = emojize(":hammer_and_wrench:")
 user_settings_emoji = emojize(":gear:")
+send_emoji = emojize(':up_arrow:')
+comments_emoji = emojize(':speech_balloon:')
 submission_status_emojis = {
     'OK': emojize(":green_circle:"),
     'PS': emojize(":green_circle:"),
