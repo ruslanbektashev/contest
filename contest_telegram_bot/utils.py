@@ -1,17 +1,8 @@
 import json
-import locale
-
-from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-from emoji import emojize
-from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
 
-from accounts.models import Account
-from contest_telegram_bot.constants import help_btn_text, login_btn_text, logout_btn_text, courses_emoji, contest_emoji, \
-    bot_settings_emoji, user_settings_emoji, problem_emoji, submission_status_emojis
 
 from contest_telegram_bot.models import TelegramUser
-from contests.models import Assignment, Contest, Course, Problem
 
 
 def get_telegram_user(chat_id: int):
@@ -21,9 +12,25 @@ def get_telegram_user(chat_id: int):
         return None
 
 
+def notify_tg_users(notification):
+    contest_recipient = notification.recipient
+    recipient_tg_chats = list(TelegramUser.objects.filter(contest_user=contest_recipient))
+    notification_obj = notification.object
+    notification_msg = f'{notification.subject.account} {notification.action} <b>{notification_obj}</b> ' \
+                       f'{notification.relation if notification.relation is not None else ""} ' \
+                       f'<b>{notification.reference if notification.reference is not None else ""}</b>'
+    print(type(notification.object))
+    for tg_chat in recipient_tg_chats:
+        from contest_telegram_bot.bot import tbot
+        from contest_telegram_bot.keyboards import notification_keyboard
+        tbot.send_message(chat_id=tg_chat.chat_id, text=notification_msg,
+                          reply_markup=notification_keyboard(obj=notification_obj), parse_mode='HTML')
+
+
 def get_account_by_tg_id(chat_id: int):
     try:
         tg_user = TelegramUser.objects.get(chat_id=chat_id)
+        from accounts.models import Account
         return Account.objects.get(user=tg_user.contest_user)
     except ObjectDoesNotExist:
         return None

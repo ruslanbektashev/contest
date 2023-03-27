@@ -8,7 +8,7 @@ from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardBut
 from accounts.models import Account
 from contest_telegram_bot.constants import courses_emoji, contest_emoji, user_settings_emoji, bot_settings_emoji, \
     logout_btn_text, problem_emoji, submission_status_emojis, login_btn_text, help_btn_text
-from contests.models import Course, Contest, Problem
+from contests.models import Course, Contest, Problem, Assignment
 
 
 def start_keyboard_authorized():
@@ -170,4 +170,19 @@ def submissions_list_keyboard(contest_user: User, problem_id: int):
                                                                     'status_obj_id': submission.id})))
 
     keyboard.row(goback_button(goback_type='back', to='problem', to_id=problem_id))
+    return keyboard
+
+
+def notification_keyboard(obj):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    obj_id = obj.id
+    if isinstance(obj, Course):
+        button = goback_button(goback_type='go', to='course', to_id=obj_id, text='Перейти к курсу')
+    elif isinstance(obj, Assignment):
+        obj_id = obj.problem.id
+        button = goback_button(goback_type='go', to='problem', to_id=obj_id, text='Перейти к задаче')
+    else:
+        return None
+
+    keyboard.add(button)
     return keyboard
