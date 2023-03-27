@@ -22,3 +22,4 @@ aspose.slides==22.1
 aspose-words==22.5.0
 billiard~=3.6.4.0
 pyTelegramBotAPI>=4.10.0
+emoji~=2.2.0
