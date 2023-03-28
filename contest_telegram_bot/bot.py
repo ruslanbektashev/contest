@@ -21,8 +21,6 @@ from contests.models import Problem, Submission
 
 tbot = telebot.TeleBot(BOT_TOKEN)
 
-tbot.set_webhook(f'https://{LOCALHOST_DOMAIN}/{BOT_TOKEN}')
-
 
 def welcome_handler(outer_message: types.Message, welcome_text: str = ", добро пожаловать в систему МГУ Контест!"):
     def send_welcome_message(text: str, message: types.Message, keyboard: types.ReplyKeyboardMarkup):
