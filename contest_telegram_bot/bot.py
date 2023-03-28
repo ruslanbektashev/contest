@@ -13,10 +13,11 @@ from contest_telegram_bot.constants import login_btn_text, logout_btn_text
 from contest_telegram_bot.models import TelegramUser
 from contest_telegram_bot.utils import get_telegram_user, get_account_by_tg_id, json_get, tg_authorisation_wrapper
 from contest_telegram_bot.keyboards import start_keyboard_unauthorized, student_table_keyboard, \
-    staff_table_keyboard, problem_detail_keyboard, submissions_list_keyboard
+    staff_table_keyboard, problem_detail_keyboard, submissions_list_keyboard, submission_creation_keyboard
 
 import telebot
 
+from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
 from contests.models import Problem, Submission
 
 tbot = telebot.TeleBot(BOT_TOKEN)
@@ -34,7 +35,7 @@ def welcome_handler(outer_message: types.Message, welcome_text: str = ", доб�
         if contest_user.is_staff:
             keyboard = staff_table_keyboard(contest_user=contest_user)
         else:
-            keyboard = student_table_keyboard(table_type='courses', contest_user=contest_user)
+            keyboard, _ = student_table_keyboard(table_type='courses', contest_user=contest_user)
         send_welcome_message(text=start_message_text, message=message, keyboard=keyboard)
 
     def callback_for_unauthorized(message: types.Message):
@@ -133,22 +134,24 @@ def goback_callback(outer_call: types.CallbackQuery):
         action_type = json_get(call.data, 'type')
         destination = json_get(call.data, 'to')
         destination_id = int(json_get(call.data, 'id')) if 'id' in json.loads(call.data) else None
+        destination_text = None
 
         if destination == 'course':
-            keyboard = student_table_keyboard(table_type='contests', contest_user=user, table_id=destination_id)
+            keyboard, destination_text = student_table_keyboard(table_type='contests', contest_user=user, table_id=destination_id)
         if action_type == 'go':
             if destination == 'contest':
-                keyboard = student_table_keyboard(table_type='problems', contest_user=user, table_id=destination_id)
+                keyboard, destination_text = student_table_keyboard(table_type='problems', contest_user=user, table_id=destination_id)
             elif destination == 'problem':
-                keyboard = problem_detail_keyboard(contest_user=user, problem_id=destination_id)
+                keyboard, destination_text = problem_detail_keyboard(contest_user=user, problem_id=destination_id)
         else:
             if destination == 'courses_list':
-                keyboard = student_table_keyboard(table_type='courses', contest_user=user, table_id=destination_id)
+                keyboard, destination_text = student_table_keyboard(table_type='courses', contest_user=user, table_id=destination_id)
             elif destination == 'contest':
-                keyboard = student_table_keyboard(table_type='problems', contest_user=user, table_id=destination_id)
+                keyboard, destination_text = student_table_keyboard(table_type='problems', contest_user=user, table_id=destination_id)
             elif destination == 'problem':
-                keyboard = problem_detail_keyboard(contest_user=user, problem_id=destination_id)
-        tbot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id, reply_markup=keyboard)
+                keyboard, destination_text = problem_detail_keyboard(contest_user=user, problem_id=destination_id)
+        tbot.clear_step_handler(message=call.message)
+        tbot.edit_message_text(text=destination_text, chat_id=call.message.chat.id, message_id=call.message.id, reply_markup=keyboard)
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
@@ -169,6 +172,36 @@ def problem_callback(outer_call: types.CallbackQuery):
                                                                                   problem_id=problem_id))
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
+@tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'submission')
+def submission_callback(outer_call: types.CallbackQuery):
+    def callback_for_authorized(call: types.CallbackQuery):
+        user = get_telegram_user(chat_id=call.message.chat.id).contest_user
+        problem_id = json_get(call.data, 'id')
+        problem = Problem.objects.get(pk=problem_id)
+        action = json_get(call.data, 'action')
+        programs_allowed_extensions = list(AttachmentForm().FILES_ALLOWED_EXTENSIONS)
+        files_allowed_extensions = SubmissionFilesAttachmentMixin().FILES_ALLOWED_EXTENSIONS
+        if action == 'create':
+            tbot.edit_message_text(text=f'Отправьте файлы.\nДопустимы следующие форматы: '
+                                        f'<code>{", ".join(programs_allowed_extensions)}</code>',
+                                   parse_mode='HTML',
+                                   chat_id=call.message.chat.id,
+                                   message_id=call.message.id,
+                                   reply_markup=submission_creation_keyboard(problem_id=problem_id))
+            tbot.register_next_step_handler(message=call.message, callback=submission_file_handler, text=call.message.text)
+    unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
+def submission_file_handler(message: Message, text: str):
+    #print(json.dumps(message.json, indent=2))
+    file_info = tbot.get_file(message.document.file_id)
+    print(file_info)
+    file = tbot.download_file(file_path=file_info.file_path)
+    print(file)
+    with open('C:/new_file.cpp', 'wb') as new_file:
+        new_file.write(file)
 
 
 @tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'status')

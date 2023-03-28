@@ -80,6 +80,7 @@ def staff_table_keyboard(contest_user: User, table_id: int = None):
 #  2. Webhook deletion on server stopping
 #  3. Submission deadline notification and connection with bot settings (user can set time interval for these type of notification)
 #  4. Bot settings and user settings (new model TelegramUserSettings?);
+#  5. List of contests (list(set) is ugly)
 
 def student_table_keyboard(table_type: str, contest_user: User, table_id: int = None):
     keyboard = InlineKeyboardMarkup(row_width=1)
@@ -87,25 +88,30 @@ def student_table_keyboard(table_type: str, contest_user: User, table_id: int = 
     table_title = None
     table_header = None
     back_btn = None
+    table_message_text = None
     if table_type == 'courses':
         table_list = list([credit.course, credit.score] for credit in contest_user.credit_set.all())
         table_title = [f'{courses_emoji} Ваши курсы']
         table_header = ['Курс', 'Оценка']
+        table_message_text = 'Ваши курсы'
         back_btn = None
     elif table_type == 'contests':
+        course = Course.objects.get(pk=table_id)
         table_list = list(set(assignment.contest for assignment in
                               contest_user.assignment_set.filter(problem__contest__course_id=table_id)))
         table_list.reverse()
-        table_title = [f'{contest_emoji} {Course.objects.get(pk=table_id)}']
+        table_title = [f'{contest_emoji} {course}']
         table_header = ['Разделы']
+        table_message_text = f'Курс "{course}"'
         back_btn = goback_button(goback_type='back', to='courses_list')
     elif table_type == 'problems':
+        contest = Contest.objects.get(pk=table_id)
         table_list = list([problem.problem, problem.score] for problem in
                           contest_user.assignment_set.filter(problem__contest_id=table_id))
         table_list.reverse()
-        table_title = [f'{contest_emoji} {Contest.objects.get(pk=table_id)}']
+        table_title = [f'{contest_emoji} {contest}']
         table_header = ['Задача', 'Оценка']
-        contest = Contest.objects.get(pk=table_id)
+        table_message_text = f'Раздел "{contest}"'
         back_btn = goback_button(goback_type='back', to='course', to_id=contest.course_id)
 
     none_type_row(keyboard, table_title)
@@ -133,7 +139,7 @@ def student_table_keyboard(table_type: str, contest_user: User, table_id: int = 
 
     if back_btn is not None:
         keyboard.row(back_btn)
-    return keyboard
+    return keyboard, table_message_text
 
 
 def problem_detail_keyboard(contest_user: User, problem_id: int):
@@ -157,10 +163,10 @@ def problem_detail_keyboard(contest_user: User, problem_id: int):
     if Assignment.objects.get(user=contest_user, problem=problem).credit_incomplete:
         keyboard.add(
             InlineKeyboardButton(text=f'{send_emoji} Отправить решение', callback_data=json.dumps({'type': 'submission',
-                                                                                                   'action': 'send',
+                                                                                                   'action': 'create',
                                                                                                    'id': problem_id})))
     keyboard.add(back_btn)
-    return keyboard
+    return keyboard, f'Задача "{problem}"'
 
 
 def submissions_list_keyboard(contest_user: User, problem_id: int):
@@ -180,6 +186,12 @@ def submissions_list_keyboard(contest_user: User, problem_id: int):
                                                                     'status_obj_id': submission.id})))
 
     keyboard.row(goback_button(goback_type='back', to='problem', to_id=problem_id))
+    return keyboard
+
+
+def submission_creation_keyboard(problem_id: int):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(goback_button(goback_type='back', to='problem', to_id=problem_id))
     return keyboard
 
 
