@@ -9,7 +9,7 @@
 
 {% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between flex-column flex-md-row">
+    <span class="d-flex justify-content-between flex-column flex-md-row">
         <span class="text-truncate d-none d-md-flex">Главная</span>
         <span class="d-flex justify-content-between gap-1">
             {% if perms.contests.add_course %}
@@ -34,7 +34,7 @@
             </div>
             {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
 {% include 'contests/news_block.html' %}
 <div id="contest_index_row" class="row">

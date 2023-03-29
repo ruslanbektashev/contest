@@ -14,7 +14,7 @@
 
 {% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between flex-column flex-md-row">
+    <span class="d-flex justify-content-between flex-column flex-md-row">
         <span class="text-truncate">{{ course }}</span>
         <span class="d-flex justify-content-between gap-1">
             {% if perms.contests.add_contest or request|has_leader_permission:course %}
@@ -45,7 +45,7 @@
             </span>
             {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
 <div class="accordion mb-3" id="courseDetails">
     <div class="accordion-item">
@@ -101,14 +101,14 @@
     </a>
 </div>
 <legend>
-    <div class="d-flex justify-content-between">
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">Преподаватели</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
             {% if perms.contests.change_course or request|has_leader_permission:course %}
             <a href="{% url 'contests:course-update-leaders' course.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Изменить ведущих преподавателей"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
 <div class="row">
     {% for leader in course.leaders.all %}

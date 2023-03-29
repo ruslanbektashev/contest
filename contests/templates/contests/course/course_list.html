@@ -10,14 +10,14 @@
 
 {% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between">
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">Курсы</span>
         <span class="d-flex justify-content-between gap-1">
         {% if perms.contests.add_course %}
             <a href="{% url 'contests:course-create' %}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
         {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
 <div class="mb-3">
     <div class="btn-group btn-group-sm" role="group" aria-label="Факультет">
