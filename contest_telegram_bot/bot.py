@@ -1,11 +1,15 @@
 import json
+import os
 
 import telebot
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.core.files import File
+from django.utils import timezone
 from telebot import custom_filters, types
 from telebot.types import Message
 
+from contest.common_settings import SCHEDULE_CHANNELS_IDS
 from contest_telegram_bot.constants import login_btn_text, logout_btn_text
 from contest_telegram_bot.keyboards import (problem_detail_keyboard, staff_table_keyboard, start_keyboard_unauthorized,
                                             student_table_keyboard, submission_creation_keyboard,
@@ -14,6 +18,7 @@ from contest_telegram_bot.models import TelegramUser
 from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, json_get, tg_authorisation_wrapper
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
 from contests.models import Problem, Submission
+from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
 
 tbot = telebot.TeleBot(settings.BOT_TOKEN)
 
@@ -208,6 +213,27 @@ def status_callback(outer_call: types.CallbackQuery):
                                    show_alert=True)
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
+@tbot.channel_post_handler(content_types=['document'], func=lambda message: message.chat.id in SCHEDULE_CHANNELS_IDS)
+def schedule_callback(message: Message):
+    schedule_file_object = message.document
+    schedule_filename = schedule_file_object.file_name
+    schedule_file = tbot.download_file(tbot.get_file(schedule_file_object.file_id).file_path)
+    current_date = timezone.now()
+    # TODO: убрать костыльный owner_id и заменить его на id специального пользователя или None
+    new_schedule, _ = Schedule.objects.get_or_create(date_created=current_date, date_updated=current_date,
+                                                     date_from=current_week_date_from(next_week=True),
+                                                     date_to=current_week_date_to(next_week=True),
+                                                     owner_id=1357)
+    with open(schedule_filename, 'wb') as new_file:
+        new_file.write(schedule_file)
+
+    with open(schedule_filename, 'rb') as new_file:
+        ScheduleAttachment.objects.update_or_create(schedule=new_schedule, name='Тестовое расписание',
+                                                    file=File(new_file))
+
+    os.remove(schedule_filename)
 
 
 @tbot.my_chat_member_handler(func=lambda message: message.new_chat_member.status == 'kicked')
