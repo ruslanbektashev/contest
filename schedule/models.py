@@ -15,16 +15,16 @@ from schedule.templatetags.events import iso_to_gregorian
 
 def current_week_date_from(format_string='Y-m-d', next_week: bool = False):
     iso_today = timezone.now().isocalendar()
-    week = (iso_today[1] + next_week) if iso_today[1] < 52 else 1
-    year = iso_today[0] if iso_today[1] + next_week <= 52 else iso_today[0] + 1
+    week = (iso_today[1] + next_week) if (iso_today[1] + next_week) <= 52 else 1
+    year = iso_today[0] if (iso_today[1] + next_week) <= 52 else iso_today[0] + 1
     date_from = iso_to_gregorian(year, week, 1)
     return "{}".format(date(date_from, format_string))
 
 
 def current_week_date_to(format_string='Y-m-d', next_week: bool = False):
     iso_today = timezone.now().isocalendar()
-    week = (iso_today[1] + next_week) if iso_today[1] < 52 else 1
-    year = iso_today[0] if iso_today[1] + next_week <= 52 else iso_today[0] + 1
+    week = (iso_today[1] + next_week) if (iso_today[1] + next_week) <= 52 else 1
+    year = iso_today[0] if (iso_today[1] + next_week) <= 52 else iso_today[0] + 1
     date_to = iso_to_gregorian(year, week, 7)
     return "{}".format(date(date_to, format_string))
 
