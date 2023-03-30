@@ -7,8 +7,6 @@ import zipfile
 from statistics import mean
 
 import docx
-from ckeditor.fields import RichTextField
-from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -117,7 +115,7 @@ class Course(SoftDeletionModel, CRUDEntry):
                                                 "документов")
     title_unofficial = models.CharField(max_length=100, null=True, blank=True, verbose_name="Неофициальное название",
                                         help_text="Неофициальное название будет отображено для пользователей сайта")
-    description = RichTextField(verbose_name="Описание")
+    description = models.TextField(verbose_name="Описание", blank=True)
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, verbose_name="Уровень")
 
     comment_set = GenericRelation(Comment, content_type_field='object_type')
@@ -424,7 +422,7 @@ class Contest(SoftDeletionModel, CRUDEntry):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Курс")
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
-    description = RichTextField(verbose_name="Описание")
+    description = models.TextField(verbose_name="Описание", blank=True)
 
     number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер")
     hidden = models.BooleanField(default=False, verbose_name="Скрыть",
@@ -523,7 +521,7 @@ class Problem(SoftDeletionModel, CRUDEntry):
 
     type = models.CharField(max_length=8, choices=TYPE_CHOICES, verbose_name="Тип")
     title = models.CharField(max_length=100, verbose_name="Заголовок")
-    description = RichTextUploadingField(verbose_name="Описание")
+    description = models.TextField(verbose_name="Описание", blank=True)
 
     number = models.PositiveSmallIntegerField(default=DEFAULT_NUMBER, verbose_name="Номер")
     score_max = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_MAX, verbose_name="Максимальная оценка в баллах")
@@ -1050,7 +1048,7 @@ class Submission(CRDEntry):
     footprint = models.TextField()
     status = models.CharField(max_length=2, choices=STATUS_CHOICES, default=DEFAULT_STATUS, verbose_name="Статус")
     score = models.PositiveSmallIntegerField(default=DEFAULT_SCORE, verbose_name="Оценка в баллах")
-    text = RichTextField(null=True, blank=True, verbose_name="Текст ответа", config_name='minimal')
+    text = models.TextField(null=True, blank=True, verbose_name="Ответ")
     task_id = models.UUIDField(null=True, blank=True, verbose_name="Идентификатор асинхронной задачи")
     moss_to_submissions = models.CharField(max_length=200, null=True,
                                            validators=[validate_comma_separated_integer_list],
