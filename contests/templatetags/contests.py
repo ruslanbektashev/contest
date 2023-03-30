@@ -2,8 +2,7 @@ import re
 
 from django import template
 from django.apps import apps
-
-from contest.common_settings import CONTEST_DOMAIN
+from django.conf import settings
 
 register = template.Library()
 Assignment = apps.get_model('contests', 'Assignment')
@@ -292,5 +291,5 @@ def render_attachment_list(context, obj, course):
     context['course'] = course
     context['detail_view_name'] = 'contests:{}-attachment'.format(obj.__class__.__name__.lower())
     context['update_view_name'] = 'contests:{}-update'.format(obj.__class__.__name__.lower())
-    context['contest_domain'] = CONTEST_DOMAIN
+    context['contest_domain'] = settings.CONTEST_DOMAIN
     return context
