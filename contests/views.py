@@ -516,7 +516,7 @@ class AttendanceCreateSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixi
     def get_formset_class(self):
         num_extra = self.get_queryset().count()
         return modelformset_factory(Attendance, AttendanceForm, formset=AttendanceFormSet, extra=num_extra,
-                                    min_num=num_extra, validate_min=True, max_num=num_extra, validate_max=True)
+                                    min_num=num_extra, max_num=num_extra, validate_max=True)
 
     def get_formset(self, form=None):
         formset_class = self.get_formset_class()
@@ -1035,7 +1035,7 @@ class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         if self.storage['type'] == 'Options':
             formset = self.storage.get('formset')
             if formset.is_valid():
-                formset.instance = form.save()
+                self.object = formset.instance = form.save()
                 formset.save()
                 Action.objects.log_addition(self.request.user, form=form)
                 return HttpResponseRedirect(self.get_success_url())
@@ -1051,9 +1051,6 @@ class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
         context['formset'] = self.storage.get('formset')
         context['title'] = "Добавление задачи"
         return context
-
-    def get_success_url(self):
-        return reverse('contests:contest-detail', kwargs={'pk': self.object.contest_id})
 
 
 class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
@@ -2268,6 +2265,7 @@ class SubmissionUpdateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixi
                     'status': self.object.status,
                     'status_display': self.object.get_status_display(),
                     'score': self.object.score,
+                    'score_percentage': self.object.get_score_percentage(),
                     'color': colorize(self.object.status)
                 }
             ]
@@ -2278,6 +2276,7 @@ class SubmissionUpdateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixi
                 'status': self.object.main_submission.status,
                 'status_display': self.object.main_submission.get_status_display(),
                 'score': self.object.main_submission.score,
+                'score_percentage': self.object.main_submission.get_score_percentage(),
                 'color': colorize(self.object.main_submission.status)
             })
         Notification.objects.notify(self.object.owner, subject=self.request.user, action="изменил оценку Вашей посылки",

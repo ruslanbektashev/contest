@@ -1,14 +1,12 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms static %}
 
-{% block title %}
-Задания
-{% endblock title %}
+{% block title %}Задания{% endblock title %}
 
-{% block stylesheets %}
+{% block main_links %}
 <link href="{% static 'tempus-dominus/css/tempus-dominus.css' %}" rel="stylesheet">
 <link href="{% static 'tempus-dominus/css/tempus-dominus.patch.css' %}" rel="stylesheet">
-{% endblock stylesheets %}
+{% endblock main_links %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -17,23 +15,23 @@
 {% breadcrumb "Случайные задания" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend><span class="text-truncate">Добавление случайного набора заданий</span></legend>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.contest class+="form-control selectpicker" %}
     {% render_field form.type class+="form-control selectpicker" %}
     {% render_field form.limit_per_user class+="form-control selectpicker" %}
     {% render_field form.submission_limit class+="form-control" %}
     {% render_field form.deadline class+="form-control" placeholder="Неограниченно" %}
     {% endwith %}
-    {% render_submit_button value="Распределить" %}
+    {% include 'forms/submit_button.html' with value="Распределить" %}
 </form>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
+{% block main_scripts %}
 <script src="{% static 'popper/popper.min.js' %}" type="text/javascript"></script>
 <script src="{% static 'tempus-dominus/js/tempus-dominus.js' %}" type="text/javascript"></script>
 <script src="{% static 'tempus-dominus/plugins/custom-date-format.js' %}" type="text/javascript"></script>
@@ -45,4 +43,4 @@ document.addEventListener("DOMContentLoaded", function() {
     const picker = new tempusDominus.TempusDominus(document.getElementById('id_deadline'), tdOptions);
 });
 </script>
-{% endblock javascript %}
+{% endblock main_scripts %}

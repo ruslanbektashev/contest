@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views accounts comments contests markdown static %}
 
-{% block title %}
-Курс
-{% endblock title %}
+{% block title %}Курс{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,29 +9,18 @@
 {% breadcrumb "Обсуждение" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Обсуждение курса {{ course.title }}</legend>
-<div class="btn-group btn-block mb-3">
-    <a class="btn btn-light border col-6" href="{% url 'contests:course-detail' course.id %}">
-        <i class="fa fa-chevron-left fa-fw"></i> Вернуться к курсу
-    </a>
-    <a class="btn btn-light border col-6 disabled">
-        {% unread_comments_count request.user.account course as ucc %}
-        <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
-    </a>
+<div class="d-grid mb-3">
+    <div class="btn-group">
+        <a class="btn btn-light border col-md-2" href="{% url 'contests:course-detail' course.id %}">
+            <i class="fa fa-chevron-left fa-fw"></i> Вернуться к курсу
+        </a>
+        <a class="btn btn-light border col-md-10 disabled">
+            {% unread_comments_count request.user.account course as ucc %}
+            <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
+        </a>
+    </div>
 </div>
 {% include 'accounts/comment/comment_list.html' with obj=course %}
-{% endblock content %}
-
-{% block javascript %}
-<script src="{% static 'MathJax/es5/tex-chtml.js' %}" type="text/javascript"></script>
-<script src="{% static 'waypoints/lib/jquery.waypoints.min.js' %}" type="text/javascript"></script>
-<script src="{% static 'waypoints/lib/shortcuts/infinite.min.js' %}" type="text/javascript"></script>
-<script>
-    var infinite = new Waypoint.Infinite({
-        element: $('.comment-list')[0],
-        items: '.comment-list-item',
-        more: '.comment-list-more'
-    });
-</script>
-{% endblock javascript %}
+{% endblock main_content %}

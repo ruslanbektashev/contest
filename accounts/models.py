@@ -375,16 +375,16 @@ class Account(models.Model):
         problem_ids = submissions.values_list('problem', flat=True).distinct().order_by()
         submissions_scores = []
         for problem_id in problem_ids:
-            problem_submissions = Submission.objects.filter(owner=self.user, problem=problem_id)
-            success_submissions = problem_submissions.filter(status='OK')
-            if success_submissions.exists():
-                first_success_submission = success_submissions.order_by('date_created')[0]
-                submissions_count = problem_submissions.filter(date_created__lte=first_success_submission.date_created).count()
+            problem_submissions = submissions.filter(problem=problem_id)
+            successful_submissions = problem_submissions.filter(status='OK')
+            if successful_submissions.exists():
+                first_successful_submission = successful_submissions.earliest('date_created')
+                submissions_count = problem_submissions.filter(date_created__lt=first_successful_submission.date_created).count()
             else:
-                submissions_count = problem_submissions.count() + 1
+                submissions_count = problem_submissions.count()
             assignment = problem_submissions.first().assignment
             submission_limit = assignment.submission_limit if assignment else Assignment.DEFAULT_SUBMISSION_LIMIT
-            submissions_score = 100 / math.ceil(submissions_count / submission_limit)
+            submissions_score = 100 * (submission_limit - submissions_count) / submission_limit
             submissions_scores.append(submissions_score)
         return round(mean(submissions_scores)) if submissions_scores else 0
 

@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms static %}
 
-{% block title %}
-Тест
-{% endblock title %}
+{% block title %}UT-Тест{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -18,30 +16,25 @@
 {% endif %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>{% if uttest %}Редактирование{% else %}Добавление{% endif %} UT-теста</legend>
-<form action="" method="post" enctype="multipart/form-data" class="form-horizontal">
+<form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.title class+="form-control" %}
     {% render_field form.compile_args class+="form-control" %}
-    {% render_field form.compile_args_override class+="form-control" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch.html" %}
+    {% render_field form.compile_args_override class+="form-check-input" %}
+    {% endwith %}
     {% render_field form.launch_args class+="form-control" %}
-    {% render_field form.launch_args_override class+="form-control" %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" %}
-    {% render_field form.files class+="custom-file-input" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch.html" %}
+    {% render_field form.launch_args_override class+="form-check-input" %}
+    {% endwith %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/file.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.files class+="form-control" %}
     {% endwith %}
     {% endwith %}
-    {% render_submit_button value="Сохранить" %}
+    {% include 'forms/submit_button.html' with value="Сохранить" %}
 </form>
-{% endblock content %}
-
-{% block javascript %}
-<script src="{% static 'js/bs-custom-file-input.min.js' %}" type="text/javascript"></script>
-<script type="text/javascript">
-$(function () {
-    bsCustomFileInput.init()
-});
-</script>
-{% endblock javascript %}
+{% endblock main_content %}

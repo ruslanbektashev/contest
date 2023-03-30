@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views comments markdown humanize static %}
 
-{% block title %}
-Комментарий
-{% endblock title %}
+{% block title %}Комментарий{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -13,17 +11,17 @@
 {% breadcrumb "Ответ" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Ответ на комментарий</legend>
 {% if parent %}
-<div class="comment-list">
-    <div id="comment_{{ parent.id }}" class="d-flex comment-list-item mb-4">
-        <div class="comment-avatar mr-3">
-            <img src="{% static 'comment-avatar.png' %}" alt="Изображение профиля">
+<div class="contest-comment-list">
+    <div class="contest-comment-list-item d-flex mb-4" id="comment_{{ parent.id }}">
+        <div class="contest-comment-avatar me-3">
+            {% include 'accounts/account/account_image.html' with last_name=parent.author.account.last_name first_name=parent.author.account.first_name size=40 rounded=True %}
         </div>
-        <div class="comment-main">
-            <div class="comment-header mb-1 d-flex">
-                <div class="comment-user mr-2">
+        <div class="contest-comment-main d-flex flex-column gap-1">
+            <div class="contest-comment-header d-flex">
+                <div class="contest-comment-author text-nowrap me-2">
                     <a href="{{ parent.author.account.get_absolute_url }}" class="{% if not parent.author.account.is_student %}text-success{% endif %}">
                         {{ parent.author.account }}
                     </a>
@@ -31,12 +29,13 @@
                 <div class="text-muted">
                     ∙
                 </div>
-                <div class="comment-timesince text-muted ml-2">
-                    <small class="comment-naturaltime">{{ parent.date_created|naturaltime }}</small>
-                    <small class="comment-datetime">{{ parent.date_created|date:'d b Y г. в H:i' }}</small>
+                <div class="text-muted text-nowrap ms-2">
+                    <small data-bs-toggle="tooltip" data-bs-placement="top" title="{{ parent.date_created|date:'d E Y г. в H:i' }}">
+                        <a class="text-muted" href="{{ parent.object.get_discussion_url }}{% get_comment_query_string page_obj.number %}#comment_{{ parent.id }}">{{ parent.date_created|naturaltime }}</a>
+                    </small>
                 </div>
             </div>
-            <div class="d-block comment-text mb-1">
+            <div class="d-block contest-comment-text">
                 {{ parent.text|markdown|safe }}
             </div>
         </div>
@@ -44,4 +43,4 @@
 </div>
 {% endif %}
 {% render_comment_form parent.object parent form %}
-{% endblock content %}
+{% endblock main_content %}

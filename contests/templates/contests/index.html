@@ -1,60 +1,60 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views contests tutorial static %}
 
-
+{% block title %}Главная{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between flex-column flex-md-row">
+    <span class="d-flex justify-content-between flex-column flex-md-row">
         <span class="text-truncate d-none d-md-flex">Главная</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
             {% if perms.contests.add_course %}
-            <a href="{% url 'contests:course-create' %}" id="btn_course_create" class="text-success" data-toggle="tooltip" data-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
+            <a href="{% url 'contests:course-create' %}" class="text-success" id="btn_course_create" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
             {% endif %}
-            <a href="{% url 'contests:course-list' %}" data-toggle="tooltip" data-placement="top" title="Все курсы"><i class="fa fa-book fa-fw"></i></a>
+            <a href="{% url 'contests:course-list' %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Все курсы"><i class="fa fa-book fa-fw"></i></a>
             {% if perms.contests.view_submission_list %}
-            <a href="{% url 'contests:submission-list' %}" data-toggle="tooltip" data-placement="top" title="Все посылки"><i class="fa fa-tasks fa-fw"></i></a>
+            <a href="{% url 'contests:submission-list' %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Все посылки"><i class="fa fa-tasks fa-fw"></i></a>
             {% endif %}
             {% if perms.accounts.change_account %}
-            <a href="{% url 'accounts:account-list' %}" id="btn_account_list" data-toggle="tooltip" data-placement="top" title="Пользователи"><i class="fa fa-users fa-fw"></i></a>
+            <a href="{% url 'accounts:account-list' %}" id="btn_account_list" data-bs-toggle="tooltip" data-bs-placement="top" title="Пользователи"><i class="fa fa-users fa-fw"></i></a>
             {% endif %}
             {% if perms.accounts.view_filter %}
-            <a href="{% url 'contests:filter-table' %}" data-toggle="tooltip" data-placement="top" title="Фильтры"><i class="fa fa-bookmark fa-fw"></i></a>
+            <a href="{% url 'contests:filter-table' %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Фильтры"><i class="fa fa-bookmark fa-fw"></i></a>
             {% endif %}
             {% if perms.accounts.add_faculty %}
-            <span class="dropdown show">
-                <a href="#" class="text-decoration-none" role="button" id="dropdownMoreMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
-                <span class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownMoreMenuLink">
+            <div class="dropstart">
+                <a href="#" role="button" id="dropdownMoreMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
+                <div class="dropdown-menu shadow-sm" aria-labelledby="dropdownMoreMenuLink">
                     <a href="{% url 'contests:deleted-list' %}" class="dropdown-item"><i class="fa fa-trash-o fa-fw"></i> Корзина</a>
-                </span>
-            </span>
+                </div>
+            </div>
             {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
 {% include 'contests/news_block.html' %}
 <div id="contest_index_row" class="row">
     {% for course in courses %}
-    <div class="col-12 col-md-6 mb-3">
+    <div class="col-12 col-md-4 mb-3">
         <div id="course_card_{{ forloop.counter }}" class="card shadow-sm">
             <div class="card-header">
                 <a id="course_card_{{ forloop.counter }}_link" href="{% url 'contests:course-detail' course.id %}">{{ course }}</a>
             </div>
             {% with latest_submissions=course|get_latest_submissions:request|slice:':3' %}
-            <table class="table table-sm {% if not latest_submissions %}table-borderless{% endif %} mb-1" data-toggle="tooltip" data-placement="bottom" title="Последние посылки по заданиям" style="min-height: 98px;">
+            <table class="table table-sm table-borderless mb-0" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Последние посылки по заданиям" style="min-height: 98px;">
                 <tbody>
                     {% for submission in latest_submissions %}
                     <tr>
-                        <td class="text-right" style="width: 18%;">{{ submission.date_created|date:'d.m.y' }}</td>
-                        <td class="text-truncate">
-                            <a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account.get_short_name }}</a>
+                        <td class="text-end ps-3" style="width: 18%;">{{ submission.date_created|date:'d.m.y' }}</td>
+                        <td class="text-truncate overflow-hidden">
+                            <a class="text-truncate" href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account.get_short_name }}</a>
                         </td>
-                        <td class="text-center" style="width: 13%;">
-                            <a href="{{ submission.get_absolute_url }}" class="status status-{{ submission.status|colorize }}" data-toggle="tooltip" data-placement="bottom" title="{{ submission.get_status_display }}">
+                        <td class="text-center pe-3" style="width: 13%;">
+                            <a href="{{ submission.get_absolute_url }}" class="contest-status contest-status-{{ submission.status|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ submission.get_status_display }}">
                                 {{ submission.status }}
                             </a>
                         </td>
@@ -67,24 +67,24 @@
                 </tbody>
             </table>
             {% endwith %}
-            <div class="card-footer text-right lake p-1">
-                <a href="{% url 'contests:submission-list' course.id %}" class="btn btn-light btn-sm pebble">Посылки <i class="fa fa-tasks fa-fw"></i></a>
-                <a href="{% url 'contests:assignment-table' course.id %}" class="btn btn-light btn-sm pebble">Таблица <i class="fa fa-table fa-fw"></i></a>
+            <div class="card-footer d-flex justify-content-end gap-1 p-2">
+                <a href="{% url 'contests:submission-list' course.id %}" class="btn btn-light btn-sm"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
+                <a href="{% url 'contests:assignment-table' course.id %}" class="btn btn-light btn-sm"><i class="fa fa-table fa-fw"></i> Таблица</a>
             </div>
         </div>
     </div>
     {% endfor %}
 </div>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
-<script>
+{% block main_scripts %}
+<script type="text/javascript">
 driver.defineSteps([
     {% if not request|have_passed_step:'contest_logo' %}
     {
         view: '{% tutorial_step_view request %}',
         step: 'contest_logo',
-        element: '#contest_logo',
+        element: '#contestLogo',
         popover: {
             title: "Добро пожаловать в Контест!",
             description: "Это пошаговое руководство познакомит Вас с основными возможностями системы Контест. " +
@@ -176,4 +176,4 @@ driver.defineSteps([
     {% endif %}
 ]);
 </script>
-{% endblock javascript %}
+{% endblock main_scripts %}

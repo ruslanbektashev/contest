@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from support.models import Question, Report
+from support.models import Discussion, Question, Report
 
 
 @admin.register(Question)
@@ -30,6 +30,23 @@ class ReportAdmin(admin.ModelAdmin):
         }),
         ('Детали', {
             'fields': ('title', 'text', 'page_url')
+        }),
+        ('Даты', {
+            'fields': ('date_created', 'date_updated')
+        })
+    )
+    readonly_fields = ('date_created', 'date_updated')
+
+
+@admin.register(Discussion)
+class DiscussionAdmin(admin.ModelAdmin):
+    list_display = ('owner', 'topic')
+    fieldsets = (
+        ('Пользователь', {
+            'fields': ('owner',)
+        }),
+        ('Детали', {
+            'fields': ('topic',)
         }),
         ('Даты', {
             'fields': ('date_created', 'date_updated')

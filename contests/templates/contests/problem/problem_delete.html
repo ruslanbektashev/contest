@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Задача
-{% endblock title %}
+{% block title %}Задача{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -13,7 +11,7 @@
 {% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Удаление задачи</legend>
 {% if action == 'delete_permanently' %}
 <form action="" method="post">
@@ -28,11 +26,11 @@
     <div class="alert alert-warning text-center" role="alert">
         Вы точно хотите удалить задачу: {{ problem }}?
     </div>
-    <div class="form-group">
-        <input class="btn btn-secondary btn-block" type="submit" value="Удалить" />
+    <div class="d-grid">
+        <input class="btn btn-danger" type="submit" value="Удалить" />
     </div>
 </form>
 {% else %}
-{% render_delete_form problem %}
+{% include 'forms/delete_form.html' with obj=problem %}
 {% endif %}
-{% endblock content %}
+{% endblock main_content %}

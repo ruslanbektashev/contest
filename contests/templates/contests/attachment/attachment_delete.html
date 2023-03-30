@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Файл
-{% endblock title %}
+{% block title %}Файл{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -12,7 +10,7 @@
 {% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Удаление файла</legend>
-{% render_delete_form attachment %}
-{% endblock content %}
+{% include 'forms/delete_form.html' with obj=attachment %}
+{% endblock main_content %}

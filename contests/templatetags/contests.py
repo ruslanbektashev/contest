@@ -290,6 +290,7 @@ def render_attachment_list(context, obj, course):
     context['attachments'] = obj.attachment_set.all()
     context['obj'] = obj
     context['course'] = course
-    context['path_name'] = 'contests:{}-attachment'.format(obj.__class__.__name__.lower())
+    context['detail_view_name'] = 'contests:{}-attachment'.format(obj.__class__.__name__.lower())
+    context['update_view_name'] = 'contests:{}-update'.format(obj.__class__.__name__.lower())
     context['contest_domain'] = CONTEST_DOMAIN
     return context

@@ -1,14 +1,12 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms static %}
 
-{% block title %}
-Объявление
-{% endblock title %}
+{% block title %}Объявление{% endblock title %}
 
-{% block stylesheets %}
+{% block main_links %}
 <link href="{% static 'tempus-dominus/css/tempus-dominus.css' %}" rel="stylesheet">
 <link href="{% static 'tempus-dominus/css/tempus-dominus.patch.css' %}" rel="stylesheet">
-{% endblock stylesheets %}
+{% endblock main_links %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -21,22 +19,22 @@
 {% endif %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend><span class="text-truncate">{% if announcement %}Редактирование{% else %}Добавление{% endif %} объявления</span></legend>
 <form action="" method="post">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.group class+="form-control selectpicker" %}
     {% render_field form.title class+="form-control" %}
     {% render_field form.text class+="form-control" %}
     {% render_field form.actual class+="form-control" placeholder="По умолчанию: 3 месяца" %}
     {% endwith %}
-    {% render_submit_button value="Сохранить" %}
+    {% include 'forms/submit_button.html' with value="Сохранить" %}
 </form>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
+{% block main_scripts %}
 <script src="{% static 'popper/popper.min.js' %}" type="text/javascript"></script>
 <script src="{% static 'tempus-dominus/js/tempus-dominus.js' %}" type="text/javascript"></script>
 <script src="{% static 'tempus-dominus/tempus-dominus.options.js' %}" type="text/javascript"></script>
@@ -46,4 +44,4 @@ document.addEventListener("DOMContentLoaded", function() {
     const picker = new tempusDominus.TempusDominus(document.getElementById('id_actual'), tdOptions);
 });
 </script>
-{% endblock javascript %}
+{% endblock main_scripts %}

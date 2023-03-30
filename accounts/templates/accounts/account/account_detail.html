@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views contests static %}
 
-{% block title %}
-Профиль
-{% endblock title %}
+{% block title %}Профиль{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,54 +9,53 @@
 {% breadcrumb account %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between">
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">{{ account }}</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
         {% if account.user_id == request.user.id %}
-            <a href="{% url 'password-change' %}" class="text-secondary text-decoration-none" data-toggle="tooltip" data-placement="top" title="Изменить пароль" style="position: relative; top: -0.03rem;"><i class="fa fa-lock fa-fw"></i></a>
+            <a href="{% url 'password-change' %}" class="text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Изменить пароль"><i class="fa fa-lock fa-fw"></i></a>
         {% endif %}
         {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
-            <a href="{% url 'accounts:account-update' account.user.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Редактировать профиль"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'accounts:account-update' account.user.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать профиль"><i class="fa fa-edit fa-fw"></i></a>
         {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
-<div class="row my-3">
-    <div class="col-sm-12 col-md-3">
+<div class="row">
+    <div class="col-12 col-md-3">
         {% include 'accounts/account/account_card.html' with image=True %}
     </div>
-    <div class="col-sm-12 col-md-9">
+    <div class="col-12 col-md-9">
         <table class="table table-borderless table-sm">
-            <tr><td class="text-right" style="width: 30%;">e-mail</td><td>{% if account.email %}<a href="mailto:{{ account.email }}">{{ account.email }}</a>{% elif perms.auth.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}<a href="{% url 'accounts:account-update' account.user_id %}" class="text-danger" >укажите e-mail</a>{% else %}-{% endif %}</td></tr>
-            <tr><td class="text-right" style="width: 30%;">Факультет</td><td>{{ account.faculty }}</td></tr>
-            <tr><td class="text-right" style="width: 30%;">Группа</td><td>{% for group in account.user.groups.all %} <span class="badge badge-secondary">{{ group }}</span>{% endfor %}</td></tr>
-            <tr><td class="text-right" style="width: 30%;">Тип учетной записи</td><td>{{ account.get_type_display }}</td></tr>
+            <tr><td class="text-end" style="width: 30%;">e-mail</td><td>{% if account.email %}<a href="mailto:{{ account.email }}">{{ account.email }}</a>{% elif perms.auth.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}<a href="{% url 'accounts:account-update' account.user_id %}" class="text-danger" >укажите e-mail</a>{% else %}-{% endif %}</td></tr>
+            <tr><td class="text-end" style="width: 30%;">Факультет</td><td>{{ account.faculty }}</td></tr>
             {% if account.is_student %}
-            <tr><td class="text-right" style="width: 30%;">Уровень</td><td>{{ account.get_level_display }}</td></tr>
-            <tr><td class="text-right" style="width: 30%;">Группа</td><td>{{ account.get_group_name }}</td></tr>
-            <tr><td class="text-right" style="width: 30%;">Подгруппа</td><td>{{ account.subgroup }}</td></tr>
-            <tr><td class="text-right" style="width: 30%;">Год поступления</td><td>{{ account.admission_year }}</td></tr>
-            <tr><td class="text-right" style="width: 30%;">№ зачетной книжки</td><td>{{ account.record_book_id|default:'' }}</td></tr>
-            <tr><td class="text-right" style="width: 30%;">Обучается</td><td>{{ account.enrolled|yesno:'да,нет' }}</td></tr>
-            <tr><td class="text-right" style="width: 30%;">Закончил обучение</td><td>{{ account.graduated|yesno:'да,нет' }}</td></tr>
+            <tr><td class="text-end" style="width: 30%;">Уровень</td><td>{{ account.get_level_display }}</td></tr>
+            <tr><td class="text-end" style="width: 30%;">Группа</td><td>{{ account.get_group_name }}, подгруппа {{ account.subgroup }}</td></tr>
+            <tr><td class="text-end" style="width: 30%;">Год поступления</td><td>{{ account.admission_year }}</td></tr>
+            <tr><td class="text-end" style="width: 30%;">№ зачетной книжки</td><td>{{ account.record_book_id|default:'' }}</td></tr>
+            <tr><td class="text-end" style="width: 30%;">Обучается</td><td>{{ account.enrolled|yesno:'да,нет' }}</td></tr>
+            <tr><td class="text-end" style="width: 30%;">Закончил обучение</td><td>{{ account.graduated|yesno:'да,нет' }}</td></tr>
             {% endif %}
+            <tr><td class="text-end" style="width: 30%;">Права</td><td>{% for group in account.user.groups.all %} <span class="badge bg-secondary">{{ group }}</span>{% endfor %}</td></tr>
+            <tr><td class="text-end" style="width: 30%;">Тип учетной записи</td><td>{{ account.get_type_display }}</td></tr>
             {% if perms.accounts.change_account %}
-            <tr><td class="text-right" style="width: 30%;">Логин</td><td>{{ account.username }}</td></tr>
-            <tr><td class="text-right" style="width: 30%;">Активен</td><td>{% if account.is_active %}<i class="fa fa-check-circle fa-lg text-success"></i>{% else %}<i class="fa fa-times-circle fa-lg text-danger"></i>{% endif %}</td></tr>
-            <tr><td class="text-right" style="width: 30%;">Последний вход</td><td>{{ account.last_login|date:'d E Y, H:i' }}</td></tr>
-            <tr><td class="text-right" style="width: 30%;">Дата регистрации</td><td>{{ account.date_joined|date:'d E Y' }}</td></tr>
+            <tr><td class="text-end" style="width: 30%;">Логин</td><td>{{ account.username }}</td></tr>
+            <tr><td class="text-end" style="width: 30%;">Активен</td><td>{% if account.is_active %}<i class="fa fa-check-circle fa-lg text-success"></i>{% else %}<i class="fa fa-times-circle fa-lg text-danger"></i>{% endif %}</td></tr>
+            <tr><td class="text-end" style="width: 30%;">Последний вход</td><td>{{ account.last_login|date:'d E Y, H:i' }}</td></tr>
+            <tr><td class="text-end" style="width: 30%;">Дата регистрации</td><td>{{ account.date_joined|date:'d E Y' }}</td></tr>
             {% endif %}
         </table>
     </div>
 </div>
 {% if account.is_student %}
-<a id="activity" class="activity-anchor">&nbsp</a>
+<a class="activity-anchor" id="activity">&nbsp</a>
 <legend>Активность</legend>
 <div class="card mb-2">
     <div class="card-header d-flex align-items-center p-1">
-        <select id="year_select" name="year" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;" style="width:20%;">
+        <select id="year_select" name="year" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
             {% for yr, yr_display in years %}
             <option value="{% get_full_path_with_updated_query_string request year=yr %}#activity" {% if year == yr %}selected{% endif %}>{{ yr_display }}</option>
             {% endfor %}
@@ -69,41 +66,39 @@
         <canvas id="submissionsChart" height="100"></canvas>
     </div>
 </div>
-
 <div class="table-responsive-lg my-3">
     <table class="table table-sm table-hover">
         <tbody>
             <tr>
-                <td style="vertical-align: middle;">Решено задач</td>
-                <td class="text-center" style="vertical-align: middle; width: 4%;">
+                <td>Решено задач</td>
+                <td class="text-center" style="width: 4%;">
                     <span class="text-{{ problems_count|colorize_activity_count }}"><strong>{{ problems_count }}</strong></span>
                 </td>
             </tr>
             <tr>
-                <td style="vertical-align: middle;">Отправлено посылок</td>
-                <td class="text-center" style="vertical-align: middle; width: 4%;">
+                <td>Отправлено посылок</td>
+                <td class="text-center" style="width: 4%;">
                     <span class="text-{{ submissions_count|colorize_activity_count }}"><strong>{{ submissions_count }}</strong></span>
                 </td>
             </tr>
             <tr>
-                <td style="vertical-align: middle;">Написано комментариев</td>
-                <td class="text-center" style="vertical-align: middle; width: 4%;">
+                <td>Написано комментариев</td>
+                <td class="text-center" style="width: 4%;">
                     <span class="text-{{ comments_count|colorize_activity_count }}"><strong>{{ comments_count }}</strong></span>
                 </td>
             </tr>
         </tbody>
     </table>
 </div>
-
 {% if perms.accounts.view_account or account.user_id == request.user.id %}
 {% if credits %}
 <legend>
-    <div class="d-flex justify-content-between">
-        <span class="text-truncate">Результаты</span>
-        <span class="d-flex justify-content-between">
-            <a href="{% if account.user_id == request.user.id %} {% url 'contests:assignment-list' %} {% else %} {% url 'accounts:account-assignment-list' account.user_id %} {% endif %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Задания" style="position: relative; top: -0.08rem;"><i class="fa fa-list-ol fa-fw"></i></a>
+    <span class="d-flex justify-content-between">
+        <span>Результаты</span>
+        <span class="d-flex justify-content-between gap-1">
+            <a href="{% if account.user_id == request.user.id %} {% url 'contests:assignment-list' %} {% else %} {% url 'accounts:account-assignment-list' account.user_id %} {% endif %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Задания"><i class="fa fa-list-ol fa-fw"></i></a>
         </span>
-    </div>
+    </span>
 </legend>
 {% include 'accounts/account/account_results.html' %}
 <div class="table-responsive-lg mb-3">
@@ -111,26 +106,26 @@
         <tbody>
             {% if account.submissions_score %}
             <tr>
-                <td style="vertical-align: middle;">Точность</td>
-                <td class="text-center" style="vertical-align: middle; width: 70%;">
+                <td>Точность</td>
+                <td class="text-center align-middle" style="width: 70%;">
                     {% render_progress account.submissions_score "" %}
                 </td>
-                <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    <span class="d-inline-block" data-toggle="tooltip" data-placement="left" title="Учитывает количество посылок для решения задачи">
-                        <i class="text-muted fa fa-question-circle fa-fw" style="position: relative; top: -0.08rem;"></i>
+                <td class="text-center" style="width: 4%;">
+                    <span data-bs-toggle="tooltip" data-bs-placement="left" title="Учитывает количество посылок для решения задачи">
+                        <i class="fa fa-question-circle fa-fw text-muted"></i>
                     </span>
                 </td>
             </tr>
             {% endif %}
             {% if account.score %}
             <tr>
-                <td style="vertical-align: middle;">Общая успеваемость</td>
-                <td class="text-center" style="vertical-align: middle; width: 70%;">
+                <td>Общая успеваемость</td>
+                <td class="text-center align-middle" style="width: 70%;">
                     {% render_progress account.score "" %}
                 </td>
-                <td class="text-center" style="vertical-align: middle; width: 4%;">
-                    <span class="d-inline-block" data-toggle="tooltip" data-placement="left" title="Учитывает оценки по курсам и количество посылок для решения задачи">
-                        <i class="text-muted fa fa-question-circle fa-fw" style="position: relative; top: -0.08rem;"></i>
+                <td class="text-center" style="width: 4%;">
+                    <span data-bs-toggle="tooltip" data-bs-placement="left" title="Учитывает оценки по курсам и количество посылок для решения задачи">
+                        <i class="fa fa-question-circle fa-fw text-muted"></i>
                     </span>
                 </td>
             </tr>
@@ -141,47 +136,47 @@
 {% endif %}
 {% endif %}
 {% endif %}
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
+{% block main_scripts %}
 <script src="{% static 'chart/chart.min.js' %}" type="text/javascript"></script>
 <script>
-    const submissionsChartData = {
-        labels: [{% for item in year_month_submissions_solutions_comments %} {% if year == 0 %} '{{ item.1 }} {{item.0}}' {% else %} '{{ item.1 }}' {% endif %}, {% endfor %}],
-        datasets: [{
-            label: 'Посылки',
-            backgroundColor: 'rgb(91, 192, 222)',
-            borderColor: 'rgb(91, 192, 222)',
-            data: [{% for item in year_month_submissions_solutions_comments %} {{ item.2 }}, {% endfor %}],
-        }, {
-            label: 'Решения',
-            backgroundColor: 'rgb(92, 184, 92)',
-            borderColor: 'rgb(92, 184, 92)',
-            data: [{% for item in year_month_submissions_solutions_comments %} {{ item.3 }}, {% endfor %}],
-        }, {
-            label: 'Комментарии',
-            backgroundColor: 'rgb(108, 117, 125)',
-            borderColor: 'rgb(108, 117, 125)',
-            data: [{% for item in year_month_submissions_solutions_comments %} {{ item.4 }}, {% endfor %}],
-        }]
-    };
+const submissionsChartData = {
+    labels: [{% for item in year_month_submissions_solutions_comments %} {% if year == 0 %} '{{ item.1 }} {{item.0}}' {% else %} '{{ item.1 }}' {% endif %}, {% endfor %}],
+    datasets: [{
+        label: 'Посылки',
+        backgroundColor: 'rgb(91, 192, 222)',
+        borderColor: 'rgb(91, 192, 222)',
+        data: [{% for item in year_month_submissions_solutions_comments %} {{ item.2 }}, {% endfor %}],
+    }, {
+        label: 'Решения',
+        backgroundColor: 'rgb(92, 184, 92)',
+        borderColor: 'rgb(92, 184, 92)',
+        data: [{% for item in year_month_submissions_solutions_comments %} {{ item.3 }}, {% endfor %}],
+    }, {
+        label: 'Комментарии',
+        backgroundColor: 'rgb(108, 117, 125)',
+        borderColor: 'rgb(108, 117, 125)',
+        data: [{% for item in year_month_submissions_solutions_comments %} {{ item.4 }}, {% endfor %}],
+    }]
+};
 
-    const submissionsChartConfig = {
-        type: 'bar',
-        data: submissionsChartData,
-        options: {
-            scales: {
-                y: {
-                    ticks: {
-                        stepSize: 1
-                    }
+const submissionsChartConfig = {
+    type: 'bar',
+    data: submissionsChartData,
+    options: {
+        scales: {
+            y: {
+                ticks: {
+                    stepSize: 1
                 }
             }
         }
-    };
-    const submissionsChart = new Chart(
-        document.getElementById('submissionsChart'),
-        submissionsChartConfig
-    );
+    }
+};
+const submissionsChart = new Chart(
+    document.getElementById('submissionsChart'),
+    submissionsChartConfig
+);
 </script>
-{% endblock javascript %}
+{% endblock main_scripts %}

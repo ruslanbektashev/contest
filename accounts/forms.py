@@ -8,7 +8,6 @@ from django.utils import timezone
 
 from accounts.models import Account, Announcement, Comment
 from accounts.templatetags.markdown import markdown
-from accounts.widgets import CommentWidget
 
 
 class AccountPartialForm(forms.ModelForm):
@@ -138,21 +137,23 @@ class MarkdownValidationParser(HTMLParser):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.safe_tags = ['p', 'em', 'strong', 'hr', 'ol', 'ul', 'li', 'a', 'blockquote', 'code', 'br', 'pre']
-        self.safe_attrs = ['href']
+        self.safe_tags = ['p', 'em', 'strong', 'hr', 'ol', 'ul', 'li', 'a', 'blockquote', 'code', 'br', 'pre', 'h1',
+                          'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td']
+        self.safe_attrs = ['href', 'alt', 'src', 'class']
 
     def handle_startendtag(self, tag, attrs):
-        if attrs:
-            self.error("Найден недопустимый атрибут {} тэга {}.".format(attrs[0][0], tag))
         if tag not in self.safe_tags:
             self.error("Использование тэга {} запрещено.".format(tag))
+        for attr, value in attrs:
+            if attr not in self.safe_attrs:
+                self.error("Найден недопустимый атрибут {} тэга {}.".format(attr, tag))
 
     def handle_starttag(self, tag, attrs):
-        for attr in attrs:
-            if attr[0] not in self.safe_attrs:
-                self.error("Обнаружен недопустимый атрибут {} тэга {}.".format(attrs[0][0], tag))
         if tag not in self.safe_tags:
             self.error("Использование тэга {} запрещено.".format(tag))
+        for attr, value in attrs:
+            if attr not in self.safe_attrs:
+                self.error("Обнаружен недопустимый атрибут {} тэга {}.".format(attr, tag))
 
     def handle_endtag(self, tag):
         if tag not in self.safe_tags:
@@ -186,7 +187,7 @@ class MarkdownValidationParser(HTMLParser):
 
 
 class CommentForm(forms.ModelForm):
-    text = forms.CharField(widget=CommentWidget())
+    text = forms.CharField(strip=False, widget=forms.Textarea)
 
     class Meta:
         model = Comment

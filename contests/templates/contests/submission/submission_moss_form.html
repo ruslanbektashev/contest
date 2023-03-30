@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms contests %}
 
-{% block title %}
-Посылка
-{% endblock title %}
+{% block title %}Посылка{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -14,21 +12,21 @@
 {% breadcrumb "MOSS" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend><span class="text-truncate">Measure of Software Similarity</span></legend>
 <p>Обнаружение плагиата инструментом <a href="http://theory.stanford.edu/~aiken/moss/" target="_blank">http://theory.stanford.edu/~aiken/moss/</a>.</p>
 <p>Выберите посылки для сравнения с текущей посылкой на сервере MOSS:</p>
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% render_field_errors form.to_submissions %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% include 'forms/errors/field_errors.html' with field=form.to_submissions %}
     <table class="table table-sm table-hover">
         <thead>
             <tr>
                 <th class="text-center" style="width: 4%;">
-                    <div class="custom-control custom-checkbox" data-toggle="tooltip" data-placement="top" title="Выбрать все посылки">
-                        <input id="check_all" type="checkbox" class="custom-control-input">
-                        <label for="check_all" class="custom-control-label ml-2"></label>
+                    <div class="form-check" data-bs-toggle="tooltip" data-bs-placement="top" title="Выбрать все посылки">
+                        <input class="form-check-input" id="check_all" type="checkbox">
+                        <label class="form-check-label ms-2" for="check_all"></label>
                     </div>
                 </th>
                 <th class="text-center" style="width: 18%;">Дата</th>
@@ -43,30 +41,28 @@
             {% for submission in form.to_submissions.field.queryset %}
             <tr>
                 <td class="text-center">
-                    <div class="custom-control custom-checkbox">
-                        <input id="check_{{ submission.id }}" type="checkbox" class="custom-control-input check" name="to_submissions" value="{{ submission.id }}">
-                        <label for="check_{{ submission.id }}" class="custom-control-label ml-2"></label>
+                    <div class="form-check">
+                        <input class="form-check-input check" id="check_{{ submission.id }}" type="checkbox" name="to_submissions" value="{{ submission.id }}">
+                        <label class="form-check-label ms-2" for="check_{{ submission.id }}"></label>
                     </div>
                 </td>
-                <td class="text-center">{{ submission.date_created|date:'d b y г. в H:i' }}</td>
+                <td class="text-center">{{ submission.date_created|date:'d E y г. в H:i' }}</td>
                 <td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>
                 <td class="text-center">{{ submission.owner.account.get_level_display }}</td>
                 <td class="text-center">{{ submission.owner.account.get_group_name }}</td>
                 <td class="text-center">{{ submission.owner.account.admission_year }}</td>
-                <td class="text-center"><a href="{{ submission.get_absolute_url }}" class="status status-{{ submission.status|colorize }}">{{ submission.status }}</a></td>
+                <td class="text-center"><a href="{{ submission.get_absolute_url }}" class="contest-status contest-status-{{ submission.status|colorize }}">{{ submission.status }}</a></td>
             </tr>
             {% empty %}
-            <tr>
-                <td class="text-center" colspan="4">здесь ничего нет</td>
-            </tr>
+            <tr><td colspan="7"><div class="alert alert-info mb-0">Посылок для сравнения не найдено</div></td></tr>
             {% endfor %}
         </tbody>
     </table>
-    {% render_submit_button value="Отправить запрос" %}
+    {% include 'forms/submit_button.html' with value="Отправить запрос" %}
 </form>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
+{% block main_scripts %}
 <script type="text/javascript">
 document.getElementById('check_all').addEventListener('click', function (e) {
     let checkboxes = document.getElementsByName('to_submissions');
@@ -75,4 +71,4 @@ document.getElementById('check_all').addEventListener('click', function (e) {
     });
 });
 </script>
-{% endblock javascript %}
+{% endblock main_scripts %}

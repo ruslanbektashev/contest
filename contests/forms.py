@@ -781,7 +781,11 @@ class SubmissionTextForm(SubmissionForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['text'].required = True
+
+    def clean_text(self):
+        if self.cleaned_data['text'].strip() == "":
+            raise ValidationError("Текст ответа не может быть пустым", code='text_empty')
+        return self.cleaned_data['text']
 
 
 class SubmissionVerbalForm(SubmissionAttachmentForm):
@@ -850,7 +854,7 @@ class SubmissionUpdateForm(forms.ModelForm):
         return score
 
     def clean(self):
-        if self.instance.problem.is_testable:
+        if self.instance.problem.type == 'Program' and self.instance.problem.is_testable:
             raise ValidationError("Посылки к этой задаче проверяются автоматически", code='problem_is_testable')
         return super().clean()
 

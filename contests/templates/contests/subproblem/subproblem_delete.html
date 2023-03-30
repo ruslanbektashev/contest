@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Подзадача
-{% endblock title %}
+{% block title %}Подзадача{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -14,15 +12,15 @@
 {% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Открепление подзадачи от теста</legend>
 <form action="" method="post">
     {% csrf_token %}
     <div class="alert alert-warning text-center" role="alert">
         Вы точно хотите открепить задачу <strong>{{ subproblem.sub_problem.title }}</strong> от теста <strong>{{ subproblem.problem.title }}</strong>?
     </div>
-    <div class="form-group">
-        <input class="btn btn-danger btn-block" type="submit" value="Открепить" />
+    <div class="d-grid">
+        <input class="btn btn-danger" type="submit" value="Открепить" />
     </div>
 </form>
-{% endblock content %}
+{% endblock main_content %}

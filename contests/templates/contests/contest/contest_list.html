@@ -1,26 +1,28 @@
-{% load contests %}
-
-{% if contests.exists %}
+{% load views contests %}
 <div class="list-group mb-0">
     {% for contest in contests %}
     {% if contest|is_visible_to_user:request %}
     <a href="{{ contest.get_absolute_url }}" class="list-group-item list-group-item-action d-flex">
         {{ contest }}
         {% if contest.hidden_from_students %}
-        <span class="ml-auto">
+        <span class="ms-auto">
             {% if request.user.account.is_student %}
             <i class="fa fa-unlock fa-fw"></i></span>
             {% else %}
-            <span class="ml-auto" data-toggle="tooltip" data-placement="left" title="Раздел скрыт от студентов"><i class="fa fa-lock fa-fw"></i>
+            <span class="ms-auto" data-bs-toggle="tooltip" data-bs-placement="left" title="Раздел скрыт от студентов"><i class="fa fa-lock fa-fw"></i>
             {% endif %}
         </span>
         {% endif %}
     </a>
     {% else %}
-    <span class="list-group-item d-flex text-muted">#{{ contest.number }}. Скрытый раздел <span class="ml-auto"><i class="fa fa-lock fa-fw"></i></span></span>
+    <span class="list-group-item d-flex text-muted">#{{ contest.number }}. Скрытый раздел <span class="ms-auto"><i class="fa fa-lock fa-fw"></i></span></span>
     {% endif %}
+    {% empty %}
+    <div class="alert alert-info mb-0" role="alert">Разделы еще не добавлены</div>
     {% endfor %}
+    {% if perms.contests.add_contest or request|has_leader_permission:course %}
+    <a href="{% url 'contests:contest-create' course.id %}" class="list-group-item list-group-item-action text-center contest-list-add">
+        <i class="fa fa-plus fa-fw"></i> Добавить раздел
+    </a>
+    {% endif %}
 </div>
-{% else %}
-<div class="alert alert-info mb-0" role="alert">Разделы еще не добавлены</div>
-{% endif %}

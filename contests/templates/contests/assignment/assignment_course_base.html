@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views contests tutorial static %}
 
-{% block title %}
-Задания
-{% endblock title %}
+{% block title %}Задания{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,38 +9,38 @@
 {% breadcrumb "Задания" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between flex-column flex-md-row">
+    <span class="d-flex justify-content-between flex-column flex-md-row">
         <span class="text-truncate">Таблица заданий {% if debts %}должников{% endif %}</span>
-        <span id="assignment_table_controls" class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1" id="assignment_table_controls">
             {% if perms.contests.add_assignment or request|has_leader_permission:course %}
-            <a id="assignment_table_controls_add" href="{% url 'contests:assignment-create' course.id %}{% get_updated_query_string request %}" class="text-decoration-none text-success" data-toggle="tooltip" data-placement="left" title="Назначить новое задание"><i class="fa fa-plus fa-fw"></i></a>
-            <a id="assignment_table_controls_random" href="{% url 'contests:assignment-randomize' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Распределить задания случайно"><i class="fa fa-random fa-fw"></i></a>
+            <a href="{% url 'contests:assignment-create' course.id %}{% get_updated_query_string request %}" class="text-success" id="assignment_table_controls_add" data-bs-toggle="tooltip" data-bs-placement="left" title="Назначить новое задание"><i class="fa fa-plus fa-fw"></i></a>
+            <a href="{% url 'contests:assignment-randomize' course.id %}{% get_updated_query_string request %}" id="assignment_table_controls_random" data-bs-toggle="tooltip" data-bs-placement="top" title="Распределить задания случайно"><i class="fa fa-random fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.add_attendance or request|has_leader_permission:course %}
-            <a id="assignment_table_controls_attendance" href="{% url 'contests:attendance-mark' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Отметить посещаемость"><i class="fa fa-calendar-check-o fa-fw"></i></a>
+            <a href="{% url 'contests:attendance-mark' course.id %}{% get_updated_query_string request %}" id="assignment_table_controls_attendance" data-bs-toggle="tooltip" data-bs-placement="top" title="Отметить посещаемость"><i class="fa fa-calendar-check-o fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.view_attendance or request|has_leader_permission:course %}
-            <a href="{% url 'contests:attendance-table' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Таблица посещаемости"><i class="fa fa-calendar fa-fw"></i></a>
+            <a href="{% url 'contests:attendance-table' course.id %}{% get_updated_query_string request %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Таблица посещаемости"><i class="fa fa-calendar fa-fw"></i></a>
             {% endif %}
             {% if perms.accounts.change_account %}
-            <a id="assignment_table_controls_finish" href="{% url 'contests:course-finish' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Завершить курс"><i class="fa fa-stop fa-fw"></i></a>
+            <a href="{% url 'contests:course-finish' course.id %}{% get_updated_query_string request %}" id="assignment_table_controls_finish" data-bs-toggle="tooltip" data-bs-placement="top" title="Завершить курс"><i class="fa fa-stop fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.add_credit or request|has_leader_permission:course %}
-            <a id="assignment_table_controls_start" href="{% url 'contests:course-start' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Начать курс"><i class="fa fa-play fa-fw"></i></a>
+            <a href="{% url 'contests:course-start' course.id %}{% get_updated_query_string request %}" id="assignment_table_controls_start" data-bs-toggle="tooltip" data-bs-placement="top" title="Начать курс"><i class="fa fa-play fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.report_credit or request|has_leader_permission:course %}
-            <a id="assignment_table_controls_report" href="{% url 'contests:credit-report' course.id %}{% get_updated_query_string request %}" class="text-decoration-none" data-toggle="tooltip" data-placement="top" title="Создать ведомость"><i class="fa fa-file-word-o fa-fw"></i></a>
+            <a href="{% url 'contests:credit-report' course.id %}{% get_updated_query_string request %}" id="assignment_table_controls_report" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать ведомость"><i class="fa fa-file-word-o fa-fw"></i></a>
             {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
 <form class="mb-3">
-    <div id="assignment_table_filters" class="form-row">
+    <div class="row g-2" id="assignment_table_filters">
         {% if faculties %}
-        <div class="col-3">
-            <select id="group_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+        <div class="col-6 col-md-3">
+            <select class="form-control selectpicker" id="faculty_select" name="type" onchange="document.location=this.options[this.selectedIndex].value;" aria-label="Факультет">
                 <option value="{% get_full_path_with_updated_query_string request faculty_id=0 %}" {% if faculty_id == 0 %}selected{% endif %}>Все факультеты</option>
                 {% for faculty in faculties %}
                 <option value="{% get_full_path_with_updated_query_string request faculty_id=faculty.id %}" {% if faculty_id == faculty.id %}selected{% endif %}>{{ faculty }}</option>
@@ -50,24 +48,24 @@
             </select>
         </div>
         {% endif %}
-        <div class="col-{% if faculties %}3{% else %}4{% endif %}">
-            <select id="group_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+        <div class="col-6 col-md-{% if faculties %}3{% else %}4{% endif %}">
+            <select class="form-control selectpicker" id="group_select" name="type" onchange="document.location=this.options[this.selectedIndex].value;" aria-label="Группа">
                 <option value="{% get_full_path_with_updated_query_string request group=0 %}" {% if group == 0 %}selected{% endif %}>Все группы</option>
                 <option value="{% get_full_path_with_updated_query_string request group=1 %}" {% if group == 1 %}selected{% endif %}>1 группа</option>
                 <option value="{% get_full_path_with_updated_query_string request group=2 %}" {% if group == 2 %}selected{% endif %}>2 группа</option>
                 <option value="{% get_full_path_with_updated_query_string request group=3 %}" {% if group == 3 %}selected{% endif %}>3 группа</option>
             </select>
         </div>
-        <div class="col-{% if faculties %}3{% else %}4{% endif %}">
-            <select id="subgroup_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+        <div class="col-6 col-md-{% if faculties %}3{% else %}4{% endif %}">
+            <select class="form-control selectpicker" id="subgroup_select" name="type" onchange="document.location=this.options[this.selectedIndex].value;" aria-label="Подгруппа">
                 <option value="{% get_full_path_with_updated_query_string request subgroup=0 %}" {% if subgroup == 0 %}selected{% endif %}>Все подгруппы</option>
                 <option value="{% get_full_path_with_updated_query_string request subgroup=1 %}" {% if subgroup == 1 %}selected{% endif %}>1 подгруппа</option>
                 <option value="{% get_full_path_with_updated_query_string request subgroup=2 %}" {% if subgroup == 2 %}selected{% endif %}>2 подгруппа</option>
                 <option value="{% get_full_path_with_updated_query_string request subgroup=3 %}" {% if subgroup == 3 %}selected{% endif %}>3 подгруппа</option>
             </select>
         </div>
-        <div class="col-{% if faculties %}3{% else %}4{% endif %}">
-            <select id="debts_select" name="type" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
+        <div class="col-6 col-md-{% if faculties %}3{% else %}4{% endif %}">
+            <select class="form-control selectpicker" id="debts_select" name="type" onchange="document.location=this.options[this.selectedIndex].value;" aria-label="Должники">
                 <option value="{% get_full_path_with_updated_query_string request debts=0 %}" {% if debts == 0 %}selected{% endif %}>Без должников</option>
                 <option value="{% get_full_path_with_updated_query_string request debts=1 %}" {% if debts == 1 %}selected{% endif %}>Должники</option>
             </select>
@@ -76,26 +74,35 @@
 </form>
 {% render_assignment_course_table course students assignments %}
 {% render_assignment_progress assignments "Прогресс" %}
-<div class="collapse mt-3" id="assignments_legend">
-    <div class="card card-body">
-        <p><span class="numtus status-success">#</span> - 5</p>
-        <p><span class="numtus status-primary">#</span> - 4</p>
-        <p><span class="numtus status-warning">#</span> - 3</p>
-        <p><span class="numtus status-danger">#</span> - 2</p>
-        <p><span class="numtus status-info">#</span> - есть непроверенные посылки</p>
-        <p class="mb-0"><span class="numtus status-default">#</span> - посылок нет</p>
+<div class="d-grid my-3">
+    <button class="btn btn-light" type="button" data-bs-toggle="modal" data-bs-target="#assignmentsLegend">
+        Показать легенду
+    </button>
+</div>
+<div class="modal fade" id="assignmentsLegend" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p><span class="contest-status-number contest-status-success">#</span> - оценка 5</p>
+                <p><span class="contest-status-number contest-status-primary">#</span> - оценка 4</p>
+                <p><span class="contest-status-number contest-status-warning">#</span> - оценка 3</p>
+                <p><span class="contest-status-number contest-status-danger">#</span> - оценка 2</p>
+                <p><span class="contest-status-number contest-status-info">#</span> - есть непроверенные посылки</p>
+                <p class="mb-0"><span class="contest-status-number contest-status-default">#</span> - посылок нет</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
     </div>
 </div>
-<button class="btn btn-light btn-block mt-3" type="button" data-toggle="collapse" data-target="#assignments_legend" aria-expanded="false" aria-controls="assignments_legend">
-    Показать легенду
-</button>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
-<script src="{% static 'js/utils.js' %}" type="text/javascript"></script>
+{% block main_scripts %}
+<script src="{% static 'contest/js/utils.js' %}" type="text/javascript"></script>
 <script type="text/javascript">
 document.addEventListener("DOMContentLoaded", function() {
-    adjustStickyColumns(document.getElementById("assignment_table"), 3);
+    adjustStickyColumns(document.getElementById("assignmentTable"), 3);
 });
 </script>
 <script type="text/javascript">
@@ -130,4 +137,4 @@ driver.defineSteps([
     {% endif %}
 ])
 </script>
-{% endblock javascript %}
+{% endblock main_scripts %}

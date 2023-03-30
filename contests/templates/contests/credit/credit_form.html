@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Зачет
-{% endblock title %}
+{% block title %}Зачет{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -13,14 +11,14 @@
 {% breadcrumb "Редактирование" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
-<legend>Редактирование зачета</legend>
-<form action="" method="post" class="form-horizontal">
+{% block main_content %}
+<legend>{{ credit }}</legend>
+<form action="" method="post">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.score class+="form-control selectpicker" %}
     {% endwith %}
-    {% render_submit_button value="Сохранить" %}
+    {% include 'forms/submit_button.html' with value="Сохранить" %}
 </form>
-{% endblock content %}
+{% endblock main_content %}

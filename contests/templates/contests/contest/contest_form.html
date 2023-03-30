@@ -1,9 +1,14 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms tutorial static %}
 
-{% block title %}
-Раздел
-{% endblock title %}
+{% block title %}Раздел{% endblock title %}
+
+{% block main_links %}
+<link href="{% static 'ckeditor/ckeditor.min.css' %}" rel="stylesheet">
+<link href="{% static 'ckeditor/ckeditor.fix.css' %}" rel="stylesheet">
+<link href="{% static 'easymde/easymde.min.css' %}" rel="stylesheet">
+<link href="{% static 'easymde/easymde.fix.css' %}" rel="stylesheet">
+{% endblock main_links %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -16,73 +21,64 @@
 {% endif %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>{{ title }}</legend>
 <form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {% render_form_errors form %}
+    {% include 'forms/errors/non_field_errors.html' %}
     {% if action == 'restore' or action == None %}
     {% render_field form.course %}
     {% endif %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% if action == 'restore' or action == None %}
-    {{ form.media }}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     <div id="field_title">
-    {% render_field form.title class+="form-control" %}
+        {% render_field form.title class+="form-control" %}
     </div>
-    <div id="field_description" class="form-group">
-        <label for="{{ field.id_for_label }}">
-            {{ form.description.label }}{{ form.description.label_suffix }}
-        </label>
-        {% if form.description.errors %}
-        <div class="form-group">
-            <div class="alert alert-danger">
-                {% for error in form.description.errors %}
-                {{ error }}<br>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-        <div class="input-group">
-            {{ form.description }}
-        </div>
+    {% endwith %}
+    <div id="field_description">
+        {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/textarea.html" %}
+        {% render_field form.description class+="form-control" %}
+        {% endwith %}
     </div>
     {% endif %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% if action == 'move' %}
     {% render_field form.course class+="form-control selectpicker" %}
     {% endif %}
     {% if action == 'move' or action == 'restore' or action == None %}
     <div id="field_number">
-    {% render_field form.number class+="form-control" %}
+        {% render_field form.number class+="form-control" %}
     </div>
     {% endif %}
     {% endwith %}
-    {% if action == 'restore' or action == None %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" WIDGET_ERROR_CLASS="is-invalid" %}
-    {% render_field form.hidden class+="custom-control-input" %}
-    {% endwith %}
-    {% endif %}
     {% if action == 'add_files' or action == 'restore' or action == None %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_file.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/file.html" WIDGET_ERROR_CLASS="is-invalid" %}
     <div id="field_files">
-    {% render_field form.files class+="custom-file-input" %}
+        {% render_field form.files class+="form-control" %}
     </div>
+    {% endwith %}
+    {% endif %}
+    {% if action == 'restore' or action == None %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/check_button.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.hidden class+="btn-check" autocomplete="off" %}
     {% endwith %}
     {% endif %}
     <div id="form_submit_button">
-    {% render_submit_button value="Сохранить" %}
+        {% include 'forms/submit_button.html' with value="Сохранить" %}
     </div>
 </form>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
-<script src="{% static 'js/bs-custom-file-input.min.js' %}" type="text/javascript"></script>
+{% block main_scripts %}
+<script src="{% static 'ckeditor/ckeditor.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'ckeditor/ckeditor.config.js' %}" type="text/javascript"></script>
+<script src="{% static 'easymde/easymde.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'easymde/easymde.config.js' %}" type="text/javascript"></script>
 <script type="text/javascript">
-$(function () {
-    bsCustomFileInput.init()
+document.addEventListener("DOMContentLoaded", function(event) {
+    initCKEditor(document.getElementById('id_description'), 'default');
 });
-</script>
-<script>
+
 driver.defineSteps([
     {% if request.user.account.is_instructor or request.user.is_superuser %}
     {% if not request|have_passed_step:'field_title' %}
@@ -158,4 +154,4 @@ driver.defineSteps([
     {% endif %}
 ])
 </script>
-{% endblock javascript %}
+{% endblock main_scripts %}

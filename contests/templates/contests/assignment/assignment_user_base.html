@@ -1,25 +1,23 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views contests %}
 
-{% block title %}
-Мои задания
-{% endblock title %}
+{% block title %}Мои задания{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb "Мои задания" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 {% include 'contests/news_block.html' %}
 <legend>
-    <div class="d-flex justify-content-between">
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">Мои задания</span>
-        <span class="d-flex justify-content-between">
-            <a href="{% url 'contests:course-list' %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Все курсы"><i class="fa fa-book fa-fw"></i></a>
+        <span class="d-flex justify-content-between gap-1">
+            <a href="{% url 'contests:course-list' %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Все курсы"><i class="fa fa-book fa-fw"></i></a>
         </span>
-    </div>
+    </span>
 </legend>
 {% render_assignment_user_table assignments credits %}
 {% render_assignment_progress assignments "Прогресс" %}
-{% endblock content %}
+{% endblock main_content %}

@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Шаблон посылки
-{% endblock title %}
+{% block title %}Шаблон посылки{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,7 +9,7 @@
 {% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Удаление шаблона посылки</legend>
-{% render_delete_form submission_pattern %}
-{% endblock content %}
+{% include 'forms/delete_form.html' with obj=submission_pattern %}
+{% endblock main_content %}

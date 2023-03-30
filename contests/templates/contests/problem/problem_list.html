@@ -1,17 +1,28 @@
-{% load contests %}
-
-{% if problems.exists %}
-<div class="list-group mb-0">
+{% load views contests %}
+<div class="list-group mb-0 dropup-center">
     {% for problem in problems %}
-    <a href="{{ problem.get_absolute_url }}" class="list-group-item list-group-item-action d-flex">
-        {{ problem }}
+    <a href="{{ problem.get_absolute_url }}" class="list-group-item list-group-item-action d-flex gap-2">
+        <span class="me-auto">{{ problem }}</span>
         {% if problem.type == 'Test' %}
-        <span class="ml-auto mr-2 text-muted">[{% get_problem_subproblems problem %}]</span>
+        <span class="text-muted">[{% get_problem_subproblems problem %}]</span>
         {% endif %}
-        <span class="{% if problem.type != 'Test' %}ml-auto{% endif %}" data-toggle="tooltip" data-placement="left" title="{{ problem.get_type_display }}"><i class="fa {% get_problem_icon problem %} fa-fw"></i></span>
+        <span data-bs-toggle="tooltip" data-bs-placement="left" title="{{ problem.get_type_display }}"><i class="fa {% get_problem_icon problem %} fa-fw"></i></span>
     </a>
+    {% empty %}
+    <div class="alert alert-info mb-0" role="alert">Задачи еще не добавлены</div>
     {% endfor %}
+    {% if perms.contests.add_problem or request|has_leader_permission:contest.course %}
+    <button class="list-group-item contest-list-add" id="btn_problem_create" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fa fa-plus fa-fw"></i> Добавить задачу
+    </button>
+    <div class="dropdown-menu shadow-sm" aria-labelledby="btn_problem_create">
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Text' %}"><i class="fa fa-keyboard-o fa-fw"></i> С ответом в виде текста</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Files' %}"><i class="fa fa-file-text-o fa-fw"></i> С ответом в виде файлов</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Program' %}"><i class="fa fa-file-code-o fa-fw"></i> С ответом в виде программы</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Options' %}"><i class="fa fa-check-square-o fa-fw"></i> С вариантами ответа</a>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Verbal' %}"><i class="fa fa-microphone fa-fw"></i> С устным ответом</a>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Test' %}"><i class="fa fa-folder-o fa-fw"></i> Тест</a>
+    </div>
+    {% endif %}
 </div>
-{% else %}
-<div class="alert alert-info mb-0" role="alert">Задачи еще не добавлены</div>
-{% endif %}

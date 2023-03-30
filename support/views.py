@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.views import View
-from django.views.generic import DetailView, CreateView, RedirectView, TemplateView, UpdateView, DeleteView, ListView
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, RedirectView, TemplateView, UpdateView
 from markdown import markdown
 
 from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
@@ -179,7 +179,7 @@ class DiscussionDetail(LoginRedirectMixin, PermissionRequiredMixin, PaginatorMix
         comments = self.object.comment_set.actual()
         context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
             self.paginate_queryset(comments)
-        return
+        return context
 
 
 """===================================================== Change ====================================================="""

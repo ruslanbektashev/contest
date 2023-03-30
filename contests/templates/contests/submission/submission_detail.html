@@ -1,9 +1,11 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms accounts contests comments static %}
 
-{% block title %}
-Посылка
-{% endblock title %}
+{% block title %}Посылка{% endblock title %}
+
+{% block main_links %}
+<link href="{% static 'ckeditor/ckeditor.content.css' %}" rel="stylesheet">
+{% endblock main_links %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -29,130 +31,118 @@
 {% breadcrumb submission.short_title %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between">
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">{{ submission.short_title }}</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
         {% if request.user.is_superuser and submission.task_id %}
-            <a href="{% url 'contests:api-submission-clear-task' submission.id %}" class="text-secondary text-decoration-none" data-toggle="tooltip" data-placement="left" title="Стереть таску"><i class="fa fa-eraser fa-fw"></i></a>
+            <a href="{% url 'contests:api-submission-clear-task' submission.id %}" class="text-secondary" data-bs-toggle="tooltip" data-bs-placement="left" title="Стереть таску"><i class="fa fa-eraser fa-fw"></i></a>
         {% endif %}
         {% if submission.problem.type == 'Program' %}
         {% if perms.contests.moss_submission or request|has_leader_permission:submission.course %}
-            <a href="{% url 'contests:submission-moss' submission.id %}" class="text-secondary text-decoration-none" data-toggle="tooltip" data-placement="left" title="MOSS"><i class="fa fa-maxcdn fa-fw"></i></a>
+            <a href="{% url 'contests:submission-moss' submission.id %}" class="text-secondary" data-bs-toggle="tooltip" data-bs-placement="left" title="MOSS"><i class="fa fa-maxcdn fa-fw"></i></a>
         {% endif %}
         {% endif %}
         {% if perms.contests.delete_submission or request|has_leader_permission:submission.course %}
-            <a href="{% url 'contests:submission-delete' submission.id %}{% if from_assignment %}?from_assignment=1{% endif %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить посылку" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
+            <a href="{% url 'contests:submission-delete' submission.id %}{% if from_assignment %}?from_assignment=1{% endif %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить посылку"><i class="fa fa-trash-o fa-fw"></i></a>
         {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
 <table class="table table-sm">
-    <tr><td class="text-right" style="width: 20%;">Автор</td><td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td></tr>
-    <tr><td class="text-right" style="width: 20%;">К задаче</td><td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td></tr>
+    <tr><td class="text-end" style="width: 20%;">Автор</td><td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td></tr>
+    <tr><td class="text-end" style="width: 20%;">К задаче</td><td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td></tr>
     {% if submission.get_assignment %}
-    <tr><td class="text-right" style="width: 20%;">По заданию</td><td><a href="{{ submission.get_assignment.get_absolute_url }}"><span class="numtus status-{{ submission.get_assignment|get_assignment_score:request|colorize }}">{{ submission.get_assignment|get_assignment_score:request|default:'-' }}</span></a></td></tr>
+    <tr><td class="text-end" style="width: 20%;">По заданию</td><td><a href="{{ submission.get_assignment.get_absolute_url }}"><span class="contest-status-number contest-status-{{ submission.get_assignment|get_assignment_score:request|colorize }}">{{ submission.get_assignment|get_assignment_score:request|default:'-' }}</span></a></td></tr>
     {% endif %}
-    <tr><td class="text-right" style="width: 20%;">Отправлена</td><td>{{ submission.date_created }}</td></tr>
+    <tr><td class="text-end" style="width: 20%;">Отправлена</td><td>{{ submission.date_created|date:'d E Y г. в H:i' }}</td></tr>
     {% if submission.date_updated %}
-    <tr><td class="text-right" style="width: 20%;">Проверена</td><td>{{ submission.date_updated }}</td></tr>
+    <tr><td class="text-end" style="width: 20%;">Проверена</td><td>{{ submission.date_updated|date:'d E Y г. в H:i' }}</td></tr>
     {% endif %}
     {% if submission.problem.type == 'Test' %}
-    <tr><td class="text-right" style="width: 20%;">Решено подзадач</td><td>{{ submission.sub_submissions.count }} из {{ submission.problem.sub_problems.count }}</td></tr>
-    {% endif %}
-    {% if submission.main_submission %}
-    <tr><td class="text-right" style="width: 20%;">Основная посылка</td><td><a href="{{ submission.main_submission.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}"><span class="numtus status-{{ submission.main_submission|get_submission_status:request|colorize }}" data-toggle="tooltip" data-placement="right" title="{{ submission.main_submission|get_submission_status_display:request }}">{{ submission.main_submission|get_submission_status:request }}</span></a></td></tr>
+    <tr><td class="text-end" style="width: 20%;">Решено подзадач</td><td>{{ submission.sub_submissions.count }} из {{ submission.problem.sub_problems.count }}</td></tr>
+    {% elif submission.main_submission %}
+    <tr><td class="text-end" style="width: 20%;">Основная посылка</td><td><a href="{{ submission.main_submission.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}"><span class="contest-status contest-status-{{ submission.main_submission|get_submission_status:request|colorize }}" data-bs-toggle="tooltip" data-bs-placement="right" title="{{ submission.main_submission|get_submission_status_display:request }}">{{ submission.main_submission|get_submission_status:request }}</span></a></td></tr>
     {% endif %}
 </table>
-<div class="progress justify-content-center mb-3" style="height: 25px;">
-    <div id="progress-bar" class="progress-bar bg-{{ submission|get_submission_style:request }}" role="progressbar" aria-valuenow="{% if submission.task_id %}0{% elif submission.problem.type != 'Program' and submission|get_submission_score_percentage:request > 0 %}{{ submission|get_submission_score_percentage:request }}{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100" style="width: {% if submission.task_id %}0{% elif submission.problem.type != 'Program' and submission|get_submission_score_percentage:request > 0 %}{{ submission|get_submission_score_percentage:request }}{% else %}100{% endif %}%;"></div>
-    <span class="status-display align-self-center" style="position: absolute;">
-        <strong id="progress-bar-message" style="color: white;">
-            {{ submission|get_submission_status_display:request }} {% if submission.problem.type != 'Program' and submission|get_submission_score_percentage:request > 0 %} · {{ submission|get_submission_score_percentage:request }}%{% endif %}
-        </strong>
-    </span>
+<div class="mb-3">
+    <div class="contest-progress progress">
+        <div class="contest-status-{{ submission|get_submission_style:request }} progress-bar" id="progress-bar" role="progressbar"
+             aria-valuenow="{% if submission.task_id %}0{% elif submission.problem.type != 'Program' and submission|get_submission_score_percentage:request > 0 %}{{ submission|get_submission_score_percentage:request }}{% else %}100{% endif %}" aria-valuemin="0" aria-valuemax="100"
+             style="width: {% if submission.task_id %}0{% elif submission.problem.type != 'Program' and submission|get_submission_score_percentage:request > 0 %}{{ submission|get_submission_score_percentage:request }}{% else %}100{% endif %}%;">
+        </div>
+    </div>
+    <div class="contest-progress-message text-center" id="progress-bar-message">
+        {{ submission|get_submission_status_display:request }}{% if submission.problem.type != 'Program' and submission|get_submission_score_percentage:request > 0 %} · {{ submission|get_submission_score_percentage:request }}%{% endif %}
+    </div>
 </div>
 {% if not submission.problem.type == 'Program' or not submission.problem.is_testable %}
 {% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
-<form action="{% url 'contests:api-submission-update' submission.id %}" id="main-submission-update" method="POST" class="form-horizontal card">
+<form class="card mb-3" id="main-submission-update" action="{% url 'contests:api-submission-update' submission.id %}" method="POST">
     <div class="card-body">
         {% csrf_token %}
-        {% render_form_errors form %}
-        {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+        {% include 'forms/errors/non_field_errors.html' %}
+        {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
         {% render_field form.status class+="form-control selectpicker" data-dropup-auto="false" %}
         {% render_field form.score class+="form-control" %}
         {% endwith %}
-        <button id="main-submission-update-button" class="btn btn-light btn-block border">Сохранить основную посылку</button>
+        <div class="d-grid">
+            <button id="main-submission-update-button" class="btn btn-light border" disabled>Сохранить</button>
+        </div>
     </div>
 </form>
 {% endif %}
 {% elif submission.is_un or perms.contests.evaluate_submission or request|has_leader_permission:submission.course %}
-<button id="btn_submission_evaluate" class="btn btn-light btn-block border mb-3"
+<button class="btn btn-light border mb-3" id="btn_submission_evaluate"
         data-evaluate-url="{% url 'contests:api-submission-evaluate' submission.id %}"
         data-progress-url-base="/submission/{{ submission.id }}/get/progress/"
         data-executions-url="{% url 'contests:submission-get-executions' submission.id %}"
-        data-submission-id="{{ submission.id }}" data-sandbox-type="docker">Проверить{% if perms.contests.evaluate_submission or request|has_leader_permission:submission.course %} еще раз{% endif %}</button>
-{% if request.user.is_superuser %}
-<div class="btn-block btn-group btn-group-toggle mt-0 mb-3" data-toggle="buttons">
-    <label class="btn btn-outline-secondary active">
-        <input type="radio" name="sandbox_type" value="subprocess" autocomplete="off" checked> subprocess
-    </label>
-    <label class="btn btn-outline-secondary">
-        <input type="radio" name="sandbox_type" value="docker" autocomplete="off"> docker
-    </label>
-</div>
-{% endif %}
+        data-submission-id="{{ submission.id }}" data-sandbox-type="subprocess">Проверить{% if perms.contests.evaluate_submission or request|has_leader_permission:submission.course %} еще раз{% endif %}</button>
 {% endif %}
 {% if submission.hidden_from_students %}
-<div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+<div class="alert alert-info alert-dismissible fade show" role="alert">
     Результат проверки посылки и оценка станут доступны {% if not request.user.account.is_student %}студенту {% endif %}после истечения отведенного для задания времени.
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
 </div>
 {% endif %}
 {% if submission.problem.type == 'Test' and submission.owner.id == request.user.id and submission.sub_submissions.all|length < submission.problem.sub_problems.all|length %}
-    {% if submission.assignment is None or submission.assignment.deadline and submission.assignment.deadline > current_time %}
-        <a href="{% url 'contests:sub-submission-create' submission.problem.id submission.id %}" class="btn btn-light btn-block border mb-3">Продолжить решение</a>
-    {% endif %}
-{% endif %}
-<div class="accordion mb-3" id="execution_list">
-    {% include 'contests/execution/execution_list.html' with executions=submission.execution_set.all course=submission.course %}
+{% if submission.assignment is None or submission.assignment.deadline and submission.assignment.deadline > current_time %}
+<div class="d-grid mb-3">
+    <a href="{% url 'contests:sub-submission-create' submission.problem.id submission.id %}" class="btn btn-outline-primary">Продолжить решение</a>
 </div>
+{% endif %}
+{% endif %}
 {% if submission.problem.type == 'Program' or submission.problem.type == 'Files' %}
-<div class="text-right text-muted">
+{% include 'contests/execution/execution_list.html' with executions=submission.execution_set.all course=submission.course %}
+<div class="text-end text-muted">
     {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
-    <p class="text-warning text-break">
-        <span data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям">
-            <i class="fa fa-lock fa-fw"></i>директория на сервере: {{ submission.attachment_set.all.0.dirname }}
-        </span>
-    </p>
+    <p class="text-break"><i class="fa fa-lock fa-fw" data-bs-toggle="tooltip" data-bs-placement="left" title="Отображается только преподавателям"></i>директория на сервере: {{ submission.attachment_set.all.0.dirname }}</p>
     {% endif %}
     {% if perms.contests.moss_submission or request|has_leader_permission:submission.course %}
-        {% if submission.moss_to_submissions %}
-    <p class="text-warning text-wrap" data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>с посылками MOSS: {% for to_submission_id in submission.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-    <p class="text-warning text-wrap" data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>ссылка на отчет MOSS: {% if submission.moss_report_url %}<a href="{{ submission.moss_report_url }}" target="_blank">{{ submission.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
-        {% endif %}
+    {% if submission.moss_to_submissions %}
+    <p class="text-wrap"><i class="fa fa-lock fa-fw" data-bs-toggle="tooltip" data-bs-placement="left" title="Отображается только преподавателям"></i>с посылками MOSS: {% for to_submission_id in submission.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+    <p class="text-wrap"><i class="fa fa-lock fa-fw" data-bs-toggle="tooltip" data-bs-placement="left" title="Отображается только преподавателям"></i>ссылка на отчет MOSS: {% if submission.moss_report_url %}<a href="{{ submission.moss_report_url }}" target="_blank">{{ submission.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
+    {% endif %}
     {% endif %}
 </div>
 <legend>
-    <div class="d-flex justify-content-between">
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">Файлы</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
         {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
-            <a href="{% url 'contests:submission-download' submission.id %}" data-toggle="tooltip" data-placement="left" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>
+            <a href="{% url 'contests:submission-download' submission.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>
         {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
 <div class="list-group mb-3">
     {% for attachment in submission.attachment_set.all %}
     <span class="list-group-item d-flex">
         {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
-        <a class="mr-auto" href="{% url 'contests:submission-attachment' submission.id attachment.id %}{% if from_assignment %}?from_assignment=1{% endif %}"><samp>{{ attachment.filename }}</samp></a>
+        <a class="me-auto" href="{% url 'contests:submission-attachment' submission.id attachment.id %}{% if from_assignment %}?from_assignment=1{% endif %}"><samp>{{ attachment.filename }}</samp></a>
         {% if attachment.file|exists %}
-        <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}" data-toggle="tooltip" data-placement="left" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
+        <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}" data-bs-toggle="tooltip" data-bs-placement="left" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
         {% endif %}
         {% else %}
         <samp>{{ attachment.filename }}</samp>
@@ -160,42 +150,34 @@
     </span>
     {% endfor %}
 </div>
-{% endif %}
-{% if submission.problem.type == 'Text' %}
+{% elif submission.problem.type == 'Text' %}
 <h6 class="text-muted">Ответ:</h6>
 <div class="card mb-3">
-    <div class="card-body">
+    <div class="card-body ck-content overflow-scroll">
         {{ submission.text|safe }}
     </div>
 </div>
 {% if submission.footprint %}
 {% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
-<div class="text-right mb-3">
-<span data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям">
-    <i class="fa fa-lock fa-fw"></i>
-{% if submission.has_footprint_increments %}
-    <span class="text-warning">
-        Обнаружена вставка текста.
-    </span>
-{% else %}
-    <span class="text-success">
-        Вставка текста не обнаружена.
-    </span>
-{% endif %}
-    <button class="btn btn-link p-0" onclick="toggleText(this, 'Показать график', 'Скрыть график')" data-toggle="collapse" data-target="#collapseChart" aria-expanded="false" aria-controls="collapseChart">
+<div class="text-end mb-3">
+    <i class="fa fa-lock fa-fw" data-bs-toggle="tooltip" data-bs-placement="left" title="Отображается только преподавателям"></i>
+    {% if submission.has_footprint_increments %}
+    <span class="text-warning">Обнаружена вставка текста.</span>
+    {% else %}
+    <span class="text-success">Вставка текста не обнаружена.</span>
+    {% endif %}
+    <button class="btn btn-link p-0" id="footprintChartToggleButton" data-bs-toggle="collapse" data-bs-target="#footprintChartCollapse" aria-expanded="false" aria-controls="footprintChartCollapse">
         Показать график
     </button>
-</span>
 </div>
-<div class="card mb-3 collapse" id="collapseChart">
-    <div class="card-body">
+<div class="collapse mb-3" id="footprintChartCollapse">
+    <div class="card card-body">
         <canvas id="footprintChart" height="120"></canvas>
     </div>
 </div>
 {% endif %}
 {% endif %}
-{% endif %}
-{% if submission.problem.type == 'Options' %}
+{% elif submission.problem.type == 'Options' %}
 <h6 class="text-muted">Ответ:</h6>
 <ul class="list-group mb-3">
     {% with submission_options=submission.options.all %}
@@ -204,7 +186,7 @@
     <li class="list-group-item d-flex">
         {{ option.text }}
         {% if option in submission_options %}
-        <span class="ml-auto"><i class="fa fa-check fa-fw" aria-hidden="true"></i></span>
+        <span class="ms-auto"><i class="fa fa-check fa-fw" aria-hidden="true"></i></span>
         {% endif %}
     </li>
     {% endfor %}
@@ -213,7 +195,7 @@
     <li class="list-group-item d-flex {% if option in submission_options %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
         {{ option.text }}
         {% if option in submission_options %}
-        <span class="ml-auto" data-toggle="tooltip" data-placement="left" title="Выбранный вариант ответа">
+        <span class="ms-auto" data-bs-toggle="tooltip" data-bs-placement="left" title="Выбранный вариант ответа">
             {% if option.is_correct %}
             <i class="fa fa-check fa-fw" aria-hidden="true"></i>
             {% else %}
@@ -226,184 +208,88 @@
     {% endif %}
     {% endwith %}
 </ul>
-{% endif %}
-{% if submission.problem.type == 'Test' %}
+{% elif submission.problem.type == 'Test' %}
 <h6 class="text-muted">Подпосылки:</h6>
-<div class="accordion mb-3" id="subSubmissionsAccordion">
-    {% for sub_form in forms %}
-    <div class="card">
-        <div class="card-header d-flex align-items-center" id="heading_{{ sub_form.instance.id }}">
-            <!-- <small class="mr-3" data-toggle="tooltip" data-placement="top" title="Номер подзадачи">{{ sub_form.instance.problem.number }}</small> -->
-            <a href="{{ sub_form.instance.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}" id="status-{{ forloop.counter0 }}" class="status status-{{ sub_form.instance|get_submission_status:request|colorize }} mr-3" data-toggle="tooltip" data-placement="top" title="{{ sub_form.instance|get_submission_status_display:request }}">
-                {{ sub_form.instance|get_submission_status:request }}
-            </a>
-            {% if sub_form.instance.problem.title %}
-            <small class="mr-auto">
-                <a href="{% url 'contests:problem-detail' sub_form.instance.problem.id %}" class="card-link">
-                    {{ sub_form.instance.problem.title }}
-                </a>
-            </small>
-            {% endif %}
-            {% if sub_form.instance.problem.type == 'Text' %}
-            {% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
-            {% if sub_form.instance.has_footprint_increments %}
-            <span class="text-warning mr-2" data-toggle="tooltip" data-placement="top" title="Обнаружена вставка текста" style="position: relative; top: -0.08em;"><i class="fa fa-exclamation-triangle fa-fw fa-lg"></i></span>
-            {% else %}
-            <span class="text-success mr-2" data-toggle="tooltip" data-placement="top" title="Вставка текста не обнаружена" style="position: relative; top: -0.08em;"><i class="fa fa-check-circle fa-fw fa-lg"></i></span>
-            {% endif %}
-            {% endif %}
-            {% endif %}
-            <small>{{ sub_form.instance.problem.get_type_display }}</small>
-            {% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
-                {% if not sub_form.instance.problem.is_testable %}
-                <form action="{% url 'contests:api-submission-update' sub_form.instance.id %}" id="submission-update-form-{{ forloop.counter0 }}" method="POST" class="d-flex align-items-center ml-3" sub-submission-id={{ sub_form.instance.id }}>
-                    {% csrf_token %}
-                    <input
-                        type="hidden"
-                        id="{{ sub_form.status.id_for_label }}"
-                        name="{{ sub_form.status.html_name }}"
-                        {% if sub_form.status.value != None %} value="{{ sub_form.status.value|stringformat:'s' }}"{% endif %}
-                        style="border: none; background-color: transparent; width: 50px;"
-                    >
-                    <small class="mr-1">Оценка: </small>
-                    <small>
-                        <input
-                            type="{{ sub_form.score.field.widget.input_type }}"
-                            id="{{ sub_form.score.id_for_label }}"
-                            name="{{ sub_form.score.html_name }}"
-                            max="{{ sub_form.score.field.widget.attrs.max }}"
-                            min="{{ sub_form.score.field.widget.attrs.min }}"
-                            {% if sub_form.score.value != None %} value="{{ sub_form.score.value|stringformat:'s' }}"{% endif %}
-                            style="border: none; background-color: transparent; width: 50px;"
-                        >
-                    </small>
-                    <button hidden id="submission-update-button-{{ forloop.counter0 }}" class="ml-3" style="border: none; background-color: transparent; padding: 0;">
-                        <a href><i class="fa fa-floppy-o fa-lg" data-toggle="tooltip" data-placement="left" title="Сохранить оценку"></i></a>
-                    </button>
-                </form>
-                {% else %}
-                <small class="ml-3 mr-1">Оценка: </small>
-                <small>{{ sub_form.instance.score }}</small>
-                {% endif %}
-            <a class="ml-3" href="{{ sub_form.instance.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}">
-                <i class="fa fa-edit fa-fw fa-lg" data-toggle="tooltip" data-placement="left" title="Изменить статус или оценку"></i>
-            </a>
-            {% endif %}
-            <a class="collapse-toggle ml-3" href data-toggle="collapse" data-target="#sub_submission_{{ sub_form.instance.id }}" aria-expanded="{% if sub_form.instance|get_submission_status:request != 'OK' %}true{% else %}false{% endif %}" aria-controls="sub_submission_{{ sub_form.instance.id }}">
-                <i class="fa fa-angle-{% if sub_form.instance|get_submission_status:request != 'OK' %}up{% else %}down{% endif %} fa-lg"></i>
-            </a>
-        </div>
-        <div class="collapse {% if sub_form.instance|get_submission_status:request != 'OK' %}show{% endif %}" id="sub_submission_{{ sub_form.instance.id }}" aria-labelledby="heading_{{ sub_form.instance.id }}">
-            <div class="card-body">
-                {{ sub_form.instance.problem.description|safe }}
-                <h6 class="text-muted">Ответ:</h6>
-                {% if sub_form.instance.problem.type == 'Program' or sub_form.instance.problem.type == 'Files' %}
-                <div class="text-right text-muted">
-                    {% if sub_form.instance.moss_to_submissions %}
-                    {% if perms.contests.moss_submission or request|has_leader_permission:submission.course %}
-                    <p class="text-warning text-wrap" data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>с посылками MOSS: {% for to_submission_id in sub_form.instance.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-                    <p class="text-warning text-wrap" data-toggle="tooltip" data-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>ссылка на отчет MOSS: {% if sub_form.instance.moss_report_url %}<a href="{{ sub_form.instance.moss_report_url }}" target="_blank">{{ sub_form.instance.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
-                    {% endif %}
-                    {% endif %}
-                </div>
-                <h6 class="text-muted">
-                    Файлы
-                    <span class="pull-right">
-                    {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
-                        <a href="{% url 'contests:submission-download' sub_form.instance.id %}" data-toggle="tooltip" data-placement="left" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>
-                    {% endif %}
-                    </span>
-                </h6>
-                <div class="list-group">
-                    {% for attachment in sub_form.instance.attachment_set.all %}
-                    <span class="list-group-item d-flex">
-                        {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
-                        <a class="mr-auto" href="{% url 'contests:submission-attachment' sub_form.instance.id attachment.id %}"><samp>{{ attachment.filename }}</samp></a>
-                        <a href="{{ attachment.file.url }}" data-toggle="tooltip" data-placement="left" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
-                        {% else %}
-                        <samp>{{ attachment.filename }}</samp>
-                        {% endif %}
-                    </span>
-                    {% endfor %}
-                </div>
-                {% endif %}
-                {% if sub_form.instance.problem.type == 'Text' %}
-                <div class="card">
-                    <div class="card-body">
-                        {{ sub_form.instance.text|safe }}
-                    </div>
-                </div>
-                {% endif %}
-                {% if sub_form.instance.problem.type == 'Options' %}
-                <ul class="list-group">
-                    {% with submission_options=sub_form.instance.options.all %}
-                    {% if submission|is_hidden_from_user:request %}
-                    {% for option in sub_form.instance.problem.option_set.order_randomly %}
-                    <li class="list-group-item d-flex">
-                        {{ option.text }}
-                        {% if option in submission_options %}
-                        <span class="ml-auto"><i class="fa fa-check fa-fw" aria-hidden="true"></i></span>
-                        {% endif %}
-                    </li>
-                    {% endfor %}
-                    {% else %}
-                    {% for option in sub_form.instance.problem.option_set.order_randomly %}
-                    <li class="list-group-item d-flex {% if option in submission_options %}{% if option.is_correct %}text-success{% else %}text-danger{% endif %}{% endif %}">
-                        {{ option.text }}
-                        {% if option in submission_options %}
-                        <span class="ml-auto" data-toggle="tooltip" data-placement="left" title="Выбранный вариант ответа">
-                            {% if option.is_correct %}
-                            <i class="fa fa-check fa-fw" aria-hidden="true"></i>
-                            {% else %}
-                            <i class="fa fa-times fa-fw" aria-hidden="true"></i>
-                            {% endif %}
-                        </span>
-                        {% endif %}
-                    </li>
-                    {% endfor %}
-                    {% endif %}
-                    {% endwith %}
-                </ul>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    {% endfor %}
-</div>
+{% include 'contests/submission/submission_sublist.html' %}
 {% endif %}
 <legend>Комментарии</legend>
 {% include 'accounts/comment/comment_list.html' with obj=submission %}
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
-<script src="{% static 'js/submissions.js' %}" type="text/javascript"></script>
-<script src="{% static 'js/utils.js' %}" type="text/javascript"></script>
-<script src="{% static 'waypoints/lib/jquery.waypoints.min.js' %}" type="text/javascript"></script>
-<script src="{% static 'waypoints/lib/shortcuts/infinite.min.js' %}" type="text/javascript"></script>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    let elements = document.querySelectorAll('.collapse-toggle');
-    for (let elem of elements) {
-        elem.addEventListener("click", function () {
-            let is_shown = document.getElementById(elem.getAttribute('aria-controls')).classList.contains('show');
-            if (!is_shown) {
-                elem.children[0].classList.add("fa-angle-up");
-                elem.children[0].classList.remove("fa-angle-down");
-            } else {
-                elem.children[0].classList.remove("fa-angle-up");
-                elem.children[0].classList.add("fa-angle-down");
-            }
-        });
-    }
-});
+{% block main_scripts %}
+{% if submission.problem.type == 'Text' %}
+{% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
+<script src="{% static 'contest/js/utils.js' %}" type="text/javascript"></script>
+<script src="{% static 'chart/chart.min.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+const interval = 10;
+let footprint = JSON.parse("{{ submission.footprint }}");
+let labels = Array(footprint.length)
+for (let i = 0; i < labels.length; i++) {
+    labels[i] = i * interval;
+}
+const footprintData = {
+    labels: labels,
+    datasets: [
+        {
+            label: 'Длина текста',
+            data: footprint,
+            borderColor: 'rgb(91, 192, 222)',
+            backgroundColor: 'rgb(91, 192, 222)',
+        },
+    ],
+};
+const footprintChartConfig = {
+    type: 'line',
+    data: footprintData,
+    options: {
+        interaction: {
+            intersect: false
+        },
+        radius: 0,
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false,
+            },
+        },
+        scales: {
+            x: {
+                ticks: {
+                    stepSize: 1,
+                },
+                title: {
+                    display: true,
+                    text: 'Время в секундах'
+                },
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Количество символов'
+                },
+                ticks: {
+                    stepSize: 1,
+                }
+            },
+        },
+    },
+};
+const footprintChart = new Chart(
+    document.getElementById('footprintChart'),
+    footprintChartConfig
+);
+const footprintChartCollapse = document.getElementById('footprintChartCollapse');
+for (let eventType of ['show.bs.collapse', 'hide.bs.collapse']) {
+    footprintChartCollapse.addEventListener(eventType, event => {
+        toggleText(document.getElementById('footprintChartToggleButton'), "Показать график", "Скрыть график");
+    });
+}
 </script>
-<script>
-let infinite = new Waypoint.Infinite({
-    element: $('.comment-list')[0],
-    items: '.comment-list-item',
-    more: '.comment-list-more'
-});
-</script>
+{% endif %}
+{% endif %}
+{% if submission.problem.type == 'Program' and submission.problem.is_testable %}
+<script src="{% static 'contest/js/task-progress.js' %}" type="text/javascript"></script>
 <script type="text/javascript">
 let btn_submission_evaluate = document.getElementById('btn_submission_evaluate');
 if (btn_submission_evaluate) {
@@ -436,152 +322,57 @@ if (btn_submission_evaluate) {
         }
     });
 {% if submission.task_id %}
-    document.addEventListener("DOMContentLoaded", function() {
-        progress_bar.startPolling("{{ submission.task_id }}");
-    });
+    progress_bar.startPolling("{{ submission.task_id }}");
 {% endif %}
 }
 </script>
-<script>
-const adjustProgressBarMessageColor = (score) => {
-    const progressBarMessageElem = document.getElementById('progress-bar-message');
-
-    if (score <= 15 && progressBarMessageElem.style.color === 'white') {
-        progressBarMessageElem.style.color = 'black';
-    } else if (score > 15 && progressBarMessageElem.style.color === 'black') {
-        progressBarMessageElem.style.color = 'white';
-    }
-};
-</script>
-{% if submission.problem.type != 'Program' and submission|get_submission_score_percentage:request > 0 %}
-<script>
-adjustProgressBarMessageColor({{ submission|get_submission_score_percentage:request }});
-</script>
-{% endif %}
-{% if submission.problem.type == 'Text' and perms.contests.change_submission %}
-<script src="{% static 'chart/chart.min.js' %}" type="text/javascript"></script>
-<script>
-const interval = 10;
-
-let footprint = JSON.parse("{{ submission.footprint }}");
-let labels = Array(footprint.length)
-
-for (let i = 0; i < labels.length; i++) {
-    labels[i] = i * interval;
-}
-
-const footprintData = {
-    labels: labels,
-    datasets: [
-        {
-            label: 'Длина текста',
-            data: footprint,
-            borderColor: 'rgb(91, 192, 222)',
-            backgroundColor: 'rgb(91, 192, 222)',
-        },
-    ],
-};
-
-const footprintChartConfig = {
-    type: 'line',
-    data: footprintData,
-    options: {
-        interaction: {
-            intersect: false
-        },
-        radius: 0,
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false,
-            },
-        },
-        scales: {
-            x: {
-                ticks: {
-                    stepSize: 1,
-                },
-                title: {
-                    display: true,
-                    text: 'Секунды'
-                },
-            },
-            y: {
-                title: {
-                    display: true,
-                    text: 'Количество символов'
-                },
-                ticks: {
-                    stepSize: 1,
-                }
-            },
-        },
-    },
-};
-
-const footprintChart = new Chart(
-    document.getElementById('footprintChart'),
-    footprintChartConfig
-);
-
-</script>
-{% endif %}
-{% if not submission.problem.type == 'Program' or not submission.problem.is_testable %}
+{% else %}
 {% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
-<!-- Submission Update -->
-<script>
-
+<script type="text/javascript">
 const progressBar = document.getElementById('progress-bar');
+const progressBarMessage = document.getElementById('progress-bar-message');
 const formsNumber = {% if forms %}{{ forms|length }}{% else %}0{% endif %};
 const mainForm = document.getElementById('main-submission-update');
 const mainFormButton = document.getElementById('main-submission-update-button');
-const mainStatusSelectElem = mainForm.querySelector('#id_status');
-const statusOptions = Array.from(mainStatusSelectElem.options);
+const mainFormStatus = mainForm.querySelector('#id_status');
+const mainFormScore = mainForm.querySelector('#id_score');
+const mainFormStatusOptions = Array.from(mainFormStatus.options);
 
-const setProgressBarValue = (value) => {
-    const progressBar = document.getElementById('progress-bar');
-    progressBar.setAttribute('aria-valuenow', value);
-    progressBar.style.width = value + '%';
-};
-
-const setProgressBarMessage = (message) => {
-    document.getElementById('progress-bar-message').innerHTML = message;
-};
-
-const updateMainSubmission = (data) => {
+function updateMainSubmission(data) {
     const mainSubmission = data.updated.find((value) => value.id === {{ submission.id }});
-
     if (mainSubmission !== undefined) {
-        setProgressBarValue(mainSubmission.score);
-        setProgressBarMessage(mainSubmission.status_display + ' · ' + mainSubmission.score + '%');
-        mainForm.querySelector('#id_score').setAttribute('value', mainSubmission.score);
-
-        statusOptions.forEach((option, i) => {
-            if (option.value === mainSubmission.status) mainStatusSelectElem.selectedIndex = i;
+        progressBar.setAttribute('aria-valuenow', mainSubmission.score_percentage);
+        progressBar.style.width = mainSubmission.score_percentage + '%';
+        progressBar.classList.remove('contest-status-success', 'contest-status-info', 'contest-status-warning', 'contest-status-danger', 'contest-status-secondary', 'contest-status-primary');
+        progressBar.classList.add('contest-status-' + mainSubmission.color);
+        progressBarMessage.textContent = mainSubmission.status_display + ' · ' + mainSubmission.score_percentage + '%';
+        mainFormStatusOptions.forEach((option, i) => {
+            if (option.value === mainSubmission.status) {
+                mainFormStatus.selectedIndex = i;
+            }
         });
-
-        $('#main-submission-update') > $('#id_status').selectpicker('refresh');
-        progressBar.classList.remove('bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-secondary', 'bg-primary');
-        progressBar.classList.add('bg-' + mainSubmission.color);
-        adjustProgressBarMessageColor(mainSubmission.score)
+        /* NOTE: the following code temporarily fixes the issue with selectpicker('refresh');*/
+        $(mainFormStatus).selectpicker('destroy');
+        $(mainFormStatus).selectpicker();
+        mainFormScore.setAttribute('value', mainSubmission.score);
         mainFormButton.classList.remove('btn-light', 'btn-primary');
         mainFormButton.classList.add('btn-light');
+        mainFormButton.disabled = true;
     }
-};
+}
 
-mainForm.querySelector('#id_score').onkeyup = mainForm.onchange = () => {
+mainForm.onchange = mainFormScore.onkeyup = () => {
     mainFormButton.classList.remove('btn-light', 'btn-primary');
     mainFormButton.classList.add('btn-primary');
+    mainFormButton.disabled = false;
 };
 
 mainForm.onsubmit = async (e) => {
     e.preventDefault();
-
     const response = await fetch(mainForm.action, {
         method: mainForm.method,
         body: new FormData(mainForm),
     });
-
     if (response.status === 200) {
         const result = await response.json();
         updateMainSubmission(result);
@@ -589,46 +380,36 @@ mainForm.onsubmit = async (e) => {
 };
 
 for (let i = 0; i < formsNumber; i++) {
-    const form = document.getElementById('submission-update-form-' + i);
-    const button = document.getElementById('submission-update-button-' + i);
-
-    if (form === null) {
+    const subForm = document.getElementById('submission-update-form-' + i);
+    if (subForm === null)
         continue;
+    const subFormButton = document.getElementById('submission-update-button-' + i);
+    const subFormID = Number(subForm.getAttribute('data-sub-submission-id'));
+    const subFormStatus = subForm.querySelector('#id_status');
+    const subFormScore = subForm.querySelector('#id_score');
+    const statusElem = document.getElementById('status-' + i);
+
+    subForm.onchange = subFormScore.onkeyup = () => {
+        subFormButton.classList.remove('invisible');
     }
 
-    const subSubmissionId = Number(form.getAttribute('sub-submission-id'));
-    const scoreInputElem = form.querySelector('#id_score');
-    const statusInputElem = form.querySelector('#id_status');
-
-    form.onchange = scoreInputElem.onkeyup = () => {
-        button.hidden = false;
-    }
-
-    form.onsubmit = async (e) => {
+    subForm.onsubmit = async (e) => {
         e.preventDefault();
-
-        const response = await fetch(form.action, {
-            method: form.method,
-            body: new FormData(form),
+        const response = await fetch(subForm.action, {
+            method: subForm.method,
+            body: new FormData(subForm),
         });
-
         if (response.status === 200) {
             const result = await response.json();
-
-            const subSubmission = result.updated.find((value) => value.id === subSubmissionId);
-            const statusElem = document.getElementById('status-' + i);
-
+            const subSubmission = result.updated.find((value) => value.id === subFormID);
             if ('updated' in result) {
                 updateMainSubmission(result);
-
                 statusElem.innerHTML = subSubmission.status;
-                statusElem.classList.remove('status-success', 'status-info', 'status-warning', 'status-danger', 'status-secondary', 'status-primary');
-                statusElem.classList.add('status-' + subSubmission.color);
+                statusElem.classList.remove('contest-status-success', 'contest-status-info', 'contest-status-warning', 'contest-status-danger', 'contest-status-secondary', 'contest-status-primary');
+                statusElem.classList.add('contest-status-' + subSubmission.color);
                 statusElem.setAttribute('title', subSubmission.status_display);
-
-                statusInputElem.setAttribute('value', subSubmission.status);
-
-                button.hidden = true;
+                subFormStatus.setAttribute('value', subSubmission.status);
+                subFormButton.classList.add('invisible');
             }
         }
     };
@@ -636,4 +417,4 @@ for (let i = 0; i < formsNumber; i++) {
 </script>
 {% endif %}
 {% endif %}
-{% endblock javascript %}
+{% endblock main_scripts %}

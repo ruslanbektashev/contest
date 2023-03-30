@@ -1,0 +1,16 @@
+<div class="mb-3 d-flex align-items-center">
+    <div class="form-check form-switch">
+        {{ field }}
+        <label class="form-check-label" for="{{ field.id_for_label }}">
+            {{ field.label }}{{ field.label_suffix }}
+        </label>
+        {% if field.errors %}
+        <div class="invalid-feedback">
+            {% for error in field.errors %}{{ error }} {% endfor %}
+        </div>
+        {% endif %}
+        {% if field.help_text %}
+        <div class="form-text">{{ field.help_text }}</div>
+        {% endif %}
+    </div>
+</div>

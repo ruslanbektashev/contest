@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views views %}
 
-{% block title %}
-Сообщения об ошибках
-{% endblock title %}
+{% block title %}Сообщения об ошибках{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,33 +9,30 @@
 {% breadcrumb "Сообщения об ошибках" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between">
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">Сообщения об ошибках</span>
-        <span class="d-flex justify-content-between">
-            <a href="{% url 'support:report-create' %}?from={{ request.path }}" class="text-success text-decoration-none" data-toggle="tooltip" data-placement="left" title="Сообщить об ошибке"><i class="fa fa-plus fa-fw"></i></a>
+        <span class="d-flex justify-content-between gap-1">
+            <a href="{% url 'support:report-create' %}?from={{ request.path }}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="left" title="Сообщить об ошибке"><i class="fa fa-plus fa-fw"></i></a>
         </span>
-    </div>
+    </span>
 </legend>
-{% if reports %}
 <div class="list-group mb-3">
     {% for report in reports %}
-    <li class="list-group-item d-flex text-nowrap">
-        <a href="{{ report.get_absolute_url }}" class="mr-auto text-truncate">{{ report }}{% if request.user.is_superuser %} ({{ report.owner.account }}){% endif %}</a>
-        <span class="user-select-none ml-3">
+    <li class="list-group-item text-nowrap d-flex gap-3">
+        <a href="{{ report.get_absolute_url }}" class="text-truncate me-auto">{{ report }}</a>
+        {% if request.user.is_superuser %}<span>{{ report.owner.account }}</span>{% endif %}
+        <span class="user-select-none">
             {% if report.closed %}
-            <span class="numtus status-success">Закрыто</span>
+            <span class="badge bg-success">Закрыто</span>
             {% else %}
-            <span class="numtus status-warning">Открыто</span>
+            <span class="badge bg-warning">Открыто</span>
             {% endif %}
         </span>
     </li>
+    {% empty %}
+    <div class="alert alert-info" role="alert">Сообщений нет</div>
     {% endfor %}
 </div>
-{% else %}
-<div class="alert alert-info mb-3" role="alert">
-    Сообщений нет
-</div>
-{% endif %}
-{% endblock content %}
+{% endblock main_content %}

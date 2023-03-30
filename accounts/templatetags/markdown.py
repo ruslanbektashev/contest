@@ -1,7 +1,6 @@
-from markdown import markdown as md
-
 from django import template
 from django.template.defaultfilters import stringfilter
+from markdown import markdown as md
 
 register = template.Library()
 
@@ -9,4 +8,4 @@ register = template.Library()
 @register.filter()
 @stringfilter
 def markdown(value):
-    return md(value, extensions=['nl2br'])
+    return md(value, extensions=['extra', 'nl2br'])

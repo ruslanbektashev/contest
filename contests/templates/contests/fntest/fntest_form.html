@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Тест
-{% endblock title %}
+{% block title %}FN-Тест{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -15,16 +13,16 @@
 {% endif %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>{% if fntest %}Редактирование{% else %}Добавление{% endif %} FN-теста</legend>
-<form action="" method="post" class="form-horizontal">
+<form action="" method="post">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-    {% render_field form.problems class+="form-control selectpicker" data-actions-box="true" %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.title class+="form-control" %}
+    {% render_field form.problems class+="form-control selectpicker" data-actions-box="true" %}
     {% render_field form.handler class+="form-control selectpicker" %}
     {% endwith %}
-    {% render_submit_button value="Сохранить" %}
+    {% include 'forms/submit_button.html' with value="Сохранить" %}
 </form>
-{% endblock content %}
+{% endblock main_content %}

@@ -1,39 +1,38 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views contests %}
 
-{% block title %}
-Посылки
-{% endblock title %}
+{% block title %}Посылки{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb "Пользователи" 'accounts:account-list' %}
-{% breadcrumb account account.get_absolute_url %}
-{% breadcrumb problem problem.get_absolute_url %}
+{% breadcrumb account account %}
+{% breadcrumb problem problem %}
 {% breadcrumb "Посылки" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
-<legend>{{ account }}, {{ problem }}</legend>
+{% block main_content %}
+<legend>{{ account }} и {{ problem }}</legend>
 <div class="table-responsive-lg my-3">
     <table class="table table-sm">
         <thead>
-            <th class="text-center">Дата</th>
-            <th class="text-center">Статус</th>
+            <tr>
+                <th class="text-center">Дата</th>
+                <th class="text-center">Статус</th>
+            </tr>
         </thead>
         <tbody>
             {% for submission in submissions %}
-                <tr>
-                    <td class="text-center" style="width: 50%;">{% if submission.date_created|date:'Y' == current_year %}{{ submission.date_created|date:'d b в H:i' }}{% else %}{{ submission.date_created|date:'d b y г. в H:i' }}{% endif %}</td>
-                    <td class="text-center">
-                        <a href="{{ submission.get_absolute_url }}" class="status status-{{ submission.status|colorize }}" title="{{ submission.get_status_display }}">
-                            {{ submission.status }}
-                        </a>
-                    </td>
-                </tr>
+            <tr>
+                <td class="text-center" style="width: 50%;">{% if submission.date_created|date:'Y' == current_year %}{{ submission.date_created|date:'d E в H:i' }}{% else %}{{ submission.date_created|date:'d E y г. в H:i' }}{% endif %}</td>
+                <td class="text-center">
+                    <a href="{{ submission.get_absolute_url }}" class="contest-status contest-status-{{ submission.status|colorize }}" title="{{ submission.get_status_display }}">
+                        {{ submission.status }}
+                    </a>
+                </td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
-
-{% endblock content %}
+{% endblock main_content %}

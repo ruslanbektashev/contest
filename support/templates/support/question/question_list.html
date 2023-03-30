@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views %}
 
-{% block title %}
-Вопросы
-{% endblock title %}
+{% block title %}Вопросы{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,16 +9,16 @@
 {% breadcrumb "Вопросы" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between">
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">Вопросы</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
             {% if perms.support.add_question %}
-            <a href="{% url 'support:question-create' %}" class="text-success text-decoration-none" data-toggle="tooltip" data-placement="left" title="Задать вопрос"><i class="fa fa-plus fa-fw"></i></a>
+            <a href="{% url 'support:question-create' %}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="left" title="Задать вопрос"><i class="fa fa-plus fa-fw"></i></a>
             {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
 {% include 'list.html' with lst=questions %}
-{% endblock content %}
+{% endblock main_content %}

@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Курс
-{% endblock title %}
+{% block title %}Курс{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,7 +9,7 @@
 {% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Удаление курса</legend>
 {% if action == 'delete_permanently' %}
 <form action="" method="post">
@@ -28,11 +26,11 @@
     <div class="alert alert-warning text-center" role="alert">
         Вы точно хотите удалить курс: {{ course }}?
     </div>
-    <div class="form-group">
-        <input class="btn btn-danger btn-block" type="submit" value="Удалить" />
+    <div class="d-grid">
+        <input class="btn btn-danger" type="submit" value="Удалить" />
     </div>
 </form>
 {% else %}
-{% render_delete_form course %}
+{% include 'forms/delete_form.html' with obj=course %}
 {% endif %}
-{% endblock content %}
+{% endblock main_content %}

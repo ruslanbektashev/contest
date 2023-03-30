@@ -1,43 +1,41 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views accounts humanize %}
 
-{% block title %}
-Помощь
-{% endblock title %}
+{% block title %}Помощь{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb "Помощь" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Помощь</legend>
-<div class="row">
+<div class="row g-3">
     <div class="col-12">
-        <div class="row mb-3">
+        <div class="row g-3">
             {% if perms.support.delete_tutorialsteppass %}
-            <div class="col-12 {% if perms.support.view_discussion %}col-md-6{% endif %}">
-                <a href="{% url 'support:tutorial-reset' '__all__' %}?from=/" class="btn btn-block btn-light" data-toggle="tooltip" data-placement="bottom" title="Пройти руководство на всех страницах еще раз"><i class="fa fa-book"></i> Пройти руководство заново</a>
+            <div class="col-12 {% if perms.support.view_discussion %}col-md-6{% endif %} d-grid">
+                <a href="{% url 'support:tutorial-reset' '__all__' %}?from=/" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Пройти руководство на всех страницах еще раз"><i class="fa fa-book"></i> Пройти руководство заново</a>
             </div>
             {% endif %}
             {% if perms.support.view_discussion %}
-            <div class="col-12 {% if perms.support.delete_tutorialsteppass %}col-md-6{% endif %}">
-            {% unread_comments_count request.user.account discussion as ucc %}
-                <a href="{% url 'support:discussion-detail' 1 %}" class="btn btn-block btn-light">
-                    <i class="fa fa-comments fa-fw"></i> Чат с разработчиками{% if ucc > 0 %} <span id="unread_comments_count" class="badge badge-pill badge-secondary align-middle">{{ ucc }}</span>{% endif %}
+            <div class="col-12 {% if perms.support.delete_tutorialsteppass %}col-md-6{% endif %} d-grid">
+                {% unread_comments_count request.user.account discussion as ucc %}
+                <a href="{% url 'support:discussion-detail' 1 %}" class="btn btn-light">
+                    <i class="fa fa-comments fa-fw"></i> Чат с разработчиками{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
                 </a>
             </div>
             {% endif %}
         </div>
     </div>
     <div class="col-12 col-md-6 mb-3">
-        <div class="row mb-3">
-            <div class="col-6 col-md-{% if perms.support.add_question %}6 {% else %}12 {% endif %}">
-                <a href="{% url 'support:question-list' %}" class="btn btn-block btn-light"><i class="fa fa-question fa-fw"></i> Все вопросы</a>
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-md-{% if perms.support.add_question %}6 {% else %}12 {% endif %} d-grid">
+                <a href="{% url 'support:question-list' %}" class="btn btn-light"><i class="fa fa-question fa-fw"></i> Все вопросы</a>
             </div>
             {% if perms.support.add_question %}
-            <div class="col-6 col-md-6">
-                <a href="{% url 'support:question-create' %}" class="btn btn-block btn-light"><i class="fa fa-plus fa-fw"></i> Задать вопрос</a>
+            <div class="col-6 col-md-6 d-grid">
+                <a href="{% url 'support:question-create' %}" class="btn btn-light"><i class="fa fa-plus fa-fw"></i> Задать вопрос</a>
             </div>
             {% endif %}
         </div>
@@ -45,18 +43,18 @@
         {% for question in questions %}
         <div class="card mb-3">
             <div class="card-body d-flex align-items-center">
-                <span class="text-primary mr-auto"><a href="{{ question.get_absolute_url }}">{{ question }}</a></span>
+                <span class="text-primary me-auto"><a href="{{ question.get_absolute_url }}">{{ question }}</a></span>
                 {% if question.addressee == request.user %}
                 <span class="text-warning">
-                    <i class="fa fa-star fa-fw" data-toggle="tooltip" data-placement="bottom" title="Вопрос адресован вам"></i>
+                    <i class="fa fa-star fa-fw" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Вопрос адресован вам"></i>
                 </span>
                 {% endif %}
             </div>
             <div class="card-footer d-flex align-items-center">
                 {% if request.user.is_superuser %}
-                <span class="text-muted mr-auto">{{ question.owner.account }}</span>
+                <span class="text-muted me-auto">{{ question.owner.account }}</span>
                 {% endif %}
-                <span class="text-muted ml-auto">{{ question.date_created|naturaltime }}</span>
+                <span class="text-muted ms-auto">{{ question.date_created|naturaltime }}</span>
             </div>
         </div>
         {% endfor %}
@@ -67,9 +65,9 @@
         {% endif %}
     </div>
     <div class="col-12 col-md-6 mb-3">
-        <div class="row mb-3">
-            <div class="col-6 col-md-6">
-                <a href="{% url 'support:report-list' %}" class="btn btn-block btn-light"><i class="fa fa-bug fa-fw"></i>
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-md-6 d-grid">
+                <a href="{% url 'support:report-list' %}" class="btn btn-light"><i class="fa fa-bug fa-fw"></i>
                     {% if perms.support.change_report %}
                      Все сообщения об ошибках
                     {% else %}
@@ -77,26 +75,26 @@
                     {% endif %}
                 </a>
             </div>
-            <div class="col-6 col-md-6">
-                <a href="{% url 'support:report-create' %}?from={{ request.path }}" class="btn btn-block btn-light"><i class="fa fa-plus fa-fw"></i> Сообщить об ошибке</a>
+            <div class="col-6 col-md-6 d-grid">
+                <a href="{% url 'support:report-create' %}?from={{ request.path }}" class="btn btn-light"><i class="fa fa-plus fa-fw"></i> Сообщить об ошибке</a>
             </div>
         </div>
         {% if reports %}
         {% for report in reports %}
         <div class="card mb-3">
             <div class="card-body d-flex align-items-center">
-                <span class="text-primary mr-auto"><a href="{{ report.get_absolute_url }}">{{ report }}</a></span>
+                <span class="text-primary me-auto"><a href="{{ report.get_absolute_url }}">{{ report }}</a></span>
                 {% if report.closed %}
-                <span class="numtus status-success">Закрыто</span>
+                <span class="badge bg-success">Закрыто</span>
                 {% else %}
-                <span class="numtus status-warning">Открыто</span>
+                <span class="badge bg-warning">Открыто</span>
                 {% endif %}
             </div>
             <div class="card-footer d-flex align-items-center">
                 {% if request.user.is_superuser %}
-                <span class="text-muted mr-auto">{{ report.owner.account }}</span>
+                <span class="text-muted me-auto">{{ report.owner.account }}</span>
                 {% endif %}
-                <span class="text-muted ml-auto">{{ report.date_created|naturaltime }}</span>
+                <span class="text-muted ms-auto">{{ report.date_created|naturaltime }}</span>
             </div>
         </div>
         {% endfor %}
@@ -107,4 +105,4 @@
         {% endif %}
     </div>
 </div>
-{% endblock content %}
+{% endblock main_content %}

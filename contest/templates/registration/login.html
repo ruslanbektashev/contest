@@ -2,7 +2,7 @@
 {% load forms static %}
 
 {% block links %}
-<link href="{% static 'login.css' %}" rel="stylesheet"/>
+<link href="{% static 'contest/css/login.css' %}" rel="stylesheet"/>
 {% endblock links %}
 
 {% block content %}
@@ -13,8 +13,9 @@
             {% csrf_token %}
             <img class="mb-4" src="{% static 'msu-logo.png' %}" alt="" width="72" height="72">
             <h1 class="h3 mb-3 fw-normal">МГУ Контест</h1>
+            {% block login_content %}
             {% if form.non_field_errors %}
-            <div class="alert alert-danger text-left">
+            <div class="alert alert-danger text-start">
                 {% for error in form.non_field_errors %}
                 {{ error }}<br>
                 {% endfor %}
@@ -22,14 +23,15 @@
             {% endif %}
             <div class="form-floating">
                 {% render_field form.username class+="form-control" placeholder="Логин" %}
-                <label for="id_username">Логин</label>
+                <label for="{{ form.username.id_for_label }}">Логин</label>
             </div>
             <div class="form-floating">
-                {% render_field form.password class+="form-control" placeholder="Пароль" %}
-                <label for="id_password">Пароль</label>
+                {% render_field form.password class+="form-control" placeholder=form.password.label %}
+                <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
             </div>
             {% comment %}<div class="mt-3"><a href="{% url 'password-reset' %}" class="text-muted">Забыли пароль?</a></div>{% endcomment %}
             <button class="btn btn-outline-primary btn-lg mt-3 w-100" type="submit">Войти</button>
+            {% endblock login_content %}
         </form>
         <p class="copyright text-nowrap mt-auto">Филиал МГУ им. М.В. Ломоносова в г. Ташкент &copy; {% now "Y" %}</p>
     </div>

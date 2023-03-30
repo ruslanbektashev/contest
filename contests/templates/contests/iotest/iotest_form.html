@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Тест
-{% endblock title %}
+{% block title %}IO-Тест{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -18,24 +16,24 @@
 {% endif %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>{% if iotest %}Редактирование{% else %}Добавление{% endif %} IO-теста</legend>
-<form action="" method="post" class="form-horizontal">
+<form action="" method="post">
     {% csrf_token %}
-    {% render_form_errors form %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.title class+="form-control" %}
-    {% render_field form.compile_args class+="form-control" %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" %}
-    {% render_field form.compile_args_override class+="custom-control-input" %}
-    {% endwith %}
-    {% render_field form.launch_args class+="form-control" %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="field_switch.html" %}
-    {% render_field form.launch_args_override class+="custom-control-input" %}
-    {% endwith %}
     {% render_field form.input class+="form-control" %}
     {% render_field form.output class+="form-control" %}
+    {% render_field form.compile_args class+="form-control" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch.html" %}
+    {% render_field form.compile_args_override class+="form-check-input" %}
     {% endwith %}
-    {% render_submit_button value="Сохранить" %}
+    {% render_field form.launch_args class+="form-control" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch.html" %}
+    {% render_field form.launch_args_override class+="form-check-input" %}
+    {% endwith %}
+    {% endwith %}
+    {% include 'forms/submit_button.html' with value="Сохранить" %}
 </form>
-{% endblock content %}
+{% endblock main_content %}

@@ -1,5 +1,7 @@
-{% load forms %}
-<form action="{% url 'accounts:comment-create' %}" class="mb-3" method="post">
+{% load forms static %}
+<link href="{% static 'easymde/easymde.min.css' %}" rel="stylesheet">
+<link href="{% static 'easymde/easymde.fix.css' %}" rel="stylesheet">
+<form class="mb-3" action="{% url 'accounts:comment-create' %}" method="post">
     {% csrf_token %}
     {{ form.parent_id }}
     {{ form.object_type }}
@@ -7,17 +9,22 @@
     {% for message in messages %}
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         {{ message }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
     </div>
     {% endfor %}
-    {% render_form_errors form %}
-    <div class="form-group">
-        {% render_field_errors form.text %}
-        {% render_field form.text class+="form-control" rows="5" placeholder="Ваш комментарий" %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    <div class="mb-3">
+        {% include 'forms/errors/field_errors.html' with field=form.text %}
+        {% render_field form.text class+="form-control" rows="3" placeholder="Ваш комментарий" %}
     </div>
-    <div class="form-group">
-        <input class="btn btn-light btn-block border" type="submit" value="Отправить комментарий" tabindex="0"/>
+    <div class="d-grid">
+        <input class="btn btn-light border" type="submit" value="Отправить комментарий" />
     </div>
 </form>
+<script src="{% static 'easymde/easymde.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'easymde/easymde.config.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function(event) {
+    initMDEditor(document.getElementById('id_text'), 'comments');
+});
+</script>

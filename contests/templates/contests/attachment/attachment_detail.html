@@ -1,14 +1,10 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views static %}
 
-{% block stylesheets %}
-<link href="{% static 'css/highlight.css' %}" rel="stylesheet"/>
+{% block main_links %}
+<link href="{% static 'contest/css/highlight.css' %}" rel="stylesheet">
+{% if display_aspose_controls %}
 <style>
-    body {
-        width: 100% !important;
-        margin-top: 70px !important;
-    }
-
     table td {
         text-align: right !important;
         min-width: 100px;
@@ -20,18 +16,19 @@
         height: 30px !important;
     }
 </style>
-{% endblock %}
+{% endif %}
+{% endblock main_links %}
 
-{% block content %}
+{% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between">
-        <span class="text-truncate">{{ contest }}</span>
+    <span class="d-flex justify-content-between">
+        <span class="text-truncate">{{ attachment.object }}</span>
         {% if display_aspose_controls %}
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
             <a id="Change_mode" title="Изменить режим просмотра"><i class="fa fa-file-text-o" id="mode_view" style="color:#007BFF" aria-hidden="true"></i></a>
         </span>
         {% endif %}
-    </div>
+    </span>
 </legend>
 <samp>{{ attachment.filename }}</samp>
 {% if code is not None %}
@@ -69,12 +66,10 @@
     Невозможно отобразить файл. Вы можете <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}">загрузить</a> его и воспользоваться локальным средством просмотра.
 </div>
 {% endif %}
-{% endblock %}
+{% endblock main_content %}
 
-{% block controls %}
+{% block main_scripts %}
 {% if display_aspose_controls %}
-{% block javascript %}
-<script src="{% static 'js/pptx_xlsx_nav.js' %}"></script>
-{% endblock javascript %}
+<script src="{% static 'contest/js/pptx_xlsx_nav.js' %}"></script>
 {% endif %}
-{% endblock %}
+{% endblock main_scripts %}

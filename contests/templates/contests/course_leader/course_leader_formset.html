@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Курс
-{% endblock title %}
+{% block title %}Курс{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,12 +9,12 @@
 {% breadcrumb "Ведущие преподаватели" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>{{ course }}</legend>
-<form action="" method="post" class="form-horizontal">
+<form action="" method="post">
     {% csrf_token %}
     {{ formset.management_form }}
-    {% include 'formset_errors.html' with formset=formset %}
+    {% include 'forms/errors/non_form_errors.html' with formset=formset %}
     <div class="table-responsive-lg">
         <table class="table table-borderless table-sm">
             <thead>
@@ -30,7 +28,7 @@
             <tbody id="formset_table_body">
                 {% for form in formset %}
                 <tr>
-                    {% render_form_errors form %}
+                    {% include 'forms/errors/non_field_errors.html' %}
                     {% if form.instance.id %}
                     {% render_field form.id %}
                     {% endif %}
@@ -43,35 +41,37 @@
                         {% if form.instance.id %}
                         {% render_field form.DELETE class+="d-none" %}
                         {% endif %}
-                        <button type="button" class="btn btn-link btn-sm text-secondary" {% if form.instance.id %}onclick="markAsDeleted(this)" data-target="{{ form.DELETE.id_for_label }}" {% else %}onclick="removeEmptyForm(this)"{% endif %}><i class="fa fa-times fa-2x"></i></button>
+                        <button class="btn btn-link btn-sm text-secondary" type="button" {% if form.instance.id %}onclick="markAsDeleted(this)" data-target="{{ form.DELETE.id_for_label }}" {% else %}onclick="removeEmptyForm(this)" {% endif %} data-bs-toggle="tooltip" data-bs-placement="left" title="Удалить запись"><i class="fa fa-times fa-2x"></i></button>
                     </td>
                     {% endwith %}
                 </tr>
                 {% endfor %}
-                <tr id="empty_form_row" class="d-none">
+                <tr class="d-none" id="empty_form_row">
                     {% render_field formset.empty_form.course %}
                     <td>{% render_field formset.empty_form.leader class+="form-control" data-container="body" %}</td>
                     <td>{% render_field formset.empty_form.group class+="form-control" data-container="body" %}</td>
                     <td>{% render_field formset.empty_form.subgroup class+="form-control" data-container="body" %}</td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-link btn-sm text-secondary" onclick="removeEmptyForm(this)"><i class="fa fa-times fa-2x"></i></button>
+                        <button class="btn btn-link btn-sm text-secondary" type="button" onclick="removeEmptyForm(this)" data-bs-toggle="tooltip" data-bs-placement="left" title="Удалить запись"><i class="fa fa-times fa-2x"></i></button>
                     </td>
                 </tr>
                 <tr>
                     <td colspan="3">
-                        <button id="add_empty_form_row" type="button" class="btn btn-light btn-block text-success" onclick="addEmptyForm()"><i class="fa fa-plus fa-lg"></i></button>
+                        <div class="d-grid">
+                            <button class="btn btn-light text-success" id="add_empty_form_row" type="button" onclick="addEmptyForm()"><i class="fa fa-plus fa-lg"></i></button>
+                        </div>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
-    <div class="">
-        <input class="btn btn-light btn-block border" type="submit" value="Сохранить" />
+    <div class="d-grid">
+        <input class="btn btn-light border" type="submit" value="Сохранить" />
     </div>
 </form>
-{% endblock content %}
+{% endblock main_content %}
 
-{% block javascript %}
+{% block main_scripts %}
 <script type="text/javascript">
 function addEmptyForm() {
     let total_form_field = document.getElementById('id_form-TOTAL_FORMS');
@@ -108,4 +108,4 @@ function markAsDeleted(element) {
     }
 }
 </script>
-{% endblock %}
+{% endblock main_scripts %}

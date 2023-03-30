@@ -1,4 +1,4 @@
-<li class="breadcrumb-item {% if not url %}active{% endif %}">
+<li class="breadcrumb-item {% if not url %}active{% endif %}" {% if not url %}aria-current="page"{% endif %}>
     {% if url %}
     <a href="{{ url }}">{{ title }}</a>
     {% else %}

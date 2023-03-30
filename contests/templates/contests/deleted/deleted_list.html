@@ -1,33 +1,33 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views contests %}
 
-{% block title %}
-Корзина
-{% endblock title %}
+{% block title %}Корзина{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb "Корзина" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Корзина</legend>
 {% if deleted_courses.exists or deleted_contests.exists or deleted_problems.exists %}
 <div class="table-responsive-lg">
     <table class="table">
         <thead>
-            <th>Тип</th>
-            <th>Название</th>
-            <th class="text-right">Дата удаления</th>
-            <th></th>
-            <th></th>
+            <tr>
+                <th>Тип</th>
+                <th>Название</th>
+                <th class="text-end">Дата удаления</th>
+                <th></th>
+                <th></th>
+            </tr>
         </thead>
         <tbody>
             {% for course in deleted_courses %}
             <tr>
                 <td>Курс</td>
                 <td>{{ course }}</td>
-                <td class="text-right" style="width: 20%;">{{ course.date_updated }}</td>
+                <td class="text-end" style="width: 20%;">{{ course.date_updated }}</td>
                 <td class="text-center" style="width: 5%;"><a href="{% url 'contests:course-update' course.id %}?action=restore"><i class="fa fa-undo fa-fw fa-lg"></i></a></td>
                 <td class="text-center" style="width: 5%;"><a href="{% url 'contests:course-delete' course.id %}?action=delete_permanently" class="text-danger"><i class="fa fa-trash-o fa-fw fa-lg"></i></a></td>
             </tr>
@@ -36,7 +36,7 @@
             <tr>
                 <td>Раздел</td>
                 <td>{{ contest }}</td>
-                <td class="text-right" style="width: 20%;">{{ contest.date_updated }}</td>
+                <td class="text-end" style="width: 20%;">{{ contest.date_updated }}</td>
                 <td class="text-center" style="width: 5%;"><a href="{% url 'contests:contest-update' contest.id %}?action=restore"><i class="fa fa-undo fa-fw fa-lg"></i></a></td>
                 <td class="text-center" style="width: 5%;"><a href="{% url 'contests:contest-delete' contest.id %}?action=delete_permanently" class="text-danger"><i class="fa fa-trash-o fa-fw fa-lg"></i></a></td>
             </tr>
@@ -45,7 +45,7 @@
             <tr>
                 <td>Задача</td>
                 <td>{{ problem }}</td>
-                <td class="text-right" style="width: 20%;">{{ problem.date_updated }}</td>
+                <td class="text-end" style="width: 20%;">{{ problem.date_updated }}</td>
                 <td class="text-center" style="width: 5%;"><a href="{% url 'contests:problem-update' problem.id %}?action=restore"><i class="fa fa-undo fa-fw fa-lg"></i></a></td>
                 <td class="text-center" style="width: 5%;"><a href="{% url 'contests:problem-delete' problem.id %}?action=delete_permanently" class="text-danger"><i class="fa fa-trash-o fa-fw fa-lg"></i></a></td>
             </tr>
@@ -54,8 +54,8 @@
     </table>
 </div>
 {% else %}
-<div class="alert alert-info mb-3" role="alert">
+<div class="alert alert-info" role="alert">
     Корзина пуста
 </div>
 {% endif %}
-{% endblock content %}
+{% endblock main_content %}

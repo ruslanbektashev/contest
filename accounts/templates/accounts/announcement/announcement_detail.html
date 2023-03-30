@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views accounts comments %}
 
-{% block title %}
-Объявление
-{% endblock title %}
+{% block title %}Объявление{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -11,24 +9,24 @@
 {% breadcrumb announcement %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>
-    <div class="d-flex justify-content-between">
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">{{ announcement }}</span>
-        <span class="d-flex justify-content-between">
+        <span class="d-flex justify-content-between gap-1">
             {% if perms.accounts.change_announcement %}
-            <a href="{% url 'accounts:announcement-update' announcement.id %}" class="text-decoration-none" data-toggle="tooltip" data-placement="left" title="Редактировать объявление"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'accounts:announcement-update' announcement.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать объявление"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
             {% if perms.accounts.delete_announcement %}
-            <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="text-danger text-decoration-none" data-toggle="tooltip" data-placement="top" title="Удалить объявление" style="position: relative; top: -0.08rem;"><i class="fa fa-trash-o fa-fw"></i></a>
+            <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить объявление"><i class="fa fa-trash-o fa-fw"></i></a>
             {% endif %}
         </span>
-    </div>
+    </span>
 </legend>
-<div class="alert alert-primary">
+<div class="alert alert-light">
     {{ text|safe }}
 </div>
-<div class="pull-right text-right">
-    <p><span class="badge badge-secondary">{{ announcement.group_name }}</span> | {{ announcement.date_created|date:'' }}</p>
+<div class="text-end">
+    <p><span class="contest-status-number bg-secondary">{{ announcement.group_name }}</span> | {{ announcement.date_created }}</p>
 </div>
-{% endblock content %}
+{% endblock main_content %}

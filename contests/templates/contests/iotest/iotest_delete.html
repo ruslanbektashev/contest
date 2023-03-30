@@ -1,9 +1,7 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views forms %}
 
-{% block title %}
-Тест
-{% endblock title %}
+{% block title %}IO-Тест{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
@@ -14,7 +12,7 @@
 {% breadcrumb "Удаление" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Удаление IO-теста</legend>
-{% render_delete_form iotest %}
-{% endblock content %}
+{% include 'forms/delete_form.html' with obj=iotest %}
+{% endblock main_content %}
