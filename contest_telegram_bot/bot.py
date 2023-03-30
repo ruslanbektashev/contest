@@ -1,22 +1,17 @@
 import json
 
+import telebot
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import AnonymousUser
-from telebot import types, custom_filters
-from telebot.custom_filters import TextFilter
+from telebot import custom_filters, types
 from telebot.types import Message
 
-from accounts.models import Account
-from contest.settings import BOT_TOKEN, LOCALHOST_DOMAIN
-# from telebot.custom_filters import Filter
+from contest.settings import BOT_TOKEN
 from contest_telegram_bot.constants import login_btn_text, logout_btn_text
+from contest_telegram_bot.keyboards import (problem_detail_keyboard, staff_table_keyboard, start_keyboard_unauthorized,
+                                            student_table_keyboard, submission_creation_keyboard,
+                                            submissions_list_keyboard)
 from contest_telegram_bot.models import TelegramUser
-from contest_telegram_bot.utils import get_telegram_user, get_account_by_tg_id, json_get, tg_authorisation_wrapper
-from contest_telegram_bot.keyboards import start_keyboard_unauthorized, student_table_keyboard, \
-    staff_table_keyboard, problem_detail_keyboard, submissions_list_keyboard, submission_creation_keyboard
-
-import telebot
-
+from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, json_get, tg_authorisation_wrapper
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
 from contests.models import Problem, Submission
 

@@ -128,3 +128,5 @@ STATICFILES_FINDERS = [
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'contest/static/'),
 ]
+
+BOT_TOKEN = ''
