@@ -1,11 +1,11 @@
 import json
 
 import telebot
+from django.conf import settings
 from django.contrib.auth import authenticate
 from telebot import custom_filters, types
 from telebot.types import Message
 
-from contest.settings import BOT_TOKEN
 from contest_telegram_bot.constants import login_btn_text, logout_btn_text
 from contest_telegram_bot.keyboards import (problem_detail_keyboard, staff_table_keyboard, start_keyboard_unauthorized,
                                             student_table_keyboard, submission_creation_keyboard,
@@ -15,7 +15,7 @@ from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, 
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
 from contests.models import Problem, Submission
 
-tbot = telebot.TeleBot(BOT_TOKEN)
+tbot = telebot.TeleBot(settings.BOT_TOKEN)
 
 
 def welcome_handler(outer_message: types.Message, welcome_text: str = ", добро пожаловать в систему МГУ Контест!"):
