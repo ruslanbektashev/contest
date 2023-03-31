@@ -11,7 +11,7 @@
         <p class="mb-auto">&nbsp;</p>
         <form class="form-signin align-self-center" method="post">
             {% csrf_token %}
-            <img class="mb-4" src="{% static 'msu-logo.png' %}" alt="" width="72" height="72">
+            <img class="mb-4" src="{% static 'contest/images/msu-logo.png' %}" alt="" width="72" height="72">
             <h1 class="h3 mb-3 fw-normal">МГУ Контест</h1>
             {% block login_content %}
             {% if form.non_field_errors %}
