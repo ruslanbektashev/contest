@@ -1,6 +1,8 @@
 import json
 import os
 
+import pandas as pd
+from PyPDF2 import PdfReader, PdfWriter
 import telebot
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -10,17 +12,21 @@ from telebot import custom_filters, types
 from telebot.types import Message
 
 from contest.common_settings import SCHEDULE_CHANNELS_IDS
+from contest.settings import LOCALHOST_DOMAIN, BOT_TOKEN
 from contest_telegram_bot.constants import login_btn_text, logout_btn_text
 from contest_telegram_bot.keyboards import (problem_detail_keyboard, staff_table_keyboard, start_keyboard_unauthorized,
                                             student_table_keyboard, submission_creation_keyboard,
                                             submissions_list_keyboard)
 from contest_telegram_bot.models import TelegramUser
-from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, json_get, tg_authorisation_wrapper
+from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, json_get, tg_authorisation_wrapper, \
+    is_schedule_file, is_excel_file
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
 from contests.models import Problem, Submission
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
 
 tbot = telebot.TeleBot(settings.BOT_TOKEN)
+
+tbot.set_webhook(f'{LOCALHOST_DOMAIN}/{BOT_TOKEN}')
 
 
 def welcome_handler(outer_message: types.Message, welcome_text: str = ", добро пожаловать в систему МГУ Контест!"):
@@ -215,25 +221,68 @@ def status_callback(outer_call: types.CallbackQuery):
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
 
-@tbot.channel_post_handler(content_types=['document'], func=lambda message: message.chat.id in SCHEDULE_CHANNELS_IDS)
+# class ScheduleHandler:
+#     first_schedule_sent = False
+#     first_sch_file = None
+
+first_schedule_sent = False
+first_sch_file = None
+
+
+@tbot.channel_post_handler(content_types=['document'], func=lambda message: (message.chat.id in SCHEDULE_CHANNELS_IDS) and not first_schedule_sent)
 def schedule_callback(message: Message):
-    schedule_file_object = message.document
-    schedule_filename = schedule_file_object.file_name
-    schedule_file = tbot.download_file(tbot.get_file(schedule_file_object.file_id).file_path)
-    current_date = timezone.now()
-    # TODO: убрать костыльный owner_id и заменить его на id специального пользователя или None
-    new_schedule, _ = Schedule.objects.get_or_create(date_created=current_date, date_updated=current_date,
-                                                     date_from=current_week_date_from(next_week=True),
-                                                     date_to=current_week_date_to(next_week=True),
-                                                     owner_id=1357)
-    with open(schedule_filename, 'wb') as new_file:
-        new_file.write(schedule_file)
+    if is_schedule_file(filename=message.document.file_name) is not None:
+        global first_schedule_sent
+        global first_sch_file
+        first_schedule_sent = True
+        first_sch_file = message.document
 
-    with open(schedule_filename, 'rb') as new_file:
-        ScheduleAttachment.objects.update_or_create(schedule=new_schedule, name='Тестовое расписание',
-                                                    file=File(new_file))
 
-    os.remove(schedule_filename)
+@tbot.channel_post_handler(content_types=['document'], func=lambda message: (message.chat.id in SCHEDULE_CHANNELS_IDS) and first_schedule_sent)
+def schedule_final_callback(message: Message):
+    second_sch_file = message.document
+    if second_sch_file is not None:
+        if is_schedule_file(filename=second_sch_file.file_name):
+            current_date = timezone.now()
+            # TODO: убрать костыльный owner_id и заменить его на id специального пользователя или None
+            new_schedule, _ = Schedule.objects.get_or_create(date_created=current_date, date_updated=current_date,
+                                                             date_from=current_week_date_from(next_week=True),
+                                                             date_to=current_week_date_to(next_week=True),
+                                                             owner_id=1357)
+            if is_excel_file(filename=first_sch_file.file_name) is not None:
+                excel_sch_file = first_sch_file
+                pdf_sch_file = second_sch_file
+            else:
+                excel_sch_file = second_sch_file
+                pdf_sch_file = first_sch_file
+
+            excel_sch_bytes = tbot.download_file(tbot.get_file(excel_sch_file.file_id).file_path)
+            pdf_sch_bytes = tbot.download_file(tbot.get_file(pdf_sch_file.file_id).file_path)
+            pdf_sch_filename = pdf_sch_file.file_name
+            excel_sch_file_sheets = pd.ExcelFile(excel_sch_bytes).sheet_names
+            with open(pdf_sch_filename, 'wb') as tmp_pdf_file:
+                tmp_pdf_file.write(pdf_sch_bytes)
+
+            tmp_pdf_file = open(pdf_sch_filename, 'rb')
+            pdf_sch_object = PdfReader(tmp_pdf_file)
+            if pdf_sch_object.is_encrypted:
+                pdf_sch_object.decrypt('70')
+            for i in range(len(pdf_sch_object.pages)):
+                output = PdfWriter()
+                output.add_page(pdf_sch_object.pages[i])
+                current_course_name = excel_sch_file_sheets[i]
+                current_course_filename = f'{current_course_name}.pdf'
+                with open(current_course_filename, "wb") as outputStream:
+                    output.write(outputStream)
+
+                with open(current_course_filename, 'rb') as current_course_sch:
+                    ScheduleAttachment.objects.update_or_create(schedule=new_schedule, name=current_course_name,
+                                                                file=File(current_course_sch))
+                os.remove(current_course_filename)
+            tmp_pdf_file.close()
+            os.remove(pdf_sch_filename)
+    global first_schedule_sent
+    first_schedule_sent = False
 
 
 @tbot.my_chat_member_handler(func=lambda message: message.new_chat_member.status == 'kicked')

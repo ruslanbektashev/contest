@@ -1,4 +1,6 @@
 import json
+import re
+
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -59,3 +61,15 @@ def tg_authorisation_wrapper(
 
 def json_get(json_str: str, key: str):
     return json.loads(json_str)[key]
+
+
+def is_schedule_file(filename: str):
+    return re.search('([Р-р]асписание)|(янв(ар)*|февр*(ал)*|апр(ел)*|июн|июл|сент*(ябр)*|окт(ябр)*|ноя(бр)*|дек(абр)*)[ь-я]*|(марта*)|(ма[й-я])', filename)
+
+
+def file_extension(filename: str):
+    return filename.split('.')[1]
+
+
+def is_excel_file(filename: str):
+    return re.search('xlsx*', file_extension(filename=filename))

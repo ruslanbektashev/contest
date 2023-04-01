@@ -23,3 +23,5 @@ aspose-words==22.5.0
 billiard~=3.6.4.0
 pyTelegramBotAPI>=4.10.0
 emoji~=2.2.0
+pandas~=1.5.3
+pypdf2~=3.0.1
