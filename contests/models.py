@@ -91,20 +91,7 @@ class CourseManager(SoftDeletionManager):
 
 
 class Course(SoftDeletionModel, CRUDEntry):
-    LEVEL_CHOICES = (
-        (1, "1 курс, I семестр"),
-        (2, "1 курс, II семестр"),
-        (3, "2 курс, III семестр"),
-        (4, "2 курс, IV семестр"),
-        (5, "3 курс, V семестр"),
-        (6, "3 курс, VI семестр"),
-        (7, "4 курс, VII семестр"),
-        (8, "4 курс, VIII семестр"),
-        (9, "1 курс, I семестр, магистратура"),
-        (10, "1 курс, II семестр, магистратура"),
-        (11, "2 курс, III семестр, магистратура"),
-        (12, "2 курс, IV семестр, магистратура"),
-    )
+    LEVEL_CHOICES = Account.LEVEL_CHOICES
 
     faculty = models.ForeignKey(Faculty, on_delete=models.DO_NOTHING, verbose_name="Факультет")
     leaders = models.ManyToManyField(User, through='CourseLeader', through_fields=('course', 'leader'),

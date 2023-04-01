@@ -45,7 +45,7 @@
                 <a id="course_card_{{ forloop.counter }}_link" href="{% url 'contests:course-detail' course.id %}">{{ course }}</a>
             </div>
             {% with latest_submissions=course|get_latest_submissions:request|slice:':3' %}
-            <table class="table table-sm table-borderless mb-0" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Последние посылки по заданиям" style="min-height: 98px;">
+            <table class="table table-sm table-borderless mb-0" style="min-height: 98px;">
                 <tbody>
                     {% for submission in latest_submissions %}
                     <tr>

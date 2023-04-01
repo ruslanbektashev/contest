@@ -135,6 +135,20 @@
 </div>
 {% endif %}
 {% endif %}
+{% elif account.is_instructor %}
+{% if courses_leading.exists %}
+<legend>Преподаваемые курсы</legend>
+<div class="d-flex flex-column flex-md-row flex-md-wrap gap-2 mb-3">
+    {% for course in courses_leading %}
+    <div class="contest-course-card card">
+        <div class="card-body">
+            <a class="card-title h6 stretched-link text-reset text-decoration-none" href="{{ course.get_absolute_url }}">{{ course }}</a>
+            <p class="card-text"><small class="text-muted">{{ course.get_level_display }}</small></p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 {% endif %}
 {% endblock main_content %}
 

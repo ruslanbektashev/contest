@@ -140,6 +140,8 @@ class AccountDetail(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixi
             context['year_month_submissions_solutions_comments'] = get_year_month_submissions_solutions_comments_count_list(self.object.user, year)
             context['years'] = years_list
             context['year'] = year
+        elif self.object.is_instructor:
+            context['courses_leading'] = self.object.user.leading.all()
         return context
 
 
