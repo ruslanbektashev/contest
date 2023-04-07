@@ -75,6 +75,7 @@ def staff_table_keyboard(contest_user: User, table_id: int = None):
 
 
 # TODO:
+#  -1. Schedule editing if schedule file has updated during this week
 #  0. Submission sending mechanism
 #  1. Notification refs: SUBMISSION
 #  2. Webhook deletion on server stopping
