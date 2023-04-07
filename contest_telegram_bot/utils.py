@@ -63,8 +63,33 @@ def json_get(json_str: str, key: str):
     return json.loads(json_str)[key]
 
 
+def create_file_from_bytes(file_bytes: bytes, filename: str):
+    with open(filename, 'wb') as new_file:
+        new_file.write(file_bytes)
+
+
 def is_schedule_file(filename: str):
-    return re.search('([Р-р]асписание)|(янв(ар)*|февр*(ал)*|апр(ел)*|июн|июл|сент*(ябр)*|окт(ябр)*|ноя(бр)*|дек(абр)*)[ь-я]*|(марта*)|(ма[й-я])', filename)
+    return re.search('([Р-р]асписание)|((?:[Я-я]нв(ар)*|[Ф-ф]евр*(ал)*|[А-а]пр(ел)*|[И-и]юн|[И-и]юл|[С-с]ент*(ябр)*|[О-о]кт(ябр)*|[Н-н]оя(бр)*|[Д-д]ек(абр)*)[ь-я]*)|([М-м]ар(та*)*)|([М-м]а[й-я])', filename)
+
+
+def get_course_label(pdf_content: str):
+    courses = [
+        'Прикладная математика и информатика',
+        'Психология',
+        'Реклама и связи с общественностью',
+        'Филология',
+        'ПМиИ'
+    ]
+    courses_regex = '(?:% s)' % '|'.join(courses)
+    if len(re.findall("[мМ][аА][гГ][иИ][сС][тТ][рР][аА][тТ][уУ][рР][аА]", pdf_content)) == 0:
+        return re.findall(f"{courses_regex}.*[1-5] курс", pdf_content)[0]
+    else:
+        magistracy_label = 'Магистратура'
+        magistracy_part = re.search(f"({courses_regex}.*[1-2] курс)|([1-2] курс)", pdf_content).group()
+        if re.search("-МО", pdf_content) is not None:
+            magistracy_label += ' МО'
+        magistracy_label += f' {magistracy_part}'
+        return magistracy_label
 
 
 def file_extension(filename: str):
