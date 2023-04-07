@@ -1,13 +1,15 @@
 import json
 import os
-
-import pandas as pd
-from PyPDF2 import PdfReader, PdfWriter
 import telebot
+
+from copy import deepcopy
+
+from PyPDF2 import PdfReader, PdfWriter
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.core.files import File
 from django.utils import timezone
+from openpyxl import load_workbook
 from telebot import custom_filters, types
 from telebot.types import Message
 
@@ -19,7 +21,7 @@ from contest_telegram_bot.keyboards import (problem_detail_keyboard, staff_table
                                             submissions_list_keyboard)
 from contest_telegram_bot.models import TelegramUser
 from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, json_get, tg_authorisation_wrapper, \
-    is_schedule_file, is_excel_file
+    is_schedule_file, is_excel_file, create_file_from_bytes, get_course_label
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
 from contests.models import Problem, Submission
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
@@ -221,56 +223,47 @@ def status_callback(outer_call: types.CallbackQuery):
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
 
-# class ScheduleHandler:
-#     first_schedule_sent = False
-#     first_sch_file = None
-
-first_schedule_sent = False
-first_sch_file = None
-
-
-@tbot.channel_post_handler(content_types=['document'], func=lambda message: (message.chat.id in SCHEDULE_CHANNELS_IDS) and not first_schedule_sent)
+@tbot.channel_post_handler(content_types=['document'], func=lambda message: message.chat.id in SCHEDULE_CHANNELS_IDS)
 def schedule_callback(message: Message):
     if is_schedule_file(filename=message.document.file_name) is not None:
-        global first_schedule_sent
-        global first_sch_file
-        first_schedule_sent = True
-        first_sch_file = message.document
-
-
-@tbot.channel_post_handler(content_types=['document'], func=lambda message: (message.chat.id in SCHEDULE_CHANNELS_IDS) and first_schedule_sent)
-def schedule_final_callback(message: Message):
-    second_sch_file = message.document
-    if second_sch_file is not None:
-        if is_schedule_file(filename=second_sch_file.file_name):
-            current_date = timezone.now()
-            # TODO: убрать костыльный owner_id и заменить его на id специального пользователя или None
-            new_schedule, _ = Schedule.objects.get_or_create(date_created=current_date, date_updated=current_date,
-                                                             date_from=current_week_date_from(next_week=True),
-                                                             date_to=current_week_date_to(next_week=True),
-                                                             owner_id=1357)
-            if is_excel_file(filename=first_sch_file.file_name) is not None:
-                excel_sch_file = first_sch_file
-                pdf_sch_file = second_sch_file
-            else:
-                excel_sch_file = second_sch_file
-                pdf_sch_file = first_sch_file
-
-            excel_sch_bytes = tbot.download_file(tbot.get_file(excel_sch_file.file_id).file_path)
-            pdf_sch_bytes = tbot.download_file(tbot.get_file(pdf_sch_file.file_id).file_path)
-            pdf_sch_filename = pdf_sch_file.file_name
-            excel_sch_file_sheets = pd.ExcelFile(excel_sch_bytes).sheet_names
-            with open(pdf_sch_filename, 'wb') as tmp_pdf_file:
-                tmp_pdf_file.write(pdf_sch_bytes)
-
-            tmp_pdf_file = open(pdf_sch_filename, 'rb')
+        current_date = timezone.now()
+        # TODO: убрать костыльный owner_id и заменить его на id специального пользователя или None
+        new_schedule, _ = Schedule.objects.get_or_create(date_created=current_date, date_updated=current_date,
+                                                         date_from=current_week_date_from(next_week=True),
+                                                         date_to=current_week_date_to(next_week=True),
+                                                         owner_id=1357)
+        schedule_file = message.document
+        schedule_filename = schedule_file.file_name
+        create_file_from_bytes(
+            file_bytes=tbot.download_file(file_path=tbot.get_file(schedule_file.file_id).file_path),
+            filename=schedule_filename)
+        if is_excel_file(message.document.file_name):
+            wb = load_workbook(filename=schedule_filename)
+            sheets = wb.sheetnames
+            wb.close()
+            for sheet in sheets:
+                cur_xls = load_workbook(filename=schedule_filename)
+                cur_sheet_filename = f'{sheet}.xlsx'
+                sheets_to_delete = deepcopy(sheets)
+                sheets_to_delete.remove(sheet)
+                for del_sheet in sheets_to_delete:
+                    cur_xls.remove(cur_xls[del_sheet])
+                cur_xls.save(cur_sheet_filename)
+                cur_xls.close()
+                with open(cur_sheet_filename, 'rb') as current_course_sch:
+                    ScheduleAttachment.objects.update_or_create(schedule=new_schedule, name=sheet,
+                                                                file=File(current_course_sch))
+                os.remove(cur_sheet_filename)
+        else:
+            tmp_pdf_file = open(schedule_filename, 'rb')
             pdf_sch_object = PdfReader(tmp_pdf_file)
             if pdf_sch_object.is_encrypted:
                 pdf_sch_object.decrypt('70')
-            for i in range(len(pdf_sch_object.pages)):
+
+            for page in list(pdf_sch_object.pages):
                 output = PdfWriter()
-                output.add_page(pdf_sch_object.pages[i])
-                current_course_name = excel_sch_file_sheets[i]
+                output.add_page(page)
+                current_course_name = get_course_label(pdf_content=page.extract_text())
                 current_course_filename = f'{current_course_name}.pdf'
                 with open(current_course_filename, "wb") as outputStream:
                     output.write(outputStream)
@@ -280,9 +273,7 @@ def schedule_final_callback(message: Message):
                                                                 file=File(current_course_sch))
                 os.remove(current_course_filename)
             tmp_pdf_file.close()
-            os.remove(pdf_sch_filename)
-    global first_schedule_sent
-    first_schedule_sent = False
+        os.remove(schedule_filename)
 
 
 @tbot.my_chat_member_handler(func=lambda message: message.new_chat_member.status == 'kicked')
