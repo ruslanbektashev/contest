@@ -80,6 +80,9 @@ class ScheduleAttachment(CRUDEntry):
     name = models.CharField(max_length=100, verbose_name="Название")
     file = models.FileField(upload_to=schedule_attachment_file_path, verbose_name="Файл")
 
+    def extension(self):
+        return os.path.splitext(self.file.name)[1]
+
     def __str__(self):
         return self.name
 
