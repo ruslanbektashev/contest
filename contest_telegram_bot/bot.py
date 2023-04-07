@@ -14,7 +14,7 @@ from telebot import custom_filters, types
 from telebot.types import Message
 
 from contest.common_settings import SCHEDULE_CHANNELS_IDS
-from contest.settings import LOCALHOST_DOMAIN, BOT_TOKEN
+from django.conf import settings
 from contest_telegram_bot.constants import login_btn_text, logout_btn_text
 from contest_telegram_bot.keyboards import (problem_detail_keyboard, staff_table_keyboard, start_keyboard_unauthorized,
                                             student_table_keyboard, submission_creation_keyboard,
@@ -28,7 +28,7 @@ from schedule.models import Schedule, ScheduleAttachment, current_week_date_from
 
 tbot = telebot.TeleBot(settings.BOT_TOKEN)
 
-tbot.set_webhook(f'{LOCALHOST_DOMAIN}/{BOT_TOKEN}')
+tbot.set_webhook(f'{settings.LOCALHOST_DOMAIN}/{settings.BOT_TOKEN}')
 
 
 def welcome_handler(outer_message: types.Message, welcome_text: str = ", добро пожаловать в систему МГУ Контест!"):
