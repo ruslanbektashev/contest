@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, DeleteView
 
+from contest.documents.viewer import to_html
 from contest.mixins import LoginRedirectMixin
 from schedule.forms import ScheduleForm, ScheduleAttachmentForm, ScheduleAttachmentBaseFormSet
 from schedule.models import Schedule, ScheduleAttachment
@@ -105,6 +106,8 @@ class ScheduleAttachmentDetail(LoginRedirectMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        self.object.file.open(mode='r')
-        context['sheet'] = str(self.object.file.read()).replace('</style>', '\ntd { overflow: hidden; }</style>')
+        self.object.file.open(mode='rb')
+        context['schedule'] = self.get_object().schedule
+        context['schedule_attachment_name'] = self.get_object().name
+        context['sheet'], _ = to_html(attachment=self.object)
         return context
