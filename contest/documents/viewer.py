@@ -72,6 +72,9 @@ def to_html(attachment):
         nav = '<ul>{}</ul>'.format(''.join(f'<li class="excel_nav"><a href="#fsheet{id(sheet_name)}">{sheet_name}</a></li>'
                                                for sheet_name in html_sheets.keys()))
         result = (sheets + nav), True
+    elif attachment_ext in ['.htm', '.html']:
+        file = attachment.file.open(mode='rb').read().decode('utf8')
+        return file.replace('</style>', '\ntd { overflow: hidden; }</style>'), False
     elif attachment_ext == '.csv':
         temp = TemporaryFile()
         workbook = Workbook()
