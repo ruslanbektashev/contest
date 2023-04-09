@@ -71,6 +71,7 @@ def to_html(attachment):
 
         nav = '<ul>{}</ul>'.format(''.join(f'<li class="excel_nav"><a href="#fsheet{id(sheet_name)}">{sheet_name}</a></li>'
                                                for sheet_name in html_sheets.keys()))
+        workbook.close()
         result = (sheets + nav), True
     elif attachment_ext in ['.htm', '.html']:
         file = attachment.file.open(mode='rb').read().decode('utf8')
