@@ -7,6 +7,7 @@ from copy import deepcopy
 from PyPDF2 import PdfReader, PdfWriter
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.files import File
 from django.utils import timezone
 from openpyxl import load_workbook
@@ -145,21 +146,26 @@ def goback_callback(outer_call: types.CallbackQuery):
         destination_text = None
 
         if destination == 'course':
-            keyboard, destination_text = student_table_keyboard(table_type='contests', contest_user=user, table_id=destination_id)
+            keyboard, destination_text = student_table_keyboard(table_type='contests', contest_user=user,
+                                                                table_id=destination_id)
         if action_type == 'go':
             if destination == 'contest':
-                keyboard, destination_text = student_table_keyboard(table_type='problems', contest_user=user, table_id=destination_id)
+                keyboard, destination_text = student_table_keyboard(table_type='problems', contest_user=user,
+                                                                    table_id=destination_id)
             elif destination == 'problem':
                 keyboard, destination_text = problem_detail_keyboard(contest_user=user, problem_id=destination_id)
         else:
             if destination == 'courses_list':
-                keyboard, destination_text = student_table_keyboard(table_type='courses', contest_user=user, table_id=destination_id)
+                keyboard, destination_text = student_table_keyboard(table_type='courses', contest_user=user,
+                                                                    table_id=destination_id)
             elif destination == 'contest':
-                keyboard, destination_text = student_table_keyboard(table_type='problems', contest_user=user, table_id=destination_id)
+                keyboard, destination_text = student_table_keyboard(table_type='problems', contest_user=user,
+                                                                    table_id=destination_id)
             elif destination == 'problem':
                 keyboard, destination_text = problem_detail_keyboard(contest_user=user, problem_id=destination_id)
         tbot.clear_step_handler(message=call.message)
-        tbot.edit_message_text(text=destination_text, chat_id=call.message.chat.id, message_id=call.message.id, reply_markup=keyboard)
+        tbot.edit_message_text(text=destination_text, chat_id=call.message.chat.id, message_id=call.message.id,
+                               reply_markup=keyboard)
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
@@ -198,12 +204,14 @@ def submission_callback(outer_call: types.CallbackQuery):
                                    chat_id=call.message.chat.id,
                                    message_id=call.message.id,
                                    reply_markup=submission_creation_keyboard(problem_id=problem_id))
-            tbot.register_next_step_handler(message=call.message, callback=submission_file_handler, text=call.message.text)
+            tbot.register_next_step_handler(message=call.message, callback=submission_file_handler,
+                                            text=call.message.text)
+
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
 
 def submission_file_handler(message: Message, text: str):
-    #print(json.dumps(message.json, indent=2))
+    # print(json.dumps(message.json, indent=2))
     file_info = tbot.get_file(message.document.file_id)
     print(file_info)
     file = tbot.download_file(file_path=file_info.file_path)
@@ -228,10 +236,15 @@ def schedule_callback(message: Message):
     if is_schedule_file(filename=message.document.file_name) is not None:
         current_date = timezone.now()
         # TODO: убрать костыльный owner_id и заменить его на id специального пользователя или None
-        new_schedule, _ = Schedule.objects.get_or_create(date_created=current_date, date_updated=current_date,
-                                                         date_from=current_week_date_from(next_week=True),
-                                                         date_to=current_week_date_to(next_week=True),
-                                                         owner_id=1357)
+        try:
+            new_schedule = Schedule.objects.get(date_from=current_week_date_from(next_week=True),
+                                                date_to=current_week_date_to(next_week=True))
+        except ObjectDoesNotExist:
+            new_schedule, _ = Schedule.objects.get_or_create(date_created=current_date, date_updated=current_date,
+                                                             date_from=current_week_date_from(next_week=True),
+                                                             date_to=current_week_date_to(next_week=True),
+                                                             owner_id=1357)
+        ScheduleAttachment.objects.filter(schedule=new_schedule).delete()
         schedule_file = message.document
         schedule_filename = schedule_file.file_name
         create_file_from_bytes(
