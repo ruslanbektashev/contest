@@ -5,7 +5,7 @@ from contests import views
 app_name = 'contests'
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.Main.as_view(), name='index'),
     path('attachment/<int:pk>/delete', views.AttachmentDelete.as_view(), name='attachment-delete'),
     path('deleted/list', views.DeletedList.as_view(), name='deleted-list'),
     path('course/<int:course_id>/start', views.CourseStart.as_view(), name='course-start'),

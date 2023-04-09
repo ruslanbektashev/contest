@@ -2571,17 +2571,33 @@ class ExecutionList(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 """==================================================== Specific ===================================================="""
 
 
-@login_required
-def index(request):
-    notifications = Notification.objects.actual().filter(recipient=request.user).unread()[:10]
-    schedules = Schedule.objects.actual()
-    announcements = Announcement.objects.proper_group(request.user).actual()
-    count_of_news = notifications.count() + schedules.count() + announcements.count()
-    if request.user.has_perm('contests.add_course'):
-        filtered_course_ids = request.user.filter_set.values_list('course_id')
-        filtered_courses = Course.objects.filter(id__in=filtered_course_ids)
-        return render(request, 'contests/index.html',
-                      {'courses': filtered_courses, 'notifications': notifications, 'schedules': schedules,
-                       'announcements': announcements, 'count_of_news': count_of_news})
-    else:
-        return redirect(reverse('contests:assignment-list'))
+class Main(LoginRedirectMixin, TemplateView):
+    template_name = 'contests/index.html'
+
+    def get(self, request, *args, **kwargs):
+        if not request.user.has_perm('contests.add_course'):
+            return HttpResponseRedirect(reverse('contests:assignment-list'))
+        return super().get(request, *args, **kwargs)
+
+    def get_latest_submissions(self):
+        filtered_course_ids = self.request.user.filter_set.values_list('course_id')
+        queryset = (Submission.objects.filter(problem__contest__course_id__in=filtered_course_ids)
+                    .select_related('owner', 'problem', 'problem__contest', 'problem__contest__course'))
+        if not self.request.user.account.faculty.is_interfaculty:
+            queryset = queryset.filter(owner__account__faculty=self.request.user.account.faculty)
+        return queryset.order_by('-date_created')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        notifications = Notification.objects.actual().filter(recipient=self.request.user).unread()[:10]
+        schedules = Schedule.objects.actual()
+        announcements = Announcement.objects.proper_group(self.request.user).actual()
+        count_of_news = notifications.count() + schedules.count() + announcements.count()
+        filtered_course_ids = self.request.user.filter_set.values_list('course_id')
+        context['courses'] = Course.objects.filter(id__in=filtered_course_ids)
+        context['notifications'] = notifications
+        context['schedules'] = schedules
+        context['announcements'] = announcements
+        context['count_of_news'] = count_of_news
+        context['latest_submissions'] = self.get_latest_submissions()
+        return context

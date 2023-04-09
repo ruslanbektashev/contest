@@ -1,5 +1,5 @@
 {% extends 'base_main.html' %}
-{% load views contests tutorial static %}
+{% load views contests tutorial humanize static %}
 
 {% block title %}Главная{% endblock title %}
 
@@ -36,44 +36,39 @@
         </span>
     </span>
 </legend>
-{% include 'contests/news_block.html' %}
-<div id="contest_index_row" class="row">
-    {% for course in courses %}
-    <div class="col-12 col-md-4 mb-3">
-        <div id="course_card_{{ forloop.counter }}" class="card shadow-sm">
-            <div class="card-header">
-                <a id="course_card_{{ forloop.counter }}_link" href="{% url 'contests:course-detail' course.id %}">{{ course }}</a>
-            </div>
-            {% with latest_submissions=course|get_latest_submissions:request|slice:':3' %}
-            <table class="table table-sm table-borderless mb-0" style="min-height: 98px;">
-                <tbody>
-                    {% for submission in latest_submissions %}
-                    <tr>
-                        <td class="text-end ps-3" style="width: 18%;">{{ submission.date_created|date:'d.m.y' }}</td>
-                        <td class="text-truncate overflow-hidden">
-                            <a class="text-truncate" href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account.get_short_name }}</a>
-                        </td>
-                        <td class="text-center pe-3" style="width: 13%;">
-                            <a href="{{ submission.get_absolute_url }}" class="contest-status contest-status-{{ submission.status|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ submission.get_status_display }}">
-                                {{ submission.status }}
-                            </a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="3" class="text-center">&nbsp;</td></tr>
-                    <tr><td colspan="3" class="text-center text-muted">нет посылок</td></tr>
-                    <tr><td colspan="3" class="text-center">&nbsp;</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% endwith %}
-            <div class="card-footer d-flex justify-content-end gap-1 p-2">
-                <a href="{% url 'contests:submission-list' course.id %}" class="btn btn-light btn-sm"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
-                <a href="{% url 'contests:assignment-table' course.id %}" class="btn btn-light btn-sm"><i class="fa fa-table fa-fw"></i> Таблица</a>
+<div class="row">
+    <div class="col-12 col-md-8">
+        <p class="lead">Последние посылки</p>
+        {% for submission in latest_submissions|slice:':10' %}
+        <div class="d-flex align-items-center gap-3">
+            <a href="{{ submission.get_absolute_url }}" class="contest-status contest-status-{{ submission.status|colorize }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ submission.get_status_display }}">
+                {{ submission.status }}
+            </a>
+            <span>
+                <a href="{{ submission.owner.account.get_absolute_url }}" class="text-truncate" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ submission.owner.account.faculty.short_name }}, {{ submission.owner.account.get_level_display }}">{{ submission.owner.account.get_short_name }}</a>
+                отправил решение задачи
+                <a href="{{ submission.problem.get_absolute_url }}" class="text-truncate" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ submission.contest }}, {{ submission.course }}">{{ submission.problem }}</a>
+            </span>
+            <span class="text-muted ms-auto" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ submission.date_created|date:'d E Y г. в H:i' }}">{{ submission.date_created|naturaltime }}</span>
+        </div>
+        <hr>
+        {% endfor %}
+    </div>
+    <div class="col-12 col-md-4">
+        <p class="lead">Ваши курсы</p>
+        {% for course in courses %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <a href="{{ course.get_absolute_url }}" class="card-title">{{ course }}</a>
+                <p class="card-text"><small class="text-muted">{{ course.get_level_display }}</small></p>
+                <div>
+                    <a href="{% url 'contests:submission-list' course.id %}" class="btn btn-light btn-sm"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
+                    <a href="{% url 'contests:assignment-table' course.id %}" class="btn btn-light btn-sm"><i class="fa fa-table fa-fw"></i> Таблица</a>
+                </div>
             </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
 {% endblock main_content %}
 

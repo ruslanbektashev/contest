@@ -31,7 +31,7 @@
     {% ifchanged course.level %}
     {% if not forloop.first %}</div>{% endif %}
     <h5>{{ course.get_level_display }}</h5>
-    <div class="d-flex flex-wrap gap-2 mb-3">
+    <div class="d-flex flex-column flex-md-row flex-md-wrap gap-2 mb-3">
     {% endifchanged %}
         <div class="contest-course-card card">
             <div class="card-body">

@@ -5,6 +5,9 @@
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
+{% if course %}
+{% breadcrumb course course %}
+{% endif %}
 {% breadcrumb "Посылки" %}
 {% endblock breadcrumbs %}
 
