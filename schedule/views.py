@@ -106,7 +106,6 @@ class ScheduleAttachmentDetail(LoginRedirectMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        self.object.file.open(mode='rb')
         context['schedule'] = self.object.schedule
         context['schedule_attachment_name'] = self.object.name
         context['sheet'], _ = to_html(attachment=self.object)
