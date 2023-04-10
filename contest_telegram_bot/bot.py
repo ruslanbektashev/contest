@@ -1,5 +1,7 @@
 import json
 import os
+import threading
+
 import telebot
 
 from copy import deepcopy
@@ -271,6 +273,53 @@ def status_callback(outer_call: types.CallbackQuery):
 @tbot.channel_post_handler(content_types=['document'], func=lambda message: message.chat.id in SCHEDULE_CHANNELS_IDS)
 def schedule_callback(message: Message):
     if is_schedule_file(filename=message.document.file_name) is not None:
+        def create_schedule_files(schedule):
+            ScheduleAttachment.objects.filter(schedule=schedule).delete()
+            schedule.date_updated = timezone.now()
+            schedule.save()
+            schedule_file = message.document
+            schedule_filename = schedule_file.file_name
+            create_file_from_bytes(
+                file_bytes=tbot.download_file(file_path=tbot.get_file(schedule_file.file_id).file_path),
+                filename=schedule_filename)
+            if is_excel_file(message.document.file_name):
+                wb = load_workbook(filename=schedule_filename)
+                sheets = wb.sheetnames
+                wb.close()
+                for sheet in sheets:
+                    cur_xls = load_workbook(filename=schedule_filename)
+                    cur_sheet_filename = f'{sheet}.xlsx'
+                    sheets_to_delete = deepcopy(sheets)
+                    sheets_to_delete.remove(sheet)
+                    for del_sheet in sheets_to_delete:
+                        cur_xls.remove(cur_xls[del_sheet])
+                    cur_xls.save(cur_sheet_filename)
+                    cur_xls.close()
+                    with open(cur_sheet_filename, 'rb') as current_course_sch:
+                        ScheduleAttachment.objects.update_or_create(schedule=schedule, name=sheet,
+                                                                    file=File(current_course_sch))
+                    os.remove(cur_sheet_filename)
+            else:
+                tmp_pdf_file = open(schedule_filename, 'rb')
+                pdf_sch_object = PdfReader(tmp_pdf_file)
+                if pdf_sch_object.is_encrypted:
+                    pdf_sch_object.decrypt('70')
+
+                for page in list(pdf_sch_object.pages):
+                    output = PdfWriter()
+                    output.add_page(page)
+                    current_course_name = get_course_label(pdf_content=page.extract_text())
+                    current_course_filename = f'{current_course_name}.pdf'
+                    with open(current_course_filename, "wb") as outputStream:
+                        output.write(outputStream)
+
+                    with open(current_course_filename, 'rb') as current_course_sch:
+                        ScheduleAttachment.objects.update_or_create(schedule=schedule, name=current_course_name,
+                                                                    file=File(current_course_sch))
+                    os.remove(current_course_filename)
+                tmp_pdf_file.close()
+            os.remove(schedule_filename)
+
         current_date = timezone.now()
         # TODO: убрать костыльный owner_id и заменить его на id специального пользователя или None
         if 1 <= timezone.now().isocalendar()[2] <= 4:
@@ -281,54 +330,17 @@ def schedule_callback(message: Message):
         try:
             new_schedule = Schedule.objects.get(date_from=current_week_date_from(next_week=next_week),
                                                 date_to=current_week_date_to(next_week=next_week))
+            schedule_update_time_passed = (timezone.now() - new_schedule.date_updated).seconds
+            if schedule_update_time_passed <= 40:
+                threading.Timer(40 - schedule_update_time_passed, create_schedule_files, [new_schedule]).start()
+            else:
+                create_schedule_files(new_schedule)
         except ObjectDoesNotExist:
             new_schedule, _ = Schedule.objects.get_or_create(date_created=current_date, date_updated=current_date,
                                                              date_from=current_week_date_from(next_week=next_week),
                                                              date_to=current_week_date_to(next_week=next_week),
                                                              owner_id=1357)
-        ScheduleAttachment.objects.filter(schedule=new_schedule).delete()
-        schedule_file = message.document
-        schedule_filename = schedule_file.file_name
-        create_file_from_bytes(
-            file_bytes=tbot.download_file(file_path=tbot.get_file(schedule_file.file_id).file_path),
-            filename=schedule_filename)
-        if is_excel_file(message.document.file_name):
-            wb = load_workbook(filename=schedule_filename)
-            sheets = wb.sheetnames
-            wb.close()
-            for sheet in sheets:
-                cur_xls = load_workbook(filename=schedule_filename)
-                cur_sheet_filename = f'{sheet}.xlsx'
-                sheets_to_delete = deepcopy(sheets)
-                sheets_to_delete.remove(sheet)
-                for del_sheet in sheets_to_delete:
-                    cur_xls.remove(cur_xls[del_sheet])
-                cur_xls.save(cur_sheet_filename)
-                cur_xls.close()
-                with open(cur_sheet_filename, 'rb') as current_course_sch:
-                    ScheduleAttachment.objects.update_or_create(schedule=new_schedule, name=sheet,
-                                                                file=File(current_course_sch))
-                os.remove(cur_sheet_filename)
-        else:
-            tmp_pdf_file = open(schedule_filename, 'rb')
-            pdf_sch_object = PdfReader(tmp_pdf_file)
-            if pdf_sch_object.is_encrypted:
-                pdf_sch_object.decrypt('70')
-
-            for page in list(pdf_sch_object.pages):
-                output = PdfWriter()
-                output.add_page(page)
-                current_course_name = get_course_label(pdf_content=page.extract_text())
-                current_course_filename = f'{current_course_name}.pdf'
-                with open(current_course_filename, "wb") as outputStream:
-                    output.write(outputStream)
-
-                with open(current_course_filename, 'rb') as current_course_sch:
-                    ScheduleAttachment.objects.update_or_create(schedule=new_schedule, name=current_course_name,
-                                                                file=File(current_course_sch))
-                os.remove(current_course_filename)
-            tmp_pdf_file.close()
-        os.remove(schedule_filename)
+            create_schedule_files(new_schedule)
 
 
 @tbot.my_chat_member_handler(func=lambda message: message.new_chat_member.status == 'kicked')
