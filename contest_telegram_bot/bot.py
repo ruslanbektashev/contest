@@ -273,13 +273,18 @@ def schedule_callback(message: Message):
     if is_schedule_file(filename=message.document.file_name) is not None:
         current_date = timezone.now()
         # TODO: убрать костыльный owner_id и заменить его на id специального пользователя или None
+        if 1 <= timezone.now().isocalendar()[2] <= 4:
+            next_week = False
+        else:
+            next_week = True
+
         try:
-            new_schedule = Schedule.objects.get(date_from=current_week_date_from(next_week=True),
-                                                date_to=current_week_date_to(next_week=True))
+            new_schedule = Schedule.objects.get(date_from=current_week_date_from(next_week=next_week),
+                                                date_to=current_week_date_to(next_week=next_week))
         except ObjectDoesNotExist:
             new_schedule, _ = Schedule.objects.get_or_create(date_created=current_date, date_updated=current_date,
-                                                             date_from=current_week_date_from(next_week=True),
-                                                             date_to=current_week_date_to(next_week=True),
+                                                             date_from=current_week_date_from(next_week=next_week),
+                                                             date_to=current_week_date_to(next_week=next_week),
                                                              owner_id=1357)
         ScheduleAttachment.objects.filter(schedule=new_schedule).delete()
         schedule_file = message.document
