@@ -30,3 +30,7 @@ submission_status_emojis = {
     'EV': emojize(":blue_circle:"),
     'UN': emojize(":white_circle:"),
 }
+marks_emojis = {
+    True: emojize(":check_mark_button:"),
+    False: emojize(":cross_mark:"),
+}

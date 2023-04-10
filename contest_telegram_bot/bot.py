@@ -19,10 +19,10 @@ from django.conf import settings
 from contest_telegram_bot.constants import login_btn_text, logout_btn_text
 from contest_telegram_bot.keyboards import (problem_detail_keyboard, staff_table_keyboard, start_keyboard_unauthorized,
                                             student_table_keyboard, submission_creation_keyboard,
-                                            submissions_list_keyboard)
-from contest_telegram_bot.models import TelegramUser
+                                            submissions_list_keyboard, settings_keyboard)
+from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
 from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, json_get, tg_authorisation_wrapper, \
-    is_schedule_file, is_excel_file, create_file_from_bytes, get_course_label
+    is_schedule_file, is_excel_file, create_file_from_bytes, get_course_label, get_contest_user_by_tg_id
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
 from contests.models import Problem, Submission
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
@@ -75,7 +75,7 @@ def login_handler(outer_message: types.Message):
         login_bot_message = tbot.send_message(chat_id=message.chat.id, text="Введите логин и пароль следующим "
                                                                             "образом:\n"
                                                                             "<логин>\n<пароль>", reply_markup=None)
-        tbot.register_next_step_handler(login_bot_message, login_data_handler)
+        tbot.register_next_step_handler(message=login_bot_message, callback=login_data_handler)
 
     all_callbacks_kwargs = {'message': outer_message}
     tg_authorisation_wrapper(chat_id=outer_message.chat.id, authorized_fun=callback_for_authorized,
@@ -91,14 +91,15 @@ def login_data_handler(message: types.Message):
         authorized_user = authenticate(username=username, password=password)
     else:
         authorized_user = None
+
     if authorized_user is not None:
         TelegramUser.objects.get_or_create(chat_id=message.chat.id, contest_user=authorized_user)
+        TelegramUserSettings.objects.get_or_create(contest_user=authorized_user)
         welcome_handler(outer_message=message, welcome_text=', вы успешно авторизовались.')
-
     else:
         login_err_msg = tbot.send_message(chat_id=message.chat.id, text='Введённые логин или пароль неверны. '
                                                                         'Повторите попытку.')
-        tbot.register_next_step_handler(login_err_msg, login_data_handler)
+        tbot.register_next_step_handler(message=login_err_msg, callback=login_data_handler)
 
 
 def unauth_callback_inline_keyboard(outer_call: types.CallbackQuery, callback_for_authorized):
@@ -131,6 +132,42 @@ def logout_callback(outer_call: types.CallbackQuery):
             chat_id=call.message.chat.id, message_id=call.message.id, reply_markup=None
         )
         TelegramUser.objects.get(chat_id=call.message.chat.id).delete()
+
+    unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
+@tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'get_settings')
+def get_settings_callback(outer_call: types.CallbackQuery):
+    def callback_for_authorized(call: types.CallbackQuery):
+        tbot.edit_message_text(
+            text=f'Настройки пользователя {get_account_by_tg_id(chat_id=call.message.chat.id)}.',
+            chat_id=call.message.chat.id,
+            message_id=call.message.id,
+            reply_markup=settings_keyboard(contest_user=get_telegram_user(chat_id=call.message.chat.id).contest_user)
+        )
+
+    unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
+@tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'sett')
+def setting_callback(outer_call: types.CallbackQuery):
+    def callback_for_authorized(call: types.CallbackQuery):
+        settings = TelegramUserSettings.objects.get(contest_user=get_contest_user_by_tg_id(chat_id=call.message.chat.id))
+        setting_action = json_get(call.data, 'act')
+        setting_name = json_get(call.data, 'name')
+        if setting_action == 'text':
+            tbot.answer_callback_query(callback_query_id=call.id,
+                                       text=settings._meta.get_field(setting_name).verbose_name,
+                                       show_alert=True)
+        elif setting_action == 'chg':
+            setattr(settings, setting_name, not getattr(settings, setting_name))
+            settings.save()
+            tbot.edit_message_reply_markup(
+                chat_id=call.message.chat.id,
+                message_id=call.message.id,
+                reply_markup=settings_keyboard(
+                    contest_user=get_telegram_user(chat_id=call.message.chat.id).contest_user)
+            )
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 

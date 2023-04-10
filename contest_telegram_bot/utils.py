@@ -4,7 +4,7 @@ import re
 from django.core.exceptions import ObjectDoesNotExist
 
 
-from contest_telegram_bot.models import TelegramUser
+from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
 
 
 def get_telegram_user(chat_id: int):
@@ -14,14 +14,31 @@ def get_telegram_user(chat_id: int):
         return None
 
 
+def get_contest_user_by_tg_id(chat_id: int):
+    tg_user = get_telegram_user(chat_id=chat_id)
+    if tg_user is not None:
+        return tg_user.contest_user
+    else:
+        return None
+
+
 def notify_tg_users(notification):
+    print(type(notification.object))
     contest_recipient = notification.recipient
-    recipient_tg_chats = list(TelegramUser.objects.filter(contest_user=contest_recipient))
+    contest_recipient_settings = TelegramUserSettings.objects.get(contest_user=contest_recipient)
     notification_obj = notification.object
+    notification_obj_type = str(type(notification_obj)).split('.')[-1].lower()[:-2] + 's'
+    if 'оценку' in notification.action:
+        notification_obj_type += '_mark'
+
+    if not getattr(contest_recipient_settings, notification_obj_type):
+        return
+
     notification_msg = f'{notification.subject.account} {notification.action} <b>{notification_obj}</b> ' \
                        f'{notification.relation if notification.relation is not None else ""} ' \
                        f'<b>{notification.reference if notification.reference is not None else ""}</b>'
-    print(type(notification.object))
+
+    recipient_tg_chats = list(TelegramUser.objects.filter(contest_user=contest_recipient))
     for tg_chat in recipient_tg_chats:
         from contest_telegram_bot.bot import tbot
         from contest_telegram_bot.keyboards import notification_keyboard

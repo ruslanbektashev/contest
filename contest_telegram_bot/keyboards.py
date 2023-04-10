@@ -8,7 +8,9 @@ from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardBut
 from accounts.models import Account, Comment
 from contest.common_settings import CONTEST_DOMAIN
 from contest_telegram_bot.constants import courses_emoji, contest_emoji, user_settings_emoji, bot_settings_emoji, \
-    logout_btn_text, problem_emoji, submission_status_emojis, login_btn_text, help_btn_text, send_emoji, comments_emoji
+    logout_btn_text, problem_emoji, submission_status_emojis, login_btn_text, help_btn_text, send_emoji, comments_emoji, \
+    marks_emojis
+from contest_telegram_bot.models import TelegramUserSettings
 from contests.models import Course, Contest, Problem, Assignment, Submission
 from support.models import Question, Report
 
@@ -16,11 +18,8 @@ from support.models import Question, Report
 def start_keyboard_authorized():
     login_btn = KeyboardButton(logout_btn_text)
     help_btn = KeyboardButton(help_btn_text)
-    test_btn = KeyboardButton('TEST')
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
     keyboard.row(login_btn, help_btn)
-    # keyboard.add(*[login_btn, help_btn])
-    # keyboard.add(*[login_btn, help_btn])
     return keyboard
 
 
@@ -62,6 +61,26 @@ def goback_button(goback_type: str, to: str, to_id: int = None, text: str = None
                                 callback_data=json.dumps(callback_data))
 
 
+def settings_keyboard(contest_user: User):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    user_settings = TelegramUserSettings.objects.get(contest_user=contest_user)
+    meta = user_settings._meta
+    for setting in meta.get_fields():
+        setting_name = setting.name
+        setting_verbose_name = meta.get_field(field_name=setting_name).verbose_name
+        if setting_name not in ['id', 'contest_user']:
+            keyboard.row(InlineKeyboardButton(text=setting_verbose_name,
+                                              callback_data=json.dumps({'type': 'sett',
+                                                                        'name': setting_name,
+                                                                        'act': 'text'})),
+                         InlineKeyboardButton(text=marks_emojis[getattr(user_settings, setting_name)],
+                                              callback_data=json.dumps({'type': 'sett',
+                                                                        'name': setting_name,
+                                                                        'act': 'chg'})))
+    keyboard.row(goback_button(goback_type='back', to='courses_list'))
+    return keyboard
+
+
 def staff_table_keyboard(contest_user: User, table_id: int = None):
     keyboard = InlineKeyboardMarkup(row_width=1)
     table_header = ['Ваши курсы']
@@ -75,12 +94,11 @@ def staff_table_keyboard(contest_user: User, table_id: int = None):
 
 
 # TODO:
-#  -1. Schedule editing if schedule file has updated during this week
-#  0. Submission sending mechanism
+#  -1. Schedule editing if this week schedule was updated during this week
+#  0. check bot behavior if 2 schedule files podryad
 #  1. Notification refs: SUBMISSION
 #  2. Webhook deletion on server stopping
 #  3. Submission deadline notification and connection with bot settings (user can set time interval for these type of notification)
-#  4. Bot settings and user settings (new model TelegramUserSettings?);
 #  5. List of contests (list(set) is ugly)
 
 def student_table_keyboard(table_type: str, contest_user: User, table_id: int = None):
@@ -131,10 +149,8 @@ def student_table_keyboard(table_type: str, contest_user: User, table_id: int = 
             keyboard.row(goback_button(goback_type='go', to='contest', to_id=contest.id, text=str(contest)))
 
     if table_type == 'courses':
-        keyboard.row(InlineKeyboardButton(text=f'{user_settings_emoji} Настройки пользователя',
-                                          callback_data=json.dumps({'type': 'setting'})))
-        keyboard.row(InlineKeyboardButton(text=f'{bot_settings_emoji} Настройки бота',
-                                          callback_data=json.dumps({'type': 'setting'})))
+        keyboard.row(InlineKeyboardButton(text=f'{user_settings_emoji} Настройки',
+                                          callback_data=json.dumps({'type': 'get_settings'})))
         keyboard.row(InlineKeyboardButton(text=logout_btn_text,
                                           callback_data=json.dumps({'type': 'exit'})))
 
@@ -209,7 +225,8 @@ def notification_keyboard(obj):
     elif isinstance(obj, Question):
         button = InlineKeyboardButton(text='Перейти к вопросу', url=f'{CONTEST_DOMAIN}{obj.get_absolute_url()}')
     elif isinstance(obj, Report):
-        button = InlineKeyboardButton(text='Перейти к сообщению об ошибке', url=f'{CONTEST_DOMAIN}{obj.get_absolute_url()}')
+        button = InlineKeyboardButton(text='Перейти к сообщению об ошибке',
+                                      url=f'{CONTEST_DOMAIN}{obj.get_absolute_url()}')
     elif isinstance(obj, Submission):
         # TODO: разделение на переход к посылке у преподавателей и у студентов
         pass
