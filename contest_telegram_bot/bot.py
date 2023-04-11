@@ -338,7 +338,7 @@ def schedule_callback(message: Message):
                 threading.Timer(40 - schedule_update_time_passed, create_schedule_files, [new_schedule]).start()
             else:
                 create_schedule_files(new_schedule)
-            action = 'обновил'
+            action = 'Обновлено'
         except ObjectDoesNotExist:
             # TODO: убрать костыльный owner_id и заменить его на id специального пользователя или None
             new_schedule, _ = Schedule.objects.get_or_create(date_created=current_date, date_updated=current_date,
@@ -346,14 +346,13 @@ def schedule_callback(message: Message):
                                                              date_to=current_week_date_to(next_week=next_week),
                                                              owner_id=1357)
             create_schedule_files(new_schedule)
-            action = 'добавил'
+            action = 'Добавлено'
 
         recipients = TelegramUser.objects.filter(contest_user__is_active=True,
                                                  contest_user__is_staff=False,
                                                  contest_user__is_superuser=False)
-        notify_all_specific_tg_users(notification_msg=f'{new_schedule.owner} {action} <b>расписание на {week} ({new_schedule})</b>',
-                                     notification_obj=new_schedule,
-                                     tg_users=recipients)
+        notify_all_specific_tg_users(notification_msg=f'{action} <b>расписание на {week} ({new_schedule})</b>',
+                                     tg_users=recipients, notification_obj=new_schedule)
 
 
 @tbot.my_chat_member_handler(func=lambda message: message.new_chat_member.status == 'kicked')

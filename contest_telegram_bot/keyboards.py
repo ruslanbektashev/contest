@@ -215,6 +215,9 @@ def submission_creation_keyboard(problem_id: int):
 
 def notification_keyboard(obj):
     keyboard = InlineKeyboardMarkup(row_width=1)
+    if obj is None:
+        return None
+
     obj_id = obj.id
     if isinstance(obj, Course):
         button = goback_button(goback_type='go', to='course', to_id=obj_id, text='Перейти к курсу')

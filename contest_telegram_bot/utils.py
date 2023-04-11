@@ -51,10 +51,16 @@ def notify_tg_users(notification):
                           reply_markup=notification_keyboard(obj=notification_obj), parse_mode='HTML')
 
 
-def notify_all_specific_tg_users(notification_msg: str, notification_obj, tg_users):
+def notify_all_specific_tg_users(notification_msg: str, tg_users, notification_obj=None):
+    if notification_obj is not None:
+        notification_obj_type = str(type(notification_obj)).split('.')[-1].lower()[:-2] + 's'
+
     from contest_telegram_bot.bot import tbot
     from contest_telegram_bot.keyboards import notification_keyboard
     for tg_user in tg_users:
+        if notification_obj is not None:
+            if not getattr(TelegramUserSettings.objects.get(contest_user=tg_user.contest_user), notification_obj_type):
+                continue
         tbot.send_message(chat_id=tg_user.chat_id, text=notification_msg,
                           reply_markup=notification_keyboard(obj=notification_obj), parse_mode='HTML')
 
