@@ -7,11 +7,12 @@ from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardBut
 
 from accounts.models import Account, Comment
 from contest.common_settings import CONTEST_DOMAIN
-from contest_telegram_bot.constants import courses_emoji, contest_emoji, user_settings_emoji, bot_settings_emoji, \
+from contest_telegram_bot.constants import courses_emoji, contest_emoji, user_settings_emoji, \
     logout_btn_text, problem_emoji, submission_status_emojis, login_btn_text, help_btn_text, send_emoji, comments_emoji, \
     marks_emojis
 from contest_telegram_bot.models import TelegramUserSettings
 from contests.models import Course, Contest, Problem, Assignment, Submission
+from schedule.models import Schedule
 from support.models import Question, Report
 
 
@@ -230,6 +231,9 @@ def notification_keyboard(obj):
     elif isinstance(obj, Submission):
         # TODO: разделение на переход к посылке у преподавателей и у студентов
         pass
+    elif isinstance(obj, Schedule):
+        button = InlineKeyboardButton(text='Перейти к расписанию',
+                                      url=f'{CONTEST_DOMAIN}{obj.get_absolute_url()}')
     else:
         return None
 

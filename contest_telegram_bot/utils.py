@@ -25,7 +25,11 @@ def get_contest_user_by_tg_id(chat_id: int):
 def notify_tg_users(notification):
     print(type(notification.object))
     contest_recipient = notification.recipient
-    contest_recipient_settings = TelegramUserSettings.objects.get(contest_user=contest_recipient)
+    try:
+        contest_recipient_settings = TelegramUserSettings.objects.get(contest_user=contest_recipient)
+    except ObjectDoesNotExist:
+        return
+
     notification_obj = notification.object
     notification_obj_type = str(type(notification_obj)).split('.')[-1].lower()[:-2] + 's'
     if 'оценку' in notification.action:
@@ -39,10 +43,19 @@ def notify_tg_users(notification):
                        f'<b>{notification.reference if notification.reference is not None else ""}</b>'
 
     recipient_tg_chats = list(TelegramUser.objects.filter(contest_user=contest_recipient))
+
+    from contest_telegram_bot.bot import tbot
+    from contest_telegram_bot.keyboards import notification_keyboard
     for tg_chat in recipient_tg_chats:
-        from contest_telegram_bot.bot import tbot
-        from contest_telegram_bot.keyboards import notification_keyboard
         tbot.send_message(chat_id=tg_chat.chat_id, text=notification_msg,
+                          reply_markup=notification_keyboard(obj=notification_obj), parse_mode='HTML')
+
+
+def notify_all_specific_tg_users(notification_msg: str, notification_obj, tg_users):
+    from contest_telegram_bot.bot import tbot
+    from contest_telegram_bot.keyboards import notification_keyboard
+    for tg_user in tg_users:
+        tbot.send_message(chat_id=tg_user.chat_id, text=notification_msg,
                           reply_markup=notification_keyboard(obj=notification_obj), parse_mode='HTML')
 
 

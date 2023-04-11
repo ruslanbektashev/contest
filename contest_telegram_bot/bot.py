@@ -24,7 +24,8 @@ from contest_telegram_bot.keyboards import (problem_detail_keyboard, staff_table
                                             submissions_list_keyboard, settings_keyboard)
 from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
 from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, json_get, tg_authorisation_wrapper, \
-    is_schedule_file, is_excel_file, create_file_from_bytes, get_course_label, get_contest_user_by_tg_id
+    is_schedule_file, is_excel_file, create_file_from_bytes, get_course_label, get_contest_user_by_tg_id, \
+    notify_all_specific_tg_users
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
 from contests.models import Problem, Submission
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
@@ -154,16 +155,17 @@ def get_settings_callback(outer_call: types.CallbackQuery):
 @tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'sett')
 def setting_callback(outer_call: types.CallbackQuery):
     def callback_for_authorized(call: types.CallbackQuery):
-        settings = TelegramUserSettings.objects.get(contest_user=get_contest_user_by_tg_id(chat_id=call.message.chat.id))
+        all_settings = TelegramUserSettings.objects.get(
+            contest_user=get_contest_user_by_tg_id(chat_id=call.message.chat.id))
         setting_action = json_get(call.data, 'act')
         setting_name = json_get(call.data, 'name')
         if setting_action == 'text':
             tbot.answer_callback_query(callback_query_id=call.id,
-                                       text=settings._meta.get_field(setting_name).verbose_name,
+                                       text=all_settings._meta.get_field(setting_name).verbose_name,
                                        show_alert=True)
         elif setting_action == 'chg':
-            setattr(settings, setting_name, not getattr(settings, setting_name))
-            settings.save()
+            setattr(all_settings, setting_name, not getattr(all_settings, setting_name))
+            all_settings.save()
             tbot.edit_message_reply_markup(
                 chat_id=call.message.chat.id,
                 message_id=call.message.id,
@@ -321,11 +323,12 @@ def schedule_callback(message: Message):
             os.remove(schedule_filename)
 
         current_date = timezone.now()
-        # TODO: убрать костыльный owner_id и заменить его на id специального пользователя или None
-        if 1 <= timezone.now().isocalendar()[2] <= 4:
+        if 1 <= current_date.isocalendar()[2] <= 4:
             next_week = False
+            week = 'эту неделю'
         else:
             next_week = True
+            week = 'следующую неделю'
 
         try:
             new_schedule = Schedule.objects.get(date_from=current_week_date_from(next_week=next_week),
@@ -335,12 +338,22 @@ def schedule_callback(message: Message):
                 threading.Timer(40 - schedule_update_time_passed, create_schedule_files, [new_schedule]).start()
             else:
                 create_schedule_files(new_schedule)
+            action = 'обновил'
         except ObjectDoesNotExist:
+            # TODO: убрать костыльный owner_id и заменить его на id специального пользователя или None
             new_schedule, _ = Schedule.objects.get_or_create(date_created=current_date, date_updated=current_date,
                                                              date_from=current_week_date_from(next_week=next_week),
                                                              date_to=current_week_date_to(next_week=next_week),
                                                              owner_id=1357)
             create_schedule_files(new_schedule)
+            action = 'добавил'
+
+        recipients = TelegramUser.objects.filter(contest_user__is_active=True,
+                                                 contest_user__is_staff=False,
+                                                 contest_user__is_superuser=False)
+        notify_all_specific_tg_users(notification_msg=f'{new_schedule.owner} {action} <b>расписание на {week} ({new_schedule})</b>',
+                                     notification_obj=new_schedule,
+                                     tg_users=recipients)
 
 
 @tbot.my_chat_member_handler(func=lambda message: message.new_chat_member.status == 'kicked')
