@@ -42,7 +42,6 @@ let tdOptions = {
             hours: true,
             minutes: true,
             seconds: false,
-            useTwentyfourHour: true
         },
         inline: false,
         theme: 'light'
@@ -89,12 +88,13 @@ let tdOptions = {
             LLLL: 'dddd, D MMMM yyyy г., H:mm'
         },
         ordinal: (n) => n,
-        format: 'L LT'
+        format: 'L LT',
+        hourCycle: 'h23'
     },
+    dateRange: false,
     keepInvalid: false,
     debug: false,
     allowInputToggle: false,
-    //viewDate: new DateTime(),
     multipleDates: false,
     multipleDatesSeparator: '; ',
     promptTimeOnDateChange: false,
