@@ -201,6 +201,11 @@
   border-left: 1px solid #dee2e6;
 }
 
+.contest-shrink-column {
+  width: 0.1%;
+  white-space: nowrap;
+}
+
 .contest-sticky-column {
   position: sticky;
   left: 0;
@@ -249,6 +254,11 @@
 
 .rounded-0-top-left {
   border-top-left-radius: 0;
+}
+
+.nav-link .badge {
+  position: relative;
+  top: -1px;
 }
 
 /*# sourceMappingURL=contest.css.map */

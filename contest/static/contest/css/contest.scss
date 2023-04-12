@@ -191,6 +191,11 @@
   border-left: 1px solid #dee2e6;
 }
 
+.contest-shrink-column {
+  width: 0.1%;
+  white-space: nowrap;
+}
+
 .contest-sticky-column {
   position: sticky;
   left: 0;
@@ -228,6 +233,8 @@
   color: #5cb85c;
 }
 
+// CSS Patches for other libs
+
 .bootstrap-select .dropdown-menu {
   //box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important // .shadow
   box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075) !important // .shadow-sm
@@ -240,4 +247,9 @@
 
 .rounded-0-top-left {
   border-top-left-radius: 0;
+}
+
+.nav-link .badge {
+  position: relative;
+  top: -1px;
 }

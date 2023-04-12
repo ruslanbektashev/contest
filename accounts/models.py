@@ -243,9 +243,9 @@ class Account(models.Model):
     LEVEL_MIN = 1
     LEVEL_MAX = 8
     TYPE_CHOICES = (
-        (1, 'студент'),
-        (2, 'модератор'),
-        (3, 'преподаватель'),
+        (1, "студент"),
+        (2, "модератор"),
+        (3, "преподаватель"),
     )
     TYPE_DEFAULT = 1
     ADMISSION_YEAR_CHOICES = ((y, y) for y in range(2006, timezone.now().year + 1))

@@ -2589,15 +2589,10 @@ class Main(LoginRedirectMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        notifications = Notification.objects.actual().filter(recipient=self.request.user).unread()[:10]
-        schedules = Schedule.objects.actual()
-        announcements = Announcement.objects.proper_group(self.request.user).actual()
-        count_of_news = notifications.count() + schedules.count() + announcements.count()
         filtered_course_ids = self.request.user.filter_set.values_list('course_id')
         context['courses'] = Course.objects.filter(id__in=filtered_course_ids)
-        context['notifications'] = notifications
-        context['schedules'] = schedules
-        context['announcements'] = announcements
-        context['count_of_news'] = count_of_news
+        context['unread_notifications_count'] = self.request.user.notifications.actual().unread().count()
+        context['schedules'] = Schedule.objects.actual()
+        context['announcements'] = Announcement.objects.proper_group(self.request.user).actual()
         context['latest_submissions'] = self.get_latest_submissions()
         return context
