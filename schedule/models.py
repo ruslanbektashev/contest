@@ -8,7 +8,6 @@ from django.dispatch import receiver
 from django.template.defaultfilters import date
 from django.utils import timezone
 
-from accounts.models import Notification
 from contest.abstract import CRUDEntry
 from schedule.templatetags.events import iso_to_gregorian
 
