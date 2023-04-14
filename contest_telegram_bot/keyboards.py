@@ -279,6 +279,7 @@ def staff_problem_menu_keyboard(problem_id: int, show_submissions_number=True):
 
 
 # TODO:
+#  -1. поддержка отображения расписания в формате PDF прямо на сайте
 #  0. проверить, что будет при смене пароля через сайт (будет ли доступнен функционал?)
 #  1. Notification refs: SUBMISSION
 #  2. Webhook deletion on server stopping
