@@ -419,7 +419,7 @@ def schedule_callback(message: Message):
             new_schedule, _ = Schedule.objects.get_or_create(date_created=current_date, date_updated=current_date,
                                                              date_from=current_week_date_from(next_week=next_week),
                                                              date_to=current_week_date_to(next_week=next_week),
-                                                             owner_id=1357)
+                                                             owner=User.objects.get(username='telegram_bot'))
             create_schedule_files(new_schedule)
             action = 'Добавлено'
 
