@@ -9,6 +9,7 @@ from copy import deepcopy
 from PyPDF2 import PdfReader, PdfWriter
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files import File
 from django.utils import timezone
@@ -16,18 +17,22 @@ from openpyxl import load_workbook
 from telebot import custom_filters, types
 from telebot.types import Message
 
+from accounts.models import Account
 from contest.common_settings import SCHEDULE_CHANNELS_IDS
 from django.conf import settings
 from contest_telegram_bot.constants import login_btn_text, logout_btn_text
-from contest_telegram_bot.keyboards import (problem_detail_keyboard, staff_table_keyboard, start_keyboard_unauthorized,
+from contest_telegram_bot.keyboards import (problem_detail_keyboard, staff_start_keyboard, start_keyboard_unauthorized,
                                             student_table_keyboard, submission_creation_keyboard,
-                                            submissions_list_keyboard, settings_keyboard)
+                                            submissions_list_keyboard, settings_keyboard, staff_course_menu_keyboard,
+                                            staff_course_students_keyboard, staff_course_contests_keyboard,
+                                            staff_course_problems_keyboard, staff_problem_menu_keyboard,
+                                            staff_course_student_menu_keyboard)
 from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
 from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, json_get, tg_authorisation_wrapper, \
     is_schedule_file, is_excel_file, create_file_from_bytes, get_course_label, get_contest_user_by_tg_id, \
     notify_all_specific_tg_users
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
-from contests.models import Problem, Submission
+from contests.models import Problem, Submission, Course
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
 
 tbot = telebot.TeleBot(settings.BOT_TOKEN)
@@ -45,7 +50,7 @@ def welcome_handler(outer_message: types.Message, welcome_text: str = ", доб�
         contest_user = get_telegram_user(message.chat.id).contest_user
         start_message_text = f'{get_account_by_tg_id(chat_id=message.chat.id)}'
         if contest_user.is_staff:
-            keyboard = staff_table_keyboard(contest_user=contest_user)
+            keyboard, _ = staff_start_keyboard(staff_contest_user=contest_user)
         else:
             keyboard, _ = student_table_keyboard(table_type='courses', contest_user=contest_user)
         send_welcome_message(text=start_message_text, message=message, keyboard=keyboard)
@@ -177,7 +182,7 @@ def setting_callback(outer_call: types.CallbackQuery):
 
 
 @tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') in ['go', 'back'])
-def goback_callback(outer_call: types.CallbackQuery):
+def goback_students_callback(outer_call: types.CallbackQuery):
     def callback_for_authorized(call: types.CallbackQuery):
         keyboard = None
         user = get_telegram_user(chat_id=call.message.chat.id).contest_user
@@ -196,7 +201,7 @@ def goback_callback(outer_call: types.CallbackQuery):
             elif destination == 'problem':
                 keyboard, destination_text = problem_detail_keyboard(contest_user=user, problem_id=destination_id)
         else:
-            if destination == 'courses_list':
+            if destination == 'courses':
                 keyboard, destination_text = student_table_keyboard(table_type='courses', contest_user=user,
                                                                     table_id=destination_id)
             elif destination == 'contest':
@@ -207,6 +212,76 @@ def goback_callback(outer_call: types.CallbackQuery):
         tbot.clear_step_handler(message=call.message)
         tbot.edit_message_text(text=destination_text, chat_id=call.message.chat.id, message_id=call.message.id,
                                reply_markup=keyboard)
+
+    unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
+@tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') in ['staff_go', 'staff_back'])
+def goback_staff_callback(outer_call: types.CallbackQuery):
+    def callback_for_authorized(call: types.CallbackQuery):
+        keyboard = None
+        user = get_telegram_user(chat_id=call.message.chat.id).contest_user
+        action_type = json_get(call.data, 'type')
+        destination = json_get(call.data, 'to')
+        destination_id = int(json_get(call.data, 'id')) if 'id' in json.loads(call.data) else None
+        destination_text = None
+
+        if destination == 'course':
+            keyboard, destination_text = staff_course_menu_keyboard(course_id=destination_id)
+        elif destination == 'contests':
+            keyboard, destination_text = staff_course_contests_keyboard(course_id=destination_id)
+        elif destination == 'contest':
+            keyboard, destination_text = staff_course_problems_keyboard(contest_id=destination_id)
+        elif destination == 'problem':
+            keyboard, destination_text = staff_problem_menu_keyboard(problem_id=destination_id)
+        elif destination == 'course_students':
+            keyboard, destination_text = staff_course_students_keyboard(course_id=destination_id)
+        elif destination == 'stud':
+            course_id = int(json_get(call.data, 'crs_id'))
+            student_id = int(json_get(call.data, 'stu_id'))
+            keyboard, destination_text = staff_course_student_menu_keyboard(course_id=course_id, student_id=student_id)
+
+        if action_type == 'staff_go':
+            pass
+        else:
+            if destination == 'courses':
+                keyboard, destination_text = staff_start_keyboard(staff_contest_user=user)
+
+        tbot.clear_step_handler(message=call.message)
+        tbot.edit_message_text(text=destination_text, parse_mode='HTML', chat_id=call.message.chat.id,
+                               message_id=call.message.id,
+                               reply_markup=keyboard)
+
+    unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
+@tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'prob_sett')
+def staff_problem_menu_settings_callback(outer_call: types.CallbackQuery):
+    def callback_for_authorized(call: types.CallbackQuery):
+        problem_id = int(json_get(call.data, 'prob_id'))
+        cur_val = int(json_get(call.data, 'cur_val'))
+        keyboard, _ = staff_problem_menu_keyboard(problem_id=problem_id,
+                                                  show_submissions_number=not cur_val)
+
+        tbot.edit_message_reply_markup(chat_id=call.message.chat.id,
+                                       message_id=call.message.id,
+                                       reply_markup=keyboard)
+
+    unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
+@tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'stu_sett')
+def staff_student_menu_settings_callback(outer_call: types.CallbackQuery):
+    def callback_for_authorized(call: types.CallbackQuery):
+        course_id = int(json_get(call.data, 'crs_id'))
+        student_id = int(json_get(call.data, 'stu_id'))
+        cur_val = int(json_get(call.data, 'cur_val'))
+        keyboard, _ = staff_course_student_menu_keyboard(course_id=course_id,
+                                                         student_id=student_id,
+                                                         show_submissions_number=not cur_val)
+        tbot.edit_message_reply_markup(chat_id=call.message.chat.id,
+                                       message_id=call.message.id,
+                                       reply_markup=keyboard)
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
@@ -353,6 +428,14 @@ def schedule_callback(message: Message):
                                                  contest_user__is_superuser=False)
         notify_all_specific_tg_users(notification_msg=f'{action} <b>расписание на {week} ({new_schedule})</b>',
                                      tg_users=recipients, notification_obj=new_schedule)
+
+
+@tbot.message_handler(func=lambda message: message.text == '1')
+def test_handler(message: types.Message):
+    try:
+        print(Account.objects.filter(level=4))
+    except Exception as e:
+        print(e)
 
 
 @tbot.my_chat_member_handler(func=lambda message: message.new_chat_member.status == 'kicked')
