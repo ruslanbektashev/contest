@@ -9,7 +9,15 @@ problem_emoji = emojize(":clipboard:")
 bot_settings_emoji = emojize(":hammer_and_wrench:")
 user_settings_emoji = emojize(":gear:")
 send_emoji = emojize(':up_arrow:')
+down_arrow_emoji = emojize(':down_arrow:')
+selection_emoji = emojize(':blue_square:')
+
+checked_emoji = emojize(':check_mark_button:')
+unchecked_emoji = emojize(':green_square:')
+
 comments_emoji = emojize(':speech_balloon:')
+users_emoji = emojize(":bust_in_silhouette:")
+problems_emoji = emojize(":bar_chart:")
 submission_status_emojis = {
     'OK': emojize(":green_circle:"),
     'PS': emojize(":green_circle:"),
