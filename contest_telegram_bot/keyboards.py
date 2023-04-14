@@ -9,9 +9,9 @@ from accounts.models import Account, Comment
 from contest.common_settings import CONTEST_DOMAIN
 from contest_telegram_bot.constants import courses_emoji, contest_emoji, user_settings_emoji, \
     logout_btn_text, problem_emoji, submission_status_emojis, login_btn_text, help_btn_text, send_emoji, comments_emoji, \
-    marks_emojis
+    marks_emojis, problems_emoji, users_emoji, down_arrow_emoji, selection_emoji, checked_emoji, unchecked_emoji
 from contest_telegram_bot.models import TelegramUserSettings
-from contests.models import Course, Contest, Problem, Assignment, Submission
+from contests.models import Course, Contest, Problem, Assignment, Submission, Credit
 from schedule.models import Schedule
 from support.models import Question, Report
 
@@ -34,6 +34,9 @@ def start_keyboard_unauthorized():
 def none_type_row(keyboard: InlineKeyboardMarkup, titles: list):
     buttons = []
     for title in titles:
+        if isinstance(title, InlineKeyboardButton):
+            buttons.append(title)
+            continue
         buttons.append(InlineKeyboardButton(text=title, callback_data=json.dumps({'type': 'none'})))
     keyboard.row(*buttons)
 
@@ -42,9 +45,10 @@ def none_type_button(btn_text: str):
     return InlineKeyboardButton(text=btn_text, callback_data=json.dumps({'type': 'none'}))
 
 
-def score_button(score: int, btn_type: str = 'inline'):
+def score_button(score: int, btn_type: str = 'inline', btn_url=None):
     if btn_type == 'inline':
         return InlineKeyboardButton(text=emojize(f':keycap_{str(score)}:') if score > 0 else '-',
+                                    url=btn_url,
                                     callback_data=json.dumps({'type': 'none'}))
     else:
         return KeyboardButton(text=emojize(f':keycap_{str(score)}:') if score > 0 else '-')
@@ -65,11 +69,18 @@ def goback_button(goback_type: str, to: str, to_id: int = None, text: str = None
 def settings_keyboard(contest_user: User):
     keyboard = InlineKeyboardMarkup(row_width=1)
     user_settings = TelegramUserSettings.objects.get(contest_user=contest_user)
+    exclude = []
     meta = user_settings._meta
+    if not (contest_user.is_staff or contest_user.is_superuser):
+        exclude = ['questions', 'reports', 'submissions_creation']
+        goback_type = 'back'
+    else:
+        goback_type = 'staff_back'
+
     for setting in meta.get_fields():
         setting_name = setting.name
         setting_verbose_name = meta.get_field(field_name=setting_name).verbose_name
-        if setting_name not in ['id', 'contest_user']:
+        if setting_name not in (['id', 'contest_user'] + exclude):
             keyboard.row(InlineKeyboardButton(text=setting_verbose_name,
                                               callback_data=json.dumps({'type': 'sett',
                                                                         'name': setting_name,
@@ -78,25 +89,196 @@ def settings_keyboard(contest_user: User):
                                               callback_data=json.dumps({'type': 'sett',
                                                                         'name': setting_name,
                                                                         'act': 'chg'})))
-    keyboard.row(goback_button(goback_type='back', to='courses_list'))
+    keyboard.row(goback_button(goback_type=goback_type, to='courses'))
     return keyboard
 
 
-def staff_table_keyboard(contest_user: User, table_id: int = None):
+def staff_start_keyboard(staff_contest_user: User):
     keyboard = InlineKeyboardMarkup(row_width=1)
-    table_header = ['Ваши курсы']
-    none_type_row(keyboard, table_header)
+    table_header = [f'{courses_emoji} Ваши курсы']
     table_list = list(
-        course for course in Course.objects.filter(leaders__account=Account.objects.get(user=contest_user)))
-    for course in table_list:
-        keyboard.row(InlineKeyboardButton(text=str(course), callback_data=json.dumps({'type': 'course'})))
+        course for course in Course.objects.filter(leaders__account=Account.objects.get(user=staff_contest_user)))
+    table_message_text = 'Курсы, в которых Вы являетесь лидером / одним из лидеров.'
 
-    return keyboard
+    none_type_row(keyboard, table_header)
+    for course in table_list:
+        keyboard.row(InlineKeyboardButton(text=str(course), callback_data=json.dumps({'type': 'staff_go',
+                                                                                      'to': 'course',
+                                                                                      'id': course.id})))
+    keyboard.row(InlineKeyboardButton(text=f'{user_settings_emoji} Настройки',
+                                      callback_data=json.dumps({'type': 'get_settings'})))
+    keyboard.row(InlineKeyboardButton(text=logout_btn_text,
+                                      callback_data=json.dumps({'type': 'exit'})))
+    return keyboard, table_message_text
+
+
+def staff_course_menu_keyboard(course_id: int):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    course = Course.objects.get(pk=course_id)
+    table_message_text = f'Курс <b>{course}</b>.\n\n' \
+                         f'Справка:\n' \
+                         f'{users_emoji} Успеваемость конкретного студента - позволяет посмотреть успеваемость по курсу у выбранного студента.\n' \
+                         f'{problems_emoji} Успеваемость студентов по задачам - позволяет посмотреть общую успеваемость студентов по выбранной задаче.'
+
+    keyboard.add(
+        InlineKeyboardButton(text=f'{users_emoji} Успеваемость конкретного студента',
+                             callback_data=json.dumps({'type': 'staff_go',
+                                                       'to': 'course_students',
+                                                       'id': course_id})),
+        InlineKeyboardButton(text=f'{problems_emoji} Успеваемость студентов по задачам',
+                             callback_data=json.dumps({'type': 'staff_go',
+                                                       'to': 'contests',
+                                                       'id': course_id}))
+    )
+    keyboard.add(goback_button(goback_type='staff_back', to='courses', to_id=course_id))
+    return keyboard, table_message_text
+
+
+def staff_course_students_keyboard(course_id: int):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    course = Course.objects.get(pk=course_id)
+    all_course_users = Credit.objects.filter(course=course, score__lte=2).values_list('user')
+    active_course_users = Account.objects.filter(user__in=all_course_users,
+                                                 level__in=[course.level - 1, course.level, course.level + 1])
+
+    table_message_text = f'Курс <b>{course}</b>.\n' \
+                         f'Выберите студента, чтобы посмотреть его успеваемость.'
+    for student in active_course_users:
+        keyboard.add(InlineKeyboardButton(text=str(student), callback_data=json.dumps({'type': 'staff_go',
+                                                                                       'to': 'stud',
+                                                                                       'crs_id': course_id,
+                                                                                       'stu_id': student.user.id})))
+    keyboard.add(goback_button(goback_type='staff_back', to='course', to_id=course_id))
+    return keyboard, table_message_text
+
+
+def staff_course_student_menu_keyboard(course_id: int, student_id: int, show_submissions_number=False):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    student = User.objects.get(pk=student_id)
+    course = Course.objects.get(pk=course_id)
+    student_assignments_of_course = student.assignment_set.filter(problem__contest__course=course)
+    contests_of_student_assignments = Contest.objects.filter(
+        pk__in=student_assignments_of_course.values_list('problem__contest'))
+
+    if show_submissions_number:
+        none_type_row(keyboard, ['Задача', 'Оценка', 'Кол-во посылок'])
+        check_emoji = checked_emoji
+    else:
+        none_type_row(keyboard, ['Задача', 'Оценка'])
+        check_emoji = unchecked_emoji
+
+    table_message_text = f'Курс <b>{course}</b>.\n' \
+                         f'Студент <b>{Account.objects.get(user=student)}</b>.\n' \
+                         f'Выберите задачу.'
+    for contest in contests_of_student_assignments:
+        keyboard.add(InlineKeyboardButton(text=f'{selection_emoji} {contest}',
+                                          callback_data=json.dumps({'type': 'none'})))
+        for problem_assignment in student_assignments_of_course.filter(problem__contest=contest):
+            problem = problem_assignment.problem
+            problem_row = [InlineKeyboardButton(text=f'{problem}',
+                                                callback_data=json.dumps({'type': 'staff_go',
+                                                                          'to': 'problem',
+                                                                          'id': problem.id})),
+                           score_button(score=problem_assignment.score,
+                                        btn_url=f'{LOCALHOST_DOMAIN}{problem_assignment.get_absolute_url()}update?action=evaluate')]
+            if show_submissions_number:
+                problem_row.append(InlineKeyboardButton(text=str(len(problem_assignment.submission_set.all())),
+                                                        url=f'{LOCALHOST_DOMAIN}{problem_assignment.get_absolute_url()}',
+                                                        callback_data=json.dumps({'type': 'none'})))
+            keyboard.row(*problem_row)
+
+    keyboard.add(InlineKeyboardButton(text=f'{check_emoji} Показать посылки студента',
+                                      callback_data=json.dumps({'type': 'stu_sett',
+                                                                'crs_id': course_id,
+                                                                'stu_id': student.id,
+                                                                'cur_val': int(show_submissions_number)})))
+    keyboard.add(goback_button(goback_type='staff_back', to='course_students', to_id=course_id))
+    return keyboard, table_message_text
+
+
+# TODO: заменить LOCALHOST_DOMAIN на CONTEST_DOMAIN сразу же после показа 15.04.2023!
+
+def staff_course_contests_keyboard(course_id: int):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    course = Course.objects.get(pk=course_id)
+    contests = Contest.objects.filter(course=course)
+    table_message_text = f'Курс <b>{course}</b>.\n' \
+                         f'Выберите раздел.'
+    for contest in contests:
+        keyboard.add(InlineKeyboardButton(text=str(contest), callback_data=json.dumps({'type': 'staff_go',
+                                                                                       'to': 'contest',
+                                                                                       'id': contest.id})))
+    keyboard.add(goback_button(goback_type='staff_back', to='course', to_id=course_id))
+    return keyboard, table_message_text
+
+
+def staff_course_problems_keyboard(contest_id: int):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    contest = Contest.objects.get(pk=contest_id)
+    course = contest.course
+    problems = Problem.objects.filter(contest=contest)
+    table_message_text = f'Курс <b>{course}</b>.\n' \
+                         f'Раздел <b>{contest}</b>.\n' \
+                         f'Выберите задачу.'
+    for problem in problems:
+        keyboard.add(InlineKeyboardButton(text=str(problem), callback_data=json.dumps({'type': 'staff_go',
+                                                                                       'to': 'problem',
+                                                                                       'id': problem.id})))
+    keyboard.add(goback_button(goback_type='staff_back', to='contests', to_id=course.id))
+    return keyboard, table_message_text
+
+
+def staff_problem_menu_keyboard(problem_id: int, show_submissions_number=True):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    problem = Problem.objects.get(pk=problem_id)
+    course = problem.course
+    contest = problem.contest
+    all_course_users = Credit.objects.filter(course=course, score__lte=2).values_list('user')
+    active_course_users = Account.objects.filter(user__in=all_course_users,
+                                                 level__in=[course.level - 1, course.level, course.level + 1])
+
+    students_assignment_with_problem = Assignment.objects.filter(problem_id=problem_id,
+                                                                 user__in=active_course_users.values_list(
+                                                                     'user')).order_by('user__last_name')
+    students_with_problem = Account.objects.filter(
+        user__in=students_assignment_with_problem.values_list('user')).order_by('user__last_name')
+    if show_submissions_number:
+        none_type_row(keyboard, ['Студент', 'Оценка', 'Кол-во посылок'])
+        check_emoji = checked_emoji
+    else:
+        none_type_row(keyboard, ['Студент', 'Оценка'])
+        check_emoji = unchecked_emoji
+
+    if len(students_assignment_with_problem) == 0:
+        keyboard.add(none_type_button(btn_text='Никому не назначена эта задача'))
+
+    table_message_text = f'Курс <b>{course}</b>.\n' \
+                         f'Раздел <b>{contest}</b>.\n' \
+                         f'Задача <b>{problem}</b>.\n' \
+                         f'Выберите студента.'
+    for student, student_assignment in zip(students_with_problem, students_assignment_with_problem):
+        student_row = [InlineKeyboardButton(text=str(student),
+                                            callback_data=json.dumps({'type': 'staff_go',
+                                                                      'to': 'stud',
+                                                                      'crs_id': course.id,
+                                                                      'stu_id': student.user.id})),
+                       score_button(score=student_assignment.score,
+                                    btn_url=f'{LOCALHOST_DOMAIN}{student_assignment.get_absolute_url()}update?action=evaluate')]
+        if show_submissions_number:
+            student_row.append(InlineKeyboardButton(text=str(len(student_assignment.submission_set.all())),
+                                                    url=f'{LOCALHOST_DOMAIN}{student_assignment.get_absolute_url()}'))
+        keyboard.row(*student_row)
+
+    keyboard.add(InlineKeyboardButton(text=f'{check_emoji} Показать посылки студентов',
+                                      callback_data=json.dumps({'type': 'prob_sett',
+                                                                'prob_id': problem.id,
+                                                                'cur_val': int(show_submissions_number)})))
+    keyboard.add(goback_button(goback_type='staff_back', to='contest', to_id=contest.id))
+    return keyboard, table_message_text
 
 
 # TODO:
-#  -1. Schedule editing if this week schedule was updated during this week
-#  0. check bot behavior if 2 schedule files podryad
+#  0. проверить, что будет при смене пароля через сайт (будет ли доступнен функционал?)
 #  1. Notification refs: SUBMISSION
 #  2. Webhook deletion on server stopping
 #  3. Submission deadline notification and connection with bot settings (user can set time interval for these type of notification)
@@ -123,7 +305,7 @@ def student_table_keyboard(table_type: str, contest_user: User, table_id: int = 
         table_title = [f'{contest_emoji} {course}']
         table_header = ['Разделы']
         table_message_text = f'Курс "{course}"'
-        back_btn = goback_button(goback_type='back', to='courses_list')
+        back_btn = goback_button(goback_type='back', to='courses')
     elif table_type == 'problems':
         contest = Contest.objects.get(pk=table_id)
         table_list = list([problem.problem, problem.score] for problem in
@@ -172,7 +354,7 @@ def problem_detail_keyboard(contest_user: User, problem_id: int):
                                                                                               'item': 'submissions',
                                                                                               'id': problem_id}))
     discussion_btn = InlineKeyboardButton(text=f'Обсуждение задачи ({comments_emoji} {problem_comments.count()})'
-                                          if problem_comments.count() != 0 else 'Обсуждение задачи',
+    if problem_comments.count() != 0 else 'Обсуждение задачи',
                                           url=f'{CONTEST_DOMAIN}{problem.get_absolute_url()}')
     back_btn = goback_button(goback_type='back', to='contest', to_id=problem.contest_id)
 
