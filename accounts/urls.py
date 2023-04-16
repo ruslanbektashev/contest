@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import include, path
 
 from accounts import views
 
@@ -20,8 +20,10 @@ urlpatterns = [
     ])),
     path('notification/', include([
         path('list', views.NotificationList.as_view(), name='notification-list'),
+        path('read', views.NotificationMarkAllAsRead.as_view(), name='notification-mark-all-as-read'),
+        path('delete', views.NotificationDeleteRead.as_view(), name='notification-mark-read-as-deleted'),
+        path('mark', views.NotificationMarkAsReadAPI.as_view(), name='api-notification-mark-as-read'),
     ])),
-    path('mark_notifications_as_read', views.mark_notifications_as_read, name='mark-notifications-as-read'),
     path('comment/', include([
         path('create', views.CommentCreate.as_view(), name='comment-create'),
         path('<int:pk>/', include([

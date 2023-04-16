@@ -9,33 +9,43 @@
 {% endblock breadcrumbs %}
 
 {% block main_content %}
-<legend>Оповещения</legend>
-<div class="contest-notification-list list-group mb-3" id="notifications">
+<legend>
+    <span class="d-flex flex-column flex-sm-row justify-content-between">
+        <span class="text-truncate">Оповещения</span>
+        <span class="d-flex justify-content-between gap-2">
+            <a class="btn btn-light" href="{% url 'accounts:notification-mark-all-as-read' %}"><i class="fa fa-check fa-fw"></i> Отметить все как прочитанные</a>
+            <button class="btn btn-light" type="button" data-bs-toggle="modal" data-bs-target="#deleteReadNotificationsModal"><span class="text-danger"><i class="fa fa-trash-o fa-fw"></i> Удалить все прочитанные</span></button>
+        </span>
+    </span>
+</legend>
+<div id="notifications" class="contest-notification-list list-group list-group-flush mb-3">
     {% if notifications %}
     {% now 'Y' as current_year %}
     {% for notification in notifications %}
-    <li class="contest-notification-list-item list-group-item d-flex {% if not notification.is_read %}bg-light" data-unread=true{% else %}"{% endif %} data-id={{ notification.id }}>
-    <span class="notification-body me-auto">
-        {% if notification.subject.username %}
-        <a href="{{ notification.subject.account.get_absolute_url }}">{{ notification.subject.account }}</a>
-        {% elif notification.subject %}
-        <a href="{{ notification.subject.get_absolute_url }}"> {{ notification.subject }}</a>
-        {% endif %}
-        {{ notification.action }}
-        {% if notification.object %}
-        <a href="{{ notification.object.get_absolute_url }}"> {{ notification.object }}</a>
-        {% endif %}
-        {% if notification.reference %}
-        / <a href="{{ notification.reference.get_absolute_url }}"> {{ notification.reference }}</a>
-        {% endif %}
-    </span>
-    <span class="text-muted text-end" style="width: 25%;">
-        {% if notification.date_created|date:'Y' == current_year %}
-        {{ notification.date_created|naturaltime_if_lt_week_ago:'j E в H:i' }}
-        {% else %}
-        {{ notification.date_created|naturaltime_if_lt_week_ago:'j E Y г. в H:i' }}
-        {% endif %}
-    </span>
+    <li class="contest-notification-list-item list-group-item d-flex flex-column flex-sm-row pb-3 {% if not notification.is_read %}bg-light" data-unread="true"{% else %}"{% endif %} data-id="{{ notification.id }}">
+        <span class="notification-body me-auto">
+            {% if notification.subject.username %}
+            <a href="{{ notification.subject.account.get_absolute_url }}">{{ notification.subject.account }}</a>
+            {% elif notification.subject %}
+            <a href="{{ notification.subject.get_absolute_url }}"> {{ notification.subject }}</a>
+            {% endif %}
+            {{ notification.action }}
+            {% if notification.object %}
+            <a href="{{ notification.object.get_absolute_url }}"> {{ notification.object }}</a>
+            {% endif %}
+            {% if notification.reference %}
+            / <a href="{{ notification.reference.get_absolute_url }}"> {{ notification.reference }}</a>
+            {% endif %}
+        </span>
+        <span class="text-muted text-end">
+            <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{ notification.date_created|date:'d E Y г. в H:i' }}">
+                {% if notification.date_created|date:'Y' == current_year %}
+                {{ notification.date_created|naturaltime_if_lt_week_ago:'j E' }}
+                {% else %}
+                {{ notification.date_created|naturaltime_if_lt_week_ago:'j E Y г.' }}
+                {% endif %}
+            </span>
+        </span>
     </li>
     {% endfor %}
     {% else %}
@@ -49,7 +59,23 @@
     <a class="contest-notification-list-more btn btn-link" href="?page={{ page_obj.next_page_number }}">еще</a>
 </div>
 {% endif %}
-
+<div class="modal fade" id="deleteReadNotificationsModal" data-bs-keyboard="false" tabindex="-1" aria-labelledby="deleteReadNotificationsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-4" id="deleteReadNotificationsModalLabel">Подтверждение</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                Вы точно хотите удалить все прочитанные оповещения?
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-danger" href="{% url 'accounts:notification-mark-read-as-deleted' %}">Удалить</a>
+                <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock main_content %}
 
 {% block main_scripts %}
@@ -65,13 +91,10 @@ let infiniteScroll = new InfiniteScroll('.contest-notification-list', {
 {% endif %}
 <script type="text/javascript" src="{% static 'contest/js/notifications.js' %}"></script>
 <script type="text/javascript">
-    document.addEventListener("DOMContentLoaded", function() {
-        const watcher = new ReadWatcher("{% url 'accounts:mark-notifications-as-read' %}");
-        if(parseInt('{% unread_notifications_count request.user %}') > 0) {
-            window.addEventListener('scroll', watcher, false);
-            document.getElementById('notifications').addEventListener('mouseover', watcher, false);
-            setTimeout(watcher.markNotificationsAsRead.bind(watcher), 1000);
-        }
-    });
+window.mark_notifications_as_read_url = "{% url 'accounts:api-notification-mark-as-read' %}";
+document.getElementById('notifications').addEventListener("mouseover", function(event) {
+    if (event.target.getAttribute('data-unread') === "true")
+        markNotificationAsRead(event.target);
+});
 </script>
 {% endblock main_scripts %}

@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'django.forms',
+    'rest_framework',
     'accounts',
     'contests',
     'schedule',
