@@ -87,6 +87,21 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
+function passTutorialStep(step_id, step, view) {
+    if (localStorage.getItem(step_id) !== '1') {
+        localStorage.setItem(step_id, '1');
+        let step_form = new FormData();
+        step_form.append('view', view);
+        step_form.append('step', step);
+        fetch("{% url 'support:api-tutorial-step-pass-create' %}", {
+            method: 'POST',
+            headers: {'X-CSRFToken': csrftoken},
+            mode: 'same-origin',
+            body: step_form
+        });
+    }
+}
+
 let driver = new Driver({
     overlayClickNext: true,
     allowClose: true,
@@ -99,33 +114,13 @@ let driver = new Driver({
     onHighlightStarted: function (element) {
         window.scroll(0, 0);
         let step_id = this.view + '/' + this.step;
-        if (localStorage.getItem(step_id) !== '1') {
-            localStorage.setItem(step_id, '1');
-            let step_form = new FormData();
-            step_form.append('csrfmiddlewaretoken', csrftoken);
-            step_form.append('view', this.view);
-            step_form.append('step', this.step);
-            fetch('/support/tutorial/step/pass/', {
-                method: 'POST',
-                body: step_form
-            });
-        }
+        passTutorialStep(step_id, this.step, this.view);
     },
     onReset: function (element) {
         let view = '{{ request.resolver_match.app_name }}:{{ request.resolver_match.url_name }}';
         let step = '__all__';
         let step_id = view + '/' + step;
-        if (localStorage.getItem(step_id) !== '1') {
-            localStorage.setItem(step_id, '1');
-            let step_form = new FormData();
-            step_form.append('csrfmiddlewaretoken', csrftoken);
-            step_form.append('view', view);
-            step_form.append('step', step);
-            fetch('/support/tutorial/step/pass/', {
-                method: 'POST',
-                body: step_form
-            });
-        }
+        passTutorialStep(step_id, step, view);
     }
 });
 
@@ -137,12 +132,15 @@ function startJourney() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", function(event) {
-    setTimeout(startJourney, 500);
+function fixMainContainerMinHeight() {
     let mainContainer = document.getElementById('contest_main');
     let mainNavBar = document.getElementById('contestNavBar');
     mainContainer.style.minHeight = (mainContainer.offsetHeight - mainNavBar.offsetHeight).toString() + "px";
+}
 
+document.addEventListener("DOMContentLoaded", function(event) {
+    setTimeout(startJourney, 500);
+    fixMainContainerMinHeight();
 });
 </script>
 {% block main_scripts %}{% endblock main_scripts %}

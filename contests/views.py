@@ -6,7 +6,8 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.text import get_text_list
-from django.views.generic import CreateView, DeleteView, DetailView, FormView, ListView, TemplateView, UpdateView, View
+from django.views.generic import (CreateView, DeleteView, DetailView, FormView, ListView, RedirectView, TemplateView,
+                                  UpdateView, View)
 from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
@@ -2404,8 +2405,10 @@ class SubmissionProgressAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMi
         return JsonResponse({'status': 'access_denied'})
 
 
-class SubmissionClearTaskAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
-    http_method_names = ['get']
+class SubmissionClearTask(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                          SingleObjectMixin, RedirectView):
+    model = Submission
+    pattern_name = 'contests:submission-detail'
     permission_required = 'contests.evaluate_submission'
 
     def has_ownership(self):
@@ -2418,20 +2421,11 @@ class SubmissionClearTaskAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrM
             self.object = self.get_object()
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
-    def http_method_not_allowed(self, request, *args, **kwargs):
-        return JsonResponse({'status': 'http_method_not_allowed'})
-
-    def get_object(self):
-        return Submission.objects.get(pk=self.kwargs.get('pk'))
-
     def get(self, request, *args, **kwargs):
         submission = self.get_object()
         submission.task_id = None
         submission.save()
-        return JsonResponse({'status': 'task_cleared'})
-
-    def handle_no_permission(self):
-        return JsonResponse({'status': 'access_denied'})
+        return super().get(request, *args, **kwargs)
 
 
 class SubmissionDelete(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):

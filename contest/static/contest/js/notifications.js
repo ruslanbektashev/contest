@@ -19,11 +19,11 @@ function markNotificationAsRead(notification_element) {
     notification_element.setAttribute('data-unread', "false");
     let notification_id = JSON.parse(notification_element.getAttribute('data-id'));
     let form_data = new FormData();
-    form_data.append('csrfmiddlewaretoken', csrftoken);
     form_data.append('unread_notifications_ids', notification_id);
     let options = {
         method: 'POST',
-        headers: {'ContentType': 'application/json'},
+        headers: {'ContentType': 'application/json', 'X-CSRFToken': csrftoken},
+        mode: 'same-origin',
         cache: 'no-store',
         body: form_data
     };

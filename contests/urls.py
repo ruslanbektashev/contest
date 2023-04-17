@@ -121,11 +121,10 @@ urlpatterns = [
         path('<int:pk>/', include([
             path('', views.SubmissionDetail.as_view(), name='submission-detail'),
             path('update', views.SubmissionUpdate.as_view(), name='submission-update'),
-            path('update', views.SubmissionUpdate.as_view(), name='submission-update'),
             path('delete', views.SubmissionDelete.as_view(), name='submission-delete'),
             path('evaluate', views.SubmissionEvaluateAPI.as_view(), name='api-submission-evaluate'),
             path('get/progress/<str:task_id>', views.SubmissionProgressAPI.as_view(), name='api-submission-get-progress'),
-            path('clear/task', views.SubmissionClearTaskAPI.as_view(), name='api-submission-clear-task'),
+            path('clear/task', views.SubmissionClearTask.as_view(), name='submission-clear-task'),
             path('moss', views.SubmissionMoss.as_view(), name='submission-moss'),
             path('download', views.SubmissionDownload.as_view(), name='submission-download'),
             path('attachment/<int:attachment_id>', views.SubmissionAttachment.as_view(), name='submission-attachment'),

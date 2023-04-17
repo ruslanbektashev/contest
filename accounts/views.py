@@ -557,7 +557,10 @@ class AnnouncementList(LoginRequiredMixin, ListView):
 
 class NotificationMarkAsReadAPI(APIView):
     def post(self, request, *args, **kwargs):
-        unread_notifications_ids = request.data.getlist('unread_notifications_ids', None)
+        if hasattr(request.data, 'getlist'):
+            unread_notifications_ids = request.data.getlist('unread_notifications_ids', None)
+        else:
+            unread_notifications_ids = request.data.get('unread_notifications_ids', None)
         if not unread_notifications_ids:
             return JsonResponse({'status': "Нет изменений"})
         unread_notifications = Notification.objects.filter(id__in=unread_notifications_ids, recipient=request.user)

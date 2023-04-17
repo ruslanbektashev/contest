@@ -37,7 +37,7 @@
         <span class="text-truncate">{{ submission.short_title }}</span>
         <span class="d-flex justify-content-between gap-1">
         {% if request.user.is_superuser and submission.task_id %}
-            <a href="{% url 'contests:api-submission-clear-task' submission.id %}" class="text-secondary" data-bs-toggle="tooltip" data-bs-placement="left" title="Стереть таску"><i class="fa fa-eraser fa-fw"></i></a>
+            <a href="{% url 'contests:submission-clear-task' submission.id %}" class="text-secondary" data-bs-toggle="tooltip" data-bs-placement="left" title="Стереть таску"><i class="fa fa-eraser fa-fw"></i></a>
         {% endif %}
         {% if submission.problem.type == 'Program' %}
         {% if perms.contests.moss_submission or request|has_leader_permission:submission.course %}

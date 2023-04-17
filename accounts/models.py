@@ -1,6 +1,5 @@
 import enum
 import json
-import math
 from statistics import mean
 
 from django.apps import apps
