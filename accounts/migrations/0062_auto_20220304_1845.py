@@ -22,5 +22,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(update_contenttypes, migrations.RunPython.noop)
+        migrations.RunPython(update_contenttypes, migrations.RunPython.noop, elidable=True)
     ]
