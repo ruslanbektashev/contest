@@ -1,6 +1,6 @@
 from django.urls import include, path
 
-from accounts import views
+from accounts import api, views
 
 app_name = 'accounts'
 
@@ -22,7 +22,6 @@ urlpatterns = [
         path('list', views.NotificationList.as_view(), name='notification-list'),
         path('read', views.NotificationMarkAllAsRead.as_view(), name='notification-mark-all-as-read'),
         path('delete', views.NotificationDeleteRead.as_view(), name='notification-mark-read-as-deleted'),
-        path('mark', views.NotificationMarkAsReadAPI.as_view(), name='api-notification-mark-as-read'),
     ])),
     path('comment/', include([
         path('create', views.CommentCreate.as_view(), name='comment-create'),
@@ -32,7 +31,6 @@ urlpatterns = [
             path('delete', views.CommentDelete.as_view(), name='comment-delete'),
         ])),
     ])),
-    path('mark_comments_as_read', views.mark_comments_as_read, name='mark-comments-as-read'),
     path('announcement/', include([
         path('create', views.AnnouncementCreate.as_view(), name='announcement-create'),
         path('<int:pk>/', include([
@@ -42,4 +40,9 @@ urlpatterns = [
         ])),
         path('list', views.AnnouncementList.as_view(), name='announcement-list'),
     ])),
+] + [
+    path('api/', include([
+        path('comments/mark', api.CommentMarkAsReadAPI.as_view(), name='api-comments-mark-as-read'),
+        path('notification/mark', api.NotificationMarkAsReadAPI.as_view(), name='api-notification-mark-as-read'),
+    ]))
 ]

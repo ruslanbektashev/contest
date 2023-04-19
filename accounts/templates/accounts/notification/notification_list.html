@@ -22,7 +22,7 @@
     {% if notifications %}
     {% now 'Y' as current_year %}
     {% for notification in notifications %}
-    <li class="contest-notification-list-item list-group-item d-flex flex-column flex-sm-row pb-3 {% if not notification.is_read %}bg-light" data-unread="true"{% else %}"{% endif %} data-id="{{ notification.id }}">
+    <li class="contest-notification-list-item list-group-item d-flex flex-column flex-sm-row pb-3 {% if not notification.is_read %}bg-light" data-unread=true{% else %}"{% endif %} data-id="{{ notification.id }}">
         <span class="notification-body me-auto">
             {% if notification.subject.username %}
             <a href="{{ notification.subject.account.get_absolute_url }}">{{ notification.subject.account }}</a>
@@ -49,9 +49,7 @@
     </li>
     {% endfor %}
     {% else %}
-    <div class="alert alert-info mb-3" role="alert">
-        Оповещений нет
-    </div>
+    <div class="alert alert-info mb-3" role="alert">Оповещений нет</div>
     {% endif %}
 </div>
 {% if page_obj.has_next %}
@@ -91,10 +89,11 @@ let infiniteScroll = new InfiniteScroll('.contest-notification-list', {
 {% endif %}
 <script type="text/javascript" src="{% static 'contest/js/notifications.js' %}"></script>
 <script type="text/javascript">
-window.mark_notifications_as_read_url = "{% url 'accounts:api-notification-mark-as-read' %}";
 document.getElementById('notifications').addEventListener("mouseover", function(event) {
-    if (event.target.getAttribute('data-unread') === "true")
-        markNotificationAsRead(event.target);
+    if (event.target.getAttribute('data-unread') === "true") {
+        event.target.setAttribute('data-unread', "false");
+        markNotificationsAsRead("{% url 'accounts:api-notification-mark-as-read' %}", [event.target]);
+    }
 });
 </script>
 {% endblock main_scripts %}

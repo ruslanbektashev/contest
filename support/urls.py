@@ -1,6 +1,6 @@
-from django.urls import path, include
+from django.urls import include, path
 
-from support import views
+from support import api, views
 
 app_name = 'support'
 
@@ -27,6 +27,8 @@ urlpatterns = [
     path('discussion/<int:pk>/', views.DiscussionDetail.as_view(), name='discussion-detail'),
     path('change/list', views.ChangeList.as_view(), name='change-list'),
     path('tutorial/reset/<str:view>/', views.TutorialReset.as_view(), name='tutorial-reset'),
-    path('tutorial/step/pass/', views.TutorialStepPassCreateAPI.as_view(), name='api-tutorial-step-pass-create'),
-    path('tutorial/reset/<int:user_id>/<str:view>/', views.TutorialResetAPI.as_view(), name='api-tutorial-reset')
+] + [
+    path('api/', include([
+        path('tutorial/step/pass/', api.TutorialStepPassCreateAPI.as_view(), name='api-tutorial-step-pass-create')
+    ]))
 ]

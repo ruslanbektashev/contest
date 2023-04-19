@@ -1,22 +1,18 @@
-import json
-
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.forms import modelformset_factory
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import date
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from django.utils.text import get_text_list
-from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (CreateView, DeleteView, DetailView, FormView, ListView, RedirectView, TemplateView,
                                   UpdateView)
 from markdown import markdown
-from rest_framework.views import APIView
 
 from accounts.forms import (AccountListForm, AccountPartialForm, AccountSetForm, AnnouncementForm, CommentForm,
                             StaffForm, StudentForm)
@@ -84,21 +80,6 @@ def get_year_month_submissions_solutions_comments_count_list(user, year):
             Comment.objects.filter(author=user, date_created__year=day.year, date_created__month=day.month).count(),
         ))
     return result
-
-
-@csrf_exempt
-def mark_comments_as_read(request):
-    account = request.user.account
-    try:
-        data = json.loads(request.body.decode('utf-8'))
-    except:
-        return JsonResponse({'status': 'bad_request'})
-    unread_comments_ids = data.get('unread_comments_ids', None)
-    if unread_comments_ids:
-        unread_comments = Comment.objects.filter(id__in=unread_comments_ids).exclude(author=request.user)
-        unread_comments = unread_comments.exclude(id__in=account.comments_read.values_list('id', flat=True))
-        account.mark_comments_as_read(unread_comments)
-    return JsonResponse({'status': 'ok'})
 
 
 class AccountDetail(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, DetailView):
@@ -553,19 +534,6 @@ class AnnouncementList(LoginRequiredMixin, ListView):
 
 
 """================================================== Notification =================================================="""
-
-
-class NotificationMarkAsReadAPI(APIView):
-    def post(self, request, *args, **kwargs):
-        if hasattr(request.data, 'getlist'):
-            unread_notifications_ids = request.data.getlist('unread_notifications_ids', None)
-        else:
-            unread_notifications_ids = request.data.get('unread_notifications_ids', None)
-        if not unread_notifications_ids:
-            return JsonResponse({'status': "Нет изменений"})
-        unread_notifications = Notification.objects.filter(id__in=unread_notifications_ids, recipient=request.user)
-        unread_notifications.mark_as_read()
-        return JsonResponse({'status': "OK"})
 
 
 class NotificationMarkAllAsRead(LoginRequiredMixin, RedirectView):
