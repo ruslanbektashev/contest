@@ -100,17 +100,10 @@ USE_L10N = True
 
 USE_TZ = True
 
-CONTEST_DOMAIN = 'contest.msu.uz'
-
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
-CELERY_RESULT_BACKEND = 'db+mysql://celery:celery@localhost/celery'
-CELERY_RESULT_ACCEPT_CONTENT = ['json']
-CELERY_DATABASE_SHORT_LIVED_SESSIONS = True
-CELERY_TASK_TRACK_STARTED = True
 
 FILE_UPLOAD_PERMISSIONS = 0o640
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 1500
@@ -130,5 +123,19 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'contest/static/'),
 ]
 
+CELERY_RESULT_BACKEND = 'db+mysql://celery:celery@localhost/celery'
+CELERY_RESULT_ACCEPT_CONTENT = ['json']
+CELERY_DATABASE_SHORT_LIVED_SESSIONS = True
+CELERY_TASK_TRACK_STARTED = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+}
+
+CONTEST_DOMAIN = 'contest.msu.uz'
+
+# TODO: namespace settings below
 BOT_TOKEN = ''
 SCHEDULE_CHANNELS_IDS = [-1001826803315]
