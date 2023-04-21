@@ -23,7 +23,7 @@ class TelegramUserSettings(models.Model):
     schedules = models.BooleanField(verbose_name='Оповещения о расписании', default=False)
     deadlines = models.BooleanField(verbose_name='Оповещения о дедлайнах', default=False)
     deadlines_interval = models.IntegerField(verbose_name='Интервал оповещения о дедлайнах', default=1)
-    submissions_creation = models.BooleanField(verbose_name='Оповещения об отправляемых посылках', default=False)
+    submissions = models.BooleanField(verbose_name='Оповещения об отправляемых посылках', default=False)
     submissions_mark = models.BooleanField(verbose_name='Оповещения об оценке за посылки', default=True)
     assignments_mark = models.BooleanField(verbose_name='Оповещения об оценке за задачи', default=True)
     courses_mark = models.BooleanField(verbose_name='Оповещения об оценке за курс', default=True)
