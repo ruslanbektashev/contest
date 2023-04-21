@@ -14,10 +14,14 @@ selection_emoji = emojize(':blue_square:')
 
 checked_emoji = emojize(':check_mark_button:')
 unchecked_emoji = emojize(':green_square:')
+cross_emoji = emojize(":cross_mark:")
 
 comments_emoji = emojize(':speech_balloon:')
 users_emoji = emojize(":bust_in_silhouette:")
 problems_emoji = emojize(":bar_chart:")
+
+hourglass_emoji = emojize(":hourglass_done:")
+
 submission_status_emojis = {
     'OK': emojize(":green_circle:"),
     'PS': emojize(":green_circle:"),
@@ -39,6 +43,6 @@ submission_status_emojis = {
     'UN': emojize(":white_circle:"),
 }
 marks_emojis = {
-    True: emojize(":check_mark_button:"),
-    False: emojize(":cross_mark:"),
+    True: checked_emoji,
+    False: cross_emoji,
 }
