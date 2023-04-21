@@ -1,9 +1,8 @@
 import json
 import re
 
+from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-
-
 from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
 
 
@@ -22,6 +21,28 @@ def get_contest_user_by_tg_id(chat_id: int):
         return None
 
 
+def get_user_assignments(user: User, course_id: int = None, contest_id: int = None, problem_id: int = None):
+    from contests.models import Assignment
+    user_assignment = Assignment.objects.filter(user=user)
+    if course_id is None and contest_id is None and problem_id is None:
+        return user_assignment
+    if problem_id is not None:
+        return user_assignment.get(problem_id=problem_id)
+    if course_id is not None:
+        return user_assignment.filter(problem__contest__course_id=course_id)
+    if contest_id is not None:
+        return user_assignment.filter(problem__contest_id=contest_id)
+
+
+def get_user_submission_set_of_problem(user: User, problem_id: int):
+    return get_user_assignments(user=user, problem_id=problem_id).submission_set.all()
+
+
+def check_submission_limit_excess(user: User, problem_id: int):
+    return len(get_user_submission_set_of_problem(user=user, problem_id=problem_id)) == \
+           get_user_assignments(user=user, problem_id=problem_id).submission_limit
+
+
 def notify_tg_users(notification):
     print(type(notification.object))
     contest_recipient = notification.recipient
@@ -35,8 +56,11 @@ def notify_tg_users(notification):
     if 'оценку' in notification.action:
         notification_obj_type += '_mark'
 
-    if not getattr(contest_recipient_settings, notification_obj_type):
-        return
+    try:
+        if not getattr(contest_recipient_settings, notification_obj_type):
+            return
+    except AttributeError:
+        pass
 
     notification_msg = f'{notification.subject.account} {notification.action} <b>{notification_obj}</b> ' \
                        f'{notification.relation if notification.relation is not None else ""} ' \
@@ -104,6 +128,23 @@ def create_file_from_bytes(file_bytes: bytes, filename: str):
         new_file.write(file_bytes)
 
 
+def filesize_to_text(filesize_in_bytes: int):
+    if filesize_in_bytes < 1024:
+        size_coeff = 1
+        size_word = 'Б'
+    elif 1024 <= filesize_in_bytes < (1024 * 1024):
+        size_coeff = 1024
+        size_word = 'КБ'
+    else:
+        size_coeff = 1024 * 1024
+        size_word = 'МБ'
+    return f'{(filesize_in_bytes / size_coeff):.2f}' + ' ' + size_word
+
+
+def file_extension(filename: str):
+    return '.' + filename.split('.')[1]
+
+
 def is_schedule_file(filename: str):
     return re.search('([Р-р]асписание)|((?:[Я-я]нв(ар)*|[Ф-ф]евр*(ал)*|[А-а]пр(ел)*|[И-и]юн|[И-и]юл|[С-с]ент*(ябр)*|[О-о]кт(ябр)*|[Н-н]оя(бр)*|[Д-д]ек(абр)*)[ь-я]*)|([М-м]ар(та*)*)|([М-м]а[й-я])', filename)
 
@@ -126,10 +167,6 @@ def get_course_label(pdf_content: str):
             magistracy_label += ' МО'
         magistracy_label += f' {magistracy_part}'
         return magistracy_label
-
-
-def file_extension(filename: str):
-    return filename.split('.')[1]
 
 
 def is_excel_file(filename: str):

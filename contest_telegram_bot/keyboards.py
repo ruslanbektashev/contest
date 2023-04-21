@@ -7,10 +7,10 @@ from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardBut
 
 from accounts.models import Account, Comment
 from contest.common_settings import CONTEST_DOMAIN
-from contest.settings import LOCALHOST_DOMAIN
 from contest_telegram_bot.constants import courses_emoji, contest_emoji, user_settings_emoji, \
     logout_btn_text, problem_emoji, submission_status_emojis, login_btn_text, help_btn_text, send_emoji, comments_emoji, \
-    marks_emojis, problems_emoji, users_emoji, down_arrow_emoji, selection_emoji, checked_emoji, unchecked_emoji
+    marks_emojis, problems_emoji, users_emoji, down_arrow_emoji, selection_emoji, checked_emoji, unchecked_emoji, \
+    cross_emoji, hourglass_emoji
 from contest_telegram_bot.models import TelegramUserSettings
 from contests.models import Course, Contest, Problem, Assignment, Submission, Credit
 from schedule.models import Schedule
@@ -73,7 +73,7 @@ def settings_keyboard(contest_user: User):
     exclude = []
     meta = user_settings._meta
     if not (contest_user.is_staff or contest_user.is_superuser):
-        exclude = ['questions', 'reports', 'submissions_creation']
+        exclude = ['questions', 'reports', 'submissions']
         goback_type = 'back'
     else:
         goback_type = 'staff_back'
@@ -181,10 +181,10 @@ def staff_course_student_menu_keyboard(course_id: int, student_id: int, show_sub
                                                                           'to': 'problem',
                                                                           'id': problem.id})),
                            score_button(score=problem_assignment.score,
-                                        btn_url=f'{LOCALHOST_DOMAIN}{problem_assignment.get_absolute_url()}update?action=evaluate')]
+                                        btn_url=f'{CONTEST_DOMAIN}{problem_assignment.get_absolute_url()}update?action=evaluate')]
             if show_submissions_number:
                 problem_row.append(InlineKeyboardButton(text=str(len(problem_assignment.submission_set.all())),
-                                                        url=f'{LOCALHOST_DOMAIN}{problem_assignment.get_absolute_url()}',
+                                                        url=f'{CONTEST_DOMAIN}{problem_assignment.get_absolute_url()}',
                                                         callback_data=json.dumps({'type': 'none'})))
             keyboard.row(*problem_row)
 
@@ -196,8 +196,6 @@ def staff_course_student_menu_keyboard(course_id: int, student_id: int, show_sub
     keyboard.add(goback_button(goback_type='staff_back', to='course_students', to_id=course_id))
     return keyboard, table_message_text
 
-
-# TODO: заменить LOCALHOST_DOMAIN на CONTEST_DOMAIN сразу же после показа 15.04.2023!
 
 def staff_course_contests_keyboard(course_id: int):
     keyboard = InlineKeyboardMarkup(row_width=1)
@@ -264,10 +262,10 @@ def staff_problem_menu_keyboard(problem_id: int, show_submissions_number=True):
                                                                       'crs_id': course.id,
                                                                       'stu_id': student.user.id})),
                        score_button(score=student_assignment.score,
-                                    btn_url=f'{LOCALHOST_DOMAIN}{student_assignment.get_absolute_url()}update?action=evaluate')]
+                                    btn_url=f'{CONTEST_DOMAIN}{student_assignment.get_absolute_url()}update?action=evaluate')]
         if show_submissions_number:
             student_row.append(InlineKeyboardButton(text=str(len(student_assignment.submission_set.all())),
-                                                    url=f'{LOCALHOST_DOMAIN}{student_assignment.get_absolute_url()}'))
+                                                    url=f'{CONTEST_DOMAIN}{student_assignment.get_absolute_url()}'))
         keyboard.row(*student_row)
 
     keyboard.add(InlineKeyboardButton(text=f'{check_emoji} Показать посылки студентов',
@@ -279,9 +277,10 @@ def staff_problem_menu_keyboard(problem_id: int, show_submissions_number=True):
 
 
 # TODO:
+#  -2. что-то сделать с описанием задачи
 #  -1. поддержка отображения расписания в формате PDF прямо на сайте
 #  0. проверить, что будет при смене пароля через сайт (будет ли доступнен функционал?)
-#  1. Notification refs: SUBMISSION
+#  1. problems list keyboard paginator
 #  2. Webhook deletion on server stopping
 #  3. Submission deadline notification and connection with bot settings (user can set time interval for these type of notification)
 #  5. List of contests (list(set) is ugly)
@@ -356,16 +355,17 @@ def problem_detail_keyboard(contest_user: User, problem_id: int):
                                                                                               'item': 'submissions',
                                                                                               'id': problem_id}))
     discussion_btn = InlineKeyboardButton(text=f'Обсуждение задачи ({comments_emoji} {problem_comments.count()})'
-    if problem_comments.count() != 0 else 'Обсуждение задачи',
-                                          url=f'{CONTEST_DOMAIN}{problem.get_absolute_url()}')
+                                          if problem_comments.count() != 0 else 'Обсуждение задачи',
+                                          url=f'{CONTEST_DOMAIN}{problem.get_absolute_url()}discussion')
     back_btn = goback_button(goback_type='back', to='contest', to_id=problem.contest_id)
 
     none_type_row(keyboard, header)
+
     keyboard.add(description_btn, submissions_btn, discussion_btn)
-    if Assignment.objects.get(user=contest_user, problem=problem).credit_incomplete:
+    if Assignment.objects.get(user=contest_user, problem=problem).credit_incomplete and problem.type in ['Files', 'Verbal']:
         keyboard.add(
             InlineKeyboardButton(text=f'{send_emoji} Отправить решение', callback_data=json.dumps({'type': 'submission',
-                                                                                                   'action': 'create',
+                                                                                                   'sub_type': problem.type,
                                                                                                    'id': problem_id})))
     keyboard.add(back_btn)
     return keyboard, f'Задача "{problem}"'
@@ -382,7 +382,7 @@ def submissions_list_keyboard(contest_user: User, problem_id: int):
     locale.setlocale(locale.LC_TIME, "Russian")
     for submission in submissions_list:
         keyboard.row(InlineKeyboardButton(text=submission.date_created.strftime('%d %b %Y г. в %H:%M').lower(),
-                                          callback_data=json.dumps({'type': 'go', 'to': 'submission'})),
+                                          url=f'{CONTEST_DOMAIN}{submission.get_absolute_url()}'),
                      InlineKeyboardButton(text=f'{submission_status_emojis[submission.status]} {submission.status}',
                                           callback_data=json.dumps({'type': 'status',
                                                                     'status_obj_id': submission.id})))
@@ -391,10 +391,19 @@ def submissions_list_keyboard(contest_user: User, problem_id: int):
     return keyboard
 
 
-def submission_creation_keyboard(problem_id: int):
+def submission_cancel_keyboard(problem_id: int):
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(goback_button(goback_type='back', to='problem', to_id=problem_id))
     return keyboard
+
+
+def submission_creation_keyboard():
+    done_text = f'{checked_emoji} Готово'
+    cancel_text = f'{cross_emoji} Отмена'
+
+    keyboard = ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    keyboard.add(KeyboardButton(text=done_text), KeyboardButton(text=cancel_text))
+    return keyboard, done_text, cancel_text
 
 
 def notification_keyboard(obj):
@@ -417,7 +426,8 @@ def notification_keyboard(obj):
                                       url=f'{CONTEST_DOMAIN}{obj.get_absolute_url()}')
     elif isinstance(obj, Submission):
         # TODO: разделение на переход к посылке у преподавателей и у студентов
-        pass
+        button = InlineKeyboardButton(text='Перейти к посылке',
+                                      url=f'{CONTEST_DOMAIN}{obj.get_absolute_url()}')
     elif isinstance(obj, Schedule):
         button = InlineKeyboardButton(text='Перейти к расписанию',
                                       url=f'{CONTEST_DOMAIN}{obj.get_absolute_url()}')
@@ -426,3 +436,7 @@ def notification_keyboard(obj):
 
     keyboard.add(button)
     return keyboard
+
+
+def timer_keyboard():
+    return ReplyKeyboardMarkup(resize_keyboard=True, row_width=1).add(KeyboardButton(text=hourglass_emoji))
