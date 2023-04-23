@@ -523,6 +523,11 @@ def schedule_callback(message: Message):
                     os.remove(current_course_filename)
                 tmp_pdf_file.close()
             os.remove(schedule_filename)
+            if not same_schedule:
+                recipients = TelegramUser.objects.filter(contest_user__is_active=True,
+                                                         contest_user__is_superuser=False)
+                notify_all_specific_tg_users(notification_msg=f'{action} <b>расписание на {week} ({new_schedule})</b>',
+                                             tg_users=recipients, notification_obj=new_schedule)
 
         current_date = timezone.now()
         if 1 <= current_date.isocalendar()[2] <= 4:
@@ -536,24 +541,22 @@ def schedule_callback(message: Message):
             new_schedule = Schedule.objects.get(date_from=current_week_date_from(next_week=next_week),
                                                 date_to=current_week_date_to(next_week=next_week))
             schedule_update_time_passed = (timezone.now() - new_schedule.date_updated).seconds
+            action = 'Обновлено'
             if schedule_update_time_passed <= 40:
+                same_schedule = True
                 threading.Timer(40 - schedule_update_time_passed, create_schedule_files, [new_schedule]).start()
             else:
+                same_schedule = False
                 create_schedule_files(new_schedule)
-            action = 'Обновлено'
         except ObjectDoesNotExist:
-            new_schedule, _ = Schedule.objects.get_or_create(date_created=current_date, date_updated=current_date,
-                                                             date_from=current_week_date_from(next_week=next_week),
-                                                             date_to=current_week_date_to(next_week=next_week),
-                                                             owner=User.objects.get(username='telegram_bot'))
-            create_schedule_files(new_schedule)
+            new_schedule = Schedule.objects.create(date_created=current_date, date_updated=current_date,
+                                                   date_from=current_week_date_from(next_week=next_week),
+                                                   date_to=current_week_date_to(next_week=next_week),
+                                                   owner=User.objects.get(username='telegram_bot'))
+            new_schedule = Schedule.objects.get(pk=new_schedule.id)
+            same_schedule = False
             action = 'Добавлено'
-
-        recipients = TelegramUser.objects.filter(contest_user__is_active=True,
-                                                 contest_user__is_staff=False,
-                                                 contest_user__is_superuser=False)
-        notify_all_specific_tg_users(notification_msg=f'{action} <b>расписание на {week} ({new_schedule})</b>',
-                                     tg_users=recipients, notification_obj=new_schedule)
+            create_schedule_files(new_schedule)
 
 
 @tbot.message_handler(func=lambda message: message.text == '1')
