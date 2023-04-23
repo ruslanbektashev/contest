@@ -551,7 +551,7 @@ class Problem(SoftDeletionModel, CRUDEntry):
             self.is_testable = False
         super().save(*args, **kwargs)
 
-    def get_assignment_score(self, submission):
+    def get_score(self, submission):
         if self.type == 'Program':
             score = 2
             if submission.is_ok:
@@ -943,13 +943,12 @@ class Assignment(CRUDEntry):
     def get_latest_submission(self):
         return self.problem.get_latest_submission_by(self.user)
 
-    def update(self, submission):
-        if self.score_is_locked:
-            return
-        score = self.problem.get_assignment_score(submission)
-        if self.score < score:
-            self.score = min(score, self.score_max)
-            self.save()
+    def update_score(self, submission):
+        if not self.score_is_locked:
+            score = self.problem.get_score(submission)
+            if self.score < score:
+                self.score = min(score, self.score_max)
+                self.save(update_fields=['score'])
 
     def get_discussion_url(self):
         return reverse('contests:assignment-discussion', kwargs={'pk': self.pk})
@@ -1132,24 +1131,30 @@ class Submission(CRDEntry):
 
     def update_assignment(self):
         if self.assignment is not None:
-            self.assignment.update(self)
+            self.assignment.update_score(self)
 
-    def update_test_score(self):
+    def update_main_score(self):
         max_score = sum(self.problem.sub_problems.values_list('score_max', flat=True))
-        scores_sum = sum(self.sub_submissions.values_list('score', flat=True))
-        self.score = scores_sum * self.problem.score_max // max_score
-        self.save(update_fields=['score'])
+        score_sum = sum(self.sub_submissions.values_list('score', flat=True))
+        self.score = score_sum * self.problem.score_max // max_score
 
-    def update_test_status(self):
-        statuses = (choice[0] for choice in self.STATUS_CHOICES)
+    def update_main_status(self):
+        statuses = list(choice for choice, _ in self.STATUS_CHOICES)
         acquired_statuses = set(self.sub_submissions.values_list('status', flat=True))
-        for status in statuses:
+        for status in reversed(statuses):
             if status in acquired_statuses:
                 self.status = status
-                self.save(update_fields=['status'])
-                return
+                break
+        if self.is_un:
+            score = self.problem.get_score(self)
+            if score == 5:
+                self.status = 'OK'
+            elif score == 4:
+                self.status = 'PS'
+            elif score <= 3:
+                self.status = 'WA'
 
-    def update_options_score(self):
+    def evaluate_options(self):
         correct_option_ids = set(self.problem.option_set.filter(is_correct=True).values_list('id', flat=True))
         chosen_option_ids = set(self.options.values_list('id', flat=True))
         if chosen_option_ids == correct_option_ids:
@@ -1158,7 +1163,6 @@ class Submission(CRDEntry):
         else:
             self.score = 0
             self.status = 'WA'
-        self.save(update_fields=['score', 'status'])
 
     def get_discussion_url(self):
         return self.get_absolute_url()
@@ -1168,14 +1172,20 @@ class Submission(CRDEntry):
             self.footprint = "[]"
         created = self._state.adding
         super().save(*args, **kwargs)
-        if created and self.problem.type in ['Program'] or not created:
-            self.update_assignment()
-        if created and self.main_submission is None:
+        if created and self.problem.type == 'Options':
+            self.evaluate_options()
+            super().save(update_fields=['status', 'score'])
+        if self.main_submission is not None:
+            self.main_submission.update_main_score()
+            self.main_submission.update_main_status()
+            self.main_submission.save(update_fields=['status', 'score'])
+        elif created:
             course_leaders = self.course.leaders.filter(Q(account__faculty=self.owner.account.faculty) |
                                                         Q(account__faculty__short_name="МФК"))
             course_leaders = course_leaders.values_list('id', flat=True)
             Notification.objects.notify(course_leaders, subject=self.owner, action="отправил посылку", object=self,
                                         relation="к задаче", reference=self.problem)
+        self.update_assignment()
 
     def __str__(self):
         return f"Посылка от {self.owner.account.get_short_name()} к задаче {self.problem}"

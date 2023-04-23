@@ -214,7 +214,7 @@ def get_submission_score_percentage(submission, request):
 def get_submission_style(submission, request):
     status = get_submission_status(submission, request)
     if status == 'UN':
-        return 'info'
+        return 'default'
     return colorize(status)
 
 

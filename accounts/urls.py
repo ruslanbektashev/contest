@@ -42,7 +42,7 @@ urlpatterns = [
     ])),
 ] + [
     path('api/', include([
-        path('comments/mark', api.CommentMarkAsReadAPI.as_view(), name='api-comments-mark-as-read'),
+        path('comment/mark', api.CommentMarkAsReadAPI.as_view(), name='api-comment-mark-as-read'),
         path('notification/mark', api.NotificationMarkAsReadAPI.as_view(), name='api-notification-mark-as-read'),
     ]))
 ]

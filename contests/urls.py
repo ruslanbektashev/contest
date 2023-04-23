@@ -1,6 +1,6 @@
 from django.urls import include, path
 
-from contests import views
+from contests import api, views
 
 app_name = 'contests'
 
@@ -116,14 +116,11 @@ urlpatterns = [
     path('course/<int:course_id>/submission/backup', views.SubmissionBackup.as_view(), name='submission-backup'),
     path('problem/<int:problem_id>/submission/create', views.SubmissionCreate.as_view(), name='submission-create'),
     path('problem/<int:problem_id>/submission/<int:submission_id>', views.SubmissionCreate.as_view(), name='sub-submission-create'),
-    path('api/submission/<int:pk>/update', views.SubmissionUpdateAPI.as_view(), name='api-submission-update'),
     path('submission/', include([
         path('<int:pk>/', include([
             path('', views.SubmissionDetail.as_view(), name='submission-detail'),
             path('update', views.SubmissionUpdate.as_view(), name='submission-update'),
             path('delete', views.SubmissionDelete.as_view(), name='submission-delete'),
-            path('evaluate', views.SubmissionEvaluateAPI.as_view(), name='api-submission-evaluate'),
-            path('get/progress/<str:task_id>', views.SubmissionProgressAPI.as_view(), name='api-submission-get-progress'),
             path('clear/task', views.SubmissionClearTask.as_view(), name='submission-clear-task'),
             path('moss', views.SubmissionMoss.as_view(), name='submission-moss'),
             path('download', views.SubmissionDownload.as_view(), name='submission-download'),
@@ -132,4 +129,12 @@ urlpatterns = [
         ])),
         path('list', views.SubmissionList.as_view(), name='submission-list'),
     ])),
+] + [
+    path('api/', include([
+        path('submission/<int:pk>/', include([
+            path('update', api.SubmissionUpdateAPI.as_view(), name='api-submission-update'),
+            path('evaluate', api.SubmissionEvaluateAPI.as_view(), name='api-submission-evaluate'),
+            path('progress/<str:task_id>', api.SubmissionProgressAPI.as_view(), name='api-submission-get-progress'),
+        ]))
+    ]))
 ]

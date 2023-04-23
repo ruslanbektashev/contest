@@ -1,7 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.forms.models import inlineformset_factory, modelformset_factory
-from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -9,7 +9,6 @@ from django.utils.text import get_text_list
 from django.views.generic import (CreateView, DeleteView, DetailView, FormView, ListView, RedirectView, TemplateView,
                                   UpdateView, View)
 from django.views.generic.detail import BaseDetailView, SingleObjectMixin
-from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 
 from accounts.models import Account, Action, Announcement, Faculty, Notification
@@ -27,9 +26,7 @@ from contests.forms import (AssignmentEvaluateForm, AssignmentForm, AssignmentSe
                             SubmissionTextForm, SubmissionUpdateForm, SubmissionVerbalForm, SubProblemForm, UTTestForm)
 from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, Execution,
                              Filter, FNTest, IOTest, Option, Problem, Submission, SubmissionPattern, SubProblem, UTTest)
-from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
-from contests.templatetags.contests import colorize
 from contests.templatetags.views import get_query_string, has_leader_permission
 from schedule.models import Schedule
 
@@ -2091,8 +2088,6 @@ class SubmissionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
             task = evaluate_submission.delay(self.object.pk, self.request.user.id)
             self.object.task_id = task.id
             self.object.save()
-        if self.object.problem.type == 'Options':
-            self.object.update_options_score()
         return HttpResponseRedirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
@@ -2162,61 +2157,6 @@ class SubmissionUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         return success_url
 
 
-class SubmissionUpdateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
-                          BaseUpdateView):
-    model = Submission
-    form_class = SubmissionUpdateForm
-    http_method_names = ['post']
-    permission_required = 'contests.change_submission'
-
-    def http_method_not_allowed(self, request, *args, **kwargs):
-        return JsonResponse({'status': 'http_method_not_allowed'})
-
-    def has_ownership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.course.owner_id == self.request.user.id
-
-    def has_leadership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.course.leaders.filter(id=self.request.user.id).exists()
-
-    def form_valid(self, form):
-        self.object = form.save()
-        response = {
-            'status': 'ok',
-            'updated': [
-                {
-                    'id': self.object.id,
-                    'status': self.object.status,
-                    'status_display': self.object.get_status_display(),
-                    'score': self.object.score,
-                    'score_percentage': self.object.get_score_percentage(),
-                    'color': colorize(self.object.status)
-                }
-            ]
-        }
-        if self.object.main_submission is not None:
-            response['updated'].append({
-                'id': self.object.main_submission.id,
-                'status': self.object.main_submission.status,
-                'status_display': self.object.main_submission.get_status_display(),
-                'score': self.object.main_submission.score,
-                'score_percentage': self.object.main_submission.get_score_percentage(),
-                'color': colorize(self.object.main_submission.status)
-            })
-        Notification.objects.notify(self.object.owner, subject=self.request.user, action="изменил оценку Вашей посылки",
-                                    object=self.object, relation="из раздела", reference=self.object.contest)
-        return JsonResponse(response)
-
-    def form_invalid(self, form):
-        return JsonResponse({'status': 'form_errors', 'errors': form.errors})
-
-    def handle_no_permission(self):
-        return JsonResponse({'status': 'access_denied'})
-
-
 class SubmissionMoss(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
                      SingleObjectMixin, FormView):
     model = Submission
@@ -2261,76 +2201,6 @@ class SubmissionMoss(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Pe
 
     def get_success_url(self):
         return reverse('contests:submission-detail', kwargs={'pk': self.kwargs['pk']})
-
-
-class SubmissionEvaluateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
-    http_method_names = ['get']
-    permission_required = 'contests.evaluate_submission'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        self.storage['sandbox_type'] = request.GET.get('sandbox', 'subprocess')
-        return super().dispatch(request, *args, **kwargs)
-
-    def has_ownership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.owner_id == self.request.user.id
-
-    def has_leadership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.course.leaders.filter(id=self.request.user.id).exists()
-
-    def http_method_not_allowed(self, request, *args, **kwargs):
-        return JsonResponse({'status': 'http_method_not_allowed'})
-
-    def get_object(self):
-        return Submission.objects.get(pk=self.kwargs.get('pk'))
-
-    def get(self, request, *args, **kwargs):
-        submission = self.get_object()
-        if submission.problem.type == 'Program' and submission.problem.is_testable:
-            task = evaluate_submission.delay(submission.pk, request.user.id, **self.storage)
-            submission.task_id = task.id
-            submission.save()
-            return JsonResponse({'status': 'task_queued', 'task_id': task.id})
-        return JsonResponse({'status': 'ignored'})
-
-    def handle_no_permission(self):
-        return JsonResponse({'status': 'access_denied'})
-
-
-class SubmissionProgressAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
-    http_method_names = ['get']
-    permission_required = 'contests.evaluate_submission'
-
-    def has_ownership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.owner_id == self.request.user.id
-
-    def has_leadership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.course.leaders.filter(id=self.request.user.id).exists()
-
-    def http_method_not_allowed(self, request, *args, **kwargs):
-        return JsonResponse({'status': 'http_method_not_allowed'})
-
-    def get_object(self):
-        return Submission.objects.get(pk=self.kwargs.get('pk'))
-
-    def get(self, request, *args, **kwargs):
-        task_id = self.kwargs.get('task_id')
-        progress = TaskProgress(task_id)
-        return JsonResponse(progress.get_info())
-
-    def handle_no_permission(self):
-        return JsonResponse({'status': 'access_denied'})
 
 
 class SubmissionClearTask(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,

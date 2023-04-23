@@ -77,7 +77,7 @@ function pollCommentsReadWatcher() {
     if (comments_read_watcher.unread_comment_elements.length > 0) {
         let unread_comment_elements = [...comments_read_watcher.unread_comment_elements];
         comments_read_watcher.unread_comment_elements = [];
-        markCommentsAsRead("{% url 'accounts:api-comments-mark-as-read' %}", unread_comment_elements);
+        markCommentsAsRead("{% url 'accounts:api-comment-mark-as-read' %}", unread_comment_elements);
     }
 }
 

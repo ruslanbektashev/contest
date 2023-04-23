@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
+from django.core.validators import EMPTY_VALUES
 from django.template.defaultfilters import date, filesizeformat
 from django.utils import timezone
 
@@ -846,9 +847,17 @@ class SubmissionUpdateForm(forms.ModelForm):
                 ('UN', "Посылка не проверена")
             ]
 
+    def clean_status(self):
+        status = self.cleaned_data['status']
+        if status in EMPTY_VALUES:
+            raise ValidationError("Это поле обязательно", code='required')
+        return status
+
     def clean_score(self):
         score = self.cleaned_data['score']
-        if score is not None and score > self.instance.problem.score_max:
+        if score in EMPTY_VALUES:
+            raise ValidationError("Это поле обязательно", code='required')
+        if score > self.instance.problem.score_max:
             raise ValidationError("Оценка не может превышать максимальную оценку этой задачи",
                                   code='score_exceeds_problem_score_max')
         return score
@@ -857,33 +866,6 @@ class SubmissionUpdateForm(forms.ModelForm):
         if self.instance.problem.type == 'Program' and self.instance.problem.is_testable:
             raise ValidationError("Посылки к этой задаче проверяются автоматически", code='problem_is_testable')
         return super().clean()
-
-    def save(self, commit=True):
-        instance = super().save(commit)
-        if 'status' in self.changed_data and 'score' not in self.changed_data:
-            status = self.cleaned_data['status']
-            if status == 'OK':
-                instance.score = instance.problem.score_max
-            elif status == 'WA':
-                instance.score = 0
-            instance = super().save(commit)
-        if 'score' in self.changed_data and 'status' not in self.changed_data:
-            score = self.cleaned_data['score']
-            if score >= instance.problem.score_for_5:
-                instance.status = 'OK'
-            elif score >= instance.problem.score_for_3:
-                instance.status = 'PS'
-            else:
-                instance.status = 'WA'
-            instance = super().save(commit)
-        if instance.main_submission is not None:
-            if 'status' in self.changed_data:
-                instance.main_submission.update_test_status()
-                instance.main_submission.update_test_score()
-            if 'score' in self.changed_data:
-                instance.main_submission.update_test_score()
-                instance.main_submission.update_test_status()
-        return super().save(commit)
 
 
 class ToSubmissionsChoiceField(forms.ModelMultipleChoiceField):
