@@ -12,6 +12,7 @@ from contest_telegram_bot.constants import courses_emoji, contest_emoji, user_se
     marks_emojis, problems_emoji, users_emoji, down_arrow_emoji, selection_emoji, checked_emoji, unchecked_emoji, \
     cross_emoji, hourglass_emoji
 from contest_telegram_bot.models import TelegramUserSettings
+from contest_telegram_bot.utils import get_user_assignments
 from contests.models import Course, Contest, Problem, Assignment, Submission, Credit
 from schedule.models import Schedule
 from support.models import Question, Report
@@ -283,7 +284,6 @@ def staff_problem_menu_keyboard(problem_id: int, show_submissions_number=True):
 #  1. problems list keyboard paginator
 #  2. Webhook deletion on server stopping
 #  3. Submission deadline notification and connection with bot settings (user can set time interval for these type of notification)
-#  5. List of contests (list(set) is ugly)
 
 def student_table_keyboard(table_type: str, contest_user: User, table_id: int = None):
     keyboard = InlineKeyboardMarkup(row_width=1)
@@ -293,24 +293,23 @@ def student_table_keyboard(table_type: str, contest_user: User, table_id: int = 
     back_btn = None
     table_message_text = None
     if table_type == 'courses':
-        table_list = list([credit.course, credit.score] for credit in contest_user.credit_set.all())
+        table_list = Credit.objects.filter(user=contest_user)
         table_title = [f'{courses_emoji} Ваши курсы']
         table_header = ['Курс', 'Оценка']
         table_message_text = 'Ваши курсы'
         back_btn = None
     elif table_type == 'contests':
         course = Course.objects.get(pk=table_id)
-        table_list = list(set(assignment.contest for assignment in
-                              contest_user.assignment_set.filter(problem__contest__course_id=table_id)))
-        table_list.reverse()
+        table_list = Contest.objects.filter(pk__in=
+                                            get_user_assignments(user=contest_user,
+                                                                 course_id=table_id).values_list('problem__contest'))
         table_title = [f'{contest_emoji} {course}']
         table_header = ['Разделы']
         table_message_text = f'Курс "{course}"'
         back_btn = goback_button(goback_type='back', to='courses')
     elif table_type == 'problems':
         contest = Contest.objects.get(pk=table_id)
-        table_list = list([problem.problem, problem.score] for problem in
-                          contest_user.assignment_set.filter(problem__contest_id=table_id))
+        table_list = get_user_assignments(user=contest_user, contest_id=table_id)
         table_list.reverse()
         table_title = [f'{contest_emoji} {contest}']
         table_header = ['Задача', 'Оценка']
@@ -322,11 +321,17 @@ def student_table_keyboard(table_type: str, contest_user: User, table_id: int = 
     if len(table_list) == 0:
         none_type_row(keyboard, ['Заданий нет'])
 
-    if table_type in ['courses', 'problems']:
-        for table_obj, score in table_list:
+    if table_type == 'courses':
+        for table_obj in table_list:
             keyboard.row(
-                goback_button(goback_type='go', to=table_type[0:-1], to_id=table_obj.id, text=str(table_obj)),
-                score_button(score)
+                goback_button(goback_type='go', to=table_type[0:-1], to_id=table_obj.course.id, text=str(table_obj.course)),
+                score_button(table_obj.score)
+            )
+    elif table_type == 'problems':
+        for problem in table_list:
+            keyboard.row(
+                goback_button(goback_type='go', to=table_type[0:-1], to_id=problem.problem.id, text=str(problem.problem)),
+                score_button(problem.score)
             )
     else:
         for contest in table_list:
@@ -341,6 +346,8 @@ def student_table_keyboard(table_type: str, contest_user: User, table_id: int = 
     if back_btn is not None:
         keyboard.row(back_btn)
     return keyboard, table_message_text
+# TODO:
+#  student_table_keyboard разделить на разные функции
 
 
 def problem_detail_keyboard(contest_user: User, problem_id: int):
