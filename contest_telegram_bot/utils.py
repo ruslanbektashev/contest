@@ -164,7 +164,7 @@ def file_chunk_size(filesize: int):
 
 
 def file_extension(filename: str):
-    return '.' + filename.split('.')[1]
+    return '.' + filename.split('.')[-1]
 
 
 def is_schedule_file(filename: str):
