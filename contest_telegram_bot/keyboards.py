@@ -310,7 +310,6 @@ def student_table_keyboard(table_type: str, contest_user: User, table_id: int = 
     elif table_type == 'problems':
         contest = Contest.objects.get(pk=table_id)
         table_list = get_user_assignments(user=contest_user, contest_id=table_id)
-        table_list.reverse()
         table_title = [f'{contest_emoji} {contest}']
         table_header = ['Задача', 'Оценка']
         table_message_text = f'Раздел "{contest}"'

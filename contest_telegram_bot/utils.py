@@ -3,6 +3,8 @@ import re
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+
+from contest_telegram_bot.constants import filled_progress_emoji, empty_progress_emoji
 from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
 
 
@@ -119,6 +121,15 @@ def tg_authorisation_wrapper(
         authorized_fun(**unauth_fun_args)
 
 
+def progress_bar(loaded_chunks: int, total_chunks: int):
+    result_progress_bar = ''
+    for _ in range(loaded_chunks):
+        result_progress_bar += filled_progress_emoji
+    for _ in range(loaded_chunks, total_chunks):
+        result_progress_bar += empty_progress_emoji
+    return result_progress_bar
+
+
 def json_get(json_str: str, key: str):
     return json.loads(json_str)[key]
 
@@ -139,6 +150,17 @@ def filesize_to_text(filesize_in_bytes: int):
         size_coeff = 1024 * 1024
         size_word = 'МБ'
     return f'{(filesize_in_bytes / size_coeff):.2f}' + ' ' + size_word
+
+
+def file_chunk_size(filesize: int):
+    if filesize <= 256 * 1024:
+        return None
+    elif 256 * 1024 < filesize <= 1024 * 1024:
+        return 256 * 1024
+    elif 1024 * 1024 < filesize <= 5 * 1024 * 1024:
+        return 768 * 1024
+    else:
+        return 1024 * 1024
 
 
 def file_extension(filename: str):

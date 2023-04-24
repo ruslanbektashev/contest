@@ -16,6 +16,9 @@ checked_emoji = emojize(':check_mark_button:')
 unchecked_emoji = emojize(':green_square:')
 cross_emoji = emojize(":cross_mark:")
 
+filled_progress_emoji = emojize(':green_square:')
+empty_progress_emoji = emojize(":white_large_square:")
+
 comments_emoji = emojize(':speech_balloon:')
 users_emoji = emojize(":bust_in_silhouette:")
 problems_emoji = emojize(":bar_chart:")

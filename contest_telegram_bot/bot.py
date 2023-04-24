@@ -3,12 +3,12 @@ import json
 import os
 import threading
 
+import requests
 import telebot
 
 from copy import deepcopy
 
 from PyPDF2 import PdfReader, PdfWriter
-from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
@@ -34,14 +34,14 @@ from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
 from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, json_get, tg_authorisation_wrapper, \
     is_schedule_file, is_excel_file, create_file_from_bytes, get_course_label, get_contest_user_by_tg_id, \
     notify_all_specific_tg_users, filesize_to_text, file_extension, get_user_assignments, \
-    check_submission_limit_excess
+    check_submission_limit_excess, file_chunk_size, progress_bar
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
-from contests.models import Problem, Submission, Course, Attachment
+from contests.models import Problem, Submission, Attachment
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
 
 tbot = telebot.TeleBot(settings.BOT_TOKEN)
-
 tbot.set_webhook(f'{settings.LOCALHOST_DOMAIN}/{settings.BOT_TOKEN}')
+telegram_users_media_groups_id = {}
 
 
 def welcome_handler(outer_message: types.Message, welcome_text: str = ", добро пожаловать в систему МГУ Контест!"):
@@ -323,7 +323,9 @@ def submission_callback(outer_call: types.CallbackQuery):
         submission_type = json_get(call.data, 'sub_type')
         files_allowed_extensions = SubmissionFilesAttachmentMixin().FILES_ALLOWED_EXTENSIONS
         if check_submission_limit_excess(user=contest_user, problem_id=problem_id):
-            tbot.answer_callback_query(callback_query_id=call.id, text=f'Вы отправили максимальное количество посылок : {get_user_assignments(user=contest_user, problem_id=problem_id).submission_limit}', show_alert=True)
+            tbot.answer_callback_query(callback_query_id=call.id,
+                                       text=f'Вы отправили максимальное количество посылок : {get_user_assignments(user=contest_user, problem_id=problem_id).submission_limit}',
+                                       show_alert=True)
             return
 
         if submission_type == 'Files':
@@ -387,7 +389,15 @@ def submission_file_handler(message: Message, text: str, submission_type: str, c
         new_submission = problem_user_submission_set.create(date_created=timezone.now(),
                                                             owner=contest_user,
                                                             problem_id=problem_id)
+
         for i, file_message in enumerate(files_messages_list):
+            def downloading_progress_text(file_progress_chunks: int, file_progress_percentage):
+                return f'Загрузка файла...\n' \
+                    f'{progress_bar(loaded_chunks=file_progress_chunks, total_chunks=10)} {file_progress_percentage}%\n' \
+                    f'Загружено файлов:\n' \
+                    f'{progress_bar(loaded_chunks=int(10*(i/len(files_messages_list))), total_chunks=10)} ' \
+                    f'{i}/{len(files_messages_list)}'
+
             if submission_type == 'Verbal':
                 cur_file_extension = 'ogg'
                 message_file = file_message.voice
@@ -399,9 +409,37 @@ def submission_file_handler(message: Message, text: str, submission_type: str, c
                     cur_file_extension = '.jpg'
                     message_file = file_message.photo[-1]
             cur_submission_attachment_filename = f'submission_{new_submission.id}_{i}{cur_file_extension}'
-            create_file_from_bytes(
-                file_bytes=tbot.download_file(file_path=tbot.get_file(message_file.file_id).file_path),
-                filename=cur_submission_attachment_filename)
+
+            progress_message = tbot.send_message(chat_id=message.chat.id,
+                                                 text=downloading_progress_text(file_progress_chunks=0,
+                                                                                file_progress_percentage=0),
+                                                 reply_to_message_id=file_message.id)
+            with requests.get(tbot.get_file_url(message_file.file_id), stream=True) as r:
+                r.raise_for_status()
+                total = int(r.headers['content-length'])
+                chunk_size = file_chunk_size(total)
+                with open(cur_submission_attachment_filename, 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=chunk_size):
+                        if chunk:
+                            f.write(chunk)
+                            percentage = f.tell() / total
+                            tbot.edit_message_text(text=downloading_progress_text(file_progress_chunks=int(10 * percentage),
+                                                                                  file_progress_percentage=f'{100 * percentage: .2f}'),
+                                                   chat_id=message.chat.id,
+                                                   message_id=progress_message.id)
+            tbot.delete_message(chat_id=message.chat.id, message_id=progress_message.id)
+
+            # call example
+            # def show_progress(cur, tot):
+            #     print(cur / tot)
+            #
+            # download(tbot.get_file_url(message_file.file_id), show_progress)
+
+            # create_file_from_bytes(
+            #     file_bytes=tbot.download_file(file_path=tbot.get_file(message_file.file_id).file_path),
+            #     filename=cur_submission_attachment_filename)
+            # TODO:
+            #  - работа с объединенными в одно сообщение файлами
             with open(cur_submission_attachment_filename, 'rb') as cur_file:
                 Attachment.objects.create(object_type=ContentType.objects.get(model='submission'),
                                           object_id=new_submission.id, file=File(cur_file),
