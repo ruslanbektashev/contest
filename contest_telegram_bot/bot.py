@@ -1,4 +1,3 @@
-import copy
 import json
 import os
 import threading
@@ -29,12 +28,12 @@ from contest_telegram_bot.keyboards import (problem_detail_keyboard, staff_start
                                             staff_course_students_keyboard, staff_course_contests_keyboard,
                                             staff_course_problems_keyboard, staff_problem_menu_keyboard,
                                             staff_course_student_menu_keyboard, submission_creation_keyboard,
-                                            timer_keyboard)
+                                            timer_keyboard, submission_files_control_texts)
 from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
 from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, json_get, tg_authorisation_wrapper, \
     is_schedule_file, is_excel_file, create_file_from_bytes, get_course_label, get_contest_user_by_tg_id, \
     notify_all_specific_tg_users, filesize_to_text, file_extension, get_user_assignments, \
-    check_submission_limit_excess, file_chunk_size, progress_bar
+    check_submission_limit_excess, file_chunk_size, progress_bar, all_content_types_with_exclude
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
 from contests.models import Problem, Submission, Attachment
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
@@ -128,6 +127,15 @@ def unauth_callback_inline_keyboard(outer_call: types.CallbackQuery, callback_fo
     tg_authorisation_wrapper(chat_id=outer_call.message.chat.id, authorized_fun=callback_for_authorized,
                              unauthorized_fun=callback_for_unauthorized, auth_fun_args=all_callbacks_kwargs,
                              unauth_fun_args=all_callbacks_kwargs)
+
+
+def unauth_callback_for_messages(message: Message, callback_for_authorized):
+    def callback_for_unauthorized():
+        tbot.send_message(chat_id=message.chat.id, text='Вы не вошли ни в один аккаунт.',
+                          reply_markup=start_keyboard_unauthorized())
+
+    tg_authorisation_wrapper(chat_id=message.chat.id, authorized_fun=callback_for_authorized,
+                             unauthorized_fun=callback_for_unauthorized)
 
 
 @tbot.message_handler(text=logout_btn_text, chat_types=['private'])
@@ -339,166 +347,185 @@ def submission_callback(outer_call: types.CallbackQuery):
                                chat_id=call.message.chat.id,
                                message_id=call.message.id,
                                reply_markup=submission_cancel_keyboard(problem_id=problem_id))
-        tbot.register_next_step_handler(message=call.message,
-                                        callback=submission_file_handler,
-                                        text=call.message.text, submission_type=submission_type,
-                                        contest_user=contest_user,
-                                        problem_id=problem_id)
+        telegram_users_media_groups_id[call.message.chat.id] = {'submission_type': submission_type,
+                                                                'files_messages': [],
+                                                                'problem_id': problem_id,
+                                                                'contest_user': contest_user}
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
 
-def submission_file_handler(message: Message, text: str, submission_type: str, contest_user: User = None,
-                            problem_id: int = None, messages_with_correct_files: list = []):
-    def send_msg_and_register_next_msg_handler():
+@tbot.message_handler(func=lambda message: telegram_users_media_groups_id.get(message.chat.id) is not None and
+                      message.text in submission_files_control_texts())
+def submission_files_control(message: Message):
+    def callback_for_authorized():
+        tg_user_msg_files_info = telegram_users_media_groups_id[message.chat.id]
+        submission_type = tg_user_msg_files_info['submission_type']
+        files_messages_list = tg_user_msg_files_info['files_messages']
+        contest_user = tg_user_msg_files_info['contest_user']
+        problem_id = tg_user_msg_files_info['problem_id']
+        keyboard, done, cancel = submission_creation_keyboard()
+
+        def back_to_problem(back_loading_text: str, back_text: str):
+            back_loading_msg = tbot.send_message(chat_id=message.chat.id, text=back_loading_text,
+                                                 reply_markup=timer_keyboard())
+            tbot.delete_message(chat_id=message.chat.id, message_id=back_loading_msg.id)
+            tbot.send_message(chat_id=message.chat.id, text=back_text)
+            problem_keyboard, problem_msg_text = problem_detail_keyboard(contest_user=contest_user,
+                                                                         problem_id=problem_id)
+            tbot.send_message(chat_id=message.chat.id, text=problem_msg_text, reply_markup=problem_keyboard)
+
+        def create_submission():
+            user_assignments = contest_user.assignment_set.get(problem_id=problem_id)
+            problem_user_submission_set = user_assignments.submission_set
+            new_submission = problem_user_submission_set.create(date_created=timezone.now(),
+                                                                owner=contest_user,
+                                                                problem_id=problem_id)
+
+            for i, file_message in enumerate(files_messages_list):
+                def downloading_progress_text(file_progress_chunks: int, file_progress_percentage):
+                    return f'Загрузка файла...\n' \
+                           f'{progress_bar(loaded_chunks=file_progress_chunks, total_chunks=10)} {file_progress_percentage}%\n' \
+                           f'Загружено файлов:\n' \
+                           f'{progress_bar(loaded_chunks=int(10 * (i / len(files_messages_list))), total_chunks=10)} ' \
+                           f'{i}/{len(files_messages_list)}'
+
+                cur_submission_attachment_filename = f'submission_{new_submission.id}_{i}'
+                if submission_type == 'Verbal':
+                    message_file = file_message.voice
+                    cur_submission_attachment_filename += '.ogg'
+                else:
+                    if file_message.document is not None:
+                        cur_file_extension = file_extension(filename=file_message.document.file_name)
+                        message_file = file_message.document
+                        cur_submission_attachment_filename = f'{message_file.file_name}_{i}{cur_file_extension}'
+                    else:
+                        message_file = file_message.photo[-1]
+                        cur_submission_attachment_filename += '.jpg'
+
+                progress_message = tbot.send_message(chat_id=message.chat.id,
+                                                     text=downloading_progress_text(file_progress_chunks=0,
+                                                                                    file_progress_percentage=0),
+                                                     reply_to_message_id=file_message.id)
+                with requests.get(tbot.get_file_url(message_file.file_id), stream=True) as r:
+                    r.raise_for_status()
+                    total = int(r.headers['content-length'])
+                    chunk_size = file_chunk_size(total)
+                    with open(cur_submission_attachment_filename, 'wb') as f:
+                        for chunk in r.iter_content(chunk_size=chunk_size):
+                            if chunk:
+                                f.write(chunk)
+                                percentage = f.tell() / total
+                                tbot.edit_message_text(
+                                    text=downloading_progress_text(file_progress_chunks=int(10 * percentage),
+                                                                   file_progress_percentage=f'{100 * percentage: .2f}'),
+                                    chat_id=message.chat.id,
+                                    message_id=progress_message.id)
+                tbot.delete_message(chat_id=message.chat.id, message_id=progress_message.id)
+                with open(cur_submission_attachment_filename, 'rb') as cur_file:
+                    Attachment.objects.create(object_type=ContentType.objects.get(model='submission'),
+                                              object_id=new_submission.id, file=File(cur_file),
+                                              owner=contest_user)
+                os.remove(cur_submission_attachment_filename)
+
+        if message.text == cancel:
+            back_to_problem(back_loading_text='Отмена операции...', back_text='Операция отменена.')
+        elif message.text == done:
+            if len(files_messages_list) == 0:
+                if submission_type == 'Verbal':
+                    msg_filetype = 'голосового сообщения'
+                else:
+                    msg_filetype = 'файла'
+                tbot.send_message(chat_id=message.chat.id,
+                                  text=f'Вы не отправили ни одного {msg_filetype}.',
+                                  parse_mode='HTML',
+                                  reply_to_message_id=message.id)
+                return
+
+            create_submission()
+            back_to_problem(back_loading_text='Завершение процесса отправки...',
+                            back_text='Посылка успешно отправлена.')
+        telegram_users_media_groups_id.pop(message.chat.id, None)
+
+    unauth_callback_for_messages(message=message, callback_for_authorized=callback_for_authorized)
+
+
+@tbot.message_handler(content_types=all_content_types_with_exclude(),
+                      func=lambda message: telegram_users_media_groups_id.get(message.chat.id) is not None)
+def submission_file_handler(message: Message):
+    def callback_for_authorized():
+        def is_correct_file():
+            def send_err_msg(text: str):
+                tbot.send_message(chat_id=message.chat.id,
+                                  text=text,
+                                  parse_mode='HTML',
+                                  reply_to_message_id=message.id)
+
+            if incorrect_msg_filetype:
+                send_err_msg(text=f'Это сообщение не является {correct_msg_filetype}.')
+                return False
+
+            if file_is_document and msg_file_extension not in allowed_files_extensions:
+                send_err_msg(text=f'Недопустимое расширение файла: <code>{msg_file_extension}</code>.\n' \
+                                  f'Допустимы следующие расширения: <code>{", ".join(allowed_files_extensions)}</code>.')
+                return False
+
+            if msg_file_object.file_size > max_file_size:
+                send_err_msg(text=f'Слишком большой файл - <b>{filesize_to_text(filesize_in_bytes=msg_file_object.file_size)}</b>.\n' \
+                                  f'Максимально допустимый размер - {filesize_to_text(filesize_in_bytes=max_file_size)}.')
+                return False
+
+            return True
+
+        tg_user_msg_files_info = telegram_users_media_groups_id[message.chat.id]
+        submission_type = tg_user_msg_files_info['submission_type']
+        messages_with_files = tg_user_msg_files_info['files_messages']
+        max_files_count = AttachmentForm().FILES_MAX
+        max_file_size = SubmissionFilesAttachmentMixin().FILE_SIZE_LIMIT
+        allowed_files_extensions = SubmissionFilesAttachmentMixin().FILES_ALLOWED_EXTENSIONS
+        keyboard, done, cancel = submission_creation_keyboard()
+        incorrect_msg_filetype = False
+        file_is_document = False
+
+        if submission_type == 'Verbal':
+            if message.voice is None:
+                incorrect_msg_filetype = True
+                correct_msg_filetype = 'голосовым'
+            else:
+                msg_filetype_word_plural = 'голосовые сообщения'
+                msg_file_object = message.voice
+        else:
+            if message.document is None and message.photo is None:
+                incorrect_msg_filetype = True
+                correct_msg_filetype = 'документом'
+            else:
+                msg_filetype_word_plural = 'файлы'
+                file_is_document = True
+                if message.document is not None:
+                    msg_file_object = message.document
+                    msg_file_extension = file_extension(filename=message.document.file_name)
+                else:
+                    msg_file_object = message.photo[-1]
+                    msg_file_extension = '.jpg'
+
+        if not is_correct_file():
+            return
+
+        if len(messages_with_files) < max_files_count:
+            messages_with_files.append(message)
+            if len(messages_with_files) < max_files_count:
+                msg_text = f'Вы можете продолжить присылать {msg_filetype_word_plural}.\n' \
+                           f'Ещё можно отправить <b>{max_files_count - len(messages_with_files)} файлов.</b>'
+        if len(messages_with_files) >= max_files_count:
+            msg_text = f'Вы прислали максимальное количество файлов: <b>{max_files_count}.</b>'
+
         tbot.send_message(chat_id=message.chat.id,
                           text=msg_text,
                           parse_mode='HTML',
                           reply_to_message_id=message.id,
                           reply_markup=keyboard)
-        tbot.register_next_step_handler(message=message,
-                                        callback=submission_file_handler,
-                                        text=text, submission_type=submission_type,
-                                        contest_user=contest_user,
-                                        problem_id=problem_id,
-                                        messages_with_correct_files=files_messages_list)
 
-    def get_message_file_info():
-        if submission_type == 'Verbal':
-            file_obj = message.voice
-            filetype_word = 'голосовым'
-            filetype_word_plural = 'голосовые сообщения'
-        else:
-            file_obj = message.document if message.document is not None \
-                                        else message.photo[-1]
-            filetype_word = 'файлом'
-            filetype_word_plural = 'файлы'
-        return file_obj, filetype_word, filetype_word_plural
-
-    def back_to_problem(back_loading_text: str, back_text: str):
-        back_loading_msg = tbot.send_message(chat_id=message.chat.id, text=back_loading_text,
-                                             reply_markup=timer_keyboard())
-        tbot.delete_message(chat_id=message.chat.id, message_id=back_loading_msg.id)
-        tbot.send_message(chat_id=message.chat.id, text=back_text)
-        problem_keyboard, problem_msg_text = problem_detail_keyboard(contest_user=contest_user, problem_id=problem_id)
-        tbot.send_message(chat_id=message.chat.id, text=problem_msg_text, reply_markup=problem_keyboard)
-
-    def create_submission():
-        user_assignments = contest_user.assignment_set.get(problem_id=problem_id)
-        problem_user_submission_set = user_assignments.submission_set
-        new_submission = problem_user_submission_set.create(date_created=timezone.now(),
-                                                            owner=contest_user,
-                                                            problem_id=problem_id)
-
-        for i, file_message in enumerate(files_messages_list):
-            def downloading_progress_text(file_progress_chunks: int, file_progress_percentage):
-                return f'Загрузка файла...\n' \
-                    f'{progress_bar(loaded_chunks=file_progress_chunks, total_chunks=10)} {file_progress_percentage}%\n' \
-                    f'Загружено файлов:\n' \
-                    f'{progress_bar(loaded_chunks=int(10*(i/len(files_messages_list))), total_chunks=10)} ' \
-                    f'{i}/{len(files_messages_list)}'
-
-            if submission_type == 'Verbal':
-                cur_file_extension = 'ogg'
-                message_file = file_message.voice
-            else:
-                if file_message.document is not None:
-                    cur_file_extension = file_extension(filename=file_message.document.file_name)
-                    message_file = file_message.document
-                else:
-                    cur_file_extension = '.jpg'
-                    message_file = file_message.photo[-1]
-            cur_submission_attachment_filename = f'submission_{new_submission.id}_{i}{cur_file_extension}'
-
-            progress_message = tbot.send_message(chat_id=message.chat.id,
-                                                 text=downloading_progress_text(file_progress_chunks=0,
-                                                                                file_progress_percentage=0),
-                                                 reply_to_message_id=file_message.id)
-            with requests.get(tbot.get_file_url(message_file.file_id), stream=True) as r:
-                r.raise_for_status()
-                total = int(r.headers['content-length'])
-                chunk_size = file_chunk_size(total)
-                with open(cur_submission_attachment_filename, 'wb') as f:
-                    for chunk in r.iter_content(chunk_size=chunk_size):
-                        if chunk:
-                            f.write(chunk)
-                            percentage = f.tell() / total
-                            tbot.edit_message_text(text=downloading_progress_text(file_progress_chunks=int(10 * percentage),
-                                                                                  file_progress_percentage=f'{100 * percentage: .2f}'),
-                                                   chat_id=message.chat.id,
-                                                   message_id=progress_message.id)
-            tbot.delete_message(chat_id=message.chat.id, message_id=progress_message.id)
-
-            # call example
-            # def show_progress(cur, tot):
-            #     print(cur / tot)
-            #
-            # download(tbot.get_file_url(message_file.file_id), show_progress)
-
-            # create_file_from_bytes(
-            #     file_bytes=tbot.download_file(file_path=tbot.get_file(message_file.file_id).file_path),
-            #     filename=cur_submission_attachment_filename)
-            # TODO:
-            #  - работа с объединенными в одно сообщение файлами
-            with open(cur_submission_attachment_filename, 'rb') as cur_file:
-                Attachment.objects.create(object_type=ContentType.objects.get(model='submission'),
-                                          object_id=new_submission.id, file=File(cur_file),
-                                          owner=contest_user)
-            os.remove(cur_submission_attachment_filename)
-
-    files_messages_list = copy.deepcopy(messages_with_correct_files)
-    del messages_with_correct_files
-    max_files_count = AttachmentForm().FILES_MAX
-    max_file_size = SubmissionFilesAttachmentMixin().FILE_SIZE_LIMIT
-    allowed_files_extensions = SubmissionFilesAttachmentMixin().FILES_ALLOWED_EXTENSIONS
-    keyboard, done, cancel = submission_creation_keyboard()
-
-    if message.text == cancel:
-        back_to_problem(back_loading_text='Отмена операции...', back_text='Операция отменена.')
-        del files_messages_list
-        return
-    elif message.text == done:
-        if len(files_messages_list) == 0:
-            if submission_type == 'Verbal':
-                msg_filetype = 'голосового сообщения'
-            else:
-                msg_filetype = 'файла'
-            msg_text = f'Вы не отправили ни одного {msg_filetype}.'
-            send_msg_and_register_next_msg_handler()
-            return
-
-        create_submission()
-        back_to_problem(back_loading_text='Завершение процесса отправки...', back_text='Посылка успешно отправлена.')
-        return
-
-    message_file_object, msg_filetype_word, msg_filetype_word_plural = get_message_file_info()
-    if message_file_object is None:
-        msg_text = f'Это сообщение не является {msg_filetype_word}.'
-        keyboard = None
-    else:
-        if submission_type != 'Verbal':
-            if message.document is not None:
-                msg_file_extension = file_extension(filename=message_file_object.file_name)
-            else:
-                msg_file_extension = '.jpg'
-
-            if msg_file_extension not in allowed_files_extensions:
-                msg_text = f'Недопустимое расширение файла: <code>{msg_file_extension}</code>.\n' \
-                           f'Допустимы следующие расширения: <code>{", ".join(allowed_files_extensions)}</code>.'
-                send_msg_and_register_next_msg_handler()
-                return
-        # TODO:
-        #  - прогресс загрузки файлов (красиво с анимацией в сообщении)
-        if message_file_object.file_size <= max_file_size:
-            files_messages_list.append(message)
-            msg_text = f'Вы можете продолжить присылать {msg_filetype_word_plural}.\n' \
-                       f'Ещё можно отправить <b>{max_files_count - len(files_messages_list)} файлов.</b>'
-        else:
-            msg_text = f'Слишком большой файл - <b>{filesize_to_text(filesize_in_bytes=message_file_object.file_size)}</b>.\n' \
-                       f'Максимально допустимый размер - {filesize_to_text(filesize_in_bytes=max_file_size)}.'
-            keyboard = None
-
-    send_msg_and_register_next_msg_handler()
+    unauth_callback_for_messages(message=message, callback_for_authorized=callback_for_authorized)
 
 
 @tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'status')

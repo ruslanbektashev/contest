@@ -112,13 +112,21 @@ def tg_authorisation_wrapper(
         chat_id: int,
         authorized_fun,
         unauthorized_fun,
-        auth_fun_args: dict,
-        unauth_fun_args: dict
+        auth_fun_args: dict = {},
+        unauth_fun_args: dict = {}
 ):
     if get_telegram_user(chat_id=chat_id) is None:
         unauthorized_fun(**auth_fun_args)
     else:
         authorized_fun(**unauth_fun_args)
+
+
+def all_content_types_with_exclude(exclude: list = []):
+    all_content_types = ['text', 'audio', 'document', 'photo', 'sticker', 'video', 'video_note', 'voice', 'location',
+                         'contact', 'new_chat_members', 'left_chat_member', 'new_chat_title', 'new_chat_photo',
+                         'delete_chat_photo', 'group_chat_created', 'supergroup_chat_created', 'channel_chat_created',
+                         'migrate_to_chat_id', 'migrate_from_chat_id', 'pinned_message', 'web_app_data']
+    return list(filter(lambda x: x not in exclude, all_content_types))
 
 
 def progress_bar(loaded_chunks: int, total_chunks: int):

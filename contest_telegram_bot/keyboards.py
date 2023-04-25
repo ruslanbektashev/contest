@@ -403,9 +403,12 @@ def submission_cancel_keyboard(problem_id: int):
     return keyboard
 
 
+def submission_files_control_texts():
+    return f'{checked_emoji} Готово', f'{cross_emoji} Отмена'
+
+
 def submission_creation_keyboard():
-    done_text = f'{checked_emoji} Готово'
-    cancel_text = f'{cross_emoji} Отмена'
+    done_text, cancel_text = submission_files_control_texts()
 
     keyboard = ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
     keyboard.add(KeyboardButton(text=done_text), KeyboardButton(text=cancel_text))
