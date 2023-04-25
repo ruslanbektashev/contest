@@ -278,11 +278,13 @@ def staff_problem_menu_keyboard(problem_id: int, show_submissions_number=True):
 
 
 # TODO:
+#  -3. Webhook deletion on server stopping !!!!
+#  - LOCALHOST_DOMAIN перенести в common_settings.py
 #  -2. что-то сделать с описанием задачи
 #  -1. поддержка отображения расписания в формате PDF прямо на сайте
-#  0. проверить, что будет при смене пароля через сайт (будет ли доступнен функционал?)
+#  0. проверить, что будет при смене пароля через сайт (будет ли доступен функционал?)
 #  1. problems list keyboard paginator
-#  2. Webhook deletion on server stopping
+#  - возможность у преподавателей прослушать через бота голосовые сообщения
 #  3. Submission deadline notification and connection with bot settings (user can set time interval for these type of notification)
 
 def student_table_keyboard(table_type: str, contest_user: User, table_id: int = None):
