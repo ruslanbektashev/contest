@@ -39,7 +39,10 @@ from contests.models import Problem, Submission, Attachment
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
 
 tbot = telebot.TeleBot(settings.BOT_TOKEN)
-tbot.set_webhook(f'{settings.LOCALHOST_DOMAIN}/{settings.BOT_TOKEN}')
+try:
+    tbot.set_webhook(f'{settings.LOCALHOST_DOMAIN}/{settings.BOT_TOKEN}')
+except Exception:
+    pass
 atexit.register(tbot.remove_webhook)
 telegram_users_media_groups_id = {}
 
