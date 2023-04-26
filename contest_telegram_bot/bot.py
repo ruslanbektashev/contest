@@ -1,12 +1,12 @@
 import json
 import os
 import threading
-
 import requests
 import telebot
+import atexit
+
 
 from copy import deepcopy
-
 from PyPDF2 import PdfReader, PdfWriter
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
@@ -40,6 +40,7 @@ from schedule.models import Schedule, ScheduleAttachment, current_week_date_from
 
 tbot = telebot.TeleBot(settings.BOT_TOKEN)
 tbot.set_webhook(f'{settings.LOCALHOST_DOMAIN}/{settings.BOT_TOKEN}')
+atexit.register(tbot.remove_webhook)
 telegram_users_media_groups_id = {}
 
 
