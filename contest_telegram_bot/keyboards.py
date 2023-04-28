@@ -392,11 +392,17 @@ def problem_detail_keyboard(contest_user: User, problem_id: int):
     none_type_row(keyboard, header)
 
     keyboard.add(description_btn, submissions_btn, discussion_btn)
-    if Assignment.objects.get(user=contest_user, problem=problem).credit_incomplete and problem.type in ['Files', 'Verbal']:
+    if Assignment.objects.get(user=contest_user, problem=problem).credit_incomplete:
+        if problem.type in ['Files', 'Verbal']:
+            callback_data = json.dumps({'type': 'submission',
+                                        'sub_type': problem.type,
+                                        'id': problem_id})
+            url = None
+        else:
+            callback_data = None
+            url = f'{CONTEST_DOMAIN}{problem.get_absolute_url()}submission/create'
         keyboard.add(
-            InlineKeyboardButton(text=f'{send_emoji} Отправить решение', callback_data=json.dumps({'type': 'submission',
-                                                                                                   'sub_type': problem.type,
-                                                                                                   'id': problem_id})))
+            InlineKeyboardButton(text=f'{send_emoji} Отправить решение', callback_data=callback_data, url=url))
     keyboard.add(back_btn)
     return keyboard, f'Задача "{problem}"'
 
