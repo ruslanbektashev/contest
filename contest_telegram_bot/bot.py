@@ -161,6 +161,7 @@ def logout_callback(outer_call: types.CallbackQuery):
                           text=f'Вы успешно вышли из аккаунта {get_account_by_tg_id(chat_id=call.message.chat.id)}.',
                           reply_markup=start_keyboard_unauthorized())
         tbot.delete_message(chat_id=call.message.chat.id, message_id=call.message.id)
+        tbot.clear_step_handler_by_chat_id(chat_id=call.message.chat.id)
         TelegramUser.objects.get(chat_id=call.message.chat.id).delete()
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
