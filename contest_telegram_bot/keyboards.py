@@ -105,6 +105,9 @@ def staff_start_keyboard(staff_contest_user: User):
         keyboard.row(InlineKeyboardButton(text=str(course), callback_data=json.dumps({'type': 'staff_go',
                                                                                       'to': 'course',
                                                                                       'id': course.id})))
+    if len(table_list) == 0:
+        keyboard.row(none_type_button(btn_text='Нет курсов'),
+                     InlineKeyboardButton(text=plus_emoji, url=f'{CONTEST_DOMAIN}/course/create'))
     keyboard.row(InlineKeyboardButton(text=f'{user_settings_emoji} Настройки',
                                       callback_data=json.dumps({'type': 'get_settings'})))
     keyboard.row(InlineKeyboardButton(text=logout_btn_text,
@@ -187,11 +190,14 @@ def staff_course_student_menu_keyboard(course_id: int, student_id: int, show_sub
                                                         callback_data=json.dumps({'type': 'none'})))
             keyboard.row(*problem_row)
 
-    keyboard.add(InlineKeyboardButton(text=f'{check_emoji} Показать посылки студента',
-                                      callback_data=json.dumps({'type': 'stu_sett',
-                                                                'crs_id': course_id,
-                                                                'stu_id': student.id,
-                                                                'cur_val': int(show_submissions_number)})))
+    if len(contests_of_student_assignments) == 0:
+        keyboard.add(none_type_button(btn_text='Задач нет.'))
+    else:
+        keyboard.add(InlineKeyboardButton(text=f'{check_emoji} Показать посылки студента',
+                                          callback_data=json.dumps({'type': 'stu_sett',
+                                                                    'crs_id': course_id,
+                                                                    'stu_id': student.id,
+                                                                    'cur_val': int(show_submissions_number)})))
     keyboard.add(goback_button(goback_type='staff_back', to='course_students', to_id=course_id))
     return keyboard, table_message_text
 
