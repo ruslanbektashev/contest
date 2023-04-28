@@ -12,7 +12,7 @@ from contest_telegram_bot.constants import courses_emoji, contest_emoji, user_se
     marks_emojis, problems_emoji, users_emoji, down_arrow_emoji, selection_emoji, checked_emoji, unchecked_emoji, \
     cross_emoji, hourglass_emoji, back_emoji, plus_emoji
 from contest_telegram_bot.models import TelegramUserSettings
-from contest_telegram_bot.utils import get_user_assignments
+from contest_telegram_bot.utils import get_user_assignments, date_to_str, back_to_submissions_text
 from contests.models import Course, Contest, Problem, Assignment, Submission, Credit
 from schedule.models import Schedule
 from support.models import Question, Report
