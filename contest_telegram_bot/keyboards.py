@@ -1,5 +1,4 @@
 import json
-import locale
 
 from django.contrib.auth.models import User
 from emoji import emojize
