@@ -329,8 +329,8 @@ def problem_callback(outer_call: types.CallbackQuery):
                                        reply_markup=back_to_problem_keyboard(problem_id=problem_id))
         elif problem_item == 'submissions':
             tbot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id,
-                                           reply_markup=submissions_list_keyboard(contest_user=user,
-                                                                                  problem_id=problem_id))
+                                           reply_markup=submissions_list_keyboard_for_students(contest_user=user,
+                                                                                               problem_id=problem_id))
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
