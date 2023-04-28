@@ -15,6 +15,7 @@ from django.core.files import File
 from django.utils import timezone
 from openpyxl import load_workbook
 from telebot import custom_filters, types
+from telebot.apihelper import ApiTelegramException
 from telebot.types import Message
 
 from contest.common_settings import SCHEDULE_CHANNELS_IDS
@@ -318,8 +319,14 @@ def problem_callback(outer_call: types.CallbackQuery):
         problem_item = json_get(call.data, 'item')
         problem = Problem.objects.get(pk=problem_id)
         if problem_item == 'description':
-            tbot.answer_callback_query(callback_query_id=call.id,
-                                       text=f'{problem.description}', show_alert=True)
+            try:
+                tbot.edit_message_text(text=problem.description, chat_id=call.message.chat.id,
+                                       message_id=call.message.id, parse_mode='HTML',
+                                       reply_markup=back_to_problem_keyboard(problem_id=problem_id))
+            except ApiTelegramException:
+                tbot.edit_message_text(text=problem.description, chat_id=call.message.chat.id,
+                                       message_id=call.message.id,
+                                       reply_markup=back_to_problem_keyboard(problem_id=problem_id))
         elif problem_item == 'submissions':
             tbot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id,
                                            reply_markup=submissions_list_keyboard(contest_user=user,
