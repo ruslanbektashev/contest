@@ -185,9 +185,18 @@ def staff_course_student_menu_keyboard(course_id: int, student_id: int, show_sub
                            score_button(score=problem_assignment.score,
                                         btn_url=f'{CONTEST_DOMAIN}{problem_assignment.get_absolute_url()}update?action=evaluate')]
             if show_submissions_number:
+                if problem.type in ['Files', 'Verbal']:
+                    callback_data = json.dumps({'type': 'subm_lst',
+                                                'from': 'stud',
+                                                'id': problem.id,
+                                                'stud_id': student.id})
+                    url = None
+                else:
+                    callback_data = None
+                    url = f'{CONTEST_DOMAIN}{problem_assignment.get_absolute_url()}'
                 problem_row.append(InlineKeyboardButton(text=str(len(problem_assignment.submission_set.all())),
-                                                        url=f'{CONTEST_DOMAIN}{problem_assignment.get_absolute_url()}',
-                                                        callback_data=json.dumps({'type': 'none'})))
+                                                        callback_data=callback_data,
+                                                        url=url))
             keyboard.row(*problem_row)
 
     if len(contests_of_student_assignments) == 0:
@@ -269,8 +278,17 @@ def staff_problem_menu_keyboard(problem_id: int, show_submissions_number=True):
                        score_button(score=student_assignment.score,
                                     btn_url=f'{CONTEST_DOMAIN}{student_assignment.get_absolute_url()}update?action=evaluate')]
         if show_submissions_number:
+            if problem.type in ['Files', 'Verbal']:
+                callback_data = json.dumps({'type': 'subm_lst',
+                                            'from': 'prob',
+                                            'id': problem.id,
+                                            'stud_id': student.user.id})
+                url = None
+            else:
+                callback_data = None
+                url = f'{CONTEST_DOMAIN}{student_assignment.get_absolute_url()}'
             student_row.append(InlineKeyboardButton(text=str(len(student_assignment.submission_set.all())),
-                                                    url=f'{CONTEST_DOMAIN}{student_assignment.get_absolute_url()}'))
+                                                    callback_data=callback_data, url=url))
         keyboard.row(*student_row)
 
     keyboard.add(InlineKeyboardButton(text=f'{check_emoji} Показать посылки студентов',
