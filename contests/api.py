@@ -109,8 +109,7 @@ class SubmissionUpdateSerializer(ModelSerializer):
 
     def validate_status(self, value):
         if value not in self.ALLOWED_STATUSES:
-            raise ValidationError("Статус недопустим для данного типа посылки",
-                                  code='status_not_allowed')
+            raise ValidationError("Статус недопустим для данного типа посылки", code='status_not_allowed')
         return value
 
     def validate_score(self, value):
@@ -149,8 +148,6 @@ class SubmissionUpdateAPI(UpdateAPIView):
         self.perform_update(serializer)
 
         if getattr(instance, '_prefetched_objects_cache', None):
-            # If 'prefetch_related' has been applied to a queryset, we need to
-            # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
 
         response = {

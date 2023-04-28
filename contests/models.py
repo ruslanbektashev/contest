@@ -1139,12 +1139,13 @@ class Submission(CRDEntry):
         self.score = score_sum * self.problem.score_max // max_score
 
     def update_main_status(self):
-        statuses = list(choice for choice, _ in self.STATUS_CHOICES)
-        acquired_statuses = set(self.sub_submissions.values_list('status', flat=True))
-        for status in reversed(statuses):
-            if status in acquired_statuses:
-                self.status = status
-                break
+        if self.is_un:
+            statuses = list(choice for choice, _ in self.STATUS_CHOICES)
+            acquired_statuses = set(self.sub_submissions.values_list('status', flat=True))
+            for status in reversed(statuses):
+                if status in acquired_statuses:
+                    self.status = status
+                    break
         if self.is_un:
             score = self.problem.get_score(self)
             if score == 5:
