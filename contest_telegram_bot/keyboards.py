@@ -10,7 +10,7 @@ from contest.common_settings import CONTEST_DOMAIN
 from contest_telegram_bot.constants import courses_emoji, contest_emoji, user_settings_emoji, \
     logout_btn_text, problem_emoji, submission_status_emojis, login_btn_text, help_btn_text, send_emoji, comments_emoji, \
     marks_emojis, problems_emoji, users_emoji, down_arrow_emoji, selection_emoji, checked_emoji, unchecked_emoji, \
-    cross_emoji, hourglass_emoji
+    cross_emoji, hourglass_emoji, back_emoji, plus_emoji
 from contest_telegram_bot.models import TelegramUserSettings
 from contest_telegram_bot.utils import get_user_assignments
 from contests.models import Course, Contest, Problem, Assignment, Submission, Credit
