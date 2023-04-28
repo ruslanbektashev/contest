@@ -32,11 +32,22 @@ except ImportError:
 """=================================================== Attachment ==================================================="""
 
 
-def attachment_path(instance, filename):
-    return "attachments/{app_label}/{model}/{id}/{filename}".format(app_label=instance.object._meta.app_label.lower(),
-                                                                    model=instance.object._meta.object_name.lower(),
-                                                                    id=instance.object.id,
-                                                                    filename=filename)
+def attachment_path(instance, filename, for_form=True):
+    path = "attachments/{app_label}/{model}/{id}/{filename}"
+    if for_form:
+        return path.format(app_label=instance.object._meta.app_label.lower(),
+                           model=instance.object._meta.object_name.lower(),
+                           id=instance.object.id,
+                           filename=filename)
+    else:
+        return path.format(app_label=instance._meta.app_label.lower(),
+                           model=instance._meta.object_name.lower(),
+                           id=instance.id,
+                           filename=filename)
+
+
+def attachment_directory(instance):
+    return attachment_path(instance=instance, filename='', for_form=False)
 
 
 class Attachment(CDEntry):
@@ -831,7 +842,7 @@ class AssignmentQuerySet(models.QuerySet):
     def for_course_table(self, course, students):
         latest_submission = (Submission.objects.filter(owner_id=models.OuterRef('user_id'),
                                                        problem_id=models.OuterRef('problem_id'))
-                                               .order_by('-date_created')[:1])
+                             .order_by('-date_created')[:1])
         return (self.filter(user__in=students.values_list('user'), problem__contest__course=course)
                 .select_related('user', 'problem')
                 .annotate(latest_submission_status=models.Subquery(latest_submission.values_list('status')))
@@ -859,8 +870,8 @@ class AssignmentManager(models.Manager):
         new_assignments = []
         for student_id in student_ids:
             assigned_problem_ids = (self.filter(user_id=student_id, problem_id__in=problem_ids)
-                                        .select_related('problem')
-                                        .values_list('problem_id', flat=True))
+                                    .select_related('problem')
+                                    .values_list('problem_id', flat=True))
             problem_id_set = set(problem_ids)
             assigned_problem_id_set = set(assigned_problem_ids)
             if len(assigned_problem_id_set) < limit_per_user:
