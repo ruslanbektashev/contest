@@ -508,5 +508,9 @@ def notification_keyboard(obj):
     return keyboard
 
 
+def back_to_submissions_keyboard():
+    return ReplyKeyboardMarkup(resize_keyboard=True, row_width=1).add(KeyboardButton(text=back_to_submissions_text))
+
+
 def timer_keyboard():
     return ReplyKeyboardMarkup(resize_keyboard=True, row_width=1).add(KeyboardButton(text=hourglass_emoji))
