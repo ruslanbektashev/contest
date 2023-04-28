@@ -5,7 +5,6 @@ import requests
 import telebot
 import atexit
 
-
 from copy import deepcopy
 from PyPDF2 import PdfReader, PdfWriter
 from django.contrib.auth import authenticate
@@ -18,7 +17,6 @@ from openpyxl import load_workbook
 from telebot import custom_filters, types
 from telebot.types import Message
 
-from accounts.models import Account
 from contest.common_settings import SCHEDULE_CHANNELS_IDS
 from django.conf import settings
 from contest_telegram_bot.constants import login_btn_text, logout_btn_text
