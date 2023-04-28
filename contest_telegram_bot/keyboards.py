@@ -415,10 +415,17 @@ def submissions_list_keyboard(contest_user: User, problem_id: int):
     header = ['Посылка', 'Статус'] if submissions_list else ['Посылок нет']
     none_type_row(keyboard, title)
     none_type_row(keyboard, header)
-    locale.setlocale(locale.LC_TIME, "Russian")
     for submission in submissions_list:
-        keyboard.row(InlineKeyboardButton(text=submission.date_created.strftime('%d %b %Y г. в %H:%M').lower(),
-                                          url=f'{CONTEST_DOMAIN}{submission.get_absolute_url()}'),
+        if problem.type in ['Files', 'Verbal']:
+            callback_data = json.dumps({'type': 'submission_detail',
+                                        'id': submission.id})
+            url = None
+        else:
+            callback_data = None
+            url = f'{CONTEST_DOMAIN}{submission.get_absolute_url()}'
+        keyboard.row(InlineKeyboardButton(text=date_to_str(date=submission.date_created),
+                                          callback_data=callback_data,
+                                          url=url),
                      InlineKeyboardButton(text=f'{submission_status_emojis[submission.status]} {submission.status}',
                                           callback_data=json.dumps({'type': 'status',
                                                                     'status_obj_id': submission.id})))
