@@ -58,7 +58,7 @@ def welcome_handler(outer_message: types.Message, welcome_text: str = ", доб�
     def callback_for_authorized(message: types.Message):
         contest_user = get_telegram_user(message.chat.id).contest_user
         start_message_text = f'{get_account_by_tg_id(chat_id=message.chat.id)}'
-        if contest_user.is_staff:
+        if contest_user.is_staff or contest_user.is_superuser:
             keyboard, _ = staff_start_keyboard(staff_contest_user=contest_user)
         else:
             keyboard, _ = student_table_keyboard(table_type='courses', contest_user=contest_user)
