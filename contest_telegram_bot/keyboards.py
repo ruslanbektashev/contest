@@ -347,13 +347,15 @@ def student_table_keyboard(table_type: str, contest_user: User, table_id: int = 
     if table_type == 'courses':
         for table_obj in table_list:
             keyboard.row(
-                goback_button(goback_type='go', to=table_type[0:-1], to_id=table_obj.course.id, text=str(table_obj.course)),
+                goback_button(goback_type='go', to=table_type[0:-1], to_id=table_obj.course.id,
+                              text=str(table_obj.course)),
                 score_button(table_obj.score)
             )
     elif table_type == 'problems':
         for problem in table_list:
             keyboard.row(
-                goback_button(goback_type='go', to=table_type[0:-1], to_id=problem.problem.id, text=str(problem.problem)),
+                goback_button(goback_type='go', to=table_type[0:-1], to_id=problem.problem.id,
+                              text=str(problem.problem)),
                 score_button(problem.score)
             )
     else:
