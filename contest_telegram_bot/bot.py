@@ -37,7 +37,7 @@ from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, 
     check_submission_limit_excess, file_chunk_size, progress_bar, all_content_types_with_exclude, date_to_str, \
     back_to_submissions_text
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
-from contests.models import Problem, Submission, Attachment
+from contests.models import Problem, Submission, Attachment, attachment_directory
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
 
 tbot = telebot.TeleBot(settings.BOT_TOKEN)
@@ -511,6 +511,13 @@ def submission_files_control(message: Message):
                     Attachment.objects.create(object_type=ContentType.objects.get(model='submission'),
                                               object_id=new_submission.id, file=File(cur_file),
                                               owner=contest_user)
+
+                cur_submission_attachment_file_id_file = os.path.join('upload',
+                                                                      attachment_directory(new_submission),
+                                                                      cur_submission_attachment_filename +
+                                                                      '_file_id')
+                with open(cur_submission_attachment_file_id_file, 'w') as f:
+                    f.write(message_file.file_id)
                 os.remove(cur_submission_attachment_filename)
 
         if message.text == cancel:
