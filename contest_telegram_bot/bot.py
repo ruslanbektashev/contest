@@ -431,7 +431,7 @@ def submission_callback(outer_call: types.CallbackQuery):
                                parse_mode='HTML',
                                chat_id=call.message.chat.id,
                                message_id=call.message.id,
-                               reply_markup=submission_cancel_keyboard(problem_id=problem_id))
+                               reply_markup=back_to_problem_keyboard(problem_id=problem_id))
         telegram_users_media_groups_id[call.message.chat.id] = {'submission_type': submission_type,
                                                                 'files_messages': [],
                                                                 'problem_id': problem_id,
