@@ -431,8 +431,6 @@ def submissions_list_keyboard(contest_user: User, problem_id: int):
                      InlineKeyboardButton(text=f'{submission_status_emojis[submission.status]} {submission.status}',
                                           callback_data=json.dumps({'type': 'status',
                                                                     'status_obj_id': submission.id})))
-
-    keyboard.row(goback_button(goback_type='back', to='problem', to_id=problem_id))
     return keyboard
 
 
