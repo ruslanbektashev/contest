@@ -21,12 +21,14 @@ from contest.common_settings import SCHEDULE_CHANNELS_IDS
 from django.conf import settings
 from contest_telegram_bot.constants import login_btn_text, logout_btn_text
 from contest_telegram_bot.keyboards import (problem_detail_keyboard, staff_start_keyboard, start_keyboard_unauthorized,
-                                            student_table_keyboard, submission_cancel_keyboard,
-                                            submissions_list_keyboard, settings_keyboard, staff_course_menu_keyboard,
+                                            student_table_keyboard, back_to_problem_keyboard,
+                                            settings_keyboard, staff_course_menu_keyboard,
                                             staff_course_students_keyboard, staff_course_contests_keyboard,
                                             staff_course_problems_keyboard, staff_problem_menu_keyboard,
                                             staff_course_student_menu_keyboard, submission_creation_keyboard,
-                                            timer_keyboard, submission_files_control_texts)
+                                            timer_keyboard, submission_files_control_texts,
+                                            submissions_list_keyboard_for_staff, submissions_list_keyboard_for_students,
+                                            back_to_submissions_keyboard)
 from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
 from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, json_get, tg_authorisation_wrapper, \
     is_schedule_file, is_excel_file, create_file_from_bytes, get_course_label, get_contest_user_by_tg_id, \
