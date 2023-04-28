@@ -8,8 +8,13 @@ contest_emoji = emojize(":open_book:")
 problem_emoji = emojize(":clipboard:")
 bot_settings_emoji = emojize(":hammer_and_wrench:")
 user_settings_emoji = emojize(":gear:")
+
+back_emoji = emojize(':left_arrow:')
 send_emoji = emojize(':up_arrow:')
 down_arrow_emoji = emojize(':down_arrow:')
+
+plus_emoji = emojize(':plus:')
+
 selection_emoji = emojize(':blue_square:')
 
 checked_emoji = emojize(':check_mark_button:')
