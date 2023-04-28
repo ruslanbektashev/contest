@@ -1,10 +1,11 @@
 import json
+import locale
 import re
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 
-from contest_telegram_bot.constants import filled_progress_emoji, empty_progress_emoji
+from contest_telegram_bot.constants import filled_progress_emoji, empty_progress_emoji, back_emoji
 from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
 
 
@@ -138,6 +139,11 @@ def progress_bar(loaded_chunks: int, total_chunks: int):
     return result_progress_bar
 
 
+def date_to_str(date):
+    locale.setlocale(locale.LC_TIME, "Russian")
+    return date.strftime('%d %b %Y г. в %H:%M').lower()
+
+
 def json_get(json_str: str, key: str):
     return json.loads(json_str)[key]
 
@@ -201,3 +207,6 @@ def get_course_label(pdf_content: str):
 
 def is_excel_file(filename: str):
     return re.search('xlsx*', file_extension(filename=filename))
+
+
+back_to_submissions_text = f'{back_emoji} Вернуться к посылкам'
