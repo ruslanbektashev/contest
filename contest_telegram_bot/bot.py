@@ -630,10 +630,7 @@ def schedule_callback(message: Message):
 
 @tbot.message_handler(func=lambda message: message.text == '1')
 def test_handler(message: types.Message):
-    try:
-        print(Account.objects.filter(level=4))
-    except Exception as e:
-        print(e)
+    tbot.send_message(chat_id=message.chat.id, text=f'{message}')
 
 
 @tbot.my_chat_member_handler(func=lambda message: message.new_chat_member.status == 'kicked')
