@@ -61,7 +61,7 @@ def goback_button(goback_type: str, to: str, to_id: int = None, text: str = None
     if to_id is not None:
         callback_data['id'] = to_id
     if text is None:
-        btn_text = emojize(':left_arrow:')
+        btn_text = back_emoji
     else:
         btn_text = text
     return InlineKeyboardButton(btn_text,
