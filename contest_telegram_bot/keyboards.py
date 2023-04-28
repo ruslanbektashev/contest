@@ -436,7 +436,29 @@ def submissions_list_keyboard(contest_user: User, problem_id: int):
     return keyboard
 
 
-def submission_cancel_keyboard(problem_id: int):
+def submissions_list_keyboard_for_students(contest_user: User, problem_id: int):
+    submissions_list = submissions_list_keyboard(contest_user=contest_user, problem_id=problem_id)
+    submissions_list.add(goback_button(goback_type='back', to='problem', to_id=problem_id))
+    return submissions_list
+
+
+def submissions_list_keyboard_for_staff(contest_user: User, problem_id: int, back_to: str):
+    problem = Problem.objects.get(pk=problem_id)
+    submissions_list = submissions_list_keyboard(contest_user=contest_user, problem_id=problem_id)
+    if back_to == 'stud':
+        submissions_list.add(InlineKeyboardButton(text=back_emoji, callback_data=json.dumps({'type': 'staff_go',
+                                                                                             'to': 'stud',
+                                                                                             'crs_id': problem.course.id,
+                                                                                             'stu_id': contest_user.id})))
+    else:
+        submissions_list.add(goback_button(goback_type='staff_back', to='problem', to_id=problem_id))
+    return submissions_list, f'Курс <b>{problem.course}</b>.\n' \
+                             f'Раздел <b>{problem.contest}</b>.\n' \
+                             f'Задача <b>{problem}</b>.\n' \
+                             f'Посылки студента <b>{Account.objects.get(user=contest_user)}</b>.'
+
+
+def back_to_problem_keyboard(problem_id: int):
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(goback_button(goback_type='back', to='problem', to_id=problem_id))
     return keyboard
