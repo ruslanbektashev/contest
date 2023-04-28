@@ -97,8 +97,7 @@ def settings_keyboard(contest_user: User):
 def staff_start_keyboard(staff_contest_user: User):
     keyboard = InlineKeyboardMarkup(row_width=1)
     table_header = [f'{courses_emoji} Ваши курсы']
-    table_list = list(
-        course for course in Course.objects.filter(leaders__account=Account.objects.get(user=staff_contest_user)))
+    table_list = Course.objects.filter(leaders__account=Account.objects.get(user=staff_contest_user))
     table_message_text = 'Курсы, в которых Вы являетесь лидером / одним из лидеров.'
 
     none_type_row(keyboard, table_header)
