@@ -311,6 +311,21 @@ def staff_student_menu_settings_callback(outer_call: types.CallbackQuery):
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
 
+@tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'subm_lst')
+def submission_list_for_staff(outer_call: types.CallbackQuery):
+    def callback_for_authorized(call: types.CallbackQuery):
+        user = User.objects.get(pk=json_get(call.data, 'stud_id'))
+        problem_id = json_get(call.data, 'id')
+        back_to = json_get(call.data, 'from')
+        keyboard, text = submissions_list_keyboard_for_staff(contest_user=user,
+                                                             problem_id=problem_id,
+                                                             back_to=back_to)
+        tbot.edit_message_text(text=text, chat_id=call.message.chat.id, message_id=call.message.id, parse_mode='HTML',
+                               reply_markup=keyboard)
+
+    unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
 @tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'problem')
 def problem_callback(outer_call: types.CallbackQuery):
     def callback_for_authorized(call: types.CallbackQuery):
