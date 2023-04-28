@@ -33,7 +33,8 @@ from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
 from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, json_get, tg_authorisation_wrapper, \
     is_schedule_file, is_excel_file, create_file_from_bytes, get_course_label, get_contest_user_by_tg_id, \
     notify_all_specific_tg_users, filesize_to_text, file_extension, get_user_assignments, \
-    check_submission_limit_excess, file_chunk_size, progress_bar, all_content_types_with_exclude
+    check_submission_limit_excess, file_chunk_size, progress_bar, all_content_types_with_exclude, date_to_str, \
+    back_to_submissions_text
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
 from contests.models import Problem, Submission, Attachment
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
