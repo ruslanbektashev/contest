@@ -1,47 +1,35 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views humanize %}
 
-{% block title %}
-Фильтры
-{% endblock title %}
+{% block title %}Фильтры{% endblock title %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb "Фильтры" %}
 {% endblock breadcrumbs %}
 
-{% block content %}
+{% block main_content %}
 <legend>Фильтры</legend>
-<div class="table-responsive-lg">
-    <table class="table assignment-table">
-        <thead>
-            <tr>
-                <th class="sticky-column"></th>
-                {% for course in courses %}
-                <th class="text-center"><a href="{{ course.get_absolute_url }}">{{ course }}</a></th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in table %}
-            <tr>
-                <td class="sticky-column text-nowrap" style="width: 12%;"><a href="{{ row.user.account.get_absolute_url }}">{{ row.user.account.get_short_name }}</a></td>
-                {% for col in row.cols %}
-                <td class="text-center lake {% if col.exists %}bg-success{% endif %}">
-                    {% if col.exists %}
-                    <a href="{% url 'contests:filter-delete' %}?user_id={{ col.params.user_id }}&course_id={{ col.params.course_id }}">
-                        <span class="numtus bg-success comment-timesince p-0"><i class="fa fa-check fa-fw fa-2x comment-naturaltime"></i><i class="fa fa-remove fa-fw fa-2x comment-datetime"></i></span>
-                    </a>
-                    {% else %}
-                    <a class="pebble" href="{% url 'contests:filter-create' %}?user_id={{ col.params.user_id }}&course_id={{ col.params.course_id }}">
-                        <span class="numtus bg-info p-0"><i class="fa fa-plus fa-fw fa-2x"></i></span>
-                    </a>
-                    {% endif %}
-                </td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<select class="form-control selectpicker mb-3" id="user_select" name="user" onchange="document.location=this.options[this.selectedIndex].value;" aria-label="Пользователь" data-live-search="true">
+    {% for user in users %}
+    <option value="{% get_full_path_with_updated_query_string request user_id=user.id %}" {% if user_id == user.id %}selected{% endif %} data-subtext="{{ user.account.faculty.short_name }}">{{ user.account }}</option>
+    {% endfor %}
+</select>
+<div class="d-flex flex-column flex-md-row flex-md-wrap gap-2 mb-3">
+    {% for filter in filter_list %}
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <a href="{{ filter.course.get_absolute_url }}" class="card-title">{{ filter.course }}</a>
+            <p class="card-text"><small class="text-muted">{{ filter.course.get_level_display }}, {{ filter.course.faculty.short_name }}</small></p>
+            <div class="d-flex gap-3">
+                {% if filter.exists %}
+                <a href="{% url 'contests:filter-delete' %}?user_id={{ user_id }}&course_id={{ filter.course.id }}&from={{ request.get_full_path }}"><i class="fa fa-bookmark fa-fw fa-2x"></i></a>
+                {% else %}
+                <a href="{% url 'contests:filter-create' %}?user_id={{ user_id }}&course_id={{ filter.course.id }}&from={{ request.get_full_path }}"><i class="fa fa-bookmark-o fa-fw fa-2x"></i></a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
 </div>
-{% endblock content %}
+{% endblock main_content %}

@@ -642,19 +642,16 @@ class FilterTable(LoginRedirectMixin, PermissionRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         users = User.objects.filter(groups__name__in=["Преподаватель", "Модератор"])
+        user_id = int(self.request.GET.get('user_id') or self.request.user.id)
         courses = Course.objects.all()
-        filters = list(Filter.objects.all().values_list('user_id', 'course_id'))
-        table = []
-        for i in range(len(users)):
-            row = []
-            for j in range(len(courses)):
-                col = {'exists': (users[i].id, courses[j].id) in filters,
-                       'params': {'user_id': users[i].id, 'course_id': courses[j].id}}
-                row.append(col)
-            table.append({'user': users[i], 'cols': row})
-        context['users'] = users
+        filters = set(Filter.objects.filter(user_id=user_id).values_list('course_id', flat=True))
+        filter_list = []
+        for course in courses:
+            filter_list.append({'exists': course.id in filters, 'course': course})
         context['courses'] = courses
-        context['table'] = table
+        context['filter_list'] = filter_list
+        context['users'] = users
+        context['user_id'] = user_id
         return context
 
 
