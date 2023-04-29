@@ -42,11 +42,12 @@
         </ol>
     </nav>
     {% block main_content %}{% endblock main_content %}
-    <div class="d-flex justify-content-center gap-3 mt-auto">
+    <div class="text-center text-small mt-auto gx-3">
         {% if perms.support.delete_tutorialsteppass %}
-        <a class="link-secondary" id="contest_tutorial_reset" href="{% url 'support:tutorial-reset' request.resolver_match.app_name|add:":"|add:request.resolver_match.url_name %}?from={{ request.get_full_path }}">Пройти руководство</a>
+        <a class="link-secondary text-nowrap" id="contest_tutorial_reset" href="{% url 'support:tutorial-reset' request.resolver_match.app_name|add:":"|add:request.resolver_match.url_name %}?from={{ request.get_full_path }}">Пройти руководство</a>
+        <span class="text-muted mx-1">|</span>
         {% endif %}
-        <a class="link-secondary" href="{% url 'support:report-create' %}?from={{ request.path }}">Сообщить об ошибке</a>
+        <a class="link-secondary text-nowrap" href="{% url 'support:report-create' %}?from={{ request.path }}">Сообщить об ошибке</a>
     </div>
     <p class="copyright text-center mt-3">Филиал МГУ им. М.В. Ломоносова в г. Ташкент &copy; {% now "Y" %}</p>
 </div>
