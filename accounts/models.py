@@ -198,6 +198,8 @@ class StudentManager(models.Manager):
             first_name = name[1]
             last_name = name[0]
             patronymic = name[2] if len(name) > 2 else ""
+            if len(name) >= 4:
+                patronymic = " ".join(name[2:4])
             user = User.objects.create_user(username, password=password, first_name=first_name, last_name=last_name)
             user.groups.add(*groups)
             new_account = Account(user_id=user.id, faculty=faculty, patronymic=patronymic, level=level,
