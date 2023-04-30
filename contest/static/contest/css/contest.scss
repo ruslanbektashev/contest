@@ -149,6 +149,12 @@
   opacity: 1;
 }
 
+@for $i from 1 through 11 {
+  .contest-comment-offset-#{$i} {
+    margin-left: 60px * $i;
+  }
+}
+
 .contest-course-card {
   transition: box-shadow 0.2s ease-in-out;
 }

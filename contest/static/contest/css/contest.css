@@ -159,6 +159,50 @@
   opacity: 1;
 }
 
+.contest-comment-offset-1 {
+  margin-left: 60px;
+}
+
+.contest-comment-offset-2 {
+  margin-left: 120px;
+}
+
+.contest-comment-offset-3 {
+  margin-left: 180px;
+}
+
+.contest-comment-offset-4 {
+  margin-left: 240px;
+}
+
+.contest-comment-offset-5 {
+  margin-left: 300px;
+}
+
+.contest-comment-offset-6 {
+  margin-left: 360px;
+}
+
+.contest-comment-offset-7 {
+  margin-left: 420px;
+}
+
+.contest-comment-offset-8 {
+  margin-left: 480px;
+}
+
+.contest-comment-offset-9 {
+  margin-left: 540px;
+}
+
+.contest-comment-offset-10 {
+  margin-left: 600px;
+}
+
+.contest-comment-offset-11 {
+  margin-left: 660px;
+}
+
 .contest-course-card {
   transition: box-shadow 0.2s ease-in-out;
 }

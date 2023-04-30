@@ -9,7 +9,7 @@
 {% endif %}
 <div class="contest-comment-list" id="comments">
     {% for comment in comments %}
-    <div class="contest-comment-list-item d-flex col{{ comment.level|add:'-13' }} offset-{{ comment.level|add:'-1' }} p-3 rounded {% if comment not in request.user.account.comments_read.all and comment.author_id != request.user.id %}bg-light" data-unread=true{% else %}"{% endif %} data-id="{{ comment.id }}">
+    <div class="contest-comment-list-item d-flex contest-comment-offset-{{ comment.level|add:'-1' }} p-1 mb-3 rounded {% if comment not in request.user.account.comments_read.all and comment.author_id != request.user.id %}bg-light" data-unread=true{% else %}"{% endif %} data-id="{{ comment.id }}">
         <a id="comment_{{ comment.id }}" class="contest-comment-anchor">&nbsp</a>
         <div class="contest-comment-avatar me-3">
             {% include 'accounts/account/account_image.html' with last_name=comment.author.account.last_name first_name=comment.author.account.first_name size=40 rounded=True %}
