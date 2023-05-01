@@ -156,6 +156,32 @@ def progress_bar(loaded_chunks: int, total_chunks: int):
     return result_progress_bar
 
 
+def get_all_faculties_without_mfk():
+    from django.db.models import Q
+    from accounts.models import Faculty
+    return Faculty.objects.filter(~Q(short_name='МФК'))
+
+
+def get_all_faculties_without_mfk__ids():
+    return list(get_all_faculties_without_mfk().values_list('pk', flat=True))
+
+
+def get_all_study_levels():
+    from accounts.models import Account
+    return Account.LEVEL_CHOICES
+
+
+def get_all_study_levels__ids():
+    return [row[0] for row in get_all_study_levels()]
+
+
+def notify_settings_students_faculties_to_bool(settings_students_faculties):
+    for students_faculties_value in settings_students_faculties.values():
+        if len(students_faculties_value['levels']) != 0:
+            return 1
+    return 0
+
+
 def date_to_str(date):
     locale.setlocale(locale.LC_TIME, "Russian")
     return date.strftime('%d %b %Y г. в %H:%M').lower()
