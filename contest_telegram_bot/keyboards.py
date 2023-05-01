@@ -65,10 +65,11 @@ def goback_button(goback_type: str, to: str, to_id: int = None, text: str = None
 
 def settings_keyboard(contest_user: User):
     keyboard = InlineKeyboardMarkup(row_width=1)
+    contest_user_account = Account.objects.get(user=contest_user)
     user_settings = TelegramUserSettings.objects.get(contest_user=contest_user)
     exclude = []
     meta = user_settings._meta
-    if not (contest_user.is_staff or contest_user.is_superuser):
+    if not (contest_user_account.type == 2 or contest_user_account.type == 3):
         exclude = ['questions', 'reports', 'submissions']
         goback_type = 'back'
     else:

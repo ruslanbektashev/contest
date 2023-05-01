@@ -63,9 +63,11 @@ def welcome_handler(outer_message: types.Message, welcome_text: str = ", доб�
 
     def callback_for_authorized(message: types.Message):
         contest_user = get_telegram_user(message.chat.id).contest_user
+        contest_user_account = get_account_by_tg_id(chat_id=message.chat.id)
         start_message_text = f'{get_account_by_tg_id(chat_id=message.chat.id)}'
-        if contest_user.is_staff or contest_user.is_superuser:
-            keyboard, _ = staff_start_keyboard(staff_contest_user=contest_user)
+        if contest_user_account.type == 2 or contest_user_account.type == 3:
+            keyboard, _ = staff_and_moders_start_keyboard(staff_contest_user=contest_user,
+                                                          for_moders=contest_user_account.type == 2)
         else:
             keyboard, _ = student_table_keyboard(table_type='courses', contest_user=contest_user)
 
@@ -277,7 +279,10 @@ def goback_staff_callback(outer_call: types.CallbackQuery):
             pass
         else:
             if destination == 'courses':
-                keyboard, destination_text = staff_start_keyboard(staff_contest_user=user)
+                remove_from_notification_list(notif_creator_tg_id=call.message.chat.id,
+                                              notif_settings_msg_id=call.message.id)
+                keyboard, destination_text = staff_and_moders_start_keyboard(staff_contest_user=contest_user,
+                                                                             for_moders=contest_user_account.type == 2)
 
         tbot.clear_step_handler(message=call.message)
         tbot.edit_message_text(text=destination_text, parse_mode='HTML', chat_id=call.message.chat.id,
