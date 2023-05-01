@@ -15,6 +15,8 @@ down_arrow_emoji = emojize(':down_arrow:')
 
 plus_emoji = emojize(':plus:')
 
+info_emoji = emojize(":information:")
+
 selection_emoji = emojize(':blue_square:')
 
 checked_emoji = emojize(':check_mark_button:')
@@ -25,8 +27,11 @@ filled_progress_emoji = emojize(':green_square:')
 empty_progress_emoji = emojize(":white_large_square:")
 
 comments_emoji = emojize(':speech_balloon:')
+little_white_square_emoji = emojize(':white_small_square:')
+
 users_emoji = emojize(":bust_in_silhouette:")
 problems_emoji = emojize(":bar_chart:")
+loudspeaker_emoji = emojize(":loudspeaker:")
 
 hourglass_emoji = emojize(":hourglass_done:")
 
@@ -53,4 +58,12 @@ submission_status_emojis = {
 marks_emojis = {
     True: checked_emoji,
     False: cross_emoji,
+}
+check_emojis = {
+    True: checked_emoji,
+    False: unchecked_emoji,
+}
+drop_down_list_emojis = {
+    1: emojize(':downwards_button:'),
+    0: emojize(':play_button:')
 }
