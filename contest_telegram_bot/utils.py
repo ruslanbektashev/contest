@@ -253,3 +253,5 @@ def is_excel_file(filename: str):
 
 
 back_to_submissions_text = f'{back_emoji} Вернуться к посылкам'
+send_notification_text = f'{loudspeaker_emoji} Отправить'
+cancel_notification_text = f'{cross_emoji} Отмена'
