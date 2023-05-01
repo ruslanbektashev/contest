@@ -254,7 +254,8 @@ def goback_students_callback(outer_call: types.CallbackQuery):
 def goback_staff_callback(outer_call: types.CallbackQuery):
     def callback_for_authorized(call: types.CallbackQuery):
         keyboard = None
-        user = get_telegram_user(chat_id=call.message.chat.id).contest_user
+        contest_user = get_telegram_user(chat_id=call.message.chat.id).contest_user
+        contest_user_account = get_account_by_tg_id(chat_id=call.message.chat.id)
         action_type = json_get(call.data, 'type')
         destination = json_get(call.data, 'to')
         destination_id = int(json_get(call.data, 'id')) if 'id' in json.loads(call.data) else None
