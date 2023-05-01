@@ -308,6 +308,128 @@ def staff_problem_menu_keyboard(problem_id: int, show_submissions_number=True):
     return keyboard, table_message_text
 
 
+def staff_notification_initial_keyboard(course_id: int):
+    text = f'Отправьте сообщение для студентов курса <b>{Course.objects.get(pk=course_id)}</b>.'
+    keyboard = InlineKeyboardMarkup(row_width=1).add(goback_button(goback_type='staff_back',
+                                                                   to='course', to_id=course_id))
+    return keyboard, text
+
+
+def moderator_notification_initial_keyboard(notification_settings: dict):
+    def some_students_faculty_is_open():
+        for fac in all_faculties:
+            if to_students["faculties"][fac.id]["open"]:
+                return True
+        return False
+
+    text = f'Выберите группу людей, а затем отправьте сообщение с текстом оповещения.\n\n' \
+           f'<b>Справка:</b>\n' \
+           f'Нажмите на {drop_down_list_emojis[0]}, чтобы уточнить факультет/группу оповещаемых пользователей.'
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    all_faculties = get_all_faculties_without_mfk()
+    all_levels = get_all_study_levels()
+
+    to_moderators = notification_settings['moders']
+    to_staff = notification_settings['staff']
+    to_students = notification_settings['stu']
+    to_moderators_bool = int(bool(to_moderators['faculties']))
+    to_staff_bool = int(bool(to_staff['faculties']))
+    to_students_bool = notify_settings_students_faculties_to_bool(to_students['faculties'])
+
+    open_moderator_options = to_moderators['open']
+    open_staff_options = to_staff['open']
+    open_students_options = to_students['open']
+    check_emoji = marks_emojis
+    list_emojis = drop_down_list_emojis
+
+    moderators_button = InlineKeyboardButton(text=f'{check_emoji[to_moderators_bool]} Модераторам',
+                                             callback_data=json.dumps({'type': 'n_set.set',
+                                                                       'obj': 'moders'}))
+    staff_button = InlineKeyboardButton(text=f'{check_emoji[to_staff_bool]} Преподавателям',
+                                        callback_data=json.dumps({'type': 'n_set.set',
+                                                                  'obj': 'staff'}))
+    students_button = InlineKeyboardButton(text=f'{check_emoji[to_students_bool]} Студентам',
+                                           callback_data=json.dumps({'type': 'n_set.set',
+                                                                     'obj': 'stu'}))
+    moderators_options_button = InlineKeyboardButton(text=f'{list_emojis[open_moderator_options]}',
+                                                     callback_data=json.dumps({'type': 'n_set.opn',
+                                                                               'obj': 'moders'}))
+    staff_options_button = InlineKeyboardButton(text=f'{list_emojis[open_staff_options]}',
+                                                callback_data=json.dumps({'type': 'n_set.opn',
+                                                                          'obj': 'staff'}))
+    students_options_button = InlineKeyboardButton(text=f'{list_emojis[open_students_options]}',
+                                                   callback_data=json.dumps({'type': 'n_set.opn',
+                                                                             'obj': 'stu'}))
+    if not some_students_faculty_is_open():
+        keyboard.row(moderators_options_button, moderators_button)
+        if to_moderators['open']:
+            for faculty in all_faculties:
+                cur_faculty_check_emoji = check_emoji[faculty.id in to_moderators["faculties"]]
+                keyboard.row(none_type_button(btn_text=f'{little_white_square_emoji}'),
+                             InlineKeyboardButton(text=f'{cur_faculty_check_emoji} {faculty}',
+                                                  callback_data=json.dumps({'type': 'n_set.set',
+                                                                            'obj': 'moders.fac',
+                                                                            'f_id': faculty.id}))
+                             )
+        keyboard.row(none_type_button(btn_text=f'{little_white_square_emoji}'))
+        keyboard.row(staff_options_button, staff_button)
+        if to_staff['open']:
+            for faculty in all_faculties:
+                cur_faculty_check_emoji = check_emoji[faculty.id in to_staff["faculties"]]
+                keyboard.row(none_type_button(btn_text=f'{little_white_square_emoji}'),
+                             InlineKeyboardButton(text=f'{cur_faculty_check_emoji} {faculty}',
+                                                  callback_data=json.dumps({'type': 'n_set.set',
+                                                                            'obj': 'staff.fac',
+                                                                            'f_id': faculty.id}))
+                             )
+        keyboard.row(none_type_button(btn_text=f'{little_white_square_emoji}'))
+        keyboard.row(students_options_button, students_button)
+    if to_students['open']:
+        for faculty in all_faculties:
+            cur_faculty_check_emoji = check_emoji[int(bool(to_students["faculties"][faculty.id]['levels']))]
+            cur_faculty_open = to_students["faculties"][faculty.id]["open"]
+            cur_faculty_options_emoji = list_emojis[cur_faculty_open]
+
+            keyboard.row(InlineKeyboardButton(
+                             text=f'{cur_faculty_options_emoji}',
+                             callback_data=json.dumps({'type': 'n_set.opn',
+                                                       'obj': 'stu.fac',
+                                                       'f_id': faculty.id})),
+                         InlineKeyboardButton(text=f'{cur_faculty_check_emoji} {faculty}',
+                                              callback_data=json.dumps({'type': 'n_set.set',
+                                                                        'obj': 'stu.fac',
+                                                                        'f_id': faculty.id}))
+                         )
+            if cur_faculty_open:
+                for level in all_levels:
+                    if level[0] % 2:
+                        cur_faculty_level_check_emoji = check_emoji[int(bool(level[0] in to_students["faculties"][faculty.id]['levels']))]
+                        level_name = re.sub(', (?:(I.*)|(V.*)) семестр', '', level[1])
+                        keyboard.row(none_type_button(btn_text=f'{little_white_square_emoji}'),
+                                     InlineKeyboardButton(text=f'{cur_faculty_level_check_emoji} {level_name}',
+                                                          callback_data=json.dumps({'type': 'n_set.set',
+                                                                                    'obj': 'stu.fac.l',
+                                                                                    'f_id': faculty.id,
+                                                                                    'l_id': level[0]}))
+                                     )
+            if cur_faculty_open:
+                keyboard.row(none_type_button(btn_text=f'{little_white_square_emoji}'),
+                             none_type_button(btn_text=f'{little_white_square_emoji}'),
+                             )
+
+    keyboard.add(goback_button(goback_type='staff_back',
+                               to='courses', text=f'{cross_emoji} Отмена'))
+    return keyboard, text
+
+
+def notification_control_keyboard():
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1).add(
+        KeyboardButton(text=send_notification_text),
+        KeyboardButton(text=cancel_notification_text)
+    )
+    return keyboard
+
+
 # TODO:
 #  -3. Webhook deletion on server stopping !!!!
 #  - LOCALHOST_DOMAIN перенести в common_settings.py
