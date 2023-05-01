@@ -32,10 +32,12 @@ def nextmonth(year, month):
         return year, month + 1
 
 
-def get_study_years_list(account):
-    today = datetime.today()
+def get_study_year_choices(account):
+    today = timezone.localdate()
     current_year = today.year if today.month >= 9 else today.year - 1
-    years = [(current_year - i, str(current_year - i) + '-' + str(current_year - i + 1) + ' учебный год') for i in range(current_year - account.admission_year + 1 or 1)]
+    years = []
+    for i in range(current_year - account.admission_year + 1 or 1):
+        years.append((current_year - i, str(current_year - i) + '-' + str(current_year - i + 1) + ' учебный год'))
     return years
 
 
@@ -98,11 +100,11 @@ class AccountDetail(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixi
                                       .select_related('problem', 'problem__contest', 'problem__contest__course')
                                       .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
             context['credits'] = self.object.user.credit_set.select_related('course').order_by('course')
-            years_list = get_study_years_list(self.object)
-            years_list.append((0, 'Все время'))
-            year = int(self.request.GET.get('year') or years_list[0][0])
+            study_year_choices = get_study_year_choices(self.object)
+            study_year_choices.append((0, 'Все время'))
+            year = int(self.request.GET.get('year') or study_year_choices[0][0])
             context['account_chart_data'] = get_account_chart_data(self.object.user, year)
-            context['years'] = years_list
+            context['study_year_choices'] = study_year_choices
             context['year'] = year
         elif self.object.is_instructor:
             context['courses_leading'] = self.object.user.leading.all()

@@ -355,25 +355,11 @@ class Account(models.Model):
         return self.user.assignment_set.filter(score__gt=2).count()
 
     def get_accuracy(self, course_id=None):
-        Assignment = apps.get_model('contests', 'Assignment')
         submissions = self.user.submission_set.all()
         if course_id:
             submissions = submissions.filter(problem__contest__course=course_id)
-        problem_ids = submissions.values_list('problem', flat=True).distinct().order_by()
-        submissions_scores = []
-        for problem_id in problem_ids:
-            problem_submissions = submissions.filter(problem=problem_id)
-            successful_submissions = problem_submissions.filter(status='OK')
-            if successful_submissions.exists():
-                first_successful_submission = successful_submissions.earliest('date_created')
-                submissions_count = problem_submissions.filter(date_created__lt=first_successful_submission.date_created).count()
-            else:
-                submissions_count = problem_submissions.count()
-            assignment = problem_submissions.first().assignment
-            submission_limit = assignment.submission_limit if assignment else Assignment.DEFAULT_SUBMISSION_LIMIT
-            submissions_score = 100 * (submission_limit - submissions_count) / submission_limit
-            submissions_scores.append(submissions_score)
-        return round(mean(submissions_scores)) if submissions_scores else 0
+        accuracy = 100 * submissions.filter(status='OK').count() / (submissions.count() or 1)
+        return round(accuracy)
 
     def get_absolute_url(self):
         return reverse('accounts:account-detail', kwargs={'pk': self.pk})

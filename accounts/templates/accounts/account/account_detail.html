@@ -14,12 +14,12 @@
     <span class="d-flex justify-content-between">
         <span class="text-truncate">{{ account }}</span>
         <span class="d-flex justify-content-between gap-1">
-        {% if account.user_id == request.user.id %}
+            {% if account.user_id == request.user.id %}
             <a href="{% url 'password-change' %}" class="text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Изменить пароль"><i class="fa fa-lock fa-fw"></i></a>
-        {% endif %}
-        {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
+            {% endif %}
+            {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
             <a href="{% url 'accounts:account-update' account.user.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать профиль"><i class="fa fa-edit fa-fw"></i></a>
-        {% endif %}
+            {% endif %}
         </span>
     </span>
 </legend>
@@ -55,12 +55,11 @@
 <legend>Активность</legend>
 <div class="card mb-2">
     <div class="card-header d-flex align-items-center p-1">
-        <select id="year_select" name="year" class="form-control selectpicker" onchange="document.location=this.options[this.selectedIndex].value;">
-            {% for yr, yr_display in years %}
+        <select class="form-control selectpicker" name="year" onchange="document.location=this.options[this.selectedIndex].value;" aria-label="Год обучения">
+            {% for yr, yr_display in study_year_choices %}
             <option value="{% get_full_path_with_updated_query_string request year=yr %}#activity" {% if year == yr %}selected{% endif %}>{{ yr_display }}</option>
             {% endfor %}
         </select>
-        <label for="year_select"></label>
     </div>
     <div class="card-body">
         <canvas id="submissionsChart" height="100"></canvas>
