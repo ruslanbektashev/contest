@@ -1,4 +1,5 @@
 import json
+import re
 
 from django.contrib.auth.models import User
 from emoji import emojize
@@ -7,22 +8,17 @@ from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardBut
 from accounts.models import Account, Comment
 from contest.common_settings import CONTEST_DOMAIN
 from contest_telegram_bot.constants import courses_emoji, contest_emoji, user_settings_emoji, \
-    logout_btn_text, problem_emoji, submission_status_emojis, login_btn_text, help_btn_text, send_emoji, comments_emoji, \
-    marks_emojis, problems_emoji, users_emoji, down_arrow_emoji, selection_emoji, checked_emoji, unchecked_emoji, \
-    cross_emoji, hourglass_emoji, back_emoji, plus_emoji
+    logout_btn_text, problem_emoji, submission_status_emojis, login_btn_text, send_emoji, comments_emoji, \
+    marks_emojis, problems_emoji, users_emoji, selection_emoji, checked_emoji, unchecked_emoji, \
+    cross_emoji, hourglass_emoji, back_emoji, plus_emoji, loudspeaker_emoji, \
+    drop_down_list_emojis, little_white_square_emoji
 from contest_telegram_bot.models import TelegramUserSettings
-from contest_telegram_bot.utils import get_user_assignments, date_to_str, back_to_submissions_text
+from contest_telegram_bot.utils import get_user_assignments, date_to_str, back_to_submissions_text, \
+    get_active_course_users, send_notification_text, cancel_notification_text, get_all_faculties_without_mfk, \
+    get_all_study_levels, notify_settings_students_faculties_to_bool
 from contests.models import Course, Contest, Problem, Assignment, Submission, Credit
 from schedule.models import Schedule
 from support.models import Question, Report
-
-
-def start_keyboard_authorized():
-    login_btn = KeyboardButton(logout_btn_text)
-    help_btn = KeyboardButton(help_btn_text)
-    keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
-    keyboard.row(login_btn, help_btn)
-    return keyboard
 
 
 def start_keyboard_unauthorized():

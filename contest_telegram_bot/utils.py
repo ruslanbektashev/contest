@@ -5,7 +5,8 @@ import re
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 
-from contest_telegram_bot.constants import filled_progress_emoji, empty_progress_emoji, back_emoji
+from contest_telegram_bot.constants import filled_progress_emoji, empty_progress_emoji, back_emoji, loudspeaker_emoji, \
+    cross_emoji
 from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
 
 
