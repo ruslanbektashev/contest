@@ -62,6 +62,17 @@ def goback_button(goback_type: str, to: str, to_id: int = None, text: str = None
                                 callback_data=json.dumps(callback_data))
 
 
+def make_notification_button(creator: str, course_id: int = None):
+    if course_id is None:
+        recipients_word = 'пользователям'
+    else:
+        recipients_word = 'студентам курса'
+    return InlineKeyboardButton(text=f'{loudspeaker_emoji} Сделать рассылку {recipients_word}',
+                                callback_data=json.dumps({'type': 'notify',
+                                                          'creator': creator,
+                                                          'course_id': course_id}))
+
+
 def settings_keyboard(contest_user: User):
     keyboard = InlineKeyboardMarkup(row_width=1)
     contest_user_account = Account.objects.get(user=contest_user)
