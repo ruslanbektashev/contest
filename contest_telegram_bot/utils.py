@@ -93,6 +93,22 @@ def notify_specific_tg_users(notification_msg: str, tg_users, notification_obj=N
                           reply_markup=notification_keyboard(obj=notification_obj), parse_mode='HTML')
 
 
+def notify_specific_tg_users_by_contest_users(notification_msg: str, contest_users):
+    tg_users = TelegramUser.objects.filter(contest_user__in=contest_users)
+    notify_specific_tg_users(notification_msg=notification_msg, tg_users=tg_users)
+
+
+def get_active_course_users(course_id: int):
+    from contests.models import Credit, Course
+    from accounts.models import Account
+    course = Course.objects.get(pk=course_id)
+    all_course_users = Credit.objects.filter(course=course, score__lte=2).values_list('user')
+    active_course_accounts = Account.objects.filter(user__in=all_course_users,
+                                                    level__in=[course.level - 1, course.level, course.level + 1])
+    active_course_users = User.objects.filter(pk__in=active_course_accounts.values_list('user'))
+    return active_course_accounts, active_course_users
+
+
 def get_account_by_tg_id(chat_id: int):
     try:
         tg_user = TelegramUser.objects.get(chat_id=chat_id)
