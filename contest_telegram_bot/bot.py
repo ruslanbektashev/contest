@@ -925,14 +925,6 @@ def test_handler(message: types.Message):
 
 
 @tbot.my_chat_member_handler(func=lambda message: message.new_chat_member.status == 'kicked')
-def fff_handler(message: types.ChatMemberUpdated):
-    print(message.new_chat_member.status)
-
-
-# @tbot.message_handler(content_types=["text"])
-# def get_okn(message):
-#     tbot.send_message(message.chat.id, "Hello, bot!")
-
-
-tbot.add_custom_filter(custom_filters.TextMatchFilter())
-tbot.add_custom_filter(custom_filters.TextStartsFilter())
+def stop_handler(message: types.ChatMemberUpdated):
+    if get_telegram_user(chat_id=message.chat.id) is not None:
+        TelegramUser.objects.get(chat_id=message.chat.id).delete()
