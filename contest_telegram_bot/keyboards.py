@@ -431,16 +431,10 @@ def notification_control_keyboard():
 
 
 # TODO:
-#  -3. Webhook deletion on server stopping !!!!
-#  - LOCALHOST_DOMAIN перенести в common_settings.py
-#  -2. что-то сделать с описанием задачи
-#  -1. поддержка отображения расписания в формате PDF прямо на сайте
-#  0. проверить, что будет при смене пароля через сайт (будет ли доступен функционал?)
-#  1. problems list keyboard paginator
-#  - возможность у преподавателей прослушать через бота голосовые сообщения
-#  3. Submission deadline notification and connection with bot settings (user can set time interval for these type of notification)
+#  1. Submission deadline notification and connection with bot settings (user can set time interval for
+#  these type of notification)
 
-def student_table_keyboard(table_type: str, contest_user: User, table_id: int = None):
+def student_table_keyboard(contest_user: User, table_type: str, table_id: int = None):
     keyboard = InlineKeyboardMarkup(row_width=1)
     table_list = None
     table_title = None
@@ -502,8 +496,6 @@ def student_table_keyboard(table_type: str, contest_user: User, table_id: int = 
     if back_btn is not None:
         keyboard.row(back_btn)
     return keyboard, table_message_text
-# TODO:
-#  student_table_keyboard разделить на разные функции
 
 
 def problem_detail_keyboard(contest_user: User, problem_id: int):
@@ -624,7 +616,6 @@ def notification_keyboard(obj):
         button = InlineKeyboardButton(text='Перейти к сообщению об ошибке',
                                       url=f'{CONTEST_DOMAIN}{obj.get_absolute_url()}')
     elif isinstance(obj, Submission):
-        # TODO: разделение на переход к посылке у преподавателей и у студентов
         button = InlineKeyboardButton(text='Перейти к посылке',
                                       url=f'{CONTEST_DOMAIN}{obj.get_absolute_url()}')
     elif isinstance(obj, Schedule):
