@@ -136,11 +136,6 @@ def get_latest_submissions(course, request):
 
 
 @register.simple_tag()
-def account_course_credit_score(account, course_id=None):
-    return account.course_credit_score(course_id=course_id)
-
-
-@register.simple_tag()
 def submissions_count(submissions, problem):
     return submissions.filter(problem=problem).count()
 

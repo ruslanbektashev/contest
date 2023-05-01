@@ -657,8 +657,8 @@ class AssignmentSetForm(forms.Form):
                                                   "значения у каждого студента")
     submission_limit = forms.IntegerField(initial=Assignment.DEFAULT_SUBMISSION_LIMIT,
                                           label="Ограничить количество посылок до",
-                                          help_text="Каждый студент сможет отправить до указанного количества посылок "
-                                                    "по каждому новому заданию")
+                                          help_text="Каждый студент сможет отправить не более указанного количества "
+                                                    "посылок по каждому новому заданию")
     deadline = forms.DateTimeField(required=False, label="Принимать посылки до")
 
     def __init__(self, course, *args, **kwargs):

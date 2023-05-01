@@ -347,29 +347,16 @@ class Account(models.Model):
     def date_joined(self):
         return self.user.date_joined
 
-    @property
-    def solved_problems_count(self):
-        Submission = apps.get_model('contests', 'Submission')
-        Assignment = apps.get_model('contests', 'Assignment')
-        problem_ids = Submission.objects.filter(owner=self.user).values_list('problem', flat=True).distinct().order_by()
-        count = 0
-        for problem_id in problem_ids:
-            if Submission.objects.filter(owner=self.user, problem_id=problem_id, status='OK').exists() or Assignment.objects.filter(user=self.user, problem_id=problem_id, score__gte=3).exists():
-                count += 1
-        return count
+    def count_solved_problems(self):
+        Problem = apps.get_model('contests', 'Problem')
+        return Problem.objects.filter(submission__owner=self.user, submission__status='OK').count()
 
-    def course_credit_score(self, course_id=None):
-        credits = self.user.credit_set.exclude(score=0)
-        if course_id:
-            credits = credits.filter(course=course_id)
-        credit_scores = credits.values_list('score', flat=True)
-        avg_credit_score = mean(credit_scores) if credit_scores else 0
-        return round(avg_credit_score * 20 if 0 < avg_credit_score < 6 else 0)
+    def count_completed_assignments(self):
+        return self.user.assignment_set.filter(score__gt=2).count()
 
-    def course_submissions_score(self, course_id=None):
-        Submission = apps.get_model('contests', 'Submission')
+    def get_accuracy(self, course_id=None):
         Assignment = apps.get_model('contests', 'Assignment')
-        submissions = Submission.objects.filter(owner=self.user)
+        submissions = self.user.submission_set.all()
         if course_id:
             submissions = submissions.filter(problem__contest__course=course_id)
         problem_ids = submissions.values_list('problem', flat=True).distinct().order_by()
@@ -388,19 +375,11 @@ class Account(models.Model):
             submissions_scores.append(submissions_score)
         return round(mean(submissions_scores)) if submissions_scores else 0
 
-    @property
-    def submissions_score(self):
-        return self.course_submissions_score()
-
-    @property
-    def score(self):
-        return self.course_credit_score()
-
     def get_absolute_url(self):
         return reverse('accounts:account-detail', kwargs={'pk': self.pk})
 
     def mark_comments_as_read(self, comments):
-        # mark corresponding notifications as read
+        # TODO: mark corresponding notifications as read?
         # Notification.objects.filter(recipient=self.user, object_type=ContentType.objects.get_for_model(Comment),
         #                             object_id__in=comments.values_list('id', flat=True)).mark_as_read()
         self.comments_read.add(*comments)
@@ -437,7 +416,7 @@ class CommentManager(models.Manager):
 
 class Comment(models.Model):
     MAX_LEVEL = 5
-    author = models.ForeignKey(User, related_name='+', on_delete=models.CASCADE, verbose_name="Автор")
+    author = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE, verbose_name="Автор")
 
     thread_id = models.PositiveIntegerField(default=0, db_index=True)
     parent_id = models.PositiveIntegerField(default=0)

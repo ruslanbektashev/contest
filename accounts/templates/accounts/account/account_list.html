@@ -91,37 +91,26 @@
     <table class="table table-sm table-bordered table-hover" id="account_list_table">
         <thead>
             <tr>
-                {% if sort != 2 %}
                 <th class="text-center" style="width: 2%;">
                     <div class="form-check ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Выбрать всех пользователей">
                         <input class="form-check-input" id="check_all" type="checkbox" aria-label="Выбрать всех пользователей">
                     </div>
                 </th>
-                {% endif %}
                 <th class="text-end" style="width: 3%;">№</th>
                 <th class="text-center">Ф.И.О.</th>
-                {% if sort == 2 %}
-                <th class="text-center" style="width: 10%;">Баллы</th>
-                {% endif %}
                 <th class="text-center" style="width: 17%;">Уровень</th>
             </tr>
         </thead>
         <tbody>
             {% for account in form.accounts.field.queryset %}
             <tr>
-                {% if sort != 2 %}
                 <td class="text-center">
                     <div class="form-check ms-2">
                         <input class="form-check-input check" id="check_{{ account.user_id }}" type="checkbox" name="accounts" value="{{ account.user_id }}" aria-label="{{ account }}">
                     </div>
                 </td>
-                {% endif %}
                 <td class="text-end font-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
                 <td class="text-nowrap"><a href="{{ account.get_absolute_url }}">{{ account }}</a></td>
-                {% if sort == 2 %}
-                {% account_course_credit_score account course as accs %}
-                <td class="text-center text-nowrap"><span class="text-{{ accs|colorize_progress }}"><strong>{{ accs }}</strong></span></td>
-                {% endif %}
                 <td class="text-center text-nowrap">{% if account.is_student %}{{ account.get_level_display }}{% else %}{{ account.get_type_display }}{% endif %}</td>
             </tr>
             {% empty %}

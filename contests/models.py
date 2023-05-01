@@ -1025,7 +1025,8 @@ class Submission(CRDEntry):
     DEFAULT_STATUS = 'UN'
     DEFAULT_SCORE = 0
 
-    problem = models.ForeignKey(Problem, on_delete=models.CASCADE, verbose_name="Задача")
+    problem = models.ForeignKey(Problem, on_delete=models.CASCADE, related_query_name="submission",
+                                verbose_name="Задача")
     assignment = models.ForeignKey(Assignment, on_delete=models.SET_NULL, null=True, verbose_name="Задание")
     main_submission = models.ForeignKey('self', on_delete=models.CASCADE, null=True, related_name="sub_submissions",
                                         verbose_name="Подпосылки")

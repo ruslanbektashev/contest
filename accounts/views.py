@@ -19,9 +19,8 @@ from accounts.forms import (AccountListForm, AccountPartialForm, AccountSetForm,
 from accounts.models import Account, Action, Announcement, Comment, Faculty, Notification
 from accounts.templatetags.comments import get_comment_query_string
 from contest.mixins import LogChangeMixin, LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
-from contests.models import Course, Problem, Submission
+from contests.models import Course, Problem
 from contests.templatetags.views import get_query_string, get_updated_query_string
-from support.models import Question, Report
 
 """==================================================== Account ====================================================="""
 
@@ -40,7 +39,7 @@ def get_study_years_list(account):
     return years
 
 
-def get_year_month_submissions_solutions_comments_count_list(user, year):
+def get_account_chart_data(user, year):
     Assignment = apps.get_model('contests', 'Assignment')
     academic_year_start_month = 9
     today = timezone.localdate()
@@ -99,15 +98,10 @@ class AccountDetail(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixi
                                       .select_related('problem', 'problem__contest', 'problem__contest__course')
                                       .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
             context['credits'] = self.object.user.credit_set.select_related('course').order_by('course')
-            context['comments_count'] = Comment.objects.filter(author=self.object.user).count()
-            context['questions_count'] = Question.objects.filter(owner=self.object.user).count()
-            context['reports_count'] = Report.objects.filter(owner=self.object.user).count()
-            context['submissions_count'] = Submission.objects.filter(owner=self.object.user).count()
-            context['problems_count'] = self.object.solved_problems_count
             years_list = get_study_years_list(self.object)
             years_list.append((0, 'Все время'))
             year = int(self.request.GET.get('year') or years_list[0][0])
-            context['year_month_submissions_solutions_comments'] = get_year_month_submissions_solutions_comments_count_list(self.object.user, year)
+            context['account_chart_data'] = get_account_chart_data(self.object.user, year)
             context['years'] = years_list
             context['year'] = year
         elif self.object.is_instructor:
@@ -361,7 +355,7 @@ class AccountCourseResults(LoginRedirectMixin, OwnershipOrMixin, PermissionRequi
                                                                                     assignment__isnull=True)
                                              .select_related('problem', 'problem__contest')
                                              .order_by('problem__contest', 'problem'))
-        context['course_submissions_score'] = self.object.course_submissions_score(course)
+        context['course_accuracy'] = self.object.get_accuracy(course)
         return context
 
 

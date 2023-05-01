@@ -70,21 +70,35 @@
     <table class="table table-sm table-hover">
         <tbody>
             <tr>
+                <td>Выполнено заданий</td>
+                <td class="text-center" style="width: 4%;">
+                    {% with account.count_completed_assignments as completed_assignments_count %}
+                    <span class="text-{{ completed_assignments_count|colorize_activity_count }}"><strong>{{ completed_assignments_count }}</strong></span>
+                    {% endwith %}
+                </td>
+            </tr>
+            <tr>
                 <td>Решено задач</td>
                 <td class="text-center" style="width: 4%;">
-                    <span class="text-{{ problems_count|colorize_activity_count }}"><strong>{{ problems_count }}</strong></span>
+                    {% with account.count_solved_problems as solved_problems_count %}
+                    <span class="text-{{ solved_problems_count|colorize_activity_count }}"><strong>{{ solved_problems_count }}</strong></span>
+                    {% endwith %}
                 </td>
             </tr>
             <tr>
                 <td>Отправлено посылок</td>
                 <td class="text-center" style="width: 4%;">
+                    {% with account.user.submission_set.count as submissions_count %}
                     <span class="text-{{ submissions_count|colorize_activity_count }}"><strong>{{ submissions_count }}</strong></span>
+                    {% endwith %}
                 </td>
             </tr>
             <tr>
                 <td>Написано комментариев</td>
                 <td class="text-center" style="width: 4%;">
+                    {% with account.user.comments.count as comments_count %}
                     <span class="text-{{ comments_count|colorize_activity_count }}"><strong>{{ comments_count }}</strong></span>
+                    {% endwith %}
                 </td>
             </tr>
         </tbody>
@@ -104,32 +118,17 @@
 <div class="table-responsive-lg mb-3">
     <table class="table table-sm table-borderless">
         <tbody>
-            {% if account.submissions_score %}
             <tr>
                 <td>Точность</td>
                 <td class="text-center align-middle" style="width: 70%;">
-                    {% render_progress account.submissions_score "" %}
+                    {% include 'progress.html' with progress=account.get_accuracy %}
                 </td>
                 <td class="text-center" style="width: 4%;">
-                    <span data-bs-toggle="tooltip" data-bs-placement="left" title="Учитывает количество посылок для решения задачи">
+                    <span data-bs-toggle="tooltip" data-bs-placement="left" title="Отражает способность решать задачи с первой попытки">
                         <i class="fa fa-question-circle fa-fw text-muted"></i>
                     </span>
                 </td>
             </tr>
-            {% endif %}
-            {% if account.score %}
-            <tr>
-                <td>Общая успеваемость</td>
-                <td class="text-center align-middle" style="width: 70%;">
-                    {% render_progress account.score "" %}
-                </td>
-                <td class="text-center" style="width: 4%;">
-                    <span data-bs-toggle="tooltip" data-bs-placement="left" title="Учитывает оценки по курсам и количество посылок для решения задачи">
-                        <i class="fa fa-question-circle fa-fw text-muted"></i>
-                    </span>
-                </td>
-            </tr>
-            {% endif %}
         </tbody>
     </table>
 </div>
@@ -156,22 +155,22 @@
 <script src="{% static 'chart/chart.min.js' %}" type="text/javascript"></script>
 <script>
 const submissionsChartData = {
-    labels: [{% for item in year_month_submissions_solutions_comments %} {% if year == 0 %} '{{ item.1 }} {{item.0}}' {% else %} '{{ item.1 }}' {% endif %}, {% endfor %}],
+    labels: [{% for item in account_chart_data %} {% if year == 0 %} '{{ item.1 }} {{item.0}}' {% else %} '{{ item.1 }}' {% endif %}, {% endfor %}],
     datasets: [{
         label: 'Посылки',
         backgroundColor: 'rgb(91, 192, 222)',
         borderColor: 'rgb(91, 192, 222)',
-        data: [{% for item in year_month_submissions_solutions_comments %} {{ item.2 }}, {% endfor %}],
+        data: [{% for item in account_chart_data %} {{ item.2 }}, {% endfor %}],
     }, {
         label: 'Решения',
         backgroundColor: 'rgb(92, 184, 92)',
         borderColor: 'rgb(92, 184, 92)',
-        data: [{% for item in year_month_submissions_solutions_comments %} {{ item.3 }}, {% endfor %}],
+        data: [{% for item in account_chart_data %} {{ item.3 }}, {% endfor %}],
     }, {
         label: 'Комментарии',
         backgroundColor: 'rgb(108, 117, 125)',
         borderColor: 'rgb(108, 117, 125)',
-        data: [{% for item in year_month_submissions_solutions_comments %} {{ item.4 }}, {% endfor %}],
+        data: [{% for item in account_chart_data %} {{ item.4 }}, {% endfor %}],
     }]
 };
 
@@ -188,9 +187,6 @@ const submissionsChartConfig = {
         }
     }
 };
-const submissionsChart = new Chart(
-    document.getElementById('submissionsChart'),
-    submissionsChartConfig
-);
+const submissionsChart = new Chart(document.getElementById('submissionsChart'), submissionsChartConfig);
 </script>
 {% endblock main_scripts %}
