@@ -115,6 +115,8 @@ def staff_and_moders_start_keyboard(staff_contest_user: User, for_moders=False):
     if len(table_list) == 0:
         keyboard.row(none_type_button(btn_text='Нет курсов'),
                      InlineKeyboardButton(text=plus_emoji, url=f'{CONTEST_DOMAIN}/course/create'))
+    if for_moders:
+        keyboard.add(make_notification_button(creator='moder'))
     keyboard.row(InlineKeyboardButton(text=f'{user_settings_emoji} Настройки',
                                       callback_data=json.dumps({'type': 'get_settings'})))
     keyboard.row(InlineKeyboardButton(text=logout_btn_text,
