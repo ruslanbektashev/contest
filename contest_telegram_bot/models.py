@@ -21,8 +21,6 @@ class TelegramUserSettings(models.Model):
     comments = models.BooleanField(verbose_name='Оповещения о комментариях', default=True)
     announcements = models.BooleanField(verbose_name='Оповещения об объявлениях', default=True)
     schedules = models.BooleanField(verbose_name='Оповещения о расписании', default=False)
-    deadlines = models.BooleanField(verbose_name='Оповещения о дедлайнах', default=False)
-    deadlines_interval = models.IntegerField(verbose_name='Интервал оповещения о дедлайнах', default=1)
     submissions = models.BooleanField(verbose_name='Оповещения об отправляемых посылках', default=False)
     submissions_mark = models.BooleanField(verbose_name='Оповещения об оценке за посылки', default=True)
     assignments_mark = models.BooleanField(verbose_name='Оповещения об оценке за задачи', default=True)
@@ -33,9 +31,3 @@ class TelegramUserSettings(models.Model):
 
     class Meta:
         verbose_name = "Настройки телеграм-пользователя"
-
-# class TelegramGroup(TelegramEntity):
-#     contest_user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь на Контесте")
-#
-#     class Meta:
-#         verbose_name = "Группа в телеграме"
