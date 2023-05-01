@@ -130,7 +130,8 @@ def staff_course_menu_keyboard(course_id: int):
     table_message_text = f'Курс <b>{course}</b>.\n\n' \
                          f'Справка:\n' \
                          f'{users_emoji} Успеваемость конкретного студента - позволяет посмотреть успеваемость по курсу у выбранного студента.\n' \
-                         f'{problems_emoji} Успеваемость студентов по задачам - позволяет посмотреть общую успеваемость студентов по выбранной задаче.'
+                         f'{problems_emoji} Успеваемость студентов по задачам - позволяет посмотреть общую успеваемость студентов по выбранной задаче.\n' \
+                         f'{loudspeaker_emoji} Сделать рассылку студентам курса - позволяет отправить сообщение всем студентам курса'
 
     keyboard.add(
         InlineKeyboardButton(text=f'{users_emoji} Успеваемость конкретного студента',
@@ -140,7 +141,8 @@ def staff_course_menu_keyboard(course_id: int):
         InlineKeyboardButton(text=f'{problems_emoji} Успеваемость студентов по задачам',
                              callback_data=json.dumps({'type': 'staff_go',
                                                        'to': 'contests',
-                                                       'id': course_id}))
+                                                       'id': course_id})),
+        make_notification_button(creator='staff', course_id=course_id),
     )
     keyboard.add(goback_button(goback_type='staff_back', to='courses', to_id=course_id))
     return keyboard, table_message_text
