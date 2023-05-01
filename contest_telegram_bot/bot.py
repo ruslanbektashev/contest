@@ -919,11 +919,6 @@ def schedule_callback(message: Message):
             create_schedule_files(new_schedule)
 
 
-@tbot.message_handler(func=lambda message: message.text == '1')
-def test_handler(message: types.Message):
-    tbot.send_message(chat_id=message.chat.id, text=f'{message}')
-
-
 @tbot.my_chat_member_handler(func=lambda message: message.new_chat_member.status == 'kicked')
 def stop_handler(message: types.ChatMemberUpdated):
     if get_telegram_user(chat_id=message.chat.id) is not None:
