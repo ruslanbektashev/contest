@@ -886,8 +886,8 @@ def schedule_callback(message: Message):
             if not same_schedule:
                 recipients = TelegramUser.objects.filter(contest_user__is_active=True,
                                                          contest_user__is_superuser=False)
-                notify_all_specific_tg_users(notification_msg=f'{action} <b>расписание на {week} ({new_schedule})</b>',
-                                             tg_users=recipients, notification_obj=new_schedule)
+                notify_specific_tg_users(notification_msg=f'{action} <b>расписание на {week} ({new_schedule})</b>',
+                                         tg_users=recipients, notification_obj=new_schedule)
 
         current_date = timezone.now()
         if 1 <= current_date.isocalendar()[2] <= 4:

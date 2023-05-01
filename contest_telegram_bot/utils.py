@@ -79,7 +79,7 @@ def notify_tg_users(notification):
                           reply_markup=notification_keyboard(obj=notification_obj), parse_mode='HTML')
 
 
-def notify_all_specific_tg_users(notification_msg: str, tg_users, notification_obj=None):
+def notify_specific_tg_users(notification_msg: str, tg_users, notification_obj=None):
     if notification_obj is not None:
         notification_obj_type = str(type(notification_obj)).split('.')[-1].lower()[:-2] + 's'
 
