@@ -48,7 +48,7 @@ from schedule.models import Schedule, ScheduleAttachment, current_week_date_from
 
 tbot = telebot.TeleBot(settings.BOT_TOKEN)
 try:
-    tbot.set_webhook(f'{settings.LOCALHOST_DOMAIN}/{settings.BOT_TOKEN}')
+    tbot.set_webhook(f'{settings.DOMAIN}/{settings.BOT_TOKEN}')
 except Exception:
     pass
 atexit.register(tbot.remove_webhook)
