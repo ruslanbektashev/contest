@@ -257,12 +257,10 @@ def staff_problem_menu_keyboard(problem_id: int, show_submissions_number=True):
     problem = Problem.objects.get(pk=problem_id)
     course = problem.course
     contest = problem.contest
-    all_course_users = Credit.objects.filter(course=course, score__lte=2).values_list('user')
-    active_course_users = Account.objects.filter(user__in=all_course_users,
-                                                 level__in=[course.level - 1, course.level, course.level + 1])
+    active_course_accounts, _ = get_active_course_users(course_id=course.id)
 
     students_assignment_with_problem = Assignment.objects.filter(problem_id=problem_id,
-                                                                 user__in=active_course_users.values_list(
+                                                                 user__in=active_course_accounts.values_list(
                                                                      'user')).order_by('user__last_name')
     students_with_problem = Account.objects.filter(
         user__in=students_assignment_with_problem.values_list('user')).order_by('user__last_name')
