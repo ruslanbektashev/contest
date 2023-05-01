@@ -53,6 +53,7 @@ except Exception:
     pass
 atexit.register(tbot.remove_webhook)
 telegram_users_media_groups_id = {}
+notification_info = {}
 
 
 def welcome_handler(outer_message: types.Message, welcome_text: str = ", добро пожаловать в систему МГУ Контест!"):
@@ -361,6 +362,196 @@ def problem_callback(outer_call: types.CallbackQuery):
                                                                                                problem_id=problem_id))
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
+def remove_from_notification_list(notif_creator_tg_id: int, notif_settings_msg_id: int):
+    if notification_info.get(notif_creator_tg_id) is not None:
+        if notification_info[notif_creator_tg_id].get(notif_settings_msg_id):
+            del notification_info[notif_creator_tg_id][notif_settings_msg_id]
+        if len(notification_info[notif_creator_tg_id]) == 0:
+            del notification_info[notif_creator_tg_id]
+
+
+@tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'notify')
+def staff_and_moders_notify_callback(outer_call: types.CallbackQuery):
+    def callback_for_authorized(call: types.CallbackQuery):
+        user = get_telegram_user(chat_id=call.message.chat.id).contest_user
+        notif_creator = json_get(call.data, 'creator')
+        course_id = json_get(call.data, 'course_id')
+        if notification_info.get(call.message.chat.id) is None:
+            notification_info[call.message.chat.id] = {}
+        notification_info[call.message.chat.id][call.message.id] = {'creator': notif_creator}
+        cur_notification_info = notification_info[call.message.chat.id][call.message.id]
+        if course_id is not None:
+            course_id = int(course_id)
+            cur_notification_info['for'] = course_id
+
+        if notif_creator == 'staff':
+            keyboard, text = staff_notification_initial_keyboard(course_id=course_id)
+        else:
+            cur_notification_info['for'] = {'moders': {'open': False,
+                                                       'faculties': {}},
+                                            'staff': {'open': False,
+                                                      'faculties': {}},
+                                            'stu': {'open': False,
+                                                    'faculties': {}}}
+            all_faculties = get_all_faculties_without_mfk__ids()
+            all_levels = get_all_study_levels__ids()
+            cur_notification_info['for']['moders']['faculties'] = all_faculties
+            cur_notification_info['for']['staff']['faculties'] = deepcopy(all_faculties)
+            for faculty_id in all_faculties:
+                cur_notification_info['for']['stu']['faculties'][faculty_id] = {'open': False,
+                                                                                'levels': deepcopy(all_levels)}
+            keyboard, text = moderator_notification_initial_keyboard(notification_settings=cur_notification_info['for'])
+
+        tbot.edit_message_text(text=text, chat_id=call.message.chat.id,
+                               message_id=call.message.id, reply_markup=keyboard, parse_mode='HTML')
+        tbot.register_next_step_handler_by_chat_id(chat_id=call.message.chat.id, callback=get_notify_text,
+                                                   notification_initial_msg_id=call.message.id, creator_user=user)
+
+    unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
+@tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'n_set.opn')
+def notify_open_setting_callback(outer_call: types.CallbackQuery):
+    def callback_for_authorized(call: types.CallbackQuery):
+        path_of_obj_to_open = str(json_get(call.data, 'obj')).split('.')
+        group_type = path_of_obj_to_open[0]
+        cur_notification_info_for = notification_info[call.message.chat.id][call.message.id]['for']
+        settings_of_group_type = cur_notification_info_for[group_type]
+        if len(path_of_obj_to_open) == 1:
+            settings_of_group_type['open'] = not settings_of_group_type['open']
+        elif len(path_of_obj_to_open) == 2:
+            settings_faculty = settings_of_group_type['faculties']
+            faculty_id = int(json_get(call.data, 'f_id'))
+            settings_faculty[faculty_id]['open'] = not settings_faculty[faculty_id]['open']
+
+        updated_keyboard, _ = moderator_notification_initial_keyboard(notification_settings=cur_notification_info_for)
+        tbot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id,
+                                       reply_markup=updated_keyboard)
+
+    unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
+@tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'n_set.set')
+def notify_select_setting_callback(outer_call: types.CallbackQuery):
+    def callback_for_authorized(call: types.CallbackQuery):
+        path_of_obj_to_open = str(json_get(call.data, 'obj')).split('.')
+        group_type = path_of_obj_to_open[0]
+        cur_notification_info_for = notification_info[call.message.chat.id][call.message.id]['for']
+        settings_of_group_type = cur_notification_info_for[group_type]
+        settings_faculty = settings_of_group_type['faculties']
+
+        if len(path_of_obj_to_open) == 1:
+            all_faculties_ids = get_all_faculties_without_mfk__ids()
+            if group_type != 'stu':
+                if len(settings_faculty) == 0:
+                    settings_of_group_type['faculties'] = get_all_faculties_without_mfk__ids()
+                else:
+                    settings_faculty.clear()
+            else:
+                if notify_settings_students_faculties_to_bool(settings_faculty) == 0:
+                    for faculty_id in all_faculties_ids:
+                        settings_faculty[faculty_id]['levels'] = get_all_study_levels__ids()
+                else:
+                    for faculty_id in all_faculties_ids:
+                        settings_faculty[faculty_id]['levels'].clear()
+        else:
+            faculty_id = json_get(call.data, 'f_id')
+            if len(path_of_obj_to_open) == 2:
+                if group_type != 'stu':
+                    if faculty_id in settings_faculty:
+                        settings_faculty.remove(faculty_id)
+                    else:
+                        settings_faculty.append(faculty_id)
+                else:
+                    this_faculty_settings = settings_faculty[faculty_id]
+                    if len(this_faculty_settings['levels']) == 0:
+                        this_faculty_settings['levels'] = get_all_study_levels__ids()
+                    else:
+                        this_faculty_settings['levels'].clear()
+            else:
+                faculty_level_id = json_get(call.data, 'l_id')
+                this_faculty_settings__levels = settings_faculty[faculty_id]['levels']
+                if faculty_level_id in this_faculty_settings__levels:
+                    this_faculty_settings__levels.remove(faculty_level_id)
+                    this_faculty_settings__levels.remove(faculty_level_id + 1)
+                else:
+                    this_faculty_settings__levels.append(faculty_level_id)
+                    this_faculty_settings__levels.append(faculty_level_id + 1)
+
+        updated_keyboard, _ = moderator_notification_initial_keyboard(notification_settings=cur_notification_info_for)
+        tbot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id,
+                                       reply_markup=updated_keyboard)
+
+    unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
+def get_notify_text(message: Message, notification_initial_msg_id: int, creator_user: User):
+    if message.text is None:
+        notify_control_keyboard = None
+        text = 'В качестве объявления можно отправить только текст.'
+        tbot.register_next_step_handler_by_chat_id(chat_id=message.chat.id, callback=get_notify_text,
+                                                   notification_initial_msg_id=notification_initial_msg_id,
+                                                   creator_user=creator_user)
+    else:
+        notify_control_keyboard = notification_control_keyboard()
+        text = 'Выберите действие.'
+        tbot.register_next_step_handler_by_chat_id(chat_id=message.chat.id, callback=send_notify_text,
+                                                   notification_initial_msg_id=notification_initial_msg_id,
+                                                   creator_user=creator_user, notify_msg=message,
+                                                   notify_control_keyboard=notify_control_keyboard)
+    tbot.send_message(chat_id=message.chat.id, text=text, reply_markup=notify_control_keyboard)
+
+
+def send_notify_text(message: Message, notify_msg: Message, notification_initial_msg_id: int,
+                     notify_control_keyboard, creator_user: User):
+    if message.text not in [send_notification_text, cancel_notification_text]:
+        tbot.send_message(chat_id=message.chat.id, text='Сначала завершите процесс отправки сообщения.',
+                          reply_markup=notify_control_keyboard)
+        tbot.register_next_step_handler_by_chat_id(chat_id=message.chat.id, callback=send_notify_text,
+                                                   notification_initial_msg_id=notification_initial_msg_id,
+                                                   creator_user=creator_user, notify_msg=message,
+                                                   notify_control_keyboard=notify_control_keyboard)
+    else:
+        def send_message_with_status(status_msg: str, send_message=True):
+            sending_msg = tbot.send_message(chat_id=message.chat.id, text=status_msg,
+                                            reply_markup=timer_keyboard())
+            if send_message:
+                notify_specific_tg_users_by_contest_users(notification_msg=f'Оповещение от <b>{get_account_by_tg_id(chat_id=message.chat.id)}</b>\n\n' +
+                                                                           notify_msg.text,
+                                                          contest_users=recipients)
+            tbot.delete_message(chat_id=message.chat.id, message_id=sending_msg.id)
+
+        notification_creator = notification_info[message.chat.id][notification_initial_msg_id]['creator']
+        notification_for = notification_info[message.chat.id][notification_initial_msg_id]['for']
+        if message.text == send_notification_text:
+            if isinstance(notification_for, int):
+                course_id = int(notification_for)
+                _, recipients = get_active_course_users(course_id=course_id)
+            else:
+                moderators = Account.objects.filter(type=2, faculty_id__in=notification_for['moders']['faculties']).filter(~Q(user=creator_user))
+                staff = Account.objects.filter(type=3, faculty_id__in=notification_for['staff']['faculties'])
+                students = Account.objects.filter(type=-1)
+                students_faculties_info = notification_for['stu']['faculties']
+                for students_faculty_id in students_faculties_info.keys():
+                    students = students.union(Account.objects.filter(type=1,
+                                                                     faculty_id=students_faculty_id,
+                                                                     level__in=students_faculties_info[students_faculty_id]['levels']))
+                recipients = students.union(moderators, staff).values_list('user')
+
+            send_message_with_status(status_msg='Отправка сообщения...')
+            tbot.send_message(chat_id=message.chat.id, text='Сообщение успешно отправлено.')
+        else:
+            send_message_with_status(status_msg='Отмена операции...', send_message=False)
+            remove_from_notification_list(notif_creator_tg_id=message.chat.id,
+                                          notif_settings_msg_id=notification_initial_msg_id)
+
+        if notification_creator == 'staff':
+            keyboard, text = staff_course_menu_keyboard(course_id=int(notification_for))
+        else:
+            keyboard, text = staff_and_moders_start_keyboard(staff_contest_user=creator_user, for_moders=True)
+        tbot.send_message(chat_id=message.chat.id, text=text, parse_mode='HTML', reply_markup=keyboard)
 
 
 @tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'submission_detail')
