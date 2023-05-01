@@ -23,8 +23,7 @@ from support.models import Question, Report
 
 def start_keyboard_unauthorized():
     login_btn = KeyboardButton(login_btn_text)
-    help_btn = KeyboardButton(help_btn_text)
-    keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1, one_time_keyboard=True).add(login_btn, help_btn)
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1, one_time_keyboard=True).add(login_btn)
     return keyboard
 
 
