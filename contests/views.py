@@ -447,6 +447,32 @@ class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
                                     action="изменил Вашу итоговую оценку по курсу", object=self.object.course)
         return super().form_valid(form)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        students = (Account.students.filter(user_id=self.object.user_id)
+                    .with_attendance(self.object.course, timezone.now()))
+        assignments = Assignment.objects.for_course_table(self.object.course, students)
+        contests = self.object.course.contest_set.all()
+        assignments_num, contests_num = len(assignments), len(contests)
+        row = {'student': students.get(), 'columns': [{'contest': contest, 'assignments': []} for contest in contests]}
+        i, j = 0, 0
+        while i < assignments_num:
+            while j < contests_num and contests[j].id != assignments[i].problem.contest_id:
+                j += 1
+            if contests[j].id == assignments[i].problem.contest_id:
+                row['columns'][j]['assignments'].append(assignments[i])
+                i += 1
+        summary = []
+        for column in row['columns']:
+            score_sum = 0
+            for assignment in column['assignments']:
+                score_sum += assignment.score
+            summary.append(score_sum / (len(column['assignments']) or 1))
+        context['contests'] = contests
+        context['row'] = row
+        context['summary'] = summary
+        return context
+
     def get_success_url(self):
         success_url = reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
         return success_url + get_query_string(self.request)

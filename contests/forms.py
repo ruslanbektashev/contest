@@ -180,6 +180,11 @@ class CreditUpdateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['score'].help_text = "последнее изменение: " + date(self.instance.date_updated, 'd M Y г. в H:i')
+        # TODO:
+        # option_class_data = {value: "bg-none text-" + colorize(value) for value, _ in self.fields['score'].choices}
+        # option_class_data[''] = ''
+        # option_attrs = {'class': option_class_data}
+        # self.fields['score'].widget = BootstrapSelect(choices=self.fields['score'].choices, option_attrs=option_attrs)
 
 
 class CreditSetForm(forms.Form):
