@@ -304,7 +304,7 @@ class CreditReport(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         kwargs = super().get_form_kwargs()
         students = (Account.students.apply_common_filters(self.storage)
                     .order_by('faculty__short_name', 'user__last_name', 'user__first_name'))
-        examiners = Account.objects.filter(user__groups__name='Преподаватель')
+        examiners = Account.objects.filter(type=3)
         if self.storage['faculty_id'] > 0:
             examiners = examiners.filter(faculty_id=self.storage['faculty_id'])
         examiners = examiners.order_by('faculty__short_name', 'user__last_name', 'user__first_name')

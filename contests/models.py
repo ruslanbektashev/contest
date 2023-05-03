@@ -95,7 +95,7 @@ class Course(SoftDeletionModel, CRUDEntry):
 
     faculty = models.ForeignKey(Faculty, on_delete=models.DO_NOTHING, verbose_name="Факультет")
     leaders = models.ManyToManyField(User, through='CourseLeader', through_fields=('course', 'leader'),
-                                     related_name='leading', verbose_name="Ведущие преподаватели")
+                                     related_name='courses_leading', verbose_name="Ведущие преподаватели")
 
     title_official = models.CharField(max_length=100, verbose_name="Официальное название",
                                       help_text="Официальное название будет использовано при составлении отчетных "

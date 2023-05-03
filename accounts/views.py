@@ -107,7 +107,7 @@ class AccountDetail(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixi
             context['study_year_choices'] = study_year_choices
             context['year'] = year
         elif self.object.is_instructor:
-            context['courses_leading'] = self.object.user.leading.all()
+            context['courses_leading'] = self.object.user.courses_leading.all()
         return context
 
 
