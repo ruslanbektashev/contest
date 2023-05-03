@@ -15,7 +15,7 @@ from django.core.files import File
 from django.db.models import Q
 from django.utils import timezone
 from openpyxl import load_workbook
-from telebot import types
+from telebot import types, custom_filters
 from telebot.apihelper import ApiTelegramException
 from telebot.types import Message
 
@@ -923,3 +923,7 @@ def schedule_callback(message: Message):
 def stop_handler(message: types.ChatMemberUpdated):
     if get_telegram_user(chat_id=message.chat.id) is not None:
         TelegramUser.objects.get(chat_id=message.chat.id).delete()
+
+
+tbot.add_custom_filter(custom_filters.TextMatchFilter())
+tbot.add_custom_filter(custom_filters.TextStartsFilter())
