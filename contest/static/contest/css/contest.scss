@@ -183,23 +183,6 @@
 .contest-assignment-table th:first-child,
 .contest-assignment-table td:first-child {
   border-left: 1px solid #dee2e6;
-  border-right: 1px solid #dee2e6;
-}
-
-.contest-assignment-table th:nth-child(2),
-.contest-assignment-table td:nth-child(2) {
-  border-left: 1px solid #dee2e6;
-  border-right: 0;
-}
-
-.contest-assignment-table th:nth-child(3),
-.contest-assignment-table td:nth-child(3) {
-  border-left: 1px solid #dee2e6;
-}
-
-.contest-shrink-column {
-  width: 0.1%;
-  white-space: nowrap;
 }
 
 .contest-sticky-column {
@@ -207,6 +190,11 @@
   left: 0;
   z-index: 990;
   background-color: white !important;
+}
+
+.contest-shrink-column {
+  width: 0.1%;
+  white-space: nowrap;
 }
 
 .contest-assignment-table.table-hover tbody tr:hover .contest-sticky-column {
