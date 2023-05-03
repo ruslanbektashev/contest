@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 
-from contests.forms import UserChoiceField, AccountSelect
+from contests.forms import BootstrapSelect, UserChoiceField
 from support.models import Question
 
 
@@ -19,5 +19,5 @@ class QuestionForm(forms.ModelForm):
         option_subtext_data = {pk: faculty_short_name for pk, faculty_short_name in option_subtext_data}
         option_subtext_data[''] = ''
         option_attrs = {'data-subtext': option_subtext_data}
-        self.fields['addressee'].widget = AccountSelect(choices=self.fields['addressee'].choices,
-                                                        option_attrs=option_attrs)
+        self.fields['addressee'].widget = BootstrapSelect(choices=self.fields['addressee'].choices,
+                                                          option_attrs=option_attrs)

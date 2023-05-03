@@ -12,7 +12,7 @@ from django.template.defaultfilters import date, filesizeformat
 from django.utils import timezone
 
 from accounts.models import Account
-from contest.widgets import OptionCheckboxSelect, OptionRadioSelect
+from contest.widgets import BootstrapSelect, BootstrapSelectMultiple, OptionCheckboxSelect, OptionRadioSelect
 from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, FNTest, Option,
                              Problem, Submission, SubmissionPattern, SubProblem, UTTest)
 
@@ -25,32 +25,6 @@ class UserChoiceField(forms.ModelChoiceField):
 class UserMultipleChoiceField(forms.ModelMultipleChoiceField):
     def label_from_instance(self, obj):
         return "{} {}".format(obj.last_name, obj.first_name)
-
-
-class AccountSelect(forms.Select):
-    def __init__(self, attrs=None, choices=(), option_attrs=None):
-        super().__init__(attrs, choices)
-        self.option_attrs = option_attrs
-
-    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
-        option = super().create_option(name, value, label, selected, index, subindex, attrs)
-        if self.option_attrs is not None:
-            for data_attr, values in self.option_attrs.items():
-                option['attrs'][data_attr] = values[getattr(option['value'], 'value', option['value'])]
-        return option
-
-
-class AccountSelectMultiple(forms.SelectMultiple):
-    def __init__(self, attrs=None, choices=(), option_attrs=None):
-        super().__init__(attrs, choices)
-        self.option_attrs = option_attrs
-
-    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
-        option = super().create_option(name, value, label, selected, index, subindex, attrs)
-        if self.option_attrs is not None:
-            for data_attr, values in self.option_attrs.items():
-                option['attrs'][data_attr] = values[getattr(option['value'], 'value', option['value'])]
-        return option
 
 
 class MediaAttachmentMixin:
@@ -192,7 +166,7 @@ class CourseLeaderForm(forms.ModelForm):
         option_subtext_data = {pk: faculty_short_name for pk, faculty_short_name in option_subtext_data}
         option_subtext_data[''] = ''
         option_attrs = {'data-subtext': option_subtext_data}
-        self.fields['leader'].widget = AccountSelect(choices=self.fields['leader'].choices, option_attrs=option_attrs)
+        self.fields['leader'].widget = BootstrapSelect(choices=self.fields['leader'].choices, option_attrs=option_attrs)
 
 
 """===================================================== Credit ====================================================="""
@@ -242,8 +216,8 @@ class CreditReportForm(forms.Form):
                                option_subtext_data}
         option_subtext_data[''] = ''
         option_attrs = {'data-subtext': option_subtext_data}
-        self.fields['students'].widget = AccountSelectMultiple(choices=self.fields['students'].choices,
-                                                               option_attrs=option_attrs)
+        self.fields['students'].widget = BootstrapSelectMultiple(choices=self.fields['students'].choices,
+                                                                 option_attrs=option_attrs)
         self.fields['examiners'].queryset = examiners
         self.fields['examiners'].initial = course.leaders.all()
         self.fields['faculty'].initial = course.faculty.short_name
