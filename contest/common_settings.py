@@ -130,6 +130,4 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'contest/static/'),
 ]
 
-BOT_TOKEN = ''
-DOMAIN = ''
 SCHEDULE_CHANNELS_IDS = [-1001337874100]
