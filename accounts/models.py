@@ -174,7 +174,7 @@ class StaffManager(models.Manager):
 
 class StudentManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(user__groups__name="Студент").select_related('user')
+        return super().get_queryset().filter(type=1).select_related('user')
 
     def create_set(self, faculty, level, admission_year, names):
         group_prefix = transliterate(faculty.group_prefix.lower())
