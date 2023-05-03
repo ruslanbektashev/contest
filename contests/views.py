@@ -454,22 +454,23 @@ class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         assignments = Assignment.objects.for_course_table(self.object.course, students)
         contests = self.object.course.contest_set.all()
         assignments_num, contests_num = len(assignments), len(contests)
-        row = {'student': students.get(), 'columns': [{'contest': contest, 'assignments': []} for contest in contests]}
+        columns = [{'assignments': []} for _ in contests]
         i, j = 0, 0
         while i < assignments_num:
             while j < contests_num and contests[j].id != assignments[i].problem.contest_id:
                 j += 1
             if contests[j].id == assignments[i].problem.contest_id:
-                row['columns'][j]['assignments'].append(assignments[i])
+                columns[j]['assignments'].append(assignments[i])
                 i += 1
         summary = []
-        for column in row['columns']:
+        for column in columns:
             score_sum = 0
             for assignment in column['assignments']:
                 score_sum += assignment.score
             summary.append(score_sum / (len(column['assignments']) or 1))
         context['contests'] = contests
-        context['row'] = row
+        context['student'] = students.get()
+        context['columns'] = columns
         context['summary'] = summary
         return context
 
