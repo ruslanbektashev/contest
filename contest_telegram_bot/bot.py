@@ -46,12 +46,22 @@ from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
 from contests.models import Problem, Submission, Attachment, attachment_directory
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
 
+
 tbot = telebot.TeleBot(settings.BOT_TOKEN)
 try:
     tbot.set_webhook(f'{settings.DOMAIN}/{settings.BOT_TOKEN}')
 except Exception:
     pass
-atexit.register(tbot.remove_webhook)
+
+
+def remove_webhook():
+    try:
+        tbot.remove_webhook()
+    except Exception:
+        pass
+
+
+atexit.register(remove_webhook)
 telegram_users_media_groups_id = {}
 notification_info = {}
 
