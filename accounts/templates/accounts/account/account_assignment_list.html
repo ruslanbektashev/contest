@@ -19,8 +19,6 @@
         </span>
     </span>
 </legend>
-<div class="mb-3">
-    {% render_assignment_user_table assignments credits %}
-    {% include 'progress.html' with progress=assignments.progress title="Прогресс" %}
-</div>
+{% render_assignment_user_table assignments credits %}
+{% include 'progress.html' with progress=assignments.progress title="Прогресс" %}
 {% endblock main_content %}

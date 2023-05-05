@@ -15,7 +15,7 @@
     <option value="{% get_full_path_with_updated_query_string request user_id=user.id %}" {% if user_id == user.id %}selected{% endif %} data-subtext="{{ user.account.faculty.short_name }}">{{ user.account }}</option>
     {% endfor %}
 </select>
-<div class="d-flex flex-column flex-md-row flex-md-wrap gap-2 mb-3">
+<div class="d-flex flex-column flex-md-row flex-md-wrap gap-2">
     {% for filter in filter_list %}
     <div class="card shadow-sm">
         <div class="card-body">

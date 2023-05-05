@@ -99,7 +99,7 @@
     </div>
 </div>
 <div class="d-grid">
-    <a class="btn btn-light border mb-3" href="{% url 'contests:contest-discussion' contest.id %}">
+    <a class="btn btn-light border" href="{% url 'contests:contest-discussion' contest.id %}">
         {% unread_comments_count request.user.account contest as ucc %}
         <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
     </a>

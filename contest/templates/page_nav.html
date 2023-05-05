@@ -1,6 +1,6 @@
 {% load views %}
 {% if is_paginated %}
-<nav aria-label="Страницы" id="page_nav">
+<nav id="page_nav" aria-label="Страницы">
     <ul class="pagination justify-content-center">
         <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
             <a class="page-link" href="{% get_full_path_with_updated_query_string request page=1 %}#p" aria-label="Первая страница">
@@ -8,15 +8,15 @@
             </a>
         </li>
         {% for i in page_range %}
-            {% if page_obj.number == i %}
+        {% if page_obj.number == i %}
         <li class="page-item active">
             <span class="page-link">{{ i }}<span class="sr-only">Текущая страница</span></span>
         </li>
-            {% else %}
+        {% else %}
         <li class="page-item">
             <a class="page-link" href="{% get_full_path_with_updated_query_string request page=i %}#p">{{ i }}</a>
         </li>
-            {% endif %}
+        {% endif %}
         {% endfor %}
         <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
             <a class="page-link" href="{% get_full_path_with_updated_query_string request page=page_obj.paginator.num_pages %}#p" aria-label="Последняя страница">

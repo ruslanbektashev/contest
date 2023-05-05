@@ -41,7 +41,9 @@
             {% block breadcrumbs %}{% endblock breadcrumbs %}
         </ol>
     </nav>
-    {% block main_content %}{% endblock main_content %}
+    <div class="mb-3">
+        {% block main_content %}{% endblock main_content %}
+    </div>
     <div class="text-center text-small mt-auto gx-3">
         {% if perms.support.delete_tutorialsteppass %}
         <a class="link-secondary text-nowrap" id="contest_tutorial_reset" href="{% url 'support:tutorial-reset' request.resolver_match.app_name|add:":"|add:request.resolver_match.url_name %}?from={{ request.get_full_path }}">Пройти руководство</a>

@@ -216,8 +216,8 @@
         </h2>
         <div class="accordion-collapse collapse" id="problemSubmissionPatternsCollapse" aria-labelledby="problemSubmissionPatternsHeader">
             <div class="accordion-body">
-                <div class="alert alert-warning">Доступно только преподавателям</div>
-                {% include 'list.html' with lst=problem.submission_patterns.all mb=0 warn_if_empty="Шаблоны посылки еще не добавлены" %}
+                <div class="alert alert-warning"><i class="fa fa-lock fa-fw"></i> Доступно только преподавателям</div>
+                {% include 'list.html' with lst=problem.submission_patterns.all warn_if_empty="Шаблоны посылки еще не добавлены" %}
             </div>
         </div>
     </div>
@@ -232,7 +232,7 @@
         </h2>
         <div class="accordion-collapse collapse" id="problemTestsCollapse" aria-labelledby="problemTestsHeader">
             <div class="accordion-body">
-                <div class="alert alert-warning">Доступно только преподавателям</div>
+                <div class="alert alert-warning"><i class="fa fa-lock fa-fw"></i> Доступно только преподавателям</div>
                 {% if problem.iotest_set.exists or problem.uttest_set.exists or problem.fntest_set.exists %}
                 {% include 'list.html' with lst=problem.iotest_set.all title="IO-тесты:" %}
                 {% include 'list.html' with lst=problem.uttest_set.all title="UT-тесты:" %}
@@ -257,7 +257,7 @@
     </div>
 </div>
 <div class="d-grid">
-    <a class="btn btn-light border mb-3" href="{% url 'contests:problem-discussion' problem.id %}">
+    <a class="btn btn-light border" href="{% url 'contests:problem-discussion' problem.id %}">
         {% unread_comments_count request.user.account problem as ucc %}
         <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
     </a>
