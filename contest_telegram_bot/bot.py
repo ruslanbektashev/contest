@@ -20,7 +20,6 @@ from telebot.apihelper import ApiTelegramException
 from telebot.types import Message
 
 from accounts.models import Account
-from contest.common_settings import SCHEDULE_CHANNELS_IDS
 from django.conf import settings
 from contest_telegram_bot.constants import login_btn_text, logout_btn_text
 from contest_telegram_bot.keyboards import (problem_detail_keyboard, staff_and_moders_start_keyboard,
@@ -844,7 +843,7 @@ def status_callback(outer_call: types.CallbackQuery):
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
 
-@tbot.channel_post_handler(content_types=['document'], func=lambda message: message.chat.id in SCHEDULE_CHANNELS_IDS)
+@tbot.channel_post_handler(content_types=['document'], func=lambda message: message.chat.id in settings.SCHEDULE_CHANNELS_IDS)
 def schedule_callback(message: Message):
     if is_schedule_file(filename=message.document.file_name) is not None:
         def create_schedule_files(schedule):
