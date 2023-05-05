@@ -32,22 +32,11 @@ except ImportError:
 """=================================================== Attachment ==================================================="""
 
 
-def attachment_path(instance, filename, for_form=True):
-    path = "attachments/{app_label}/{model}/{id}/{filename}"
-    if for_form:
-        return path.format(app_label=instance.object._meta.app_label.lower(),
-                           model=instance.object._meta.object_name.lower(),
-                           id=instance.object.id,
-                           filename=filename)
-    else:
-        return path.format(app_label=instance._meta.app_label.lower(),
-                           model=instance._meta.object_name.lower(),
-                           id=instance.id,
-                           filename=filename)
-
-
-def attachment_directory(instance):
-    return attachment_path(instance=instance, filename='', for_form=False)
+def attachment_path(instance, filename):
+    return "attachments/{app_label}/{model}/{id}/{filename}".format(app_label=instance.object._meta.app_label.lower(),
+                                                                    model=instance.object._meta.object_name.lower(),
+                                                                    id=instance.object.id,
+                                                                    filename=filename)
 
 
 class Attachment(CDEntry):

@@ -42,9 +42,8 @@ from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, 
     notify_specific_tg_users_by_contest_users, \
     get_all_faculties_without_mfk__ids, get_all_study_levels__ids, notify_settings_students_faculties_to_bool
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
-from contests.models import Problem, Submission, Attachment, attachment_directory
+from contests.models import Problem, Submission, Attachment
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
-
 
 tbot = telebot.TeleBot(settings.BOT_TOKEN)
 try:
@@ -527,9 +526,10 @@ def send_notify_text(message: Message, notify_msg: Message, notification_initial
             sending_msg = tbot.send_message(chat_id=message.chat.id, text=status_msg,
                                             reply_markup=timer_keyboard())
             if send_message:
-                notify_specific_tg_users_by_contest_users(notification_msg=f'Оповещение от <b>{get_account_by_tg_id(chat_id=message.chat.id)}</b>\n\n' +
-                                                                           notify_msg.text,
-                                                          contest_users=recipients)
+                notify_specific_tg_users_by_contest_users(
+                    notification_msg=f'Оповещение от <b>{get_account_by_tg_id(chat_id=message.chat.id)}</b>\n\n' +
+                                     notify_msg.text,
+                    contest_users=recipients)
             tbot.delete_message(chat_id=message.chat.id, message_id=sending_msg.id)
 
         notification_creator = notification_info[message.chat.id][notification_initial_msg_id]['creator']
@@ -539,14 +539,18 @@ def send_notify_text(message: Message, notify_msg: Message, notification_initial
                 course_id = int(notification_for)
                 _, recipients = get_active_course_users(course_id=course_id)
             else:
-                moderators = Account.objects.filter(type=2, faculty_id__in=notification_for['moders']['faculties']).filter(~Q(user=creator_user))
+                moderators = Account.objects.filter(type=2,
+                                                    faculty_id__in=notification_for['moders']['faculties']).filter(
+                    ~Q(user=creator_user))
                 staff = Account.objects.filter(type=3, faculty_id__in=notification_for['staff']['faculties'])
                 students = Account.objects.filter(type=-1)
                 students_faculties_info = notification_for['stu']['faculties']
                 for students_faculty_id in students_faculties_info.keys():
                     students = students.union(Account.objects.filter(type=1,
                                                                      faculty_id=students_faculty_id,
-                                                                     level__in=students_faculties_info[students_faculty_id]['levels']))
+                                                                     level__in=
+                                                                     students_faculties_info[students_faculty_id][
+                                                                         'levels']))
                 recipients = students.union(moderators, staff).values_list('user')
 
             send_message_with_status(status_msg='Отправка сообщения...')
@@ -567,7 +571,7 @@ def send_notify_text(message: Message, notify_msg: Message, notification_initial
 def submission_detail(outer_call: types.CallbackQuery):
     def callback_for_authorized(call: types.CallbackQuery):
         submission = Submission.objects.get(pk=json_get(call.data, 'id'))
-        submission_directory = f'upload/{attachment_directory(submission)}'
+        submission_directory = os.path.dirname(submission.files[0])
         submission_problem_type = submission.problem.type
         submission_files = []
         file_ids_files = [file_id_file for file_id_file in os.listdir(submission_directory)
@@ -653,7 +657,7 @@ def submission_callback(outer_call: types.CallbackQuery):
 
 
 @tbot.message_handler(func=lambda message: telegram_users_media_groups_id.get(message.chat.id) is not None and
-                      message.text in submission_files_control_texts())
+                                           message.text in submission_files_control_texts())
 def submission_files_control(message: Message):
     def callback_for_authorized():
         tg_user_msg_files_info = telegram_users_media_groups_id[message.chat.id]
@@ -720,15 +724,11 @@ def submission_files_control(message: Message):
                                     message_id=progress_message.id)
                 tbot.delete_message(chat_id=message.chat.id, message_id=progress_message.id)
                 with open(cur_submission_attachment_filename, 'rb') as cur_file:
-                    Attachment.objects.create(object_type=ContentType.objects.get(model='submission'),
-                                              object_id=new_submission.id, file=File(cur_file),
-                                              owner=contest_user)
-
-                cur_submission_attachment_file_id_file = os.path.join('upload',
-                                                                      attachment_directory(new_submission),
-                                                                      cur_submission_attachment_filename +
-                                                                      '_file_id')
-                with open(cur_submission_attachment_file_id_file, 'w') as f:
+                    cur_submission_attachment = Attachment.objects.create(
+                        object_type=ContentType.objects.get(model='submission'),
+                        object_id=new_submission.id, file=File(cur_file),
+                        owner=contest_user)
+                with open(cur_submission_attachment.file.path + '_file_id', 'w') as f:
                     f.write(message_file.file_id)
                 os.remove(cur_submission_attachment_filename)
 
@@ -775,8 +775,9 @@ def submission_file_handler(message: Message):
                 return False
 
             if msg_file_object.file_size > max_file_size:
-                send_err_msg(text=f'Слишком большой файл - <b>{filesize_to_text(filesize_in_bytes=msg_file_object.file_size)}</b>.\n' \
-                                  f'Максимально допустимый размер - {filesize_to_text(filesize_in_bytes=max_file_size)}.')
+                send_err_msg(
+                    text=f'Слишком большой файл - <b>{filesize_to_text(filesize_in_bytes=msg_file_object.file_size)}</b>.\n' \
+                         f'Максимально допустимый размер - {filesize_to_text(filesize_in_bytes=max_file_size)}.')
                 return False
 
             return True
@@ -843,7 +844,8 @@ def status_callback(outer_call: types.CallbackQuery):
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
 
-@tbot.channel_post_handler(content_types=['document'], func=lambda message: message.chat.id in settings.SCHEDULE_CHANNELS_IDS)
+@tbot.channel_post_handler(content_types=['document'],
+                           func=lambda message: message.chat.id in settings.SCHEDULE_CHANNELS_IDS)
 def schedule_callback(message: Message):
     if is_schedule_file(filename=message.document.file_name) is not None:
         def create_schedule_files(schedule):
