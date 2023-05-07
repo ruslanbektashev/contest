@@ -125,7 +125,7 @@ urlpatterns = [
             path('moss', views.SubmissionMoss.as_view(), name='submission-moss'),
             path('download', views.SubmissionDownload.as_view(), name='submission-download'),
             path('attachment/<int:attachment_id>', views.SubmissionAttachment.as_view(), name='submission-attachment'),
-            path('get/executions', views.ExecutionList.as_view(), name='submission-get-executions'),  # TODO: refactor as API
+            path('get/executions', views.ExecutionList.as_view(), name='submission-get-executions'),
         ])),
         path('list', views.SubmissionList.as_view(), name='submission-list'),
     ])),

@@ -94,11 +94,15 @@
 </form>
 {% endif %}
 {% elif submission.is_un or perms.contests.evaluate_submission or request|has_leader_permission:submission.course %}
-<button class="btn btn-light border mb-3" id="btn_submission_evaluate"
-        data-evaluate-url="{% url 'contests:api-submission-evaluate' submission.id %}"
-        data-progress-url-base="/api/submission/{{ submission.id }}/progress/"
-        data-executions-url="{% url 'contests:submission-get-executions' submission.id %}"
-        data-submission-id="{{ submission.id }}" data-sandbox-type="subprocess">Проверить{% if perms.contests.evaluate_submission or request|has_leader_permission:submission.course %} еще раз{% endif %}</button>
+<div class="d-grid">
+    <button class="btn btn-light border mb-3" id="btn_submission_evaluate"
+            data-evaluate-url="{% url 'contests:api-submission-evaluate' submission.id %}"
+            data-progress-url-base="/api/submission/{{ submission.id }}/progress/"
+            data-executions-url="{% url 'contests:submission-get-executions' submission.id %}"
+            data-submission-id="{{ submission.id }}" data-sandbox-type="subprocess">
+        Проверить{% if perms.contests.evaluate_submission or request|has_leader_permission:submission.course %} еще раз{% endif %}
+    </button>
+</div>
 {% endif %}
 {% if submission.hidden_from_students %}
 <div class="alert alert-info alert-dismissible fade show" role="alert">
