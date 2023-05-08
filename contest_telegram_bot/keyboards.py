@@ -44,9 +44,12 @@ def none_type_button(btn_text: str):
 
 def score_button(score: int, btn_type: str = 'inline', btn_url=None):
     if btn_type == 'inline':
+        score_choices = Credit.SCORE_CHOICES
+        score_value = score_choices[len(score_choices) - score - 1*(score == 0)][1]
         return InlineKeyboardButton(text=emojize(f':keycap_{str(score)}:') if score > 0 else '-',
                                     url=btn_url,
-                                    callback_data=json.dumps({'type': 'none'}))
+                                    callback_data=json.dumps({'type': 'score',
+                                                              'value': score_value}, ensure_ascii=False))
     else:
         return KeyboardButton(text=emojize(f':keycap_{str(score)}:') if score > 0 else '-')
 
