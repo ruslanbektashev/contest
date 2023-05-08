@@ -4,6 +4,7 @@ import re
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 
 from contest_telegram_bot.constants import filled_progress_emoji, empty_progress_emoji, back_emoji, loudspeaker_emoji, \
     cross_emoji
@@ -43,8 +44,14 @@ def get_user_submission_set_of_problem(user: User, problem_id: int):
 
 
 def check_submission_limit_excess(user: User, problem_id: int):
-    return len(get_user_submission_set_of_problem(user=user, problem_id=problem_id)) == \
+    return len(get_user_submission_set_of_problem(user=user, problem_id=problem_id)) >= \
            get_user_assignments(user=user, problem_id=problem_id).submission_limit
+
+
+def problem_deadline_expired(contest_user: User, problem_id: int):
+    user_problem_assignment = get_user_assignments(user=contest_user, problem_id=problem_id)
+    return (user_problem_assignment.deadline is None) or \
+           (user_problem_assignment.deadline is not None and user_problem_assignment.deadline < timezone.now())
 
 
 def notify_tg_users(notification):
