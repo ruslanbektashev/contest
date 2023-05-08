@@ -187,11 +187,12 @@ def logout_callback(outer_call: types.CallbackQuery):
 @tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'get_settings')
 def get_settings_callback(outer_call: types.CallbackQuery):
     def callback_for_authorized(call: types.CallbackQuery):
+        keyboard, text = settings_keyboard(contest_user=get_telegram_user(chat_id=call.message.chat.id).contest_user)
         tbot.edit_message_text(
-            text=f'Настройки пользователя {get_account_by_tg_id(chat_id=call.message.chat.id)}.',
+            text=text,
             chat_id=call.message.chat.id,
             message_id=call.message.id,
-            reply_markup=settings_keyboard(contest_user=get_telegram_user(chat_id=call.message.chat.id).contest_user)
+            reply_markup=keyboard
         )
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
@@ -211,11 +212,12 @@ def setting_callback(outer_call: types.CallbackQuery):
         elif setting_action == 'chg':
             setattr(all_settings, setting_name, not getattr(all_settings, setting_name))
             all_settings.save()
+            keyboard, _ = settings_keyboard(
+                contest_user=get_contest_user_by_tg_id(chat_id=call.message.chat.id))
             tbot.edit_message_reply_markup(
                 chat_id=call.message.chat.id,
                 message_id=call.message.id,
-                reply_markup=settings_keyboard(
-                    contest_user=get_telegram_user(chat_id=call.message.chat.id).contest_user)
+                reply_markup=keyboard
             )
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
