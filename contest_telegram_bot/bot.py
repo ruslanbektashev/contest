@@ -230,6 +230,15 @@ def setting_callback(outer_call: types.CallbackQuery):
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
 
+@tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'score')
+def score_callback(outer_call: types.CallbackQuery):
+    def callback_for_authorized(call: types.CallbackQuery):
+        score_value = json_get(call.data, 'value')
+        tbot.answer_callback_query(callback_query_id=call.id, text=str(score_value), show_alert=True)
+
+    unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
+
+
 @tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') in ['go', 'back'])
 def goback_students_callback(outer_call: types.CallbackQuery):
     def callback_for_authorized(call: types.CallbackQuery):
