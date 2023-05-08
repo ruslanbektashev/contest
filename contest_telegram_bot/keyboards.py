@@ -443,13 +443,11 @@ def notification_control_keyboard():
 def student_table_keyboard(contest_user: User, table_type: str, table_id: int = None):
     keyboard = InlineKeyboardMarkup(row_width=1)
     table_list = None
-    table_title = None
     table_header = None
     back_btn = None
     table_message_text = None
     if table_type == 'courses':
         table_list = Credit.objects.filter(user=contest_user)
-        table_title = [f'{courses_emoji} Ваши курсы']
         table_header = ['Курс', 'Оценка']
         table_message_text = 'Ваши курсы'
         back_btn = None
@@ -458,19 +456,15 @@ def student_table_keyboard(contest_user: User, table_type: str, table_id: int = 
         table_list = Contest.objects.filter(pk__in=
                                             get_user_assignments(user=contest_user,
                                                                  course_id=table_id).values_list('problem__contest'))
-        table_title = [f'{contest_emoji} {course}']
-        table_header = ['Разделы']
-        table_message_text = f'Курс "{course}"'
+        table_message_text = f'Курс "{course}".\nРазделы'
         back_btn = goback_button(goback_type='back', to='courses')
     elif table_type == 'problems':
         contest = Contest.objects.get(pk=table_id)
         table_list = get_user_assignments(user=contest_user, contest_id=table_id)
-        table_title = [f'{contest_emoji} {contest}']
         table_header = ['Задача', 'Оценка']
         table_message_text = f'Раздел "{contest}"'
         back_btn = goback_button(goback_type='back', to='course', to_id=contest.course_id)
 
-    none_type_row(keyboard, table_title)
     none_type_row(keyboard, table_header)
     if len(table_list) == 0:
         none_type_row(keyboard, ['Заданий нет'])
