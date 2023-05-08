@@ -485,7 +485,7 @@ def student_table_keyboard(contest_user: User, table_type: str, table_id: int = 
             keyboard.row(
                 goback_button(goback_type='go', to=table_type[0:-1], to_id=problem.problem.id,
                               text=str(problem.problem)),
-                score_button(problem.score)
+                score_button(problem_score)
             )
     else:
         for contest in table_list:
@@ -505,7 +505,6 @@ def student_table_keyboard(contest_user: User, table_type: str, table_id: int = 
 def problem_detail_keyboard(contest_user: User, problem_id: int):
     keyboard = InlineKeyboardMarkup(row_width=1)
     problem = Problem.objects.get(pk=problem_id)
-    header = [f'{problem_emoji} {problem.title}']
     problem_comments = problem.comment_set.actual()
     description_btn = InlineKeyboardButton(text='Описание задачи', callback_data=json.dumps({'type': 'problem',
                                                                                              'item': 'description',
@@ -517,8 +516,6 @@ def problem_detail_keyboard(contest_user: User, problem_id: int):
                                           if problem_comments.count() != 0 else 'Обсуждение задачи',
                                           url=f'{settings.CONTEST_DOMAIN}{problem.get_absolute_url()}discussion')
     back_btn = goback_button(goback_type='back', to='contest', to_id=problem.contest_id)
-
-    none_type_row(keyboard, header)
 
     keyboard.add(description_btn, submissions_btn, discussion_btn)
     if Assignment.objects.get(user=contest_user, problem=problem).credit_incomplete:
@@ -539,10 +536,8 @@ def problem_detail_keyboard(contest_user: User, problem_id: int):
 def submissions_list_keyboard(contest_user: User, problem_id: int):
     keyboard = InlineKeyboardMarkup(row_width=1)
     problem = Problem.objects.get(pk=problem_id)
-    submissions_list = list(problem.submission_set.filter(assignment__user=contest_user))
-    title = [f'{problem_emoji} {problem.title}. Посылки']
+    submissions_list = problem.submission_set.filter(assignment__user=contest_user)
     header = ['Посылка', 'Статус'] if submissions_list else ['Посылок нет']
-    none_type_row(keyboard, title)
     none_type_row(keyboard, header)
     for submission in submissions_list:
         if problem.type in ['Files', 'Verbal']:
