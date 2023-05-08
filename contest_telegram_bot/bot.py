@@ -666,19 +666,19 @@ def submission_callback(outer_call: types.CallbackQuery):
                                chat_id=call.message.chat.id,
                                message_id=call.message.id,
                                reply_markup=back_to_problem_keyboard(problem_id=problem_id))
-        telegram_users_media_groups_id[call.message.chat.id] = {'submission_type': submission_type,
-                                                                'files_messages': [],
-                                                                'problem_id': problem_id,
-                                                                'contest_user': contest_user}
+        telegram_users_msg_files_info[call.message.chat.id] = {'submission_type': submission_type,
+                                                               'files_messages': [],
+                                                               'problem_id': problem_id,
+                                                               'contest_user': contest_user}
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
 
-@tbot.message_handler(func=lambda message: telegram_users_media_groups_id.get(message.chat.id) is not None and
+@tbot.message_handler(func=lambda message: telegram_users_msg_files_info.get(message.chat.id) is not None and
                                            message.text in submission_files_control_texts())
 def submission_files_control(message: Message):
     def callback_for_authorized():
-        tg_user_msg_files_info = telegram_users_media_groups_id[message.chat.id]
+        tg_user_msg_files_info = telegram_users_msg_files_info[message.chat.id]
         submission_type = tg_user_msg_files_info['submission_type']
         files_messages_list = tg_user_msg_files_info['files_messages']
         contest_user = tg_user_msg_files_info['contest_user']
@@ -695,12 +695,10 @@ def submission_files_control(message: Message):
             tbot.send_message(chat_id=message.chat.id, text=problem_msg_text, reply_markup=problem_keyboard)
 
         def create_submission():
-            user_assignments = contest_user.assignment_set.get(problem_id=problem_id)
-            problem_user_submission_set = user_assignments.submission_set
-            new_submission = problem_user_submission_set.create(date_created=timezone.now(),
-                                                                owner=contest_user,
-                                                                problem_id=problem_id)
-
+            new_submission_id = Submission.objects.all().count() + 1
+            files = []
+            file_ids_filenames = []
+            files_streams = []
             for i, file_message in enumerate(files_messages_list):
                 def downloading_progress_text(file_progress_chunks: int, file_progress_percentage):
                     return f'Загрузка файла...\n' \
@@ -709,15 +707,14 @@ def submission_files_control(message: Message):
                            f'{progress_bar(loaded_chunks=int(10 * (i / len(files_messages_list))), total_chunks=10)} ' \
                            f'{i}/{len(files_messages_list)}'
 
-                cur_submission_attachment_filename = f'submission_{new_submission.id}_{i}'
+                cur_submission_attachment_filename = f'submission_{new_submission_id}_{i}'
                 if submission_type == 'Verbal':
                     message_file = file_message.voice
                     cur_submission_attachment_filename += '.ogg'
                 else:
                     if file_message.document is not None:
-                        cur_file_extension = file_extension(filename=file_message.document.file_name)
                         message_file = file_message.document
-                        cur_submission_attachment_filename = f'{message_file.file_name}_{i}{cur_file_extension}'
+                        cur_submission_attachment_filename = f'{message_file.file_name}'
                     else:
                         message_file = file_message.photo[-1]
                         cur_submission_attachment_filename += '.jpg'
@@ -741,17 +738,54 @@ def submission_files_control(message: Message):
                                     chat_id=message.chat.id,
                                     message_id=progress_message.id)
                 tbot.delete_message(chat_id=message.chat.id, message_id=progress_message.id)
-                with open(cur_submission_attachment_filename, 'rb') as cur_file:
-                    cur_submission_attachment = Attachment.objects.create(
-                        object_type=ContentType.objects.get(model='submission'),
-                        object_id=new_submission.id, file=File(cur_file),
-                        owner=contest_user)
-                with open(cur_submission_attachment.file.path + '_file_id', 'w') as f:
+
+                cur_file = open(cur_submission_attachment_filename, 'rb')
+                cur_file_id_filename = cur_submission_attachment_filename + '_file_id'
+                content_type, charset = mimetypes.guess_type(cur_submission_attachment_filename)
+                files.append(InMemoryUploadedFile(file=cur_file, field_name='FileField',
+                                                  name=cur_submission_attachment_filename, content_type=content_type,
+                                                  size=sys.getsizeof(cur_file), charset=charset))
+                files_streams.append(cur_file)
+                file_ids_filenames.append(cur_file_id_filename)
+
+                with open(cur_file_id_filename, 'w') as f:
                     f.write(message_file.file_id)
-                os.remove(cur_submission_attachment_filename)
+
+            request = HttpRequest()
+            request.method = "POST"
+            request.POST = QueryDict(mutable=True)
+            engine = import_module(settings.SESSION_ENGINE)
+            request.session = engine.SessionStore()
+            request.user = contest_user
+            request.FILES = MultiValueDict({'files': files})
+            response = SubmissionCreate.as_view()(request=request, problem_id=problem_id)
+            json_response = json.loads(response.content)
+
+            for file_stream in files_streams:
+                filename = file_stream.name
+                file_stream.close()
+                os.remove(filename)
+
+            if not json_response['ok']:
+                form_errors = json_response['errors']
+                tbot.send_message(chat_id=message.chat.id, text='<b>' + '\n'.join(form_errors) + '</b>' + '\n\n'
+                                                                                                          'Вы можете прислать другие файлы или'
+                                                                                                          ' отменить операцию.',
+                                  parse_mode='HTML',
+                                  reply_markup=keyboard)
+                files_messages_list.clear()
+                for file_id_file in file_ids_filenames:
+                    os.remove(file_id_file)
+                success = False
+            else:
+                for file_id_file, attach_path in zip(file_ids_filenames, json_response['filepaths']):
+                    os.rename(file_id_file, os.path.join(attach_path, file_id_file))
+                success = True
+            return success
 
         if message.text == cancel:
             back_to_problem(back_loading_text='Отмена операции...', back_text='Операция отменена.')
+            telegram_users_msg_files_info.pop(message.chat.id, None)
         elif message.text == done:
             if len(files_messages_list) == 0:
                 if submission_type == 'Verbal':
@@ -764,51 +798,33 @@ def submission_files_control(message: Message):
                                   reply_to_message_id=message.id)
                 return
 
-            create_submission()
-            back_to_problem(back_loading_text='Завершение процесса отправки...',
-                            back_text='Посылка успешно отправлена.')
-        telegram_users_media_groups_id.pop(message.chat.id, None)
+            if create_submission():
+                back_to_problem(back_loading_text='Завершение процесса отправки...',
+                                back_text='Посылка успешно отправлена.')
+                telegram_users_msg_files_info.pop(message.chat.id, None)
 
     unauth_callback_for_messages(message=message, callback_for_authorized=callback_for_authorized)
 
 
 @tbot.message_handler(content_types=all_content_types_with_exclude(),
-                      func=lambda message: telegram_users_media_groups_id.get(message.chat.id) is not None)
+                      func=lambda message: telegram_users_msg_files_info.get(message.chat.id) is not None)
 def submission_file_handler(message: Message):
     def callback_for_authorized():
         def is_correct_file():
-            def send_err_msg(text: str):
+            if incorrect_msg_filetype:
                 tbot.send_message(chat_id=message.chat.id,
-                                  text=text,
+                                  text=f'Это сообщение не является {correct_msg_filetype}.',
                                   parse_mode='HTML',
                                   reply_to_message_id=message.id)
-
-            if incorrect_msg_filetype:
-                send_err_msg(text=f'Это сообщение не является {correct_msg_filetype}.')
                 return False
-
-            if file_is_document and msg_file_extension not in allowed_files_extensions:
-                send_err_msg(text=f'Недопустимое расширение файла: <code>{msg_file_extension}</code>.\n' \
-                                  f'Допустимы следующие расширения: <code>{", ".join(allowed_files_extensions)}</code>.')
-                return False
-
-            if msg_file_object.file_size > max_file_size:
-                send_err_msg(
-                    text=f'Слишком большой файл - <b>{filesize_to_text(filesize_in_bytes=msg_file_object.file_size)}</b>.\n' \
-                         f'Максимально допустимый размер - {filesize_to_text(filesize_in_bytes=max_file_size)}.')
-                return False
-
             return True
 
-        tg_user_msg_files_info = telegram_users_media_groups_id[message.chat.id]
+        tg_user_msg_files_info = telegram_users_msg_files_info[message.chat.id]
         submission_type = tg_user_msg_files_info['submission_type']
         messages_with_files = tg_user_msg_files_info['files_messages']
         max_files_count = AttachmentForm().FILES_MAX
-        max_file_size = SubmissionFilesAttachmentMixin().FILE_SIZE_LIMIT
-        allowed_files_extensions = SubmissionFilesAttachmentMixin().FILES_ALLOWED_EXTENSIONS
         keyboard, done, cancel = submission_creation_keyboard()
         incorrect_msg_filetype = False
-        file_is_document = False
 
         if submission_type == 'Verbal':
             if message.voice is None:
@@ -816,20 +832,12 @@ def submission_file_handler(message: Message):
                 correct_msg_filetype = 'голосовым'
             else:
                 msg_filetype_word_plural = 'голосовые сообщения'
-                msg_file_object = message.voice
         else:
             if message.document is None and message.photo is None:
                 incorrect_msg_filetype = True
                 correct_msg_filetype = 'документом'
             else:
                 msg_filetype_word_plural = 'файлы'
-                file_is_document = True
-                if message.document is not None:
-                    msg_file_object = message.document
-                    msg_file_extension = file_extension(filename=message.document.file_name)
-                else:
-                    msg_file_object = message.photo[-1]
-                    msg_file_extension = '.jpg'
 
         if not is_correct_file():
             return
