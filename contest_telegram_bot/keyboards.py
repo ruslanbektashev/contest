@@ -506,9 +506,6 @@ def problem_detail_keyboard(contest_user: User, problem_id: int):
     keyboard = InlineKeyboardMarkup(row_width=1)
     problem = Problem.objects.get(pk=problem_id)
     problem_comments = problem.comment_set.actual()
-    description_btn = InlineKeyboardButton(text='Описание задачи', callback_data=json.dumps({'type': 'problem',
-                                                                                             'item': 'description',
-                                                                                             'id': problem_id}))
     submissions_btn = InlineKeyboardButton(text='Посылки к задаче', callback_data=json.dumps({'type': 'problem',
                                                                                               'item': 'submissions',
                                                                                               'id': problem_id}))
@@ -517,7 +514,7 @@ def problem_detail_keyboard(contest_user: User, problem_id: int):
                                           url=f'{settings.CONTEST_DOMAIN}{problem.get_absolute_url()}discussion')
     back_btn = goback_button(goback_type='back', to='contest', to_id=problem.contest_id)
 
-    keyboard.add(description_btn, submissions_btn, discussion_btn)
+    keyboard.add(submissions_btn, discussion_btn)
     if Assignment.objects.get(user=contest_user, problem=problem).credit_incomplete:
         if problem.type in ['Files', 'Verbal']:
             callback_data = json.dumps({'type': 'submission',

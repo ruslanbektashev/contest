@@ -372,17 +372,7 @@ def problem_callback(outer_call: types.CallbackQuery):
         user = get_telegram_user(chat_id=call.message.chat.id).contest_user
         problem_id = json_get(call.data, 'id')
         problem_item = json_get(call.data, 'item')
-        problem = Problem.objects.get(pk=problem_id)
-        if problem_item == 'description':
-            try:
-                tbot.edit_message_text(text=problem.description, chat_id=call.message.chat.id,
-                                       message_id=call.message.id, parse_mode='HTML',
-                                       reply_markup=back_to_problem_keyboard(problem_id=problem_id))
-            except ApiTelegramException:
-                tbot.edit_message_text(text=problem.description, chat_id=call.message.chat.id,
-                                       message_id=call.message.id,
-                                       reply_markup=back_to_problem_keyboard(problem_id=problem_id))
-        elif problem_item == 'submissions':
+        if problem_item == 'submissions':
             tbot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id,
                                            reply_markup=submissions_list_keyboard_for_students(contest_user=user,
                                                                                                problem_id=problem_id))
