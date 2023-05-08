@@ -15,7 +15,7 @@ from contest_telegram_bot.constants import courses_emoji, contest_emoji, user_se
 from contest_telegram_bot.models import TelegramUserSettings
 from contest_telegram_bot.utils import get_user_assignments, date_to_str, back_to_submissions_text, \
     get_active_course_users, send_notification_text, cancel_notification_text, get_all_faculties_without_mfk, \
-    get_all_study_levels, notify_settings_students_faculties_to_bool
+    get_all_study_levels, notify_settings_students_faculties_to_bool, problem_deadline_expired
 from contests.models import Course, Contest, Problem, Assignment, Submission, Credit
 from schedule.models import Schedule
 from support.models import Question, Report
@@ -478,6 +478,10 @@ def student_table_keyboard(contest_user: User, table_type: str, table_id: int = 
             )
     elif table_type == 'problems':
         for problem in table_list:
+            if problem_deadline_expired(contest_user=contest_user, problem_id=problem.problem_id):
+                problem_score = problem.score
+            else:
+                problem_score = 0
             keyboard.row(
                 goback_button(goback_type='go', to=table_type[0:-1], to_id=problem.problem.id,
                               text=str(problem.problem)),
