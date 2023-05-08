@@ -1,6 +1,10 @@
 import json
+import mimetypes
 import os
+import sys
 import threading
+from importlib import import_module
+
 import requests
 import telebot
 import atexit
@@ -9,11 +13,13 @@ from copy import deepcopy
 from PyPDF2 import PdfReader, PdfWriter
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files import File
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import Q
+from django.http import HttpRequest, QueryDict
 from django.utils import timezone
+from django.utils.datastructures import MultiValueDict
 from openpyxl import load_workbook
 from telebot import types, custom_filters
 from telebot.apihelper import ApiTelegramException
@@ -36,13 +42,14 @@ from contest_telegram_bot.keyboards import (problem_detail_keyboard, staff_and_m
 from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
 from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, json_get, tg_authorisation_wrapper, \
     is_schedule_file, is_excel_file, create_file_from_bytes, get_course_label, get_contest_user_by_tg_id, \
-    notify_specific_tg_users, filesize_to_text, file_extension, get_user_assignments, \
+    notify_specific_tg_users, file_extension, get_user_assignments, \
     check_submission_limit_excess, file_chunk_size, progress_bar, all_content_types_with_exclude, date_to_str, \
     back_to_submissions_text, get_active_course_users, send_notification_text, cancel_notification_text, \
     notify_specific_tg_users_by_contest_users, \
     get_all_faculties_without_mfk__ids, get_all_study_levels__ids, notify_settings_students_faculties_to_bool
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
-from contests.models import Problem, Submission, Attachment
+from contests.models import Problem, Submission
+from contests.views import SubmissionCreate
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
 
 tbot = telebot.TeleBot(settings.BOT_TOKEN)
