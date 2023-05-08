@@ -3,16 +3,22 @@
 from django.db import migrations
 
 
+def replace_wrappers(instance):
+    opening_wrappers = instance.description.count(r"\\(")
+    closing_wrappers = instance.description.count(r"\\)")
+    if opening_wrappers > 0 and opening_wrappers == closing_wrappers:
+        instance.description = instance.description.replace(r"\\(", r"\(")
+        instance.description = instance.description.replace(r"\\)", r"\)")
+        instance.save()
+
+
 def fix_mathjax_inline_wrappers(apps, schema_editor):
     Course = apps.get_model('contests', 'Course')
     for course in Course.objects.filter(title_official__contains="Практикум на ЭВМ."):
         for contest in course.contest_set.all():
-            opening_wrappers = contest.description.count(r"\\(")
-            closing_wrappers = contest.description.count(r"\\)")
-            if opening_wrappers > 0 and opening_wrappers == closing_wrappers:
-                contest.description = contest.description.replace(r"\\(", r"\(")
-                contest.description = contest.description.replace(r"\\)", r"\)")
-                contest.save()
+            replace_wrappers(contest)
+            for problem in contest.problem_set.all():
+                replace_wrappers(problem)
 
 
 class Migration(migrations.Migration):
