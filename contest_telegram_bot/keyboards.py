@@ -81,6 +81,8 @@ def settings_keyboard(contest_user: User):
     keyboard = InlineKeyboardMarkup(row_width=1)
     contest_user_account = Account.objects.get(user=contest_user)
     user_settings = TelegramUserSettings.objects.get(contest_user=contest_user)
+    text = f'Настройки оповещений пользователя {contest_user_account}.'
+
     exclude = []
     meta = user_settings._meta
     if not (contest_user_account.type == 2 or contest_user_account.type == 3):
@@ -102,7 +104,7 @@ def settings_keyboard(contest_user: User):
                                                                         'name': setting_name,
                                                                         'act': 'chg'})))
     keyboard.row(goback_button(goback_type=goback_type, to='courses'))
-    return keyboard
+    return keyboard, text
 
 
 def staff_and_moders_start_keyboard(staff_contest_user: User, for_moders=False):
