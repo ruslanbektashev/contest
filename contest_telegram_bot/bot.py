@@ -46,10 +46,8 @@ from contests.models import Problem, Submission, Attachment
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
 
 tbot = telebot.TeleBot(settings.BOT_TOKEN)
-try:
-    tbot.set_webhook(f'{settings.DOMAIN}/{settings.BOT_TOKEN}')
-except Exception:
-    pass
+telegram_users_msg_files_info = {}
+notification_info = {}
 
 
 def remove_webhook():
@@ -59,9 +57,12 @@ def remove_webhook():
         pass
 
 
-atexit.register(remove_webhook)
-telegram_users_media_groups_id = {}
-notification_info = {}
+if settings.BOT_LISTEN:
+    try:
+        tbot.set_webhook(f'{settings.CONTEST_DOMAIN}/{settings.BOT_TOKEN}')
+    except Exception:
+        pass
+    atexit.register(remove_webhook)
 
 
 def welcome_handler(outer_message: types.Message, welcome_text: str = ", добро пожаловать в систему МГУ Контест!"):
