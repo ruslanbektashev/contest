@@ -28,13 +28,14 @@ def start_keyboard_unauthorized():
 
 
 def none_type_row(keyboard: InlineKeyboardMarkup, titles: list):
-    buttons = []
-    for title in titles:
-        if isinstance(title, InlineKeyboardButton):
-            buttons.append(title)
-            continue
-        buttons.append(InlineKeyboardButton(text=title, callback_data=json.dumps({'type': 'none'})))
-    keyboard.row(*buttons)
+    if titles is not None and titles != []:
+        buttons = []
+        for title in titles:
+            if isinstance(title, InlineKeyboardButton):
+                buttons.append(title)
+                continue
+            buttons.append(InlineKeyboardButton(text=title, callback_data=json.dumps({'type': 'none'})))
+        keyboard.row(*buttons)
 
 
 def none_type_button(btn_text: str):
