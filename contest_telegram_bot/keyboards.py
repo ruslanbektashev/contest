@@ -483,9 +483,15 @@ def student_table_keyboard(contest_user: User, table_type: str, table_id: int = 
                 problem_score = problem_assignment.score
             else:
                 problem_score = 0
+
+            if problem_assignment.problem.type in ['Verbal', 'Files']:
+                btn_text = f'{send_emoji} {str(problem_assignment.problem)}'
+            else:
+                btn_text = str(problem_assignment.problem)
+
             keyboard.row(
-                goback_button(goback_type='go', to=table_type[0:-1], to_id=problem.problem.id,
-                              text=str(problem.problem)),
+                goback_button(goback_type='go', to=table_type[0:-1], to_id=problem_assignment.problem.id,
+                              text=btn_text),
                 score_button(problem_score)
             )
     else:
