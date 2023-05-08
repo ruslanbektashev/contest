@@ -456,13 +456,14 @@ def student_table_keyboard(contest_user: User, table_type: str, table_id: int = 
         table_list = Contest.objects.filter(pk__in=
                                             get_user_assignments(user=contest_user,
                                                                  course_id=table_id).values_list('problem__contest'))
-        table_message_text = f'Курс "{course}".\nРазделы'
+        table_message_text = f'Курс <b>{course}</b>.\nРазделы'
         back_btn = goback_button(goback_type='back', to='courses')
     elif table_type == 'problems':
         contest = Contest.objects.get(pk=table_id)
         table_list = get_user_assignments(user=contest_user, contest_id=table_id)
         table_header = ['Задача', 'Оценка']
-        table_message_text = f'Раздел "{contest}"'
+        table_message_text = f'Раздел <b>{contest}</b>.\n\nСправка:\n' \
+                             f'Символом {send_emoji} отмечены задачи, к которым можно отправить посылки через телеграм.'
         back_btn = goback_button(goback_type='back', to='course', to_id=contest.course_id)
 
     none_type_row(keyboard, table_header)
