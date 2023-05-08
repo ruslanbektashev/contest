@@ -7,8 +7,8 @@ from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardBut
 
 from accounts.models import Account, Comment
 from django.conf import settings
-from contest_telegram_bot.constants import courses_emoji, contest_emoji, user_settings_emoji, \
-    logout_btn_text, problem_emoji, submission_status_emojis, login_btn_text, send_emoji, comments_emoji, \
+from contest_telegram_bot.constants import courses_emoji, user_settings_emoji, \
+    logout_btn_text, submission_status_emojis, login_btn_text, send_emoji, comments_emoji, \
     marks_emojis, problems_emoji, users_emoji, selection_emoji, checked_emoji, unchecked_emoji, \
     cross_emoji, hourglass_emoji, back_emoji, plus_emoji, loudspeaker_emoji, \
     drop_down_list_emojis, little_white_square_emoji
