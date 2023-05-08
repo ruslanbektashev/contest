@@ -1,9 +1,10 @@
-from django.contrib.auth.decorators import login_required
+import os
+
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.forms.models import inlineformset_factory, modelformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.text import get_text_list
@@ -2147,6 +2148,23 @@ class SubmissionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
             return SubmissionOptionsForm
         else:
             return SubmissionProgramForm
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            form.instance.owner = self.request.user
+            form.instance.problem = self.storage['problem']
+            form.instance.assignment = self.storage['assignment']
+            form.save()
+            form_files_paths = [os.path.dirname(filepath) for filepath in form.instance.files]
+            return JsonResponse({'ok': True, 'filepaths': form_files_paths})
+        else:
+            errors = []
+            for err_types in form.errors.as_data().values():
+                for err in err_types:
+                    for err_msg in err.messages:
+                        errors.append(err_msg)
+            return JsonResponse({'ok': False, 'errors': errors})
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
