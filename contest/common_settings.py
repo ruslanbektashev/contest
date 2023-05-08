@@ -100,7 +100,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-CONTEST_DOMAIN = 'contest.msu.uz'
+CONTEST_DOMAIN = '3256-31-148-165-138.ngrok-free.app'
 
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
