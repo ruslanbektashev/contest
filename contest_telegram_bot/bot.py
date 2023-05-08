@@ -22,7 +22,6 @@ from django.utils import timezone
 from django.utils.datastructures import MultiValueDict
 from openpyxl import load_workbook
 from telebot import types, custom_filters
-from telebot.apihelper import ApiTelegramException
 from telebot.types import Message
 
 from accounts.models import Account
@@ -48,7 +47,7 @@ from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, 
     notify_specific_tg_users_by_contest_users, \
     get_all_faculties_without_mfk__ids, get_all_study_levels__ids, notify_settings_students_faculties_to_bool
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
-from contests.models import Problem, Submission
+from contests.models import Submission
 from contests.views import SubmissionCreate
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
 
