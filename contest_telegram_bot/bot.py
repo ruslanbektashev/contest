@@ -272,8 +272,7 @@ def goback_students_callback(outer_call: types.CallbackQuery):
                 tbot.delete_message(chat_id=call.message.chat.id, message_id=msg_for_submission_keyboard_deleting.id)
         tbot.clear_step_handler(message=call.message)
         tbot.edit_message_text(text=destination_text, chat_id=call.message.chat.id, message_id=call.message.id,
-                               reply_markup=keyboard)
-
+                               parse_mode='HTML', reply_markup=keyboard)
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
 
