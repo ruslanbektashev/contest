@@ -3,13 +3,13 @@
 
 {% block title %}Посылка{% endblock title %}
 
-{% block main_links %}
 {% if problem.type == 'Text' %}
+{% block main_links %}
 <link href="{% static 'ckeditor/ckeditor.min.css' %}" rel="stylesheet">
 <link href="{% static 'ckeditor/ckeditor.fix.css' %}" rel="stylesheet">
 <link href="{% static 'ckeditor/ckeditor.content.css' %}" rel="stylesheet">
-{% endif %}
 {% endblock main_links %}
+{% endif %}
 
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}

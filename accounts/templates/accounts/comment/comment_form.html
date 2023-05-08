@@ -1,6 +1,4 @@
 {% load forms static %}
-<link href="{% static 'easymde/easymde.min.css' %}" rel="stylesheet">
-<link href="{% static 'easymde/easymde.fix.css' %}" rel="stylesheet">
 <form class="mb-3" action="{% url 'accounts:comment-create' %}" method="post">
     {% csrf_token %}
     {{ form.parent_id }}

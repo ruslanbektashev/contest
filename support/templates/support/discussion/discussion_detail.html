@@ -3,6 +3,11 @@
 
 {% block title %}{{ discussion }}{% endblock title %}
 
+{% block main_links %}
+<link href="{% static 'easymde/easymde.min.css' %}" rel="stylesheet">
+<link href="{% static 'easymde/easymde.fix.css' %}" rel="stylesheet">
+{% endblock main_links %}
+
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb "Помощь" 'support:index' %}
