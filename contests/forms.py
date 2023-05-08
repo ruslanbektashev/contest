@@ -790,7 +790,7 @@ class SubmissionTextForm(SubmissionForm):
 
 class SubmissionVerbalForm(SubmissionAttachmentForm):
     FILE_SIZE_LIMIT = 20 * 1024 * 1024
-    FILES_ALLOWED_EXTENSIONS = ['.aac', '.flac', '.mp3', '.wav', '.wma']
+    FILES_ALLOWED_EXTENSIONS = ['.aac', '.flac', '.mp3', '.wav', '.wma', '.ogg']
 
     class Meta:
         model = Submission
