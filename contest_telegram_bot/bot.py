@@ -75,8 +75,7 @@ if settings.BOT_LISTEN:
 def welcome_handler(outer_message: types.Message, welcome_text: str = ", добро пожаловать в систему МГУ Контест!"):
     def send_welcome_message(text: str, message: types.Message, keyboard: types.ReplyKeyboardMarkup):
         text += welcome_text
-        tbot.send_message(chat_id=message.chat.id, text=text, reply_to_message_id=message.id,
-                          reply_markup=keyboard)
+        tbot.send_message(chat_id=message.chat.id, text=text, reply_markup=keyboard)
 
     def callback_for_authorized(message: types.Message):
         contest_user = get_telegram_user(message.chat.id).contest_user
