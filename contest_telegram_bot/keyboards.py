@@ -477,9 +477,9 @@ def student_table_keyboard(contest_user: User, table_type: str, table_id: int = 
                 score_button(table_obj.score)
             )
     elif table_type == 'problems':
-        for problem in table_list:
-            if problem_deadline_expired(contest_user=contest_user, problem_id=problem.problem_id):
-                problem_score = problem.score
+        for problem_assignment in table_list:
+            if problem_deadline_expired(contest_user=contest_user, problem_id=problem_assignment.problem_id):
+                problem_score = problem_assignment.score
             else:
                 problem_score = 0
             keyboard.row(
