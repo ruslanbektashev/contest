@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'contests',
     'schedule',
     'support',
+    'contest_telegram_bot',
 ]
 
 MIDDLEWARE = [

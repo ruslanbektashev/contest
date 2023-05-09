@@ -15,6 +15,7 @@ from django.utils.text import get_text_list
 
 from contest.abstract import CRUDEntry
 from contest.utils import transliterate
+from contest_telegram_bot.utils import notify_tg_users
 
 """==================================================== Faculty ====================================================="""
 
@@ -625,6 +626,7 @@ class NotificationManager(models.Manager):
                 notification.reference_type = ContentType.objects.get_for_model(reference)
                 notification.reference_id = reference.id
             new_notifications.append(notification)
+            notify_tg_users(notification)
         self.bulk_create(new_notifications)
 
 
