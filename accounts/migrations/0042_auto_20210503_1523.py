@@ -149,6 +149,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(ensure_permissions_exist, migrations.RunPython.noop),
-        migrations.RunPython(update_permissions, migrations.RunPython.noop)
+        migrations.RunPython(ensure_permissions_exist, migrations.RunPython.noop, elidable=True),
+        migrations.RunPython(update_permissions, migrations.RunPython.noop, elidable=True)
     ] if 'test' not in sys.argv[1:] else []

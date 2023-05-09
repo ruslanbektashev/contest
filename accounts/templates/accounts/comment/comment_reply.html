@@ -3,6 +3,11 @@
 
 {% block title %}Комментарий{% endblock title %}
 
+{% block main_links %}
+<link href="{% static 'easymde/easymde.min.css' %}" rel="stylesheet">
+<link href="{% static 'easymde/easymde.fix.css' %}" rel="stylesheet">
+{% endblock main_links %}
+
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% if parent %}
@@ -14,8 +19,8 @@
 {% block main_content %}
 <legend>Ответ на комментарий</legend>
 {% if parent %}
-<div class="contest-comment-list">
-    <div class="contest-comment-list-item d-flex mb-4" id="comment_{{ parent.id }}">
+<div class="contest-comment-list mb-3">
+    <div class="contest-comment-list-item d-flex" id="comment_{{ parent.id }}">
         <div class="contest-comment-avatar me-3">
             {% include 'accounts/account/account_image.html' with last_name=parent.author.account.last_name first_name=parent.author.account.first_name size=40 rounded=True %}
         </div>
@@ -26,9 +31,7 @@
                         {{ parent.author.account }}
                     </a>
                 </div>
-                <div class="text-muted">
-                    ∙
-                </div>
+                <div class="text-muted">∙</div>
                 <div class="text-muted text-nowrap ms-2">
                     <small data-bs-toggle="tooltip" data-bs-placement="top" title="{{ parent.date_created|date:'d E Y г. в H:i' }}">
                         <a class="text-muted" href="{{ parent.object.get_discussion_url }}{% get_comment_query_string page_obj.number %}#comment_{{ parent.id }}">{{ parent.date_created|naturaltime }}</a>

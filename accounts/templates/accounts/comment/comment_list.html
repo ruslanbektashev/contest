@@ -9,7 +9,7 @@
 {% endif %}
 <div class="contest-comment-list" id="comments">
     {% for comment in comments %}
-    <div class="contest-comment-list-item d-flex col{{ comment.level|add:'-13' }} offset-{{ comment.level|add:'-1' }} p-3 rounded {% if comment not in request.user.account.comments_read.all and comment.author_id != request.user.id %}bg-light" data-unread=true{% else %}"{% endif %} data-id={{ comment.id }} >
+    <div class="contest-comment-list-item d-flex contest-comment-offset-{{ comment.level|add:'-1' }} p-1 mb-3 rounded {% if comment not in request.user.account.comments_read.all and comment.author_id != request.user.id %}bg-light" data-unread=true{% else %}"{% endif %} data-id="{{ comment.id }}">
         <a id="comment_{{ comment.id }}" class="contest-comment-anchor">&nbsp</a>
         <div class="contest-comment-avatar me-3">
             {% include 'accounts/account/account_image.html' with last_name=comment.author.account.last_name first_name=comment.author.account.first_name size=40 rounded=True %}
@@ -21,9 +21,7 @@
                         {{ comment.author.account }}
                     </a>
                 </div>
-                <div class="text-muted">
-                    ∙
-                </div>
+                <div class="text-muted">∙</div>
                 <div class="text-muted text-nowrap ms-2">
                     <small data-bs-toggle="tooltip" data-bs-placement="top" title="{{ comment.date_created|date:'d E Y г. в H:i' }}">
                         <a class="text-muted" href="{{ comment.object.get_discussion_url }}{% get_comment_query_string page_obj.number %}#comment_{{ comment.id }}">{{ comment.date_created|naturaltime }}</a>
@@ -38,10 +36,14 @@
                 <small><a href="{% url 'accounts:comment-reply' comment.id %}" class="text-uppercase text-muted">Ответить</a></small>
                 {% endif %}
                 {% if perms.accounts.change_comment or comment.author.id == request.user.id %}
-                <small class="contest-comment-hidden">{% if comment.is_repliable %}| {% endif %}<a href="{% url 'accounts:comment-update' comment.id %}{% get_comment_query_string page_obj.number %}" class="text-uppercase text-muted">Редактировать</a></small>
+                {% if comment.is_repliable %}
+                <span class="contest-comment-hidden mx-1">|</span>
+                {% endif %}
+                <small class="contest-comment-hidden"><a href="{% url 'accounts:comment-update' comment.id %}{% get_comment_query_string page_obj.number %}" class="text-uppercase text-muted">Редактировать</a></small>
                 {% endif %}
                 {% if perms.accounts.delete_comment %}
-                <small class="contest-comment-hidden">| <a href="{% url 'accounts:comment-delete' comment.id %}{% get_comment_query_string page_obj.number %}" class="text-uppercase text-muted">Удалить</a></small>
+                <span class="contest-comment-hidden mx-1">|</span>
+                <small class="contest-comment-hidden"><a href="{% url 'accounts:comment-delete' comment.id %}{% get_comment_query_string page_obj.number %}" class="text-uppercase text-muted">Удалить</a></small>
                 {% endif %}
             </div>
         </div>
@@ -57,20 +59,29 @@
 {% endif %}
 
 {% block javascript %}
-<script src="{% static 'infinite-scroll/infinite-scroll.min.js' %}" type="text/javascript"></script>
-<script src="{% static 'contest/js/comments.js' %}" type="text/javascript"></script>
-<script type="text/javascript">
+{% if page_obj.has_next %}
+<script src="{% static 'infinite-scroll/infinite-scroll.min.js' %}"></script>
+<script>
 let infiniteScroll = new InfiniteScroll('.contest-comment-list', {
     path: '.contest-comment-list-more',
     append: '.contest-comment-list-item',
     history: false,
 });
-document.addEventListener("DOMContentLoaded", function(event) {
-    let watcher = new ReadWatcher("{% url 'accounts:mark-comments-as-read' %}");
-    if(parseInt('{% unread_comments_count request.user.account obj %}') > 0) {
-        window.addEventListener('scroll', watcher, false);
+</script>
+{% endif %}
+<script src="{% static 'contest/js/comments.js' %}"></script>
+<script>
+const comments_read_watcher = new CommentsReadWatcher(document.getElementById('comments'));
+
+function pollCommentsReadWatcher() {
+    if (comments_read_watcher.unread_comment_elements.length > 0) {
+        let unread_comment_elements = [...comments_read_watcher.unread_comment_elements];
+        comments_read_watcher.unread_comment_elements = [];
+        markCommentsAsRead("{% url 'accounts:api-comment-mark-as-read' %}", unread_comment_elements);
     }
-    setTimeout(watcher.markCommentsAsRead.bind(watcher), 1000);
-});
+}
+
+addEventListener('scroll', comments_read_watcher);
+setInterval(pollCommentsReadWatcher, 1000);
 </script>
 {% endblock %}

@@ -4,18 +4,19 @@
 
 {% block title %}Расписание{% endblock title %}
 
+{% block main_links %}
+<link href="{% static 'contest/css/highlight.css' %}" rel="stylesheet">
+{% endblock main_links %}
+
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% breadcrumb "Расписание" 'schedule:schedule-list' %}
 {% breadcrumb schedule 'schedule:schedule-detail' schedule.id %}
 {% breadcrumb schedule_attachment_name %}
 {% endblock breadcrumbs %}
-{% block main_links %}
-<link href="{% static 'contest/css/highlight.css' %}" rel="stylesheet">
-{% endblock main_links %}
 
 {% block main_content %}
-    <div class="alert alert-light border mt-2 overflow-hidden">
-        {{ sheet|safe }}
-    </div>
+<div class="alert alert-light border mt-2 overflow-hidden">
+    {{ sheet|safe }}
+</div>
 {% endblock main_content %}

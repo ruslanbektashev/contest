@@ -20,17 +20,17 @@
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="contestMainNav">
             <div class="navbar-nav w-100">
-                <a class="nav-link text-center" href="{% url 'accounts:announcement-list' %}"><i class="fa fa-newspaper-o fa-lg"></i> Объявления</a>
-                <a class="nav-link text-center" href="{% url 'schedule:schedule-list' %}"><i class="fa fa-map-o fa-lg"></i> Расписание</a>
-                <a class="nav-link text-center" href="{% url 'support:index' %}"><i class="fa fa-question-circle-o fa-lg"></i> Помощь</a>
-                <a class="nav-link text-center" href="{% url 'admin:index' %}"><i class="fa fa-cogs fa-lg"></i> Админка</a>
+                <a class="nav-link text-center" href="{% url 'accounts:announcement-list' %}"><i class="fa fa-newspaper-o fa-fw fa-lg"></i> Объявления</a>
+                <a class="nav-link text-center" href="{% url 'schedule:schedule-list' %}"><i class="fa fa-map-o fa-fw fa-lg"></i> Расписание</a>
+                <a class="nav-link text-center" href="{% url 'support:index' %}"><i class="fa fa-question-circle-o fa-fw fa-lg"></i> Помощь</a>
+                <a class="nav-link text-center" href="{% url 'admin:index' %}"><i class="fa fa-cogs fa-fw fa-lg"></i> Админка</a>
                 {% with notification_count=request.user.notifications.unread.count %}
                 <a class="nav-link text-center" href="{% url 'accounts:notification-list' %}">
-                    <i class="fa fa-bell-o fa-lg"></i> Оповещения{% if notification_count %} <span id="unread_notifications_count" class="badge text-bg-danger rounded-pill">{{ notification_count }}</span>{% endif %}
+                    <i class="fa fa-bell-o fa-fw fa-lg"></i> Оповещения{% if notification_count %} <span id="unread_notifications_count" class="badge text-bg-danger rounded-pill align-middle">{{ notification_count }}</span>{% endif %}
                 </a>
                 {% endwith %}
                 <a class="nav-link text-center my-2 my-lg-0 ms-0 ms-lg-auto me-0 me-lg-3" href="{{ request.user.account.get_absolute_url }}">{{ request.user.account.get_full_name }}</a>
-                <a class="nav-link text-center text-danger-hover mb-2 mb-lg-0" href="{% url 'logout' %}"><i class="fa fa-sign-out"></i> Выйти</a>
+                <a class="nav-link text-center text-danger-hover mb-2 mb-lg-0" href="{% url 'logout' %}"><i class="fa fa-sign-out fa-fw fa-lg"></i> Выйти</a>
             </div>
         </div>
     </div>
@@ -41,12 +41,15 @@
             {% block breadcrumbs %}{% endblock breadcrumbs %}
         </ol>
     </nav>
-    {% block main_content %}{% endblock main_content %}
-    <div class="d-flex justify-content-center gap-3 mt-auto">
+    <div class="mb-3">
+        {% block main_content %}{% endblock main_content %}
+    </div>
+    <div class="text-center text-small mt-auto gx-3">
         {% if perms.support.delete_tutorialsteppass %}
-        <a class="link-secondary" id="contest_tutorial_reset" href="{% url 'support:tutorial-reset' request.resolver_match.app_name|add:":"|add:request.resolver_match.url_name %}?from={{ request.get_full_path }}">Пройти руководство</a>
+        <a class="link-secondary text-nowrap" id="contest_tutorial_reset" href="{% url 'support:tutorial-reset' request.resolver_match.app_name|add:":"|add:request.resolver_match.url_name %}?from={{ request.get_full_path }}">Пройти руководство</a>
+        <span class="text-muted mx-1">|</span>
         {% endif %}
-        <a class="link-secondary" href="{% url 'support:report-create' %}?from={{ request.path }}">Сообщить об ошибке</a>
+        <a class="link-secondary text-nowrap" href="{% url 'support:report-create' %}?from={{ request.path }}">Сообщить об ошибке</a>
     </div>
     <p class="copyright text-center mt-3">Филиал МГУ им. М.В. Ломоносова в г. Ташкент &copy; {% now "Y" %}</p>
 </div>
@@ -87,6 +90,21 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
+function passTutorialStep(step_id, step, view) {
+    if (localStorage.getItem(step_id) !== '1') {
+        localStorage.setItem(step_id, '1');
+        let step_form = new FormData();
+        step_form.append('view', view);
+        step_form.append('step', step);
+        fetch("{% url 'support:api-tutorial-step-pass-create' %}", {
+            method: 'POST',
+            headers: {'X-CSRFToken': csrftoken},
+            mode: 'same-origin',
+            body: step_form
+        });
+    }
+}
+
 let driver = new Driver({
     overlayClickNext: true,
     allowClose: true,
@@ -99,33 +117,13 @@ let driver = new Driver({
     onHighlightStarted: function (element) {
         window.scroll(0, 0);
         let step_id = this.view + '/' + this.step;
-        if (localStorage.getItem(step_id) !== '1') {
-            localStorage.setItem(step_id, '1');
-            let step_form = new FormData();
-            step_form.append('csrfmiddlewaretoken', csrftoken);
-            step_form.append('view', this.view);
-            step_form.append('step', this.step);
-            fetch('/support/tutorial/step/pass/', {
-                method: 'POST',
-                body: step_form
-            });
-        }
+        passTutorialStep(step_id, this.step, this.view);
     },
     onReset: function (element) {
         let view = '{{ request.resolver_match.app_name }}:{{ request.resolver_match.url_name }}';
         let step = '__all__';
         let step_id = view + '/' + step;
-        if (localStorage.getItem(step_id) !== '1') {
-            localStorage.setItem(step_id, '1');
-            let step_form = new FormData();
-            step_form.append('csrfmiddlewaretoken', csrftoken);
-            step_form.append('view', view);
-            step_form.append('step', step);
-            fetch('/support/tutorial/step/pass/', {
-                method: 'POST',
-                body: step_form
-            });
-        }
+        passTutorialStep(step_id, step, view);
     }
 });
 
@@ -137,12 +135,15 @@ function startJourney() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", function(event) {
-    setTimeout(startJourney, 500);
+function fixMainContainerMinHeight() {
     let mainContainer = document.getElementById('contest_main');
     let mainNavBar = document.getElementById('contestNavBar');
     mainContainer.style.minHeight = (mainContainer.offsetHeight - mainNavBar.offsetHeight).toString() + "px";
+}
 
+document.addEventListener("DOMContentLoaded", function(event) {
+    setTimeout(startJourney, 500);
+    fixMainContainerMinHeight();
 });
 </script>
 {% block main_scripts %}{% endblock main_scripts %}

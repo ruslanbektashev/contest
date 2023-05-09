@@ -159,6 +159,50 @@
   opacity: 1;
 }
 
+.contest-comment-offset-1 {
+  margin-left: 60px;
+}
+
+.contest-comment-offset-2 {
+  margin-left: 120px;
+}
+
+.contest-comment-offset-3 {
+  margin-left: 180px;
+}
+
+.contest-comment-offset-4 {
+  margin-left: 240px;
+}
+
+.contest-comment-offset-5 {
+  margin-left: 300px;
+}
+
+.contest-comment-offset-6 {
+  margin-left: 360px;
+}
+
+.contest-comment-offset-7 {
+  margin-left: 420px;
+}
+
+.contest-comment-offset-8 {
+  margin-left: 480px;
+}
+
+.contest-comment-offset-9 {
+  margin-left: 540px;
+}
+
+.contest-comment-offset-10 {
+  margin-left: 600px;
+}
+
+.contest-comment-offset-11 {
+  margin-left: 660px;
+}
+
 .contest-course-card {
   transition: box-shadow 0.2s ease-in-out;
 }
@@ -187,18 +231,6 @@
 .contest-assignment-table th:first-child,
 .contest-assignment-table td:first-child {
   border-left: 1px solid #dee2e6;
-  border-right: 1px solid #dee2e6;
-}
-
-.contest-assignment-table th:nth-child(2),
-.contest-assignment-table td:nth-child(2) {
-  border-left: 1px solid #dee2e6;
-  border-right: 0;
-}
-
-.contest-assignment-table th:nth-child(3),
-.contest-assignment-table td:nth-child(3) {
-  border-left: 1px solid #dee2e6;
 }
 
 .contest-sticky-column {
@@ -206,6 +238,11 @@
   left: 0;
   z-index: 990;
   background-color: white !important;
+}
+
+.contest-shrink-column {
+  width: 0.1%;
+  white-space: nowrap;
 }
 
 .contest-assignment-table.table-hover tbody tr:hover .contest-sticky-column {
@@ -249,6 +286,11 @@
 
 .rounded-0-top-left {
   border-top-left-radius: 0;
+}
+
+.nav-link .badge {
+  position: relative;
+  top: -1px;
 }
 
 /*# sourceMappingURL=contest.css.map */

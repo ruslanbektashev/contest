@@ -51,6 +51,13 @@ $breadcrumb-margin-bottom:  .5rem;
 $breadcrumb-bg:             $light;
 $breadcrumb-border-radius:  $border-radius-sm;
 
+$accordion-button-bg:                     $light;
+$accordion-button-color:                  $primary;
+$accordion-button-active-bg:              $accordion-button-bg;
+$accordion-button-active-color:           $accordion-button-color;
+$accordion-icon-color:                    $accordion-button-color;
+$accordion-icon-active-color:             $accordion-button-active-color;
+
 // Layout & components
 @import "~bootstrap/scss/root";
 @import "~bootstrap/scss/reboot";

@@ -15,22 +15,6 @@ def breadcrumb(title, *args, query_string=None, **kwargs):
     return context
 
 
-@register.inclusion_tag('progress.html')
-def render_progress(value, title):
-    return {'progress': value, 'title': title}
-
-
-@register.inclusion_tag('progress.html')
-def render_assignment_progress(assignments, title):
-    return {'progress': assignments.progress(), 'title': title}
-
-
-@register.inclusion_tag('progress.html')
-def render_submission_progress(submission, title):
-    score = round(submission.score * 100 / submission.problem.score_max)
-    return {'progress': score, 'title': title}
-
-
 @register.filter()
 def has_owner_permission(request, course):
     return course.owner_id == request.user.id

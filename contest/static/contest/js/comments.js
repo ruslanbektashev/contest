@@ -1,30 +1,7 @@
-class ReadWatcher {
-    constructor(marker_url) {
-        this.mark_comments_as_read_url = marker_url;
-        this.comments = document.getElementById('comments');
-        this.unread_comments_ids = [];
-        this.options = { method: 'POST', headers: { 'ContentType': 'application/json' }, cache: 'no-store' }
-    }
-
-    updateUnreadCounterBadge() {
-        let unread_comments_count_element = document.getElementById('unread_comments_count');
-        if(unread_comments_count_element !== null) {
-            let updated_count = parseInt(unread_comments_count_element.innerText) - this.unread_comments_ids.length;
-            if (updated_count > 0)
-                unread_comments_count_element.innerText = updated_count.toString();
-            else
-                unread_comments_count_element.remove();
-        }
-    }
-
-    markCommentsAsRead() {
-        if (this.unread_comments_ids.length > 0) {
-            this.options['body'] = JSON.stringify({ unread_comments_ids: this.unread_comments_ids });
-            this.updateUnreadCounterBadge();
-            this.unread_comments_ids = [];
-            fetch(this.mark_comments_as_read_url, this.options).then(response => {});
-        }
-        setTimeout(this.markCommentsAsRead.bind(this), 1000);
+class CommentsReadWatcher {
+    constructor(comments_container_element) {
+        this.comments_container_element = comments_container_element;
+        this.unread_comment_elements = [];
     }
 
     isInViewPoint(element) {
@@ -35,17 +12,56 @@ class ReadWatcher {
     }
 
     handleEvent(event) {
-        for(let comment of this.comments.children) {
-            let is_unread = JSON.parse(comment.getAttribute('data-unread'));
-            if (is_unread) {
-                let comment_id = parseInt(comment.getAttribute('data-id'));
+        for (let comment of this.comments_container_element.children) {
+            if (comment.getAttribute('data-unread') === "true") {
                 let comment_footer = comment.getElementsByClassName('contest-comment-footer')[0];
-                if (this.isInViewPoint(comment_footer) && !this.unread_comments_ids.includes(comment_id)) {
-                    comment.classList.remove('bg-light');
-                    comment.removeAttribute('data-unread');
-                    this.unread_comments_ids.push(comment_id);
+                if (this.isInViewPoint(comment_footer)) {
+                    comment.setAttribute('data-unread', "false");
+                    this.unread_comment_elements.push(comment);
                 }
             }
         }
     }
+}
+
+function updateUnreadCommentsCounterBadge(read_comments_count) {
+    let unread_comments_count_element = document.getElementById('unread_comments_count');
+    if (!unread_comments_count_element)
+        return;
+    let updated_count = parseInt(unread_comments_count_element.innerText) - read_comments_count;
+    if (updated_count > 0)
+        unread_comments_count_element.innerText = updated_count.toString();
+    else
+        unread_comments_count_element.remove();
+}
+
+function markCommentsAsRead(comments_mark_as_read_url, unread_comment_elements) {
+    if (unread_comment_elements.length === 0)
+        return;
+    let data = {
+        unread_comments_ids: unread_comment_elements.map(el => JSON.parse(el.getAttribute('data-id')))
+    }
+    let options = {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrftoken},
+        mode: 'same-origin',
+        cache: 'no-store',
+        body: JSON.stringify(data)
+    }
+    fetch(comments_mark_as_read_url, options)
+        .then(response => {
+            if (response.ok) {
+                unread_comment_elements.forEach((value, i, a) => {
+                    value.classList.remove('bg-light');
+                    value.onmouseover = null;
+                });
+                updateUnreadCommentsCounterBadge(unread_comment_elements.length);
+            } else {
+                unread_comment_elements.forEach((value, i, a) => value.setAttribute('data-unread', "true"));
+            }
+        })
+        .catch(error => {
+            console.log(error);
+            unread_comment_elements.forEach((value, i, a) => value.setAttribute('data-unread', "true"));
+        });
 }

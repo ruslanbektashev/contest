@@ -39,29 +39,60 @@
 <div class="row">
     <div class="col-12 col-md-8">
         <p class="lead">Последние посылки</p>
-        {% for submission in latest_submissions|slice:':10' %}
-        <div class="d-flex align-items-center gap-3">
-            <a href="{{ submission.get_absolute_url }}" class="contest-status contest-status-{{ submission.status|colorize }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ submission.get_status_display }}">
-                {{ submission.status }}
-            </a>
-            <span>
-                <a href="{{ submission.owner.account.get_absolute_url }}" class="text-truncate" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ submission.owner.account.faculty.short_name }}, {{ submission.owner.account.get_level_display }}">{{ submission.owner.account.get_short_name }}</a>
-                отправил решение задачи
-                <a href="{{ submission.problem.get_absolute_url }}" class="text-truncate" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ submission.contest }}, {{ submission.course }}">{{ submission.problem }}</a>
-            </span>
-            <span class="text-muted ms-auto" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ submission.date_created|date:'d E Y г. в H:i' }}">{{ submission.date_created|naturaltime }}</span>
+        <table class="table">
+            <tbody>
+                {% for submission in latest_submissions|slice:':10' %}
+                <tr>
+                    <td class="contest-shrink-column">
+                        <a href="{{ submission.get_absolute_url }}" class="contest-status contest-status-{{ submission.status|colorize }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ submission.get_status_display }}">
+                            {{ submission.status }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{{ submission.owner.account.get_absolute_url }}" class="text-truncate" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ submission.owner.account.faculty.short_name }}, {{ submission.owner.account.get_level_display }}">{{ submission.owner.account.get_short_name }}</a>
+                        отправил решение задачи
+                        <a href="{{ submission.problem.get_absolute_url }}" class="text-truncate" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ submission.contest }}, {{ submission.course }}">{{ submission.problem }}</a>
+                    </td>
+                    <td class="text-muted text-end">
+                        <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{ submission.date_created|date:'d E Y г. в H:i' }}">{{ submission.date_created|naturaltime }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if unread_notifications_count > 0 %}
+        <div class="alert alert-info shadow-sm">У Вас <strong>{{ unread_notifications_count }}</strong> <a href="{% url 'accounts:notification-list' %}">непрочитанных оповещений</a>.</div>
+        {% endif %}
+        {% if announcements.exists %}
+        <p class="lead">Объявления</p>
+        <div class="list-group list-group-flush mb-3">
+            {% for announcement in announcements %}
+            <div class="list-group-item"><a href="{{ announcement.get_absolute_url }}">{{ announcement }}</a></div>
+            {% endfor %}
         </div>
-        <hr>
-        {% endfor %}
+        {% endif %}
+        {% if schedules.exists %}
+        <p class="lead">Расписание</p>
+        <div class="list-group mb-3">
+            {% for schedule in schedules %}
+            <a class="list-group-item list-group-item-action d-flex" href="{{ schedule.get_absolute_url }}">
+                {{ schedule }}
+                {% if schedule.is_upcoming %}
+                <span class="d-none d-sm-inline text-success ms-auto">новое</span>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
     <div class="col-12 col-md-4">
         <p class="lead">Ваши курсы</p>
         {% for course in courses %}
-        <div class="card mb-3">
+        <div class="card shadow-sm mb-3">
             <div class="card-body">
                 <a href="{{ course.get_absolute_url }}" class="card-title">{{ course }}</a>
                 <p class="card-text"><small class="text-muted">{{ course.get_level_display }}</small></p>
-                <div>
+                <div class="d-flex gap-3">
                     <a href="{% url 'contests:submission-list' course.id %}" class="btn btn-light btn-sm"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
                     <a href="{% url 'contests:assignment-table' course.id %}" class="btn btn-light btn-sm"><i class="fa fa-table fa-fw"></i> Таблица</a>
                 </div>

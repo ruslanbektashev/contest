@@ -13,19 +13,17 @@
     <span class="d-flex justify-content-between">
         <span class="text-truncate">Курсы</span>
         <span class="d-flex justify-content-between gap-1">
-        {% if perms.contests.add_course %}
+            {% if perms.contests.add_course %}
             <a href="{% url 'contests:course-create' %}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
-        {% endif %}
+            {% endif %}
         </span>
     </span>
 </legend>
-<div class="mb-3">
-    <div class="btn-group btn-group-sm" role="group" aria-label="Факультет">
-        {% for f in faculties %}
-        <a href="{% get_full_path_with_updated_query_string request faculty_id=f.id %}" class="btn btn-light {% if f.id == faculty.id %}active{% endif %}" {% if f.id == faculty.id %}aria-pressed="true"{% endif %}>{{ f.short_name }}</a>
-        {% endfor %}
-    </div>
-</div>
+<select class="form-control selectpicker mb-3" onchange="document.location=this.options[this.selectedIndex].value;" aria-label="Факультет">
+    {% for f in faculties %}
+    <option value="{% get_full_path_with_updated_query_string request faculty_id=f.id %}" {% if f.id == faculty.id %}selected{% endif %}>{{ f.short_name }}</option>
+    {% endfor %}
+</select>
 <div class="d-flex flex-column">
     {% for course in courses %}
     {% ifchanged course.level %}

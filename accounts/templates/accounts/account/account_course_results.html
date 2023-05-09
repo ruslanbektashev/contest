@@ -87,7 +87,7 @@
                 </td>
                 <td class="text-center">
                     {% solved additional_submissions problem as is_solved %}
-                    <a href="{% url 'accounts:account-problem-submissions' account.user_id submission.problem.id %}" class="numtus status-{{ is_solved|colorize_solved_flag }}">
+                    <a href="{% url 'accounts:account-problem-submissions' account.user_id submission.problem.id %}" class="contest-status-number status-{{ is_solved|colorize_solved_flag }}">
                         {% if is_solved %}+{% else %}-{% endif %}
                     </a>
                 </td>
@@ -100,14 +100,13 @@
     </table>
 </div>
 {% endif %}
-{% if course_submissions_score %}
-<div class="table-responsive-lg mb-3">
+<div class="table-responsive-lg">
     <table class="table table-sm table-borderless">
         <tbody>
             <tr>
                 <td>Точность</td>
                 <td class="text-center align-middle" style="width: 66%;">
-                    {% render_progress course_submissions_score "" %}
+                    {% include 'progress.html' with progress=course_accuracy %}
                 </td>
                 <td class="text-center" style="width: 6%;">
                     <span class="d-inline-block" data-bs-toggle="tooltip" data-bs-placement="left" title="Отражает способность решать задачи с первой попытки">
@@ -118,5 +117,4 @@
         </tbody>
     </table>
 </div>
-{% endif %}
 {% endblock main_content %}

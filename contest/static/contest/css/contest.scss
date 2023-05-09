@@ -149,6 +149,12 @@
   opacity: 1;
 }
 
+@for $i from 1 through 11 {
+  .contest-comment-offset-#{$i} {
+    margin-left: 60px * $i;
+  }
+}
+
 .contest-course-card {
   transition: box-shadow 0.2s ease-in-out;
 }
@@ -177,18 +183,6 @@
 .contest-assignment-table th:first-child,
 .contest-assignment-table td:first-child {
   border-left: 1px solid #dee2e6;
-  border-right: 1px solid #dee2e6;
-}
-
-.contest-assignment-table th:nth-child(2),
-.contest-assignment-table td:nth-child(2) {
-  border-left: 1px solid #dee2e6;
-  border-right: 0;
-}
-
-.contest-assignment-table th:nth-child(3),
-.contest-assignment-table td:nth-child(3) {
-  border-left: 1px solid #dee2e6;
 }
 
 .contest-sticky-column {
@@ -196,6 +190,11 @@
   left: 0;
   z-index: 990;
   background-color: white !important;
+}
+
+.contest-shrink-column {
+  width: 0.1%;
+  white-space: nowrap;
 }
 
 .contest-assignment-table.table-hover tbody tr:hover .contest-sticky-column {
@@ -228,6 +227,8 @@
   color: #5cb85c;
 }
 
+// CSS Patches for other libs
+
 .bootstrap-select .dropdown-menu {
   //box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important // .shadow
   box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075) !important // .shadow-sm
@@ -240,4 +241,9 @@
 
 .rounded-0-top-left {
   border-top-left-radius: 0;
+}
+
+.nav-link .badge {
+  position: relative;
+  top: -1px;
 }

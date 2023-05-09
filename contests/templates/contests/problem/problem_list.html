@@ -6,6 +6,14 @@
         {% if problem.type == 'Test' %}
         <span class="text-muted">[{% get_problem_subproblems problem %}]</span>
         {% endif %}
+        {% if problem.difficulty >= 2 %}
+        <span data-bs-toggle="tooltip" data-bs-placement="left" title="{{ problem.get_difficulty_display }}">
+            <i class="fa fa-asterisk fa-fw"></i>
+            {% if problem.difficulty == 3 %}
+            <i class="fa fa-asterisk fa-fw"></i>
+            {% endif %}
+        </span>
+        {% endif %}
         <span data-bs-toggle="tooltip" data-bs-placement="left" title="{{ problem.get_type_display }}"><i class="fa {% get_problem_icon problem %} fa-fw"></i></span>
     </a>
     {% empty %}

@@ -32,14 +32,16 @@ function toggleOpacity(firstElement, secondElement, firstTime, secondTime) {
     firstElement.addEventListener('transitionend', shower)
 }
 
-function adjustStickyColumns(table_element, columns_num) {
-    for (let i = 0; i < table_element.rows.length; i++) {
+function adjustStickyColumns(table_element) {
+    for (let row of table_element.rows) {
         let offsetSum = 0;
-        for (let j = 1; j < columns_num; j++) {
-            offsetSum += table_element.rows[i].cells[j - 1].offsetWidth;
-            if (j === columns_num - 1)
-                offsetSum -= 1;
-            table_element.rows[i].cells[j].style.left = offsetSum + "px";
+        for (let cell of row.cells) {
+            if (cell.cellIndex === 0)
+                continue;
+            if (!cell.classList.contains('contest-sticky-column'))
+                break;
+            offsetSum += cell.previousElementSibling.offsetWidth;
+            cell.style.left = offsetSum + "px";
         }
     }
 }

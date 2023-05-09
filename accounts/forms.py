@@ -121,8 +121,8 @@ class AccountSetForm(forms.ModelForm):
                 raise ValidationError("Неверный формат списка инициалов: {}. "
                                       "Фамилия и Имя должны присутствовать в каждой строке списка".format(name),
                                       code='wrong_format')
-            l = min(len(initials), 3)
-            for i in range(l):
+            length = min(len(initials), 4)
+            for i in range(length):
                 if not re.match(r'^[а-яА-ЯёЁ-]*$', initials[i]):
                     raise ValidationError("Недопустимый инициал: {}. "
                                           "Фамилия, Имя и Отчество должны состоять из букв русского алфавита "

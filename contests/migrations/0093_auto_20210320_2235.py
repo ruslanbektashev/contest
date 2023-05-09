@@ -36,6 +36,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(ensure_permissions_exist, reverse_code=migrations.RunPython.noop),
-        migrations.RunPython(update_permissions, reverse_code=migrations.RunPython.noop)
+        migrations.RunPython(ensure_permissions_exist, reverse_code=migrations.RunPython.noop, elidable=True),
+        migrations.RunPython(update_permissions, reverse_code=migrations.RunPython.noop, elidable=True)
     ]

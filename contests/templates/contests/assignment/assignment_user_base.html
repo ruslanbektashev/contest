@@ -9,7 +9,6 @@
 {% endblock breadcrumbs %}
 
 {% block main_content %}
-{% include 'contests/news_block.html' %}
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">Мои задания</span>
@@ -19,5 +18,5 @@
     </span>
 </legend>
 {% render_assignment_user_table assignments credits %}
-{% render_assignment_progress assignments "Прогресс" %}
+{% include 'progress.html' with progress=assignments.progress title="Прогресс" %}
 {% endblock main_content %}

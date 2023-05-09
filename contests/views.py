@@ -1,17 +1,14 @@
-import os
-
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.forms.models import inlineformset_factory, modelformset_factory
-from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.text import get_text_list
-from django.views.generic import CreateView, DeleteView, DetailView, FormView, ListView, UpdateView
-from django.views.generic.base import TemplateView, View
+from django.views.generic import (CreateView, DeleteView, DetailView, FormView, ListView, RedirectView, TemplateView,
+                                  UpdateView, View)
 from django.views.generic.detail import BaseDetailView, SingleObjectMixin
-from django.views.generic.edit import BaseUpdateView
 from django.views.generic.list import BaseListView
 
 from accounts.models import Account, Action, Announcement, Faculty, Notification
@@ -29,9 +26,7 @@ from contests.forms import (AssignmentEvaluateForm, AssignmentForm, AssignmentSe
                             SubmissionTextForm, SubmissionUpdateForm, SubmissionVerbalForm, SubProblemForm, UTTestForm)
 from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, Execution,
                              Filter, FNTest, IOTest, Option, Problem, Submission, SubmissionPattern, SubProblem, UTTest)
-from contests.results import TaskProgress
 from contests.tasks import evaluate_submission, moss_submission
-from contests.templatetags.contests import colorize
 from contests.templatetags.views import get_query_string, has_leader_permission
 from schedule.models import Schedule
 
@@ -309,7 +304,7 @@ class CreditReport(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         kwargs = super().get_form_kwargs()
         students = (Account.students.apply_common_filters(self.storage)
                     .order_by('faculty__short_name', 'user__last_name', 'user__first_name'))
-        examiners = Account.objects.filter(user__groups__name='Преподаватель')
+        examiners = Account.objects.filter(type=3)
         if self.storage['faculty_id'] > 0:
             examiners = examiners.filter(faculty_id=self.storage['faculty_id'])
         examiners = examiners.order_by('faculty__short_name', 'user__last_name', 'user__first_name')
@@ -452,6 +447,33 @@ class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
                                     action="изменил Вашу итоговую оценку по курсу", object=self.object.course)
         return super().form_valid(form)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        students = (Account.students.filter(user_id=self.object.user_id)
+                    .with_attendance(self.object.course, timezone.now()))
+        assignments = Assignment.objects.for_course_table(self.object.course, students)
+        contests = self.object.course.contest_set.all()
+        assignments_num, contests_num = len(assignments), len(contests)
+        columns = [{'assignments': []} for _ in contests]
+        i, j = 0, 0
+        while i < assignments_num:
+            while j < contests_num and contests[j].id != assignments[i].problem.contest_id:
+                j += 1
+            if contests[j].id == assignments[i].problem.contest_id:
+                columns[j]['assignments'].append(assignments[i])
+                i += 1
+        summary = []
+        for column in columns:
+            score_sum = 0
+            for assignment in column['assignments']:
+                score_sum += assignment.score
+            summary.append(score_sum / (len(column['assignments']) or 1))
+        context['contests'] = contests
+        context['student'] = students.get()
+        context['columns'] = columns
+        context['summary'] = summary
+        return context
+
     def get_success_url(self):
         success_url = reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
         return success_url + get_query_string(self.request)
@@ -590,78 +612,6 @@ class AttendanceCourseTable(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMi
 """===================================================== Filter ====================================================="""
 
 
-class FilterCreateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
-    http_method_names = ['post']
-    permission_required = 'contests.add_filter'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        course_id = request.POST.get('course_id')
-        try:
-            self.storage['course'] = Course.objects.get(id=course_id)
-        except Course.DoesNotExist:
-            return JsonResponse({'status': 'not_found'})
-        return super().dispatch(request, *args, **kwargs)
-
-    def has_ownership(self):
-        return self.storage['course'].owner_id == self.request.user.id
-
-    def has_leadership(self):
-        return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
-
-    def http_method_not_allowed(self, request, *args, **kwargs):
-        return JsonResponse({'status': 'http_method_not_allowed'})
-
-    def post(self, request, *args, **kwargs):
-        response = {'status': 'ok'}
-        _, created = Filter.objects.get_or_create(user_id=request.user.id, course=self.storage['course'])
-        if not created:
-            response['status'] = 'exists'
-        return JsonResponse(response)
-
-    def handle_no_permission(self):
-        return JsonResponse({'status': 'access_denied'})
-
-
-class FilterDeleteAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
-    http_method_names = ['post']
-    permission_required = 'contests.delete_filter'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        course_id = request.POST.get('course_id')
-        try:
-            self.storage['course'] = Course.objects.get(id=course_id)
-        except Course.DoesNotExist:
-            return JsonResponse({'status': 'not_found'})
-        return super().dispatch(request, *args, **kwargs)
-
-    def has_ownership(self):
-        return self.storage['course'].owner_id == self.request.user.id
-
-    def has_leadership(self):
-        return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
-
-    def http_method_not_allowed(self, request, *args, **kwargs):
-        return JsonResponse({'status': 'http_method_not_allowed'})
-
-    def post(self, request, *args, **kwargs):
-        response = {'status': 'ok'}
-        deleted, _ = Filter.objects.filter(user_id=request.user.id, course=self.storage['course']).delete()
-        if not deleted > 0:
-            response['status'] = 'not_found'
-        return JsonResponse(response)
-
-    def handle_no_permission(self):
-        return JsonResponse({'status': 'access_denied'})
-
-
 class FilterCreate(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
     http_method_names = ['get']
     permission_required = 'contests.add_filter'
@@ -719,19 +669,16 @@ class FilterTable(LoginRedirectMixin, PermissionRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         users = User.objects.filter(groups__name__in=["Преподаватель", "Модератор"])
+        user_id = int(self.request.GET.get('user_id') or self.request.user.id)
         courses = Course.objects.all()
-        filters = list(Filter.objects.all().values_list('user_id', 'course_id'))
-        table = []
-        for i in range(len(users)):
-            row = []
-            for j in range(len(courses)):
-                col = {'exists': (users[i].id, courses[j].id) in filters,
-                       'params': {'user_id': users[i].id, 'course_id': courses[j].id}}
-                row.append(col)
-            table.append({'user': users[i], 'cols': row})
-        context['users'] = users
+        filters = set(Filter.objects.filter(user_id=user_id).values_list('course_id', flat=True))
+        filter_list = []
+        for course in courses:
+            filter_list.append({'exists': course.id in filters, 'course': course})
         context['courses'] = courses
-        context['table'] = table
+        context['filter_list'] = filter_list
+        context['users'] = users
+        context['user_id'] = user_id
         return context
 
 
@@ -2149,23 +2096,6 @@ class SubmissionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
         else:
             return SubmissionProgramForm
 
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        if form.is_valid():
-            form.instance.owner = self.request.user
-            form.instance.problem = self.storage['problem']
-            form.instance.assignment = self.storage['assignment']
-            form.save()
-            form_files_paths = [os.path.dirname(filepath) for filepath in form.instance.files]
-            return JsonResponse({'ok': True, 'filepaths': form_files_paths})
-        else:
-            errors = []
-            for err_types in form.errors.as_data().values():
-                for err in err_types:
-                    for err_msg in err.messages:
-                        errors.append(err_msg)
-            return JsonResponse({'ok': False, 'errors': errors})
-
     def form_valid(self, form):
         form.instance.owner = self.request.user
         form.instance.problem = self.storage['problem']
@@ -2182,8 +2112,6 @@ class SubmissionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
             task = evaluate_submission.delay(self.object.pk, self.request.user.id)
             self.object.task_id = task.id
             self.object.save()
-        if self.object.problem.type == 'Options':
-            self.object.update_options_score()
         return HttpResponseRedirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
@@ -2253,61 +2181,6 @@ class SubmissionUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         return success_url
 
 
-class SubmissionUpdateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
-                          BaseUpdateView):
-    model = Submission
-    form_class = SubmissionUpdateForm
-    http_method_names = ['post']
-    permission_required = 'contests.change_submission'
-
-    def http_method_not_allowed(self, request, *args, **kwargs):
-        return JsonResponse({'status': 'http_method_not_allowed'})
-
-    def has_ownership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.course.owner_id == self.request.user.id
-
-    def has_leadership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.course.leaders.filter(id=self.request.user.id).exists()
-
-    def form_valid(self, form):
-        self.object = form.save()
-        response = {
-            'status': 'ok',
-            'updated': [
-                {
-                    'id': self.object.id,
-                    'status': self.object.status,
-                    'status_display': self.object.get_status_display(),
-                    'score': self.object.score,
-                    'score_percentage': self.object.get_score_percentage(),
-                    'color': colorize(self.object.status)
-                }
-            ]
-        }
-        if self.object.main_submission is not None:
-            response['updated'].append({
-                'id': self.object.main_submission.id,
-                'status': self.object.main_submission.status,
-                'status_display': self.object.main_submission.get_status_display(),
-                'score': self.object.main_submission.score,
-                'score_percentage': self.object.main_submission.get_score_percentage(),
-                'color': colorize(self.object.main_submission.status)
-            })
-        Notification.objects.notify(self.object.owner, subject=self.request.user, action="изменил оценку Вашей посылки",
-                                    object=self.object, relation="из раздела", reference=self.object.contest)
-        return JsonResponse(response)
-
-    def form_invalid(self, form):
-        return JsonResponse({'status': 'form_errors', 'errors': form.errors})
-
-    def handle_no_permission(self):
-        return JsonResponse({'status': 'access_denied'})
-
-
 class SubmissionMoss(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
                      SingleObjectMixin, FormView):
     model = Submission
@@ -2354,49 +2227,10 @@ class SubmissionMoss(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Pe
         return reverse('contests:submission-detail', kwargs={'pk': self.kwargs['pk']})
 
 
-class SubmissionEvaluateAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
-    http_method_names = ['get']
-    permission_required = 'contests.evaluate_submission'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        self.storage['sandbox_type'] = request.GET.get('sandbox', 'subprocess')
-        return super().dispatch(request, *args, **kwargs)
-
-    def has_ownership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.owner_id == self.request.user.id
-
-    def has_leadership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.course.leaders.filter(id=self.request.user.id).exists()
-
-    def http_method_not_allowed(self, request, *args, **kwargs):
-        return JsonResponse({'status': 'http_method_not_allowed'})
-
-    def get_object(self):
-        return Submission.objects.get(pk=self.kwargs.get('pk'))
-
-    def get(self, request, *args, **kwargs):
-        submission = self.get_object()
-        if submission.problem.type == 'Program' and submission.problem.is_testable:
-            task = evaluate_submission.delay(submission.pk, request.user.id, **self.storage)
-            submission.task_id = task.id
-            submission.save()
-            return JsonResponse({'status': 'task_queued', 'task_id': task.id})
-        return JsonResponse({'status': 'ignored'})
-
-    def handle_no_permission(self):
-        return JsonResponse({'status': 'access_denied'})
-
-
-class SubmissionProgressAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
-    http_method_names = ['get']
+class SubmissionClearTask(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
+                          SingleObjectMixin, RedirectView):
+    model = Submission
+    pattern_name = 'contests:submission-detail'
     permission_required = 'contests.evaluate_submission'
 
     def has_ownership(self):
@@ -2408,50 +2242,12 @@ class SubmissionProgressAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMi
         if not hasattr(self, 'object'):
             self.object = self.get_object()
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
-
-    def http_method_not_allowed(self, request, *args, **kwargs):
-        return JsonResponse({'status': 'http_method_not_allowed'})
-
-    def get_object(self):
-        return Submission.objects.get(pk=self.kwargs.get('pk'))
-
-    def get(self, request, *args, **kwargs):
-        task_id = self.kwargs.get('task_id')
-        progress = TaskProgress(task_id)
-        return JsonResponse(progress.get_info())
-
-    def handle_no_permission(self):
-        return JsonResponse({'status': 'access_denied'})
-
-
-class SubmissionClearTaskAPI(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, View):
-    http_method_names = ['get']
-    permission_required = 'contests.evaluate_submission'
-
-    def has_ownership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.owner_id == self.request.user.id
-
-    def has_leadership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.course.leaders.filter(id=self.request.user.id).exists()
-
-    def http_method_not_allowed(self, request, *args, **kwargs):
-        return JsonResponse({'status': 'http_method_not_allowed'})
-
-    def get_object(self):
-        return Submission.objects.get(pk=self.kwargs.get('pk'))
 
     def get(self, request, *args, **kwargs):
         submission = self.get_object()
         submission.task_id = None
         submission.save()
-        return JsonResponse({'status': 'task_cleared'})
-
-    def handle_no_permission(self):
-        return JsonResponse({'status': 'access_denied'})
+        return super().get(request, *args, **kwargs)
 
 
 class SubmissionDelete(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
@@ -2607,15 +2403,10 @@ class Main(LoginRedirectMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        notifications = Notification.objects.actual().filter(recipient=self.request.user).unread()[:10]
-        schedules = Schedule.objects.actual()
-        announcements = Announcement.objects.proper_group(self.request.user).actual()
-        count_of_news = notifications.count() + schedules.count() + announcements.count()
         filtered_course_ids = self.request.user.filter_set.values_list('course_id')
         context['courses'] = Course.objects.filter(id__in=filtered_course_ids)
-        context['notifications'] = notifications
-        context['schedules'] = schedules
-        context['announcements'] = announcements
-        context['count_of_news'] = count_of_news
+        context['unread_notifications_count'] = self.request.user.notifications.actual().unread().count()
+        context['schedules'] = Schedule.objects.actual()
+        context['announcements'] = Announcement.objects.proper_group(self.request.user).actual()
         context['latest_submissions'] = self.get_latest_submissions()
         return context

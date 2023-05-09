@@ -1,6 +1,5 @@
 import enum
 import json
-import math
 from statistics import mean
 
 from django.apps import apps
@@ -16,7 +15,6 @@ from django.utils.text import get_text_list
 
 from contest.abstract import CRUDEntry
 from contest.utils import transliterate
-from contest_telegram_bot.utils import notify_tg_users
 
 """==================================================== Faculty ====================================================="""
 
@@ -176,7 +174,7 @@ class StaffManager(models.Manager):
 
 class StudentManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(user__groups__name="Студент").select_related('user')
+        return super().get_queryset().filter(type=1).select_related('user')
 
     def create_set(self, faculty, level, admission_year, names):
         group_prefix = transliterate(faculty.group_prefix.lower())
@@ -200,6 +198,8 @@ class StudentManager(models.Manager):
             first_name = name[1]
             last_name = name[0]
             patronymic = name[2] if len(name) > 2 else ""
+            if len(name) >= 4:
+                patronymic = " ".join(name[2:4])
             user = User.objects.create_user(username, password=password, first_name=first_name, last_name=last_name)
             user.groups.add(*groups)
             new_account = Account(user_id=user.id, faculty=faculty, patronymic=patronymic, level=level,
@@ -243,9 +243,9 @@ class Account(models.Model):
     LEVEL_MIN = 1
     LEVEL_MAX = 8
     TYPE_CHOICES = (
-        (1, 'студент'),
-        (2, 'модератор'),
-        (3, 'преподаватель'),
+        (1, "студент"),
+        (2, "модератор"),
+        (3, "преподаватель"),
     )
     TYPE_DEFAULT = 1
     ADMISSION_YEAR_CHOICES = ((y, y) for y in range(2006, timezone.now().year + 1))
@@ -347,60 +347,25 @@ class Account(models.Model):
     def date_joined(self):
         return self.user.date_joined
 
-    @property
-    def solved_problems_count(self):
-        Submission = apps.get_model('contests', 'Submission')
-        Assignment = apps.get_model('contests', 'Assignment')
-        problem_ids = Submission.objects.filter(owner=self.user).values_list('problem', flat=True).distinct().order_by()
-        count = 0
-        for problem_id in problem_ids:
-            if Submission.objects.filter(owner=self.user, problem_id=problem_id, status='OK').exists() or Assignment.objects.filter(user=self.user, problem_id=problem_id, score__gte=3).exists():
-                count += 1
-        return count
+    def count_solved_problems(self):
+        Problem = apps.get_model('contests', 'Problem')
+        return Problem.objects.filter(submission__owner=self.user, submission__status='OK').count()
 
-    def course_credit_score(self, course_id=None):
-        credits = self.user.credit_set.exclude(score=0)
-        if course_id:
-            credits = credits.filter(course=course_id)
-        credit_scores = credits.values_list('score', flat=True)
-        avg_credit_score = mean(credit_scores) if credit_scores else 0
-        return round(avg_credit_score * 20 if 0 < avg_credit_score < 6 else 0)
+    def count_completed_assignments(self):
+        return self.user.assignment_set.filter(score__gt=2).count()
 
-    def course_submissions_score(self, course_id=None):
-        Submission = apps.get_model('contests', 'Submission')
-        Assignment = apps.get_model('contests', 'Assignment')
-        submissions = Submission.objects.filter(owner=self.user)
+    def get_accuracy(self, course_id=None):
+        submissions = self.user.submission_set.all()
         if course_id:
             submissions = submissions.filter(problem__contest__course=course_id)
-        problem_ids = submissions.values_list('problem', flat=True).distinct().order_by()
-        submissions_scores = []
-        for problem_id in problem_ids:
-            problem_submissions = submissions.filter(problem=problem_id)
-            successful_submissions = problem_submissions.filter(status='OK')
-            if successful_submissions.exists():
-                first_successful_submission = successful_submissions.earliest('date_created')
-                submissions_count = problem_submissions.filter(date_created__lt=first_successful_submission.date_created).count()
-            else:
-                submissions_count = problem_submissions.count()
-            assignment = problem_submissions.first().assignment
-            submission_limit = assignment.submission_limit if assignment else Assignment.DEFAULT_SUBMISSION_LIMIT
-            submissions_score = 100 * (submission_limit - submissions_count) / submission_limit
-            submissions_scores.append(submissions_score)
-        return round(mean(submissions_scores)) if submissions_scores else 0
-
-    @property
-    def submissions_score(self):
-        return self.course_submissions_score()
-
-    @property
-    def score(self):
-        return self.course_credit_score()
+        accuracy = 100 * submissions.filter(status='OK').count() / (submissions.count() or 1)
+        return round(accuracy)
 
     def get_absolute_url(self):
         return reverse('accounts:account-detail', kwargs={'pk': self.pk})
 
     def mark_comments_as_read(self, comments):
-        # mark corresponding notifications as read
+        # TODO: mark corresponding notifications as read?
         # Notification.objects.filter(recipient=self.user, object_type=ContentType.objects.get_for_model(Comment),
         #                             object_id__in=comments.values_list('id', flat=True)).mark_as_read()
         self.comments_read.add(*comments)
@@ -437,7 +402,7 @@ class CommentManager(models.Manager):
 
 class Comment(models.Model):
     MAX_LEVEL = 5
-    author = models.ForeignKey(User, related_name='+', on_delete=models.CASCADE, verbose_name="Автор")
+    author = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE, verbose_name="Автор")
 
     thread_id = models.PositiveIntegerField(default=0, db_index=True)
     parent_id = models.PositiveIntegerField(default=0)
@@ -660,7 +625,6 @@ class NotificationManager(models.Manager):
                 notification.reference_type = ContentType.objects.get_for_model(reference)
                 notification.reference_id = reference.id
             new_notifications.append(notification)
-            notify_tg_users(notification)
         self.bulk_create(new_notifications)
 
 

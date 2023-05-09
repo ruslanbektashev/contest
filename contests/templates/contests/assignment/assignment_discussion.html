@@ -3,6 +3,11 @@
 
 {% block title %}Задание{% endblock title %}
 
+{% block main_links %}
+<link href="{% static 'easymde/easymde.min.css' %}" rel="stylesheet">
+<link href="{% static 'easymde/easymde.fix.css' %}" rel="stylesheet">
+{% endblock main_links %}
+
 {% block breadcrumbs %}
 {% breadcrumb "Главная" 'contests:index' %}
 {% if perms.contests.view_assignment_table or request|has_leader_permission:assignment.course %}

@@ -1,5 +1,5 @@
 {% extends 'base_main.html' %}
-{% load views forms %}
+{% load views forms contests static %}
 
 {% block title %}Зачет{% endblock title %}
 
@@ -13,6 +13,49 @@
 
 {% block main_content %}
 <legend>{{ credit }}</legend>
+<div class="table-responsive-lg" style="overflow-x: scroll;">
+    <table class="table table-sm table-bordered">
+        <thead>
+            <tr>
+                <th style="width: 25%;">Студент</th>
+                <th class="text-center" style="width: 4%;"><span id="attendance_column" data-bs-toggle="tooltip" data-bs-placement="top" title="Посещаемость">П</span></th>
+                {% for contest in contests %}
+                <th class="contest-table-cell text-truncate">
+                    <a href="{{ contest.get_absolute_url }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ contest }}">{{ contest.number }}</a>
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="text-truncate"><a href="{{ student.get_absolute_url }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ student.get_full_name }}">{{ student.get_short_name }}</a></td>
+                <td class="text-center">
+                    <span class="badge text-bg-{% if student.is_attending_now is None %}light{% elif student.is_attending_now %}success{% else %}danger{% endif %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Посещено пар: {{ student.attendance_sum }}">
+                        {{ student.attendance_sum }}
+                    </span>
+                </td>
+                {% for col in columns %}
+                <td class="text-truncate">
+                    {% for assignment in col.assignments %}
+                    <a href="{% url 'contests:assignment-detail' assignment.id %}" class="contest-status-number contest-status-{{ assignment|get_assignment_style }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ assignment.remark }}">
+                        {{ assignment.problem.number }}<sup>{{ assignment.remark.0 }}</sup>
+                    </a>
+                    {% endfor %}
+                </td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td class="text-truncate">Средняя оценка</td>
+                <td class="text-truncate"></td>
+                {% for col in summary %}
+                <td class="text-truncate">
+                    <strong class="text-{{ col|floatformat:'0'|colorize }}">{{ col|floatformat }}</strong>
+                </td>
+                {% endfor %}
+            </tr>
+        </tbody>
+    </table>
+</div>
 <form action="" method="post">
     {% csrf_token %}
     {% include 'forms/errors/non_field_errors.html' %}

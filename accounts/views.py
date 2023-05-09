@@ -1,19 +1,17 @@
-import json
-
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.forms import modelformset_factory
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import date
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from django.utils.text import get_text_list
-from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import CreateView, DeleteView, DetailView, FormView, ListView, TemplateView, UpdateView
+from django.views.generic import (CreateView, DeleteView, DetailView, FormView, ListView, RedirectView, TemplateView,
+                                  UpdateView)
 from markdown import markdown
 
 from accounts.forms import (AccountListForm, AccountPartialForm, AccountSetForm, AnnouncementForm, CommentForm,
@@ -21,9 +19,8 @@ from accounts.forms import (AccountListForm, AccountPartialForm, AccountSetForm,
 from accounts.models import Account, Action, Announcement, Comment, Faculty, Notification
 from accounts.templatetags.comments import get_comment_query_string
 from contest.mixins import LogChangeMixin, LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
-from contests.models import Course, Problem, Submission
+from contests.models import Course, Problem
 from contests.templatetags.views import get_query_string, get_updated_query_string
-from support.models import Question, Report
 
 """==================================================== Account ====================================================="""
 
@@ -35,14 +32,16 @@ def nextmonth(year, month):
         return year, month + 1
 
 
-def get_study_years_list(account):
-    today = datetime.today()
+def get_study_year_choices(account):
+    today = timezone.localdate()
     current_year = today.year if today.month >= 9 else today.year - 1
-    years = [(current_year - i, str(current_year - i) + '-' + str(current_year - i + 1) + ' учебный год') for i in range(current_year - account.admission_year + 1 or 1)]
+    years = []
+    for i in range(current_year - account.admission_year + 1 or 1):
+        years.append((current_year - i, str(current_year - i) + '-' + str(current_year - i + 1) + ' учебный год'))
     return years
 
 
-def get_year_month_submissions_solutions_comments_count_list(user, year):
+def get_account_chart_data(user, year):
     Assignment = apps.get_model('contests', 'Assignment')
     academic_year_start_month = 9
     today = timezone.localdate()
@@ -84,34 +83,6 @@ def get_year_month_submissions_solutions_comments_count_list(user, year):
     return result
 
 
-@csrf_exempt
-def mark_comments_as_read(request):
-    account = request.user.account
-    try:
-        data = json.loads(request.body.decode('utf-8'))
-    except:
-        return JsonResponse({'status': 'bad_request'})
-    unread_comments_ids = data.get('unread_comments_ids', None)
-    if unread_comments_ids:
-        unread_comments = Comment.objects.filter(id__in=unread_comments_ids).exclude(author=request.user)
-        unread_comments = unread_comments.exclude(id__in=account.comments_read.values_list('id', flat=True))
-        account.mark_comments_as_read(unread_comments)
-    return JsonResponse({'status': 'ok'})
-
-
-@csrf_exempt
-def mark_notifications_as_read(request):
-    try:
-        data = json.loads(request.body.decode('utf-8'))
-    except:
-        return JsonResponse({'status': 'bad_request'})
-    unread_notifications_ids = data.get('unread_notifications_ids', None)
-    if unread_notifications_ids:
-        unread_notifications = Notification.objects.filter(id__in=unread_notifications_ids, recipient=request.user)
-        unread_notifications.mark_as_read()
-    return JsonResponse({'status': 'ok'})
-
-
 class AccountDetail(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, DetailView):
     model = Account
     template_name = 'accounts/account/account_detail.html'
@@ -129,19 +100,14 @@ class AccountDetail(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixi
                                       .select_related('problem', 'problem__contest', 'problem__contest__course')
                                       .order_by('-problem__contest__course', '-problem__contest', '-date_created'))
             context['credits'] = self.object.user.credit_set.select_related('course').order_by('course')
-            context['comments_count'] = Comment.objects.filter(author=self.object.user).count()
-            context['questions_count'] = Question.objects.filter(owner=self.object.user).count()
-            context['reports_count'] = Report.objects.filter(owner=self.object.user).count()
-            context['submissions_count'] = Submission.objects.filter(owner=self.object.user).count()
-            context['problems_count'] = self.object.solved_problems_count
-            years_list = get_study_years_list(self.object)
-            years_list.append((0, 'Все время'))
-            year = int(self.request.GET.get('year') or years_list[0][0])
-            context['year_month_submissions_solutions_comments'] = get_year_month_submissions_solutions_comments_count_list(self.object.user, year)
-            context['years'] = years_list
+            study_year_choices = get_study_year_choices(self.object)
+            study_year_choices.append((0, 'Все время'))
+            year = int(self.request.GET.get('year') or study_year_choices[0][0])
+            context['account_chart_data'] = get_account_chart_data(self.object.user, year)
+            context['study_year_choices'] = study_year_choices
             context['year'] = year
         elif self.object.is_instructor:
-            context['courses_leading'] = self.object.user.leading.all()
+            context['courses_leading'] = self.object.user.courses_leading.all()
         return context
 
 
@@ -391,7 +357,7 @@ class AccountCourseResults(LoginRedirectMixin, OwnershipOrMixin, PermissionRequi
                                                                                     assignment__isnull=True)
                                              .select_related('problem', 'problem__contest')
                                              .order_by('problem__contest', 'problem'))
-        context['course_submissions_score'] = self.object.course_submissions_score(course)
+        context['course_accuracy'] = self.object.get_accuracy(course)
         return context
 
 
@@ -564,6 +530,24 @@ class AnnouncementList(LoginRequiredMixin, ListView):
 
 
 """================================================== Notification =================================================="""
+
+
+class NotificationMarkAllAsRead(LoginRequiredMixin, RedirectView):
+    url = reverse_lazy('accounts:notification-list')
+
+    def get(self, request, *args, **kwargs):
+        read_notifications = Notification.objects.filter(recipient=request.user, is_read=False, is_deleted=False)
+        read_notifications.mark_as_read()
+        return super().get(request, *args, **kwargs)
+
+
+class NotificationDeleteRead(LoginRequiredMixin, RedirectView):
+    url = reverse_lazy('accounts:notification-list')
+
+    def get(self, request, *args, **kwargs):
+        read_notifications = Notification.objects.filter(recipient=request.user, is_read=True, is_deleted=False)
+        read_notifications.mark_as_deleted()
+        return super().get(request, *args, **kwargs)
 
 
 class NotificationList(LoginRequiredMixin, PaginatorMixin, ListView):

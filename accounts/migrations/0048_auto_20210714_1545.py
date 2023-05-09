@@ -29,5 +29,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(update_faculties, migrations.RunPython.noop)
+        migrations.RunPython(update_faculties, migrations.RunPython.noop, elidable=True)
     ] if 'test' not in sys.argv[1:] else []

@@ -7,11 +7,12 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
+from django.core.validators import EMPTY_VALUES
 from django.template.defaultfilters import date, filesizeformat
 from django.utils import timezone
 
 from accounts.models import Account
-from contest.widgets import OptionCheckboxSelect, OptionRadioSelect
+from contest.widgets import BootstrapSelect, BootstrapSelectMultiple, OptionCheckboxSelect, OptionRadioSelect
 from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, FNTest, Option,
                              Problem, Submission, SubmissionPattern, SubProblem, UTTest)
 
@@ -24,32 +25,6 @@ class UserChoiceField(forms.ModelChoiceField):
 class UserMultipleChoiceField(forms.ModelMultipleChoiceField):
     def label_from_instance(self, obj):
         return "{} {}".format(obj.last_name, obj.first_name)
-
-
-class AccountSelect(forms.Select):
-    def __init__(self, attrs=None, choices=(), option_attrs=None):
-        super().__init__(attrs, choices)
-        self.option_attrs = option_attrs
-
-    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
-        option = super().create_option(name, value, label, selected, index, subindex, attrs)
-        if self.option_attrs is not None:
-            for data_attr, values in self.option_attrs.items():
-                option['attrs'][data_attr] = values[getattr(option['value'], 'value', option['value'])]
-        return option
-
-
-class AccountSelectMultiple(forms.SelectMultiple):
-    def __init__(self, attrs=None, choices=(), option_attrs=None):
-        super().__init__(attrs, choices)
-        self.option_attrs = option_attrs
-
-    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
-        option = super().create_option(name, value, label, selected, index, subindex, attrs)
-        if self.option_attrs is not None:
-            for data_attr, values in self.option_attrs.items():
-                option['attrs'][data_attr] = values[getattr(option['value'], 'value', option['value'])]
-        return option
 
 
 class MediaAttachmentMixin:
@@ -191,7 +166,7 @@ class CourseLeaderForm(forms.ModelForm):
         option_subtext_data = {pk: faculty_short_name for pk, faculty_short_name in option_subtext_data}
         option_subtext_data[''] = ''
         option_attrs = {'data-subtext': option_subtext_data}
-        self.fields['leader'].widget = AccountSelect(choices=self.fields['leader'].choices, option_attrs=option_attrs)
+        self.fields['leader'].widget = BootstrapSelect(choices=self.fields['leader'].choices, option_attrs=option_attrs)
 
 
 """===================================================== Credit ====================================================="""
@@ -205,6 +180,11 @@ class CreditUpdateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['score'].help_text = "последнее изменение: " + date(self.instance.date_updated, 'd M Y г. в H:i')
+        # TODO:
+        # option_class_data = {value: "bg-none text-" + colorize(value) for value, _ in self.fields['score'].choices}
+        # option_class_data[''] = ''
+        # option_attrs = {'class': option_class_data}
+        # self.fields['score'].widget = BootstrapSelect(choices=self.fields['score'].choices, option_attrs=option_attrs)
 
 
 class CreditSetForm(forms.Form):
@@ -241,8 +221,8 @@ class CreditReportForm(forms.Form):
                                option_subtext_data}
         option_subtext_data[''] = ''
         option_attrs = {'data-subtext': option_subtext_data}
-        self.fields['students'].widget = AccountSelectMultiple(choices=self.fields['students'].choices,
-                                                               option_attrs=option_attrs)
+        self.fields['students'].widget = BootstrapSelectMultiple(choices=self.fields['students'].choices,
+                                                                 option_attrs=option_attrs)
         self.fields['examiners'].queryset = examiners
         self.fields['examiners'].initial = course.leaders.all()
         self.fields['faculty'].initial = course.faculty.short_name
@@ -656,8 +636,8 @@ class AssignmentSetForm(forms.Form):
                                                   "значения у каждого студента")
     submission_limit = forms.IntegerField(initial=Assignment.DEFAULT_SUBMISSION_LIMIT,
                                           label="Ограничить количество посылок до",
-                                          help_text="Каждый студент сможет отправить до указанного количества посылок "
-                                                    "по каждому новому заданию")
+                                          help_text="Каждый студент сможет отправить не более указанного количества "
+                                                    "посылок по каждому новому заданию")
     deadline = forms.DateTimeField(required=False, label="Принимать посылки до")
 
     def __init__(self, course, *args, **kwargs):
@@ -846,9 +826,17 @@ class SubmissionUpdateForm(forms.ModelForm):
                 ('UN', "Посылка не проверена")
             ]
 
+    def clean_status(self):
+        status = self.cleaned_data['status']
+        if status in EMPTY_VALUES:
+            raise ValidationError("Это поле обязательно", code='required')
+        return status
+
     def clean_score(self):
         score = self.cleaned_data['score']
-        if score is not None and score > self.instance.problem.score_max:
+        if score in EMPTY_VALUES:
+            raise ValidationError("Это поле обязательно", code='required')
+        if score > self.instance.problem.score_max:
             raise ValidationError("Оценка не может превышать максимальную оценку этой задачи",
                                   code='score_exceeds_problem_score_max')
         return score
@@ -857,33 +845,6 @@ class SubmissionUpdateForm(forms.ModelForm):
         if self.instance.problem.type == 'Program' and self.instance.problem.is_testable:
             raise ValidationError("Посылки к этой задаче проверяются автоматически", code='problem_is_testable')
         return super().clean()
-
-    def save(self, commit=True):
-        instance = super().save(commit)
-        if 'status' in self.changed_data and 'score' not in self.changed_data:
-            status = self.cleaned_data['status']
-            if status == 'OK':
-                instance.score = instance.problem.score_max
-            elif status == 'WA':
-                instance.score = 0
-            instance = super().save(commit)
-        if 'score' in self.changed_data and 'status' not in self.changed_data:
-            score = self.cleaned_data['score']
-            if score >= instance.problem.score_for_5:
-                instance.status = 'OK'
-            elif score >= instance.problem.score_for_3:
-                instance.status = 'PS'
-            else:
-                instance.status = 'WA'
-            instance = super().save(commit)
-        if instance.main_submission is not None:
-            if 'status' in self.changed_data:
-                instance.main_submission.update_test_status()
-                instance.main_submission.update_test_score()
-            if 'score' in self.changed_data:
-                instance.main_submission.update_test_score()
-                instance.main_submission.update_test_status()
-        return super().save(commit)
 
 
 class ToSubmissionsChoiceField(forms.ModelMultipleChoiceField):

@@ -15,5 +15,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(revoke_login_permission_from_non_enrolled_users, migrations.RunPython.noop)
+        migrations.RunPython(revoke_login_permission_from_non_enrolled_users, migrations.RunPython.noop, elidable=True)
     ]

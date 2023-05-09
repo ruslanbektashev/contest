@@ -5,6 +5,8 @@
 
 {% block main_links %}
 <link href="{% static 'ckeditor/ckeditor.content.css' %}" rel="stylesheet">
+<link href="{% static 'easymde/easymde.min.css' %}" rel="stylesheet">
+<link href="{% static 'easymde/easymde.fix.css' %}" rel="stylesheet">
 {% endblock main_links %}
 
 {% block breadcrumbs %}
@@ -37,7 +39,7 @@
         <span class="text-truncate">{{ submission.short_title }}</span>
         <span class="d-flex justify-content-between gap-1">
         {% if request.user.is_superuser and submission.task_id %}
-            <a href="{% url 'contests:api-submission-clear-task' submission.id %}" class="text-secondary" data-bs-toggle="tooltip" data-bs-placement="left" title="Стереть таску"><i class="fa fa-eraser fa-fw"></i></a>
+            <a href="{% url 'contests:submission-clear-task' submission.id %}" class="text-secondary" data-bs-toggle="tooltip" data-bs-placement="left" title="Стереть таску"><i class="fa fa-eraser fa-fw"></i></a>
         {% endif %}
         {% if submission.problem.type == 'Program' %}
         {% if perms.contests.moss_submission or request|has_leader_permission:submission.course %}
@@ -94,11 +96,15 @@
 </form>
 {% endif %}
 {% elif submission.is_un or perms.contests.evaluate_submission or request|has_leader_permission:submission.course %}
-<button class="btn btn-light border mb-3" id="btn_submission_evaluate"
-        data-evaluate-url="{% url 'contests:api-submission-evaluate' submission.id %}"
-        data-progress-url-base="/submission/{{ submission.id }}/get/progress/"
-        data-executions-url="{% url 'contests:submission-get-executions' submission.id %}"
-        data-submission-id="{{ submission.id }}" data-sandbox-type="subprocess">Проверить{% if perms.contests.evaluate_submission or request|has_leader_permission:submission.course %} еще раз{% endif %}</button>
+<div class="d-grid">
+    <button class="btn btn-light border mb-3" id="btn_submission_evaluate"
+            data-evaluate-url="{% url 'contests:api-submission-evaluate' submission.id %}"
+            data-progress-url-base="/api/submission/{{ submission.id }}/progress/"
+            data-executions-url="{% url 'contests:submission-get-executions' submission.id %}"
+            data-submission-id="{{ submission.id }}" data-sandbox-type="subprocess">
+        Проверить{% if perms.contests.evaluate_submission or request|has_leader_permission:submission.course %} еще раз{% endif %}
+    </button>
+</div>
 {% endif %}
 {% if submission.hidden_from_students %}
 <div class="alert alert-info alert-dismissible fade show" role="alert">
@@ -151,6 +157,10 @@
     {% endfor %}
 </div>
 {% elif submission.problem.type == 'Text' %}
+<h6 class="text-muted">Вопрос:</h6>
+<div class="ck-content overflow-scroll">
+    {{ submission.problem.description|safe }}
+</div>
 <h6 class="text-muted">Ответ:</h6>
 <div class="card mb-3">
     <div class="card-body ck-content overflow-scroll">
@@ -178,6 +188,10 @@
 {% endif %}
 {% endif %}
 {% elif submission.problem.type == 'Options' %}
+<h6 class="text-muted">Вопрос:</h6>
+<div class="ck-content overflow-scroll">
+    {{ submission.problem.description|safe }}
+</div>
 <h6 class="text-muted">Ответ:</h6>
 <ul class="list-group mb-3">
     {% with submission_options=submission.options.all %}
@@ -296,9 +310,9 @@ if (btn_submission_evaluate) {
     let evaluate_url = btn_submission_evaluate.getAttribute('data-evaluate-url');
     let progress_url_base = btn_submission_evaluate.getAttribute('data-progress-url-base');
     let executions_url = btn_submission_evaluate.getAttribute('data-executions-url');
-    let progress_bar = new TaskProgress(progress_url_base, executions_url, 1000, 5);
+    let progressor = new TaskProgress(progress_url_base, executions_url, 1000, 5);
     btn_submission_evaluate.addEventListener('click', function (event) {
-        if (event.detail === 1 && progress_bar.task_id === '') {
+        if (event.detail === 1 && progressor.task_id === '') {
             let sandbox_type = '';
             let sandbox_type_checkbox = document.getElementsByName('sandbox_type');
             for (let i = 0; i < sandbox_type_checkbox.length; i++) {
@@ -315,14 +329,14 @@ if (btn_submission_evaluate) {
             fetch(evaluate_url_q, {cache: "no-store"})
                 .then(response => response.json())
                 .then(json => {
-                    if (json.status === 'task_queued') {
-                        progress_bar.startPolling(json.task_id);
+                    if (json.status === "OK") {
+                        progressor.startPolling(json.task_id);
                     }
                 });
         }
     });
 {% if submission.task_id %}
-    progress_bar.startPolling("{{ submission.task_id }}");
+    progressor.startPolling("{{ submission.task_id }}");
 {% endif %}
 }
 </script>
@@ -339,22 +353,22 @@ const mainFormScore = mainForm.querySelector('#id_score');
 const mainFormStatusOptions = Array.from(mainFormStatus.options);
 
 function updateMainSubmission(data) {
-    const mainSubmission = data.updated.find((value) => value.id === {{ submission.id }});
+    const mainSubmission = data['updated'].find((value) => value.id === {{ submission.id }});
     if (mainSubmission !== undefined) {
-        progressBar.setAttribute('aria-valuenow', mainSubmission.score_percentage);
-        progressBar.style.width = mainSubmission.score_percentage + '%';
+        progressBar.setAttribute('aria-valuenow', mainSubmission['score_percentage']);
+        progressBar.style.width = mainSubmission['score_percentage'] + '%';
         progressBar.classList.remove('contest-status-success', 'contest-status-info', 'contest-status-warning', 'contest-status-danger', 'contest-status-secondary', 'contest-status-primary');
-        progressBar.classList.add('contest-status-' + mainSubmission.color);
-        progressBarMessage.textContent = mainSubmission.status_display + ' · ' + mainSubmission.score_percentage + '%';
+        progressBar.classList.add('contest-status-' + mainSubmission['color']);
+        progressBarMessage.textContent = mainSubmission['status_display'] + ' · ' + mainSubmission['score_percentage'] + '%';
         mainFormStatusOptions.forEach((option, i) => {
-            if (option.value === mainSubmission.status) {
+            if (option.value === mainSubmission['status']) {
                 mainFormStatus.selectedIndex = i;
             }
         });
         /* NOTE: the following code temporarily fixes the issue with selectpicker('refresh');*/
         $(mainFormStatus).selectpicker('destroy');
         $(mainFormStatus).selectpicker();
-        mainFormScore.setAttribute('value', mainSubmission.score);
+        mainFormScore.setAttribute('value', mainSubmission['score']);
         mainFormButton.classList.remove('btn-light', 'btn-primary');
         mainFormButton.classList.add('btn-light');
         mainFormButton.disabled = true;
@@ -401,14 +415,14 @@ for (let i = 0; i < formsNumber; i++) {
         });
         if (response.status === 200) {
             const result = await response.json();
-            const subSubmission = result.updated.find((value) => value.id === subFormID);
+            const subSubmission = result['updated'].find((value) => value.id === subFormID);
             if ('updated' in result) {
                 updateMainSubmission(result);
-                statusElem.innerHTML = subSubmission.status;
+                statusElem.innerHTML = subSubmission['status'];
                 statusElem.classList.remove('contest-status-success', 'contest-status-info', 'contest-status-warning', 'contest-status-danger', 'contest-status-secondary', 'contest-status-primary');
-                statusElem.classList.add('contest-status-' + subSubmission.color);
-                statusElem.setAttribute('title', subSubmission.status_display);
-                subFormStatus.setAttribute('value', subSubmission.status);
+                statusElem.classList.add('contest-status-' + subSubmission['color']);
+                statusElem.setAttribute('title', subSubmission['status_display']);
+                subFormStatus.setAttribute('value', subSubmission['status']);
                 subFormButton.classList.add('invisible');
             }
         }
