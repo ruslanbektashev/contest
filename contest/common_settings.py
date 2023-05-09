@@ -135,7 +135,7 @@ REST_FRAMEWORK = {
     ],
 }
 
-CONTEST_DOMAIN = 'contest.msu.uz'
+CONTEST_DOMAIN = 'localhost:8000'
 
 # TODO: namespace settings below
 BOT_TOKEN = ''
