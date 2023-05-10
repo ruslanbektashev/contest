@@ -17,8 +17,8 @@ PyDocX~=0.9.10
 xls2xlsx~=0.1.5
 currency-symbols==2.0.1
 openpyxl>=3.1.2
-aspose.slides==22.1
-aspose-words==22.5.0
+aspose.slides==23.3
+aspose-words==22.5
 billiard~=3.6.4.0
 pyTelegramBotAPI>=4.10.0
 emoji~=2.2.0
