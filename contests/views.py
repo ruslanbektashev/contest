@@ -12,7 +12,7 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from django.views.generic.list import BaseListView
 
 from accounts.models import Account, Action, Announcement, Faculty, Notification
-from contest.documents.viewer import to_html
+from contest.documents.viewer import to_html, tex_gen
 from contest.mixins import (LeadershipOrMixin, LogAdditionMixin, LogChangeMixin, LogDeletionMixin, LoginRedirectMixin,
                             OwnershipOrMixin, PaginatorMixin)
 from contest.soft_deletion import SoftDeletionDeleteView, SoftDeletionUpdateView
@@ -29,6 +29,7 @@ from contests.models import (Assignment, Attachment, Attendance, Contest, Course
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.views import get_query_string, has_leader_permission
 from schedule.models import Schedule
+from django_tex.core import compile_template_to_pdf
 
 
 def get_students_filter_dict(course, request):
@@ -58,6 +59,12 @@ class AttachmentDetail(DetailView):
             attachment = self.object.attachment_set.get(id=kwargs.get('attachment_id'))
         except Attachment.DoesNotExist:
             raise Http404("Attachment with id = %s does not exist." % kwargs.get('attachment_id'))
+        if attachment.extension() in '.tex':
+            pdf = compile_template_to_pdf(tex_gen(attachment), '')
+            response = HttpResponse(content_type="application/pdf")
+            response["Content-Disposition"] = 'filename="{}"'.format(attachment.filename)
+            response.write(pdf)
+            return response
         if attachment.extension() not in ('.h', '.hpp', '.c', '.cpp', '.ppt', '.pptx', '.xls', '.xlsx', '.doc', '.docx',
                                           '.csv'):
             return HttpResponseRedirect(attachment.file.url)

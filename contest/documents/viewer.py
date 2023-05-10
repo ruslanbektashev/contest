@@ -1,3 +1,6 @@
+import re
+import random
+
 from csv import reader
 from io import BytesIO, StringIO
 from re import sub
@@ -20,6 +23,7 @@ from xls2xlsx import XLS2XLSX
 from xlsx2html import xlsx2html
 
 from contest.documents import replaces
+from contests.models import (Contest, Course, Problem)
 
 
 def remove_ppt_watermarks(content):
@@ -99,3 +103,75 @@ def to_html(attachment):
     elif attachment_ext == '.docx':
         result = convert_to_html(attachment.file.path).value, False
     return result
+
+def tex_gen(attachment):
+    lines = ''
+    temp = str(attachment.file)
+    file1 = open(attachment.file.path, encoding="utf-8")
+
+    for line in file1:
+        lines += line
+
+    pattern = r"#!(.*?)!#"
+    matches = re.findall(pattern, lines)
+    print(matches)
+    lvl = {'Легкая': 0, 'Средняя': 1, 'Сложная': 2, 'Очень сложная': 3}
+    if len(matches) > 0:
+        # temp = 'attachments/contests/contest/18/temp1.tex'
+        temp = attachment.dirname + '\\temp_tex_generate.tex'
+
+        with open(temp, 'w', encoding='utf-8') as infile:
+
+            for match in matches:
+                match = match.split('/')
+
+                try:
+                    found_course = Course.objects.get(title_official=match[0])
+                except Course.DoesNotExis:
+                    pass
+                try:
+                    found_contest = Contest.objects.get(title=match[1], course=found_course)
+                except Contest.DoesNotExist:
+                    pass
+
+                if match[-1].endswith('.tex'):
+                    lines = re.sub(pattern, 'в разработке', lines, count=1)
+
+                elif match[-1] in lvl:
+
+                    # found_course = Course.objects.get(title_official=match[0])
+                    # found_contest = Contest.objects.get(title=match[1], course=found_course)
+                    found_problem = Problem.objects.filter(difficulty=lvl[f'{match[2]}'], contest=found_contest)
+                    random_problem = random.randint(0, len(found_problem) - 1)
+
+                    try:
+                        lines = re.sub(pattern, found_problem[random_problem].description, lines, count=1)
+                    except re.error:
+                        start_index = lines.find("#!") + 2
+                        end_index = lines.find("!#", start_index)
+                        text_to_replace = lines[start_index:end_index]
+                        new_text = found_problem[random_problem].description
+                        lines = lines.replace("#!" + text_to_replace + "!#", new_text, 1)
+
+                else:
+                    # found_course = Course.objects.get(title_official=match[0])
+                    # found_contest = Contest.objects.get(title=match[1], course=found_course)
+
+                    found_problem = Problem.objects.filter(title=match[2], contest=found_contest)
+
+                    try:
+                        lines = re.sub(pattern, found_problem[0].description, lines, count=1)
+                    except re.error:
+                        start_index = lines.find("#!") + 2
+                        end_index = lines.find("!#", start_index)
+                        text_to_replace = lines[start_index:end_index]
+                        new_text = found_problem[0].description
+                        lines = lines.replace("#!" + text_to_replace + "!#", new_text, 1)
+
+            for line in lines:
+                infile.write(line)
+
+            start_index = temp.find("upload") + 7
+            temp = temp[start_index:].replace('\\', '/')
+
+    return temp

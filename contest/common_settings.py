@@ -7,6 +7,7 @@ DEBUG = False
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
+LATEX_INTERPRETER = 'pdflatex'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -23,6 +24,7 @@ INSTALLED_APPS = [
     'schedule',
     'support',
     'contest_telegram_bot',
+    'django_tex',
 ]
 
 MIDDLEWARE = [
@@ -52,6 +54,14 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ],
         },
+    },
+    {
+        'NAME': 'tex',
+        'BACKEND': 'django_tex.engine.TeXEngine',
+        'APP_DIRS': True,
+        'DIRS': [
+            os.path.join(BASE_DIR, 'upload'),
+        ],
     },
 ]
 
