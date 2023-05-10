@@ -55,7 +55,7 @@ def problem_deadline_expired(contest_user: User, problem_id: int):
 
 
 def notify_tg_users(notification):
-    print(type(notification.object))
+    print(type(notification.object))  # отладочных печатей в работающем на сервере коде быть не должно
     contest_recipient = notification.recipient
     try:
         contest_recipient_settings = TelegramUserSettings.objects.get(contest_user=contest_recipient)
@@ -106,8 +106,9 @@ def notify_specific_tg_users_by_contest_users(notification_msg: str, contest_use
 
 
 def get_active_course_users(course_id: int):
-    from contests.models import Credit, Course
+    # с такими импортами внутри функций код будет сложнее и сложнее поддерживать
     from accounts.models import Account
+    from contests.models import Course, Credit
     course = Course.objects.get(pk=course_id)
     all_course_users = Credit.objects.filter(course=course, score__lte=2).values_list('user')
     active_course_accounts = Account.objects.filter(user__in=all_course_users,
@@ -137,7 +138,7 @@ def tg_authorisation_wrapper(
         chat_id: int,
         authorized_fun,
         unauthorized_fun,
-        auth_fun_args: dict = {},
+        auth_fun_args: dict = {},  # так делать нельзя, подробнее тут https://florimond.dev/en/posts/2018/08/python-mutable-defaults-are-the-source-of-all-evil/
         unauth_fun_args: dict = {}
 ):
     if get_telegram_user(chat_id=chat_id) is None:
@@ -165,8 +166,9 @@ def progress_bar(loaded_chunks: int, total_chunks: int):
 
 def get_all_faculties_without_mfk():
     from django.db.models import Q
+
     from accounts.models import Faculty
-    return Faculty.objects.filter(~Q(short_name='МФК'))
+    return Faculty.objects.filter(~Q(short_name='МФК'))  # есть же метод exclude...
 
 
 def get_all_faculties_without_mfk__ids():

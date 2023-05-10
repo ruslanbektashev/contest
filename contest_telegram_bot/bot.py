@@ -636,7 +636,7 @@ def submission_callback(outer_call: types.CallbackQuery):
         contest_user = get_telegram_user(chat_id=call.message.chat.id).contest_user
         problem_id = json_get(call.data, 'id')
         submission_type = json_get(call.data, 'sub_type')
-        files_allowed_extensions = SubmissionFilesAttachmentMixin().FILES_ALLOWED_EXTENSIONS
+        files_allowed_extensions = SubmissionFilesAttachmentMixin().FILES_ALLOWED_EXTENSIONS  # к переменным класса можно обращаться и без конструкции экземпляра
         if check_submission_limit_excess(user=contest_user, problem_id=problem_id):
             tbot.answer_callback_query(callback_query_id=call.id,
                                        text=f'Вы отправили максимальное количество посылок : {get_user_assignments(user=contest_user, problem_id=problem_id).submission_limit}',
@@ -810,7 +810,7 @@ def submission_file_handler(message: Message):
         tg_user_msg_files_info = telegram_users_msg_files_info[message.chat.id]
         submission_type = tg_user_msg_files_info['submission_type']
         messages_with_files = tg_user_msg_files_info['files_messages']
-        max_files_count = AttachmentForm().FILES_MAX
+        max_files_count = AttachmentForm().FILES_MAX  # к переменным класса можно обращаться и без конструкции экземпляра
         keyboard, done, cancel = submission_creation_keyboard()
         incorrect_msg_filetype = False
 
@@ -863,8 +863,8 @@ def status_callback(outer_call: types.CallbackQuery):
 def schedule_callback(message: Message):
     if is_schedule_file(filename=message.document.file_name) is not None:
         def create_schedule_files(schedule):
-            ScheduleAttachment.objects.filter(schedule=schedule).delete()
-            schedule.date_updated = timezone.now()
+            ScheduleAttachment.objects.filter(schedule=schedule).delete()  # зачем нужна эта строчка?
+            schedule.date_updated = timezone.now()  # это поле будет обновлено автоматически, не стоит обновлять его в коде
             schedule.save()
             schedule_file = message.document
             schedule_filename = schedule_file.file_name
@@ -892,7 +892,7 @@ def schedule_callback(message: Message):
                 tmp_pdf_file = open(schedule_filename, 'rb')
                 pdf_sch_object = PdfReader(tmp_pdf_file)
                 if pdf_sch_object.is_encrypted:
-                    pdf_sch_object.decrypt('70')
+                    pdf_sch_object.decrypt('70')  # если пароль сменится - все сломается
 
                 for page in list(pdf_sch_object.pages):
                     output = PdfWriter()
@@ -938,7 +938,7 @@ def schedule_callback(message: Message):
                                                    date_from=current_week_date_from(next_week=next_week),
                                                    date_to=current_week_date_to(next_week=next_week),
                                                    owner=User.objects.get(username='telegram_bot'))
-            new_schedule = Schedule.objects.get(pk=new_schedule.id)
+            new_schedule = Schedule.objects.get(pk=new_schedule.id)  # а зачем получать объект из БД, если он строчкой выше был создан?
             same_schedule = False
             action = 'Добавлено'
             create_schedule_files(new_schedule)
