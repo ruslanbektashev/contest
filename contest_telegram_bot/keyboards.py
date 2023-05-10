@@ -7,7 +7,7 @@ from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardBut
 
 from accounts.models import Account, Comment
 from django.conf import settings
-from contest_telegram_bot.constants import courses_emoji, user_settings_emoji, \
+from contest_telegram_bot.constants import user_settings_emoji, \
     logout_btn_text, submission_status_emojis, login_btn_text, send_emoji, comments_emoji, \
     marks_emojis, problems_emoji, users_emoji, selection_emoji, checked_emoji, unchecked_emoji, \
     cross_emoji, hourglass_emoji, back_emoji, plus_emoji, loudspeaker_emoji, \
@@ -109,11 +109,9 @@ def settings_keyboard(contest_user: User):
 
 def staff_and_moders_start_keyboard(staff_contest_user: User, for_moders=False):
     keyboard = InlineKeyboardMarkup(row_width=1)
-    table_header = [f'{courses_emoji} Ваши курсы']
     table_list = Course.objects.filter(leaders__account=Account.objects.get(user=staff_contest_user))
     table_message_text = 'Курсы, в которых Вы являетесь лидером / одним из лидеров.'
 
-    none_type_row(keyboard, table_header)
     for course in table_list:
         keyboard.row(InlineKeyboardButton(text=str(course), callback_data=json.dumps({'type': 'staff_go',
                                                                                       'to': 'course',
