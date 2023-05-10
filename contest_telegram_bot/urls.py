@@ -6,5 +6,5 @@ from contest_telegram_bot import views
 app_name = 'contest_telegram_bot'
 
 urlpatterns = [
-    path(f'{settings.BOT_TOKEN}', views.bot_update, name='bot'),
+    path(f'{settings.BOT_TOKEN}', views.bot_update, name='contest-telegram-bot'),
 ]
