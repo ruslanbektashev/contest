@@ -1,7 +1,7 @@
 import telebot
-
 from django.http import Http404, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+
 from contest_telegram_bot.bot import tbot
 
 

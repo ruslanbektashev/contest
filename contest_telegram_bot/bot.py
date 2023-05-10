@@ -1,16 +1,15 @@
+import atexit
 import json
 import mimetypes
 import os
 import sys
 import threading
+from copy import deepcopy
 from importlib import import_module
 
 import requests
 import telebot
-import atexit
-
-from copy import deepcopy
-from PyPDF2 import PdfReader, PdfWriter
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -21,31 +20,32 @@ from django.http import HttpRequest, QueryDict
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDict
 from openpyxl import load_workbook
-from telebot import types, custom_filters
+from PyPDF2 import PdfReader, PdfWriter
+from telebot import custom_filters, types
 from telebot.types import Message
 
 from accounts.models import Account
-from django.conf import settings
 from contest_telegram_bot.constants import login_btn_text, logout_btn_text
-from contest_telegram_bot.keyboards import (problem_detail_keyboard, staff_and_moders_start_keyboard,
-                                            start_keyboard_unauthorized,
-                                            student_table_keyboard, back_to_problem_keyboard,
-                                            settings_keyboard, staff_course_menu_keyboard,
-                                            staff_course_students_keyboard, staff_course_contests_keyboard,
-                                            staff_course_problems_keyboard, staff_problem_menu_keyboard,
-                                            staff_course_student_menu_keyboard, submission_creation_keyboard,
-                                            timer_keyboard, submission_files_control_texts,
-                                            submissions_list_keyboard_for_staff, submissions_list_keyboard_for_students,
-                                            back_to_submissions_keyboard, staff_notification_initial_keyboard,
-                                            notification_control_keyboard, moderator_notification_initial_keyboard)
+from contest_telegram_bot.keyboards import (back_to_problem_keyboard, back_to_submissions_keyboard,
+                                            moderator_notification_initial_keyboard, notification_control_keyboard,
+                                            problem_detail_keyboard, settings_keyboard, staff_and_moders_start_keyboard,
+                                            staff_course_contests_keyboard, staff_course_menu_keyboard,
+                                            staff_course_problems_keyboard, staff_course_student_menu_keyboard,
+                                            staff_course_students_keyboard, staff_notification_initial_keyboard,
+                                            staff_problem_menu_keyboard, start_keyboard_unauthorized,
+                                            student_table_keyboard, submission_creation_keyboard,
+                                            submission_files_control_texts, submissions_list_keyboard_for_staff,
+                                            submissions_list_keyboard_for_students, timer_keyboard)
 from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
-from contest_telegram_bot.utils import get_account_by_tg_id, get_telegram_user, json_get, tg_authorisation_wrapper, \
-    is_schedule_file, is_excel_file, create_file_from_bytes, get_course_label, get_contest_user_by_tg_id, \
-    notify_specific_tg_users, file_extension, get_user_assignments, \
-    check_submission_limit_excess, file_chunk_size, progress_bar, all_content_types_with_exclude, date_to_str, \
-    back_to_submissions_text, get_active_course_users, send_notification_text, cancel_notification_text, \
-    notify_specific_tg_users_by_contest_users, \
-    get_all_faculties_without_mfk__ids, get_all_study_levels__ids, notify_settings_students_faculties_to_bool
+from contest_telegram_bot.utils import (all_content_types_with_exclude, back_to_submissions_text,
+                                        cancel_notification_text, check_submission_limit_excess, create_file_from_bytes,
+                                        date_to_str, file_chunk_size, file_extension, get_account_by_tg_id,
+                                        get_active_course_users, get_all_faculties_without_mfk__ids,
+                                        get_all_study_levels__ids, get_contest_user_by_tg_id, get_course_label,
+                                        get_telegram_user, get_user_assignments, is_excel_file, is_schedule_file,
+                                        json_get, notify_settings_students_faculties_to_bool, notify_specific_tg_users,
+                                        notify_specific_tg_users_by_contest_users, progress_bar, send_notification_text,
+                                        tg_authorisation_wrapper)
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
 from contests.models import Submission
 from contests.views import SubmissionCreate

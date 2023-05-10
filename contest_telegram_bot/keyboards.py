@@ -1,22 +1,23 @@
 import json
 import re
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from emoji import emojize
-from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
 from accounts.models import Account, Comment
-from django.conf import settings
-from contest_telegram_bot.constants import courses_emoji, user_settings_emoji, \
-    logout_btn_text, submission_status_emojis, login_btn_text, send_emoji, comments_emoji, \
-    marks_emojis, problems_emoji, users_emoji, selection_emoji, checked_emoji, unchecked_emoji, \
-    cross_emoji, hourglass_emoji, back_emoji, plus_emoji, loudspeaker_emoji, \
-    drop_down_list_emojis, little_white_square_emoji
+from contest_telegram_bot.constants import (back_emoji, checked_emoji, comments_emoji, courses_emoji, cross_emoji,
+                                            drop_down_list_emojis, hourglass_emoji, little_white_square_emoji,
+                                            login_btn_text, logout_btn_text, loudspeaker_emoji, marks_emojis,
+                                            plus_emoji, problems_emoji, selection_emoji, send_emoji,
+                                            submission_status_emojis, unchecked_emoji, user_settings_emoji, users_emoji)
 from contest_telegram_bot.models import TelegramUserSettings
-from contest_telegram_bot.utils import get_user_assignments, date_to_str, back_to_submissions_text, \
-    get_active_course_users, send_notification_text, cancel_notification_text, get_all_faculties_without_mfk, \
-    get_all_study_levels, notify_settings_students_faculties_to_bool, problem_deadline_expired
-from contests.models import Course, Contest, Problem, Assignment, Submission, Credit
+from contest_telegram_bot.utils import (back_to_submissions_text, cancel_notification_text, date_to_str,
+                                        get_active_course_users, get_all_faculties_without_mfk, get_all_study_levels,
+                                        get_user_assignments, notify_settings_students_faculties_to_bool,
+                                        problem_deadline_expired, send_notification_text)
+from contests.models import Assignment, Contest, Course, Credit, Problem, Submission
 from schedule.models import Schedule
 from support.models import Question, Report
 
