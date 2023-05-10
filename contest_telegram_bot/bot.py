@@ -22,6 +22,7 @@ from django.utils.datastructures import MultiValueDict
 from openpyxl import load_workbook
 from PyPDF2 import PdfReader, PdfWriter
 from telebot import custom_filters, types
+from telebot.apihelper import ApiTelegramException
 from telebot.types import Message
 
 from accounts.models import Account
@@ -183,7 +184,10 @@ def logout_callback(outer_call: types.CallbackQuery):
         tbot.send_message(chat_id=call.message.chat.id,
                           text=f'Вы успешно вышли из аккаунта {get_account_by_tg_id(chat_id=call.message.chat.id)}.',
                           reply_markup=start_keyboard_unauthorized())
-        tbot.delete_message(chat_id=call.message.chat.id, message_id=call.message.id)
+        try:
+            tbot.delete_message(chat_id=call.message.chat.id, message_id=call.message.id)
+        except ApiTelegramException:
+            pass
         tbot.clear_step_handler_by_chat_id(chat_id=call.message.chat.id)
         TelegramUser.objects.get(chat_id=call.message.chat.id).delete()
 
@@ -584,7 +588,10 @@ def submission_detail(outer_call: types.CallbackQuery):
                           if '_file_id' in file_extension(file_id_file)]
 
         message_with_submissions_list = deepcopy(call.message)
-        tbot.delete_message(chat_id=call.message.chat.id, message_id=call.message.id)
+        try:
+            tbot.delete_message(chat_id=call.message.chat.id, message_id=call.message.id)
+        except ApiTelegramException:
+            pass
         tbot.send_message(text=f'Посылка <b>({date_to_str(submission.date_created)})</b> '
                                f'к задаче <b>{submission.problem}</b>.',
                           chat_id=call.message.chat.id, parse_mode='HTML',

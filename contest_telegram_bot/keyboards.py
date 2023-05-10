@@ -7,7 +7,7 @@ from emoji import emojize
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
 from accounts.models import Account, Comment
-from contest_telegram_bot.constants import (back_emoji, checked_emoji, comments_emoji, courses_emoji, cross_emoji,
+from contest_telegram_bot.constants import (back_emoji, checked_emoji, comments_emoji, cross_emoji,
                                             drop_down_list_emojis, hourglass_emoji, little_white_square_emoji,
                                             login_btn_text, logout_btn_text, loudspeaker_emoji, marks_emojis,
                                             plus_emoji, problems_emoji, selection_emoji, send_emoji,
@@ -110,11 +110,9 @@ def settings_keyboard(contest_user: User):
 
 def staff_and_moders_start_keyboard(staff_contest_user: User, for_moders=False):
     keyboard = InlineKeyboardMarkup(row_width=1)
-    table_header = [f'{courses_emoji} Ваши курсы']
     table_list = Course.objects.filter(leaders__account=Account.objects.get(user=staff_contest_user))
     table_message_text = 'Курсы, в которых Вы являетесь лидером / одним из лидеров.'
 
-    none_type_row(keyboard, table_header)
     for course in table_list:
         keyboard.row(InlineKeyboardButton(text=str(course), callback_data=json.dumps({'type': 'staff_go',
                                                                                       'to': 'course',
