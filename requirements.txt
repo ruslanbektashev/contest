@@ -24,3 +24,4 @@ pyTelegramBotAPI>=4.10.0
 emoji~=2.2.0
 pypdf2~=3.0.1
 pycryptodome~=3.17
+django-tex>=1.1.10
