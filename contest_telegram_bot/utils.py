@@ -55,7 +55,6 @@ def problem_deadline_expired(contest_user: User, problem_id: int):
 
 
 def notify_tg_users(notification):
-    print(type(notification.object))  # отладочных печатей в работающем на сервере коде быть не должно
     contest_recipient = notification.recipient
     try:
         contest_recipient_settings = TelegramUserSettings.objects.get(contest_user=contest_recipient)
