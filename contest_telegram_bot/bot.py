@@ -643,7 +643,7 @@ def submission_callback(outer_call: types.CallbackQuery):
         contest_user = get_telegram_user(chat_id=call.message.chat.id).contest_user
         problem_id = json_get(call.data, 'id')
         submission_type = json_get(call.data, 'sub_type')
-        files_allowed_extensions = SubmissionFilesAttachmentMixin().FILES_ALLOWED_EXTENSIONS  # к переменным класса можно обращаться и без конструкции экземпляра
+        files_allowed_extensions = SubmissionFilesAttachmentMixin.FILES_ALLOWED_EXTENSIONS
         if check_submission_limit_excess(user=contest_user, problem_id=problem_id):
             tbot.answer_callback_query(callback_query_id=call.id,
                                        text=f'Вы отправили максимальное количество посылок : {get_user_assignments(user=contest_user, problem_id=problem_id).submission_limit}',
@@ -817,7 +817,7 @@ def submission_file_handler(message: Message):
         tg_user_msg_files_info = telegram_users_msg_files_info[message.chat.id]
         submission_type = tg_user_msg_files_info['submission_type']
         messages_with_files = tg_user_msg_files_info['files_messages']
-        max_files_count = AttachmentForm().FILES_MAX  # к переменным класса можно обращаться и без конструкции экземпляра
+        max_files_count = AttachmentForm.FILES_MAX  # к переменным класса можно обращаться и без конструкции экземпляра
         keyboard, done, cancel = submission_creation_keyboard()
         incorrect_msg_filetype = False
 
