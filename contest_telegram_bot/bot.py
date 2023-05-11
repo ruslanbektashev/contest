@@ -15,7 +15,6 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files import File
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.db.models import Q
 from django.http import HttpRequest, QueryDict
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDict
@@ -550,8 +549,7 @@ def send_notify_text(message: Message, notify_msg: Message, notification_initial
                 _, recipients = get_active_course_users(course_id=course_id)
             else:
                 moderators = Account.objects.filter(type=2,
-                                                    faculty_id__in=notification_for['moders']['faculties']).filter(
-                    ~Q(user=creator_user))
+                                                    faculty_id__in=notification_for['moders']['faculties']).exclude(user=creator_user)
                 staff = Account.objects.filter(type=3, faculty_id__in=notification_for['staff']['faculties'])
                 students = Account.objects.filter(type=-1)
                 students_faculties_info = notification_for['stu']['faculties']
