@@ -165,10 +165,8 @@ def progress_bar(loaded_chunks: int, total_chunks: int):
 
 
 def get_all_faculties_without_mfk():
-    from django.db.models import Q
-
     from accounts.models import Faculty
-    return Faculty.objects.filter(~Q(short_name='МФК'))  # есть же метод exclude...
+    return Faculty.objects.exclude(short_name='МФК')
 
 
 def get_all_faculties_without_mfk__ids():
