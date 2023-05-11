@@ -66,7 +66,7 @@ def remove_webhook():
 
 if settings.BOT_LISTEN:
     try:
-        tbot.set_webhook(f'{settings.CONTEST_DOMAIN}/{settings.BOT_TOKEN}')
+        tbot.set_webhook(f'{settings.CONTEST_DOMAIN}/contest-telegram-bot/{settings.BOT_TOKEN}')
     except Exception:
         pass
     atexit.register(remove_webhook)
