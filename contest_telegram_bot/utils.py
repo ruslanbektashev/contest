@@ -138,9 +138,14 @@ def tg_authorisation_wrapper(
         chat_id: int,
         authorized_fun,
         unauthorized_fun,
-        auth_fun_args: dict = {},  # так делать нельзя, подробнее тут https://florimond.dev/en/posts/2018/08/python-mutable-defaults-are-the-source-of-all-evil/
-        unauth_fun_args: dict = {}
+        auth_fun_args: dict = None,
+        unauth_fun_args: dict = None
 ):
+    if auth_fun_args is None:
+        auth_fun_args = {}
+    if unauth_fun_args is None:
+        unauth_fun_args = {}
+
     if get_telegram_user(chat_id=chat_id) is None:
         unauthorized_fun(**auth_fun_args)
     else:
