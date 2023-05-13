@@ -870,7 +870,6 @@ def schedule_callback(message: Message):
     if is_schedule_file(filename=message.document.file_name) is not None:
         def create_schedule_files(schedule):
             ScheduleAttachment.objects.filter(schedule=schedule).delete()
-            schedule.date_updated = timezone.now()  # это поле будет обновлено автоматически, не стоит обновлять его в коде
             schedule.save()
             schedule_file = message.document
             schedule_filename = schedule_file.file_name
@@ -918,6 +917,7 @@ def schedule_callback(message: Message):
                     os.remove(schedule_filename)
                     return
 
+                tmp_pdf_file.close()
             os.remove(schedule_filename)
             if not same_schedule:
                 recipients = TelegramUser.objects.filter(contest_user__is_active=True,
