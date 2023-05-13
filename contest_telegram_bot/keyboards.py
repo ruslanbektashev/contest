@@ -529,7 +529,7 @@ def problem_detail_keyboard(contest_user: User, problem_id: int):
             url = None
         else:
             callback_data = None
-            url = f'{settings.CONTEST_DOMAIN}{problem.get_absolute_url()}submission/create'
+            url = f'{settings.CONTEST_DOMAIN}{problem.get_absolute_url()}submission/create'  # ссылки на сайт правильно получать по имени через функцию reverse(...)
         keyboard.add(
             InlineKeyboardButton(text=f'{send_emoji} Отправить решение', callback_data=callback_data, url=url))
     keyboard.add(back_btn)

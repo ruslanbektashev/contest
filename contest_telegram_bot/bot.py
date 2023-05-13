@@ -815,7 +815,7 @@ def submission_file_handler(message: Message):
         tg_user_msg_files_info = telegram_users_msg_files_info[message.chat.id]
         submission_type = tg_user_msg_files_info['submission_type']
         messages_with_files = tg_user_msg_files_info['files_messages']
-        max_files_count = AttachmentForm.FILES_MAX  # к переменным класса можно обращаться и без конструкции экземпляра
+        max_files_count = AttachmentForm.FILES_MAX
         keyboard, done, cancel = submission_creation_keyboard()
         incorrect_msg_filetype = False
 
@@ -868,7 +868,7 @@ def status_callback(outer_call: types.CallbackQuery):
 def schedule_callback(message: Message):
     if is_schedule_file(filename=message.document.file_name) is not None:
         def create_schedule_files(schedule):
-            ScheduleAttachment.objects.filter(schedule=schedule).delete()  # зачем нужна эта строчка?
+            ScheduleAttachment.objects.filter(schedule=schedule).delete()
             schedule.date_updated = timezone.now()  # это поле будет обновлено автоматически, не стоит обновлять его в коде
             schedule.save()
             schedule_file = message.document
