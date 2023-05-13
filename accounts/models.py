@@ -1,6 +1,5 @@
 import enum
 import json
-from statistics import mean
 
 from django.apps import apps
 from django.contrib.auth.models import Group, User
