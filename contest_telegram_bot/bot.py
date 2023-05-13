@@ -9,6 +9,7 @@ from importlib import import_module
 
 import requests
 import telebot
+from PyPDF2.errors import FileNotDecryptedError
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
@@ -899,19 +900,24 @@ def schedule_callback(message: Message):
                 if pdf_sch_object.is_encrypted:
                     pdf_sch_object.decrypt('70')  # если пароль сменится - все сломается
 
-                for page in list(pdf_sch_object.pages):
-                    output = PdfWriter()
-                    output.add_page(page)
-                    current_course_name = get_course_label(pdf_content=page.extract_text())
-                    current_course_filename = f'{current_course_name}.pdf'
-                    with open(current_course_filename, "wb") as outputStream:
-                        output.write(outputStream)
+                try:
+                    for page in list(pdf_sch_object.pages):
+                        output = PdfWriter()
+                        output.add_page(page)
+                        current_course_name = get_course_label(pdf_content=page.extract_text())
+                        current_course_filename = f'{current_course_name}.pdf'
+                        with open(current_course_filename, "wb") as outputStream:
+                            output.write(outputStream)
 
-                    with open(current_course_filename, 'rb') as current_course_sch:
-                        ScheduleAttachment.objects.update_or_create(schedule=schedule, name=current_course_name,
-                                                                    file=File(current_course_sch))
-                    os.remove(current_course_filename)
-                tmp_pdf_file.close()
+                        with open(current_course_filename, 'rb') as current_course_sch:
+                            ScheduleAttachment.objects.update_or_create(schedule=schedule, name=current_course_name,
+                                                                        file=File(current_course_sch))
+                        os.remove(current_course_filename)
+                except FileNotDecryptedError:
+                    tmp_pdf_file.close()
+                    os.remove(schedule_filename)
+                    return
+
             os.remove(schedule_filename)
             if not same_schedule:
                 recipients = TelegramUser.objects.filter(contest_user__is_active=True,
