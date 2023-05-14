@@ -112,14 +112,13 @@ def get_active_course_users(course_id: int):
     # т.к. contest_telegram_bot самый последний в INSTALLED_APPS, то все остальные модули уже загружены и их можно импортировать в начале файла
     # а проблему с циклическими импортами можно решить убрав соответствующий импорт из приложения accounts
     from accounts.models import Account
-    from contests.models import Course, Credit
+    from contests.models import Course
     course = Course.objects.get(pk=course_id)
     # студенты курса получаются через Account.students.apply_common_filters
     # а id пользователей - students.values_list('user_id')
-    all_course_users = Credit.objects.filter(course=course, score__lte=2).values_list('user')
-    active_course_accounts = Account.objects.filter(user__in=all_course_users,
-                                                    level__in=[course.level - 1, course.level, course.level + 1])
-    active_course_users = User.objects.filter(pk__in=active_course_accounts.values_list('user'))
+    active_course_accounts = Account.students.apply_common_filters(filters={'course': course, 'faculty_id': 0,
+                                                                            'group': 0, 'subgroup': 0, 'debts': False})
+    active_course_users = active_course_accounts.values_list('user')
     return active_course_accounts, active_course_users
 
 
@@ -159,7 +158,7 @@ def tg_authorisation_wrapper(
         authorized_fun(**unauth_fun_args)
 
 
-def all_content_types_with_exclude(exclude: list = None):  # такая ошибка уже была
+def all_content_types_with_exclude(exclude: list = None):  # такая ошибка уже была - исправил
     if exclude is None:
         exclude = []
     all_content_types = ['text', 'audio', 'document', 'photo', 'sticker', 'video', 'video_note', 'voice', 'location',
@@ -246,7 +245,9 @@ def file_extension(filename: str):
 
 
 def is_schedule_file(filename: str):
-    return re.search('([Р-р]асписание)|((?:[Я-я]нв(ар)*|[Ф-ф]евр*(ал)*|[А-а]пр(ел)*|[И-и]юн|[И-и]юл|[С-с]ент*(ябр)*|[О-о]кт(ябр)*|[Н-н]оя(бр)*|[Д-д]ек(абр)*)[ь-я]*)|([М-м]ар(та*)*)|([М-м]а[й-я])', filename)
+    return re.search(
+        '([Р-р]асписание)|((?:[Я-я]нв(ар)*|[Ф-ф]евр*(ал)*|[А-а]пр(ел)*|[И-и]юн|[И-и]юл|[С-с]ент*(ябр)*|[О-о]кт(ябр)*|[Н-н]оя(бр)*|[Д-д]ек(абр)*)[ь-я]*)|([М-м]ар(та*)*)|([М-м]а[й-я])',
+        filename)
 
 
 def get_course_label(pdf_content: str):

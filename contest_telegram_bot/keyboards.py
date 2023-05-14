@@ -157,13 +157,10 @@ def staff_course_menu_keyboard(course_id: int):
 def staff_course_students_keyboard(course_id: int):
     keyboard = InlineKeyboardMarkup(row_width=1)
     course = Course.objects.get(pk=course_id)
-    all_course_users = Credit.objects.filter(course=course, score__lte=2).values_list('user')
-    active_course_users = Account.objects.filter(user__in=all_course_users,
-                                                 level__in=[course.level - 1, course.level, course.level + 1])
-
+    active_course_accounts, _ = get_active_course_users(course_id=course_id)
     table_message_text = f'Курс <b>{course}</b>.\n' \
                          f'Выберите студента, чтобы посмотреть его успеваемость.'
-    for student in active_course_users:
+    for student in active_course_accounts:
         keyboard.add(InlineKeyboardButton(text=str(student), callback_data=json.dumps({'type': 'staff_go',
                                                                                        'to': 'stud',
                                                                                        'crs_id': course_id,
