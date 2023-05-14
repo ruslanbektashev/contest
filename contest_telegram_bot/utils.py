@@ -106,9 +106,13 @@ def notify_specific_tg_users_by_contest_users(notification_msg: str, contest_use
 
 def get_active_course_users(course_id: int):
     # с такими импортами внутри функций код будет сложнее и сложнее поддерживать
+    # т.к. contest_telegram_bot самый последний в INSTALLED_APPS, то все остальные модули уже загружены и их можно импортировать в начале файла
+    # а проблему с циклическими импортами можно решить убрав соответствующий импорт из приложения accounts
     from accounts.models import Account
     from contests.models import Course, Credit
     course = Course.objects.get(pk=course_id)
+    # студенты курса получаются через Account.students.apply_common_filters
+    # а id пользователей - students.values_list('user_id')
     all_course_users = Credit.objects.filter(course=course, score__lte=2).values_list('user')
     active_course_accounts = Account.objects.filter(user__in=all_course_users,
                                                     level__in=[course.level - 1, course.level, course.level + 1])
@@ -119,6 +123,7 @@ def get_active_course_users(course_id: int):
 def get_account_by_tg_id(chat_id: int):
     try:
         tg_user = TelegramUser.objects.get(chat_id=chat_id)
+        # здесь не нужна модель Account, аккаунт можно получить через инстанцию User - tg_user.contest_user.account
         from accounts.models import Account
         return Account.objects.get(user=tg_user.contest_user)
     except ObjectDoesNotExist:
@@ -151,7 +156,7 @@ def tg_authorisation_wrapper(
         authorized_fun(**unauth_fun_args)
 
 
-def all_content_types_with_exclude(exclude: list = []):
+def all_content_types_with_exclude(exclude: list = []):  # такая ошибка уже была
     all_content_types = ['text', 'audio', 'document', 'photo', 'sticker', 'video', 'video_note', 'voice', 'location',
                          'contact', 'new_chat_members', 'left_chat_member', 'new_chat_title', 'new_chat_photo',
                          'delete_chat_photo', 'group_chat_created', 'supergroup_chat_created', 'channel_chat_created',

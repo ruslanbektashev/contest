@@ -549,19 +549,21 @@ def send_notify_text(message: Message, notify_msg: Message, notification_initial
                 course_id = int(notification_for)
                 _, recipients = get_active_course_users(course_id=course_id)
             else:
+                # зачем здесь модераторы и преподаватели?
                 moderators = Account.objects.filter(type=2,
                                                     faculty_id__in=notification_for['moders']['faculties']).exclude(
                     user=creator_user)
                 staff = Account.objects.filter(type=3, faculty_id__in=notification_for['staff']['faculties'])
-                students = Account.objects.filter(type=-1)
+                students = Account.objects.filter(type=-1)  # типа -1 не существует, если нужен пустой QuerySet, то есть Account.students.none()
                 students_faculties_info = notification_for['stu']['faculties']
                 for students_faculty_id in students_faculties_info.keys():
+                    # студенты получаются не так, см. AccountUpdateSet.get_queryset
                     students = students.union(Account.objects.filter(type=1,
                                                                      faculty_id=students_faculty_id,
                                                                      level__in=
                                                                      students_faculties_info[students_faculty_id][
                                                                          'levels']))
-                recipients = students.union(moderators, staff).values_list('user')
+                recipients = students.union(moderators, staff).values_list('user')  # подозреваю, что тут не нужны объекты пользователей, а только их user_id
 
             send_message_with_status(status_msg='Отправка сообщения...')
             tbot.send_message(chat_id=message.chat.id, text='Сообщение успешно отправлено.')
@@ -673,7 +675,7 @@ def submission_files_control(message: Message):
                                     message_id=progress_message.id)
                 tbot.delete_message(chat_id=message.chat.id, message_id=progress_message.id)
 
-                cur_file = open(cur_submission_attachment_filename, 'rb')
+                cur_file = open(cur_submission_attachment_filename, 'rb')  # файл не закрывается
                 content_type, charset = mimetypes.guess_type(cur_submission_attachment_filename)
                 files.append(InMemoryUploadedFile(file=cur_file, field_name='FileField',
                                                   name=cur_submission_attachment_filename, content_type=content_type,
@@ -698,7 +700,7 @@ def submission_files_control(message: Message):
                 if errors_list is not None:
                     for cur_err_type in errors_list.values():
                         for i, err in enumerate(cur_err_type):
-                            error_message_text += f'\n{i+1}) ' + err['message']
+                            error_message_text += f'\n{i + 1}) ' + err['message']
                 error_message_text += '\n\nВы можете прислать другие файлы или отменить операцию.'
 
                 tbot.send_message(chat_id=message.chat.id, text=error_message_text,
@@ -771,6 +773,7 @@ def submission_file_handler(message: Message):
         if len(messages_with_files) < max_files_count:
             messages_with_files.append(message)
             if len(messages_with_files) < max_files_count:
+                # pycharm warning'и иногда стоит исправлять, проверьте все свои файлы
                 msg_text = f'Вы можете продолжить присылать {msg_filetype_word_plural}.\n' \
                            f'Ещё можно отправить <b>{max_files_count - len(messages_with_files)} файлов.</b>'
         if len(messages_with_files) >= max_files_count:
@@ -790,7 +793,7 @@ def status_callback(outer_call: types.CallbackQuery):
     def callback_for_authorized(call: types.CallbackQuery):
         submission_id = int(json_get(call.data, 'status_obj_id'))
         tbot.answer_callback_query(callback_query_id=call.id,
-                                   text=f'{Submission.objects.get(pk=submission_id).get_status_display()}',
+                                   text=f'{Submission.objects.get(pk=submission_id).get_status_display()}',  # что увидит студент, если по данному заданию еще не истек дедлайн?
                                    show_alert=True)
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
@@ -822,6 +825,7 @@ def schedule_callback(message: Message):
                     cur_xls.save(cur_sheet_filename)
                     cur_xls.close()
                     with open(cur_sheet_filename, 'rb') as current_course_sch:
+                        # если все прикрепления были удалены ранее, то зачем тут update_or_create?
                         ScheduleAttachment.objects.update_or_create(schedule=schedule, name=sheet,
                                                                     file=File(current_course_sch))
                     os.remove(cur_sheet_filename)
@@ -829,7 +833,7 @@ def schedule_callback(message: Message):
                 tmp_pdf_file = open(schedule_filename, 'rb')
                 pdf_sch_object = PdfReader(tmp_pdf_file)
                 if pdf_sch_object.is_encrypted:
-                    pdf_sch_object.decrypt('70')  # если пароль сменится - все сломается
+                    pdf_sch_object.decrypt('70')
 
                 try:
                     for page in list(pdf_sch_object.pages):
@@ -841,6 +845,7 @@ def schedule_callback(message: Message):
                             output.write(outputStream)
 
                         with open(current_course_filename, 'rb') as current_course_sch:
+                            # если все прикрепления были удалены ранее, то зачем тут update_or_create?
                             ScheduleAttachment.objects.update_or_create(schedule=schedule, name=current_course_name,
                                                                         file=File(current_course_sch))
                         os.remove(current_course_filename)
@@ -873,7 +878,7 @@ def schedule_callback(message: Message):
             action = 'Обновлено'
             if schedule_update_time_passed <= 40:
                 same_schedule = True
-                threading.Timer(40 - schedule_update_time_passed, create_schedule_files, [new_schedule]).start()
+                threading.Timer(40 - schedule_update_time_passed, create_schedule_files, [new_schedule]).start()  # зачем здесь новый поток?
             else:
                 same_schedule = False
                 create_schedule_files(new_schedule)
