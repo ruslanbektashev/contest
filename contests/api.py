@@ -1,7 +1,7 @@
 from django.core.exceptions import ImproperlyConfigured
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
+
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import BasePermission, IsAuthenticated
@@ -44,10 +44,15 @@ class IsCourseLeader(BasePermission):
         return view.has_leadership()
 
 
-@method_decorator(csrf_exempt, name='dispatch')
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    def enforce_csrf(self, request):
+        return None
+
+
 class SubmissionCreateAPI(APIView):
     permission_required = 'contests.add_submission'
     permission_classes = [IsAuthenticated, DjangoPermission]
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
     def post(self, request, *args, **kwargs):
         try:
@@ -55,7 +60,7 @@ class SubmissionCreateAPI(APIView):
         except Problem.DoesNotExist:
             return JsonResponse({'status': "Задача не найдена"}, status=404)
         try:
-            assignment = Assignment.objects.get(user=self.request.user, problem=problem)
+            assignment = Assignment.objects.get(user=request.user, problem=problem)
         except Assignment.DoesNotExist:
             assignment = None
         if problem.type == 'Verbal':
@@ -65,7 +70,8 @@ class SubmissionCreateAPI(APIView):
         else:
             return JsonResponse({'status': "Создать посылку через телеграм-бота можно только для задач типа Устный "
                                            "ответ и Файлы"}, status=400)
-        form = form_class(data=request.POST, files=request.FILES)
+        form = form_class(data=request.POST, files=request._request.FILES, owner=request.user,
+                          problem=problem, assignment=assignment)
         if form.is_valid():
             form.instance.owner = request.user
             form.instance.problem = problem

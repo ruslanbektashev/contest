@@ -47,9 +47,9 @@ from contest_telegram_bot.utils import (all_content_types_with_exclude, back_to_
                                         json_get, notify_settings_students_faculties_to_bool, notify_specific_tg_users,
                                         notify_specific_tg_users_by_contest_users, progress_bar, send_notification_text,
                                         tg_authorisation_wrapper)
+from contests.api import SubmissionCreateAPI
 from contests.forms import AttachmentForm, SubmissionFilesAttachmentMixin
 from contests.models import Submission
-from contests.views import SubmissionCreate
 from schedule.models import Schedule, ScheduleAttachment, current_week_date_from, current_week_date_to
 
 tbot = telebot.TeleBot(settings.BOT_TOKEN)
@@ -276,6 +276,7 @@ def goback_students_callback(outer_call: types.CallbackQuery):
         tbot.clear_step_handler(message=call.message)
         tbot.edit_message_text(text=destination_text, chat_id=call.message.chat.id, message_id=call.message.id,
                                parse_mode='HTML', reply_markup=keyboard)
+
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
 
 
@@ -550,7 +551,8 @@ def send_notify_text(message: Message, notify_msg: Message, notification_initial
                 _, recipients = get_active_course_users(course_id=course_id)
             else:
                 moderators = Account.objects.filter(type=2,
-                                                    faculty_id__in=notification_for['moders']['faculties']).exclude(user=creator_user)
+                                                    faculty_id__in=notification_for['moders']['faculties']).exclude(
+                    user=creator_user)
                 staff = Account.objects.filter(type=3, faculty_id__in=notification_for['staff']['faculties'])
                 students = Account.objects.filter(type=-1)
                 students_faculties_info = notification_for['stu']['faculties']
@@ -691,7 +693,6 @@ def submission_files_control(message: Message):
         def create_submission():
             new_submission_id = Submission.objects.all().count() + 1
             files = []
-            file_ids_filenames = []
             files_streams = []
             for i, file_message in enumerate(files_messages_list):
                 def downloading_progress_text(file_progress_chunks: int, file_progress_percentage):
@@ -734,16 +735,11 @@ def submission_files_control(message: Message):
                 tbot.delete_message(chat_id=message.chat.id, message_id=progress_message.id)
 
                 cur_file = open(cur_submission_attachment_filename, 'rb')
-                cur_file_id_filename = cur_submission_attachment_filename + '_file_id'
                 content_type, charset = mimetypes.guess_type(cur_submission_attachment_filename)
                 files.append(InMemoryUploadedFile(file=cur_file, field_name='FileField',
                                                   name=cur_submission_attachment_filename, content_type=content_type,
                                                   size=sys.getsizeof(cur_file), charset=charset))
                 files_streams.append(cur_file)
-                file_ids_filenames.append(cur_file_id_filename)
-
-                with open(cur_file_id_filename, 'w') as f:
-                    f.write(message_file.file_id)
 
             request = HttpRequest()
             request.method = "POST"
@@ -752,7 +748,7 @@ def submission_files_control(message: Message):
             request.session = engine.SessionStore()
             request.user = contest_user
             request.FILES = MultiValueDict({'files': files})
-            response = SubmissionCreate.as_view()(request=request, problem_id=problem_id)
+            response = SubmissionCreateAPI.as_view()(request=request, problem_id=problem_id)
             json_response = json.loads(response.content)
 
             for file_stream in files_streams:
@@ -760,22 +756,22 @@ def submission_files_control(message: Message):
                 file_stream.close()
                 os.remove(filename)
 
-            if not json_response['ok']:
-                form_errors = json_response['errors']
-                tbot.send_message(chat_id=message.chat.id, text='<b>' + '\n'.join(form_errors) + '</b>' + '\n\n'
-                                                                                                          'Вы можете прислать другие файлы или'
-                                                                                                          ' отменить операцию.',
+            if json_response['status'] != 'OK':
+                error_message_text = f'<b>{json_response["status"]}.</b>\n'
+                errors_list = json_response.get('errors')
+                if errors_list is not None:
+                    for cur_err_type in errors_list.values():
+                        for i, err in enumerate(cur_err_type):
+                            error_message_text += f'\n{i+1}) ' + err['message']
+                error_message_text += '\n\nВы можете прислать другие файлы или отменить операцию.'
+
+                tbot.send_message(chat_id=message.chat.id, text=error_message_text,
                                   parse_mode='HTML',
                                   reply_markup=keyboard)
                 files_messages_list.clear()
-                for file_id_file in file_ids_filenames:
-                    os.remove(file_id_file)
-                success = False
+                return False
             else:
-                for file_id_file, attach_path in zip(file_ids_filenames, json_response['filepaths']):
-                    os.rename(file_id_file, os.path.join(attach_path, file_id_file))
-                success = True
-            return success
+                return True
 
         if message.text == cancel:
             back_to_problem(back_loading_text='Отмена операции...', back_text='Операция отменена.')
