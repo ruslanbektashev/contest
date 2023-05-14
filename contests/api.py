@@ -1,5 +1,7 @@
 from django.core.exceptions import ImproperlyConfigured
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import BasePermission, IsAuthenticated
@@ -42,9 +44,10 @@ class IsCourseLeader(BasePermission):
         return view.has_leadership()
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class SubmissionCreateAPI(APIView):
     permission_required = 'contests.add_submission'
-    permission_classes = [IsAuthenticated, DjangoPermission | IsObjectOwner | IsCourseLeader]
+    permission_classes = [IsAuthenticated, DjangoPermission]
 
     def post(self, request, *args, **kwargs):
         try:
