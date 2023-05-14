@@ -3,6 +3,7 @@ import re
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.urls import reverse
 from emoji import emojize
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
@@ -119,7 +120,7 @@ def staff_and_moders_start_keyboard(staff_contest_user: User, for_moders=False):
                                                                                       'id': course.id})))
     if len(table_list) == 0:
         keyboard.row(none_type_button(btn_text='Нет курсов'),
-                     InlineKeyboardButton(text=plus_emoji, url=f'{settings.CONTEST_DOMAIN}/course/create'))
+                     InlineKeyboardButton(text=plus_emoji, url=f'{settings.CONTEST_DOMAIN}{reverse("contests:course-create")}'))
     if for_moders:
         keyboard.add(make_notification_button(creator='moder'))
     keyboard.row(InlineKeyboardButton(text=f'{user_settings_emoji} Настройки',
@@ -199,7 +200,7 @@ def staff_course_student_menu_keyboard(course_id: int, student_id: int, show_sub
                                                                           'to': 'problem',
                                                                           'id': problem.id})),
                            score_button(score=problem_assignment.score,
-                                        btn_url=f'{settings.CONTEST_DOMAIN}{problem_assignment.get_absolute_url()}update?action=evaluate')]
+                                        btn_url=f'{settings.CONTEST_DOMAIN}{reverse("contests:problem-update", kwargs={"pk": problem.id})}?action=evaluate')]
             if show_submissions_number:
                 if problem.type in ['Files', 'Verbal']:
                     callback_data = json.dumps({'type': 'subm_lst',
@@ -209,7 +210,7 @@ def staff_course_student_menu_keyboard(course_id: int, student_id: int, show_sub
                     url = None
                 else:
                     callback_data = None
-                    url = f'{settings.CONTEST_DOMAIN}{problem_assignment.get_absolute_url()}'
+                    url = f'{settings.CONTEST_DOMAIN}{reverse("contests:assignment-detail", kwargs={"pk": problem_assignment.id})}'
                 problem_row.append(InlineKeyboardButton(text=str(len(problem_assignment.submission_set.all())),
                                                         callback_data=callback_data,
                                                         url=url))
@@ -290,7 +291,7 @@ def staff_problem_menu_keyboard(problem_id: int, show_submissions_number=True):
                                                                       'crs_id': course.id,
                                                                       'stu_id': student.user.id})),
                        score_button(score=student_assignment.score,
-                                    btn_url=f'{settings.CONTEST_DOMAIN}{student_assignment.get_absolute_url()}update?action=evaluate')]
+                                    btn_url=f'{settings.CONTEST_DOMAIN}{reverse("contests:assignment-update", kwargs={"pk": student_assignment.id})}?action=evaluate')]
         if show_submissions_number:
             if problem.type in ['Files', 'Verbal']:
                 callback_data = json.dumps({'type': 'subm_lst',
@@ -300,7 +301,7 @@ def staff_problem_menu_keyboard(problem_id: int, show_submissions_number=True):
                 url = None
             else:
                 callback_data = None
-                url = f'{settings.CONTEST_DOMAIN}{student_assignment.get_absolute_url()}'
+                url = f'{settings.CONTEST_DOMAIN}{reverse("contests:assignment-detail", kwargs={"pk": student_assignment.id})}'
             student_row.append(InlineKeyboardButton(text=str(len(student_assignment.submission_set.all())),
                                                     callback_data=callback_data, url=url))
         keyboard.row(*student_row)
@@ -517,7 +518,7 @@ def problem_detail_keyboard(contest_user: User, problem_id: int):
                                                                                               'id': problem_id}))
     discussion_btn = InlineKeyboardButton(text=f'Обсуждение задачи ({comments_emoji} {problem_comments.count()})'
                                           if problem_comments.count() != 0 else 'Обсуждение задачи',
-                                          url=f'{settings.CONTEST_DOMAIN}{problem.get_absolute_url()}discussion')
+                                          url=f'{settings.CONTEST_DOMAIN}{reverse("contests:problem-discussion", kwargs={"pk": problem_id})}')
     back_btn = goback_button(goback_type='back', to='contest', to_id=problem.contest_id)
 
     keyboard.add(submissions_btn, discussion_btn)
@@ -529,7 +530,7 @@ def problem_detail_keyboard(contest_user: User, problem_id: int):
             url = None
         else:
             callback_data = None
-            url = f'{settings.CONTEST_DOMAIN}{problem.get_absolute_url()}submission/create'  # ссылки на сайт правильно получать по имени через функцию reverse(...)
+            url = f'{settings.CONTEST_DOMAIN}{reverse("contests:submission-create", kwargs={"problem_id": problem_id})}'
         keyboard.add(
             InlineKeyboardButton(text=f'{send_emoji} Отправить решение', callback_data=callback_data, url=url))
     keyboard.add(back_btn)
@@ -549,7 +550,7 @@ def submissions_list_keyboard(contest_user: User, problem_id: int):
             url = None
         else:
             callback_data = None
-            url = f'{settings.CONTEST_DOMAIN}{submission.get_absolute_url()}'
+            url = f'{settings.CONTEST_DOMAIN}{reverse("contests:submission-detail", kwargs={"pk": submission.id})}'
 
         if problem_deadline_expired(contest_user=contest_user, problem_id=problem_id):
             submission_status = submission.status
@@ -618,16 +619,16 @@ def notification_keyboard(obj):
     elif isinstance(obj, Comment):
         button = InlineKeyboardButton(text='Перейти к комментарию', url=f'{settings.CONTEST_DOMAIN}{obj.get_absolute_url()}')
     elif isinstance(obj, Question):
-        button = InlineKeyboardButton(text='Перейти к вопросу', url=f'{settings.CONTEST_DOMAIN}{obj.get_absolute_url()}')
+        button = InlineKeyboardButton(text='Перейти к вопросу', url=f'{settings.CONTEST_DOMAIN}{reverse("support:question-detail", kwargs={"pk": obj.id})}')
     elif isinstance(obj, Report):
         button = InlineKeyboardButton(text='Перейти к сообщению об ошибке',
-                                      url=f'{settings.CONTEST_DOMAIN}{obj.get_absolute_url()}')
+                                      url=f'{settings.CONTEST_DOMAIN}{reverse("support:report-detail", kwargs={"pk": obj.id})}')
     elif isinstance(obj, Submission):
         button = InlineKeyboardButton(text='Перейти к посылке',
-                                      url=f'{settings.CONTEST_DOMAIN}{obj.get_absolute_url()}')
+                                      url=f'{settings.CONTEST_DOMAIN}{reverse("contests:submission-detail", kwargs={"pk": obj.id})}')
     elif isinstance(obj, Schedule):
         button = InlineKeyboardButton(text='Перейти к расписанию',
-                                      url=f'{settings.CONTEST_DOMAIN}{obj.get_absolute_url()}')
+                                      url=f'{settings.CONTEST_DOMAIN}{reverse("schedule:schedule-detail", kwargs={"pk": obj.id})}')
     else:
         return None
 
