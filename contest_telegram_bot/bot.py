@@ -554,7 +554,8 @@ def send_notify_text(message: Message, notify_msg: Message, notification_initial
                                                     faculty_id__in=notification_for['moders']['faculties']).exclude(
                     user=creator_user)
                 staff = Account.objects.filter(type=3, faculty_id__in=notification_for['staff']['faculties'])
-                students = Account.objects.filter(type=-1)  # типа -1 не существует, если нужен пустой QuerySet, то есть Account.students.none()
+                students = Account.objects.filter(
+                    type=-1)  # типа -1 не существует, если нужен пустой QuerySet, то есть Account.students.none()
                 students_faculties_info = notification_for['stu']['faculties']
                 for students_faculty_id in students_faculties_info.keys():
                     # студенты получаются не так, см. AccountUpdateSet.get_queryset - исправлено
@@ -564,7 +565,7 @@ def send_notify_text(message: Message, notify_msg: Message, notification_initial
                                                                           'levels']
                                                                       ))
                 recipients = students.union(moderators, staff).values_list('user')
-                                        # подозреваю, что тут не нужны объекты пользователей, а только их user_id
+                # подозреваю, что тут не нужны объекты пользователей, а только их user_id
 
             send_message_with_status(status_msg='Отправка сообщения...')
             tbot.send_message(chat_id=message.chat.id, text='Сообщение успешно отправлено.')
@@ -796,7 +797,8 @@ def status_callback(outer_call: types.CallbackQuery):
         submission_status_code = json_get(call.data, 'code')
         submission_status_text = all_submission_statuses[submission_status_code]
         tbot.answer_callback_query(callback_query_id=call.id,
-                                   text=submission_status_text,  # исправил - теперь студент увидит "Посылка не проверена", если дедлайн не прошел
+                                   text=submission_status_text,
+                                   # исправил - теперь студент увидит "Посылка не проверена", если дедлайн не прошел
                                    show_alert=True)
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
@@ -828,9 +830,9 @@ def schedule_callback(message: Message):
                     cur_xls.save(cur_sheet_filename)
                     cur_xls.close()
                     with open(cur_sheet_filename, 'rb') as current_course_sch:
-                        # если все прикрепления были удалены ранее, то зачем тут update_or_create?
-                        ScheduleAttachment.objects.update_or_create(schedule=schedule, name=sheet,
-                                                                    file=File(current_course_sch))
+                        # если все прикрепления были удалены ранее, то зачем тут update_or_create? - исправил
+                        ScheduleAttachment.objects.create(schedule=schedule, name=sheet,
+                                                          file=File(current_course_sch))
                     os.remove(cur_sheet_filename)
             else:
                 tmp_pdf_file = open(schedule_filename, 'rb')
@@ -848,9 +850,9 @@ def schedule_callback(message: Message):
                             output.write(outputStream)
 
                         with open(current_course_filename, 'rb') as current_course_sch:
-                            # если все прикрепления были удалены ранее, то зачем тут update_or_create?
-                            ScheduleAttachment.objects.update_or_create(schedule=schedule, name=current_course_name,
-                                                                        file=File(current_course_sch))
+                            # если все прикрепления были удалены ранее, то зачем тут update_or_create? - исправил
+                            ScheduleAttachment.objects.create(schedule=schedule, name=current_course_name,
+                                                              file=File(current_course_sch))
                         os.remove(current_course_filename)
                 except FileNotDecryptedError:
                     tmp_pdf_file.close()
@@ -881,7 +883,8 @@ def schedule_callback(message: Message):
             action = 'Обновлено'
             if schedule_update_time_passed <= 40:
                 same_schedule = True
-                threading.Timer(40 - schedule_update_time_passed, create_schedule_files, [new_schedule]).start()  # зачем здесь новый поток?
+                threading.Timer(40 - schedule_update_time_passed, create_schedule_files,
+                                [new_schedule]).start()  # зачем здесь новый поток?
             else:
                 same_schedule = False
                 create_schedule_files(new_schedule)
