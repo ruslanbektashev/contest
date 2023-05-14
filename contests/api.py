@@ -1,7 +1,6 @@
 from django.core.exceptions import ImproperlyConfigured
 from django.http import JsonResponse
-
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import BasePermission, IsAuthenticated
@@ -50,9 +49,9 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
 
 
 class SubmissionCreateAPI(APIView):
-    permission_required = 'contests.add_submission'
+    authentication_classes = [CsrfExemptSessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated, DjangoPermission]
-    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    permission_required = 'contests.add_submission'
 
     def post(self, request, *args, **kwargs):
         try:
@@ -70,8 +69,8 @@ class SubmissionCreateAPI(APIView):
         else:
             return JsonResponse({'status': "Создать посылку через телеграм-бота можно только для задач типа Устный "
                                            "ответ и Файлы"}, status=400)
-        form = form_class(data=request.POST, files=request._request.FILES, owner=request.user,
-                          problem=problem, assignment=assignment)
+        form = form_class(data=request.POST, files=request._request.FILES, owner=request.user, problem=problem,
+                          assignment=assignment)
         if form.is_valid():
             form.instance.owner = request.user
             form.instance.problem = problem
@@ -83,8 +82,8 @@ class SubmissionCreateAPI(APIView):
 
 
 class SubmissionEvaluateAPI(APIView):
-    permission_required = 'contests.evaluate_submission'
     permission_classes = [IsAuthenticated, DjangoPermission | IsObjectOwner | IsCourseLeader]
+    permission_required = 'contests.evaluate_submission'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -119,8 +118,8 @@ class SubmissionEvaluateAPI(APIView):
 
 
 class SubmissionProgressAPI(APIView):
-    permission_required = 'contests.evaluate_submission'
     permission_classes = [IsAuthenticated, DjangoPermission | IsObjectOwner | IsCourseLeader]
+    permission_required = 'contests.evaluate_submission'
 
     def has_ownership(self):
         if not hasattr(self, 'object'):
@@ -168,8 +167,8 @@ class SubmissionUpdateSerializer(ModelSerializer):
 class SubmissionUpdateAPI(UpdateAPIView):
     queryset = Submission.objects.all()
     serializer_class = SubmissionUpdateSerializer
-    permission_required = 'contests.change_submission'
     permission_classes = [IsAuthenticated, DjangoPermission | IsObjectOwner | IsCourseLeader]
+    permission_required = 'contests.change_submission'
 
     def has_ownership(self):
         if not hasattr(self, 'object'):
