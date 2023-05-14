@@ -552,7 +552,7 @@ def submissions_list_keyboard(contest_user: User, problem_id: int):
                                           url=f'{settings.CONTEST_DOMAIN}{reverse("contests:submission-detail", kwargs={"pk": submission.id})}'),
                      InlineKeyboardButton(text=f'{submission_status_emojis[submission_status]} {submission_status}',
                                           callback_data=json.dumps({'type': 'status',
-                                                                    'status_obj_id': submission.id})))
+                                                                    'code': submission_status})))
     return keyboard
 
 

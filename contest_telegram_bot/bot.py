@@ -792,9 +792,11 @@ def submission_file_handler(message: Message):
 @tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'status')
 def status_callback(outer_call: types.CallbackQuery):
     def callback_for_authorized(call: types.CallbackQuery):
-        submission_id = int(json_get(call.data, 'status_obj_id'))
+        all_submission_statuses = dict(Submission.STATUS_CHOICES)
+        submission_status_code = json_get(call.data, 'code')
+        submission_status_text = all_submission_statuses[submission_status_code]
         tbot.answer_callback_query(callback_query_id=call.id,
-                                   text=f'{Submission.objects.get(pk=submission_id).get_status_display()}',  # что увидит студент, если по данному заданию еще не истек дедлайн?
+                                   text=submission_status_text,  # исправил - теперь студент увидит "Посылка не проверена", если дедлайн не прошел
                                    show_alert=True)
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
