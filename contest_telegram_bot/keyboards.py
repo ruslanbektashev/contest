@@ -544,21 +544,12 @@ def submissions_list_keyboard(contest_user: User, problem_id: int):
     header = ['Посылка', 'Статус'] if submissions_list else ['Посылок нет']
     none_type_row(keyboard, header)
     for submission in submissions_list:
-        if problem.type in ['Files', 'Verbal']:
-            callback_data = json.dumps({'type': 'submission_detail',
-                                        'id': submission.id})
-            url = None
-        else:
-            callback_data = None
-            url = f'{settings.CONTEST_DOMAIN}{reverse("contests:submission-detail", kwargs={"pk": submission.id})}'
-
         if problem_deadline_expired(contest_user=contest_user, problem_id=problem_id):
             submission_status = submission.status
         else:
             submission_status = 'UN'
         keyboard.row(InlineKeyboardButton(text=date_to_str(date=submission.date_created),
-                                          callback_data=callback_data,
-                                          url=url),
+                                          url=f'{settings.CONTEST_DOMAIN}{reverse("contests:submission-detail", kwargs={"pk": submission.id})}'),
                      InlineKeyboardButton(text=f'{submission_status_emojis[submission_status]} {submission_status}',
                                           callback_data=json.dumps({'type': 'status',
                                                                     'status_obj_id': submission.id})))

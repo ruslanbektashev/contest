@@ -27,7 +27,7 @@ from telebot.types import Message
 
 from accounts.models import Account
 from contest_telegram_bot.constants import login_btn_text, logout_btn_text
-from contest_telegram_bot.keyboards import (back_to_problem_keyboard, back_to_submissions_keyboard,
+from contest_telegram_bot.keyboards import (back_to_problem_keyboard,
                                             moderator_notification_initial_keyboard, notification_control_keyboard,
                                             problem_detail_keyboard, settings_keyboard, staff_and_moders_start_keyboard,
                                             staff_course_contests_keyboard, staff_course_menu_keyboard,
@@ -38,9 +38,9 @@ from contest_telegram_bot.keyboards import (back_to_problem_keyboard, back_to_su
                                             submission_files_control_texts, submissions_list_keyboard_for_staff,
                                             submissions_list_keyboard_for_students, timer_keyboard)
 from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
-from contest_telegram_bot.utils import (all_content_types_with_exclude, back_to_submissions_text,
+from contest_telegram_bot.utils import (all_content_types_with_exclude,
                                         cancel_notification_text, check_submission_limit_excess, create_file_from_bytes,
-                                        date_to_str, file_chunk_size, file_extension, get_account_by_tg_id,
+                                        file_chunk_size, get_account_by_tg_id,
                                         get_active_course_users, get_all_faculties_without_mfk__ids,
                                         get_all_study_levels__ids, get_contest_user_by_tg_id, get_course_label,
                                         get_telegram_user, get_user_assignments, is_excel_file, is_schedule_file,
@@ -576,66 +576,6 @@ def send_notify_text(message: Message, notify_msg: Message, notification_initial
         else:
             keyboard, text = staff_and_moders_start_keyboard(staff_contest_user=creator_user, for_moders=True)
         tbot.send_message(chat_id=message.chat.id, text=text, parse_mode='HTML', reply_markup=keyboard)
-
-
-@tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'submission_detail')
-def submission_detail(outer_call: types.CallbackQuery):
-    def callback_for_authorized(call: types.CallbackQuery):
-        submission = Submission.objects.get(pk=json_get(call.data, 'id'))
-        submission_directory = os.path.dirname(submission.files[0])
-        submission_problem_type = submission.problem.type
-        submission_files = []
-        file_ids_files = [file_id_file for file_id_file in os.listdir(submission_directory)
-                          if '_file_id' in file_extension(file_id_file)]
-
-        message_with_submissions_list = deepcopy(call.message)
-        try:
-            tbot.delete_message(chat_id=call.message.chat.id, message_id=call.message.id)
-        except ApiTelegramException:
-            pass
-        tbot.send_message(text=f'Посылка <b>({date_to_str(submission.date_created)})</b> '
-                               f'к задаче <b>{submission.problem}</b>.',
-                          chat_id=call.message.chat.id, parse_mode='HTML',
-                          reply_markup=back_to_submissions_keyboard())
-        for filename in file_ids_files:
-            filepath = os.path.join(submission_directory, filename)
-            with open(filepath) as f:
-                file_id = f.readline()
-            if submission_problem_type == 'Files':
-                if '.jpg' in file_extension(filename=filename):
-                    file = types.InputMediaPhoto(media=file_id)
-                else:
-                    file = types.InputMediaDocument(media=file_id)
-                submission_files.append(file)
-            else:
-                tbot.send_voice(chat_id=call.message.chat.id, voice=file_id)
-
-        if len(submission_files) != 0:
-            tbot.send_media_group(chat_id=call.message.chat.id, media=submission_files)
-
-        tbot.register_next_step_handler_by_chat_id(chat_id=call.message.chat.id, callback=submission_detail_menu,
-                                                   message_with_submissions_list=message_with_submissions_list)
-
-    unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
-
-
-def submission_detail_menu(message: Message, message_with_submissions_list: Message):
-    def callback_for_authorized():
-        if message.text != back_to_submissions_text:
-            tbot.send_message(chat_id=message.chat.id, text='Сначала вернитесь к посылкам.',
-                              reply_markup=back_to_submissions_keyboard())
-            tbot.register_next_step_handler_by_chat_id(chat_id=message.chat.id, callback=submission_detail_menu,
-                                                       message_with_submissions_list=message_with_submissions_list)
-        else:
-            returning_msg = tbot.send_message(chat_id=message.chat.id, text='Возврат к посылкам...',
-                                              reply_markup=timer_keyboard())
-            tbot.delete_message(chat_id=message.chat.id, message_id=returning_msg.id)
-            tbot.send_message(text=message_with_submissions_list.text,
-                              chat_id=message_with_submissions_list.chat.id,
-                              reply_markup=message_with_submissions_list.reply_markup,
-                              reply_to_message_id=message.id)
-
-    unauth_callback_for_messages(message=message, callback_for_authorized=callback_for_authorized)
 
 
 @tbot.callback_query_handler(func=lambda call: json_get(call.data, 'type') == 'submission')
