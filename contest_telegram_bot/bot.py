@@ -5,46 +5,45 @@ import os
 import sys
 import threading
 from copy import deepcopy
-from importlib import import_module
 
 import requests
 import telebot
-from PyPDF2.errors import FileNotDecryptedError
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files import File
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.http import HttpRequest, QueryDict
+from django.http import HttpRequest
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDict
 from openpyxl import load_workbook
 from PyPDF2 import PdfReader, PdfWriter
+from PyPDF2.errors import FileNotDecryptedError
 from telebot import custom_filters, types
 from telebot.apihelper import ApiTelegramException
 from telebot.types import Message
 
 from accounts.models import Account
 from contest_telegram_bot.constants import login_btn_text, logout_btn_text
-from contest_telegram_bot.keyboards import (back_to_problem_keyboard,
-                                            moderator_notification_initial_keyboard, notification_control_keyboard,
-                                            problem_detail_keyboard, settings_keyboard, staff_and_moders_start_keyboard,
-                                            staff_course_contests_keyboard, staff_course_menu_keyboard,
-                                            staff_course_problems_keyboard, staff_course_student_menu_keyboard,
-                                            staff_course_students_keyboard, staff_notification_initial_keyboard,
-                                            staff_problem_menu_keyboard, start_keyboard_unauthorized,
-                                            student_table_keyboard, submission_creation_keyboard,
-                                            submission_files_control_texts, submissions_list_keyboard_for_staff,
-                                            submissions_list_keyboard_for_students, timer_keyboard)
+from contest_telegram_bot.keyboards import (back_to_problem_keyboard, moderator_notification_initial_keyboard,
+                                            notification_control_keyboard, problem_detail_keyboard, settings_keyboard,
+                                            staff_and_moders_start_keyboard, staff_course_contests_keyboard,
+                                            staff_course_menu_keyboard, staff_course_problems_keyboard,
+                                            staff_course_student_menu_keyboard, staff_course_students_keyboard,
+                                            staff_notification_initial_keyboard, staff_problem_menu_keyboard,
+                                            start_keyboard_unauthorized, student_table_keyboard,
+                                            submission_creation_keyboard, submission_files_control_texts,
+                                            submissions_list_keyboard_for_staff, submissions_list_keyboard_for_students,
+                                            timer_keyboard)
 from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
-from contest_telegram_bot.utils import (all_content_types_with_exclude,
-                                        cancel_notification_text, check_submission_limit_excess, create_file_from_bytes,
-                                        file_chunk_size, get_account_by_tg_id,
-                                        get_active_course_users, get_all_faculties_without_mfk__ids,
-                                        get_all_study_levels__ids, get_contest_user_by_tg_id, get_course_label,
-                                        get_telegram_user, get_user_assignments, is_excel_file, is_schedule_file,
-                                        json_get, notify_settings_students_faculties_to_bool, notify_specific_tg_users,
+from contest_telegram_bot.utils import (all_content_types_with_exclude, cancel_notification_text,
+                                        check_submission_limit_excess, create_file_from_bytes, file_chunk_size,
+                                        get_account_by_tg_id, get_active_course_users,
+                                        get_all_faculties_without_mfk__ids, get_all_study_levels__ids,
+                                        get_contest_user_by_tg_id, get_course_label, get_telegram_user,
+                                        get_user_assignments, is_excel_file, is_schedule_file, json_get,
+                                        notify_settings_students_faculties_to_bool, notify_specific_tg_users,
                                         notify_specific_tg_users_by_contest_users, progress_bar, send_notification_text,
                                         tg_authorisation_wrapper)
 from contests.api import SubmissionCreateAPI
@@ -683,9 +682,6 @@ def submission_files_control(message: Message):
 
             request = HttpRequest()
             request.method = "POST"
-            request.POST = QueryDict(mutable=True)
-            engine = import_module(settings.SESSION_ENGINE)
-            request.session = engine.SessionStore()
             request.user = contest_user
             request.FILES = MultiValueDict({'files': files})
             response = SubmissionCreateAPI.as_view()(request=request, problem_id=problem_id)
