@@ -27,6 +27,24 @@ class UserMultipleChoiceField(forms.ModelMultipleChoiceField):
         return "{} {}".format(obj.last_name, obj.first_name)
 
 
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            result = [single_file_clean(d, initial) for d in data]
+        else:
+            result = single_file_clean(data, initial)
+        return result
+
+
 class MediaAttachmentMixin:
     FILE_SIZE_LIMIT = 256 * 1024 * 1024
     FILES_SIZE_LIMIT = 640 * 1024 * 1024
@@ -52,7 +70,7 @@ class AttachmentForm(forms.ModelForm):
     FILES_ALLOWED_NAMES = tuple()
     FILES_ALLOWED_EXTENSIONS = ['.c', '.cpp', '.h', '.hpp', '.txt', '.xls', '.xlsx']
 
-    files = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}), required=False, label="Файлы")
+    files = MultipleFileField(required=False, label="Файлы")
 
     class Meta:
         abstract = True

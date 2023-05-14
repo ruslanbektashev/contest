@@ -4,7 +4,6 @@ import json
 import os
 import random
 import zipfile
-from statistics import mean
 
 import docx
 from django.contrib.auth.models import User
