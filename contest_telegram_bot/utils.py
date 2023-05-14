@@ -124,10 +124,8 @@ def get_active_course_users(course_id: int):
 
 def get_account_by_tg_id(chat_id: int):
     try:
-        tg_user = TelegramUser.objects.get(chat_id=chat_id)
-        # здесь не нужна модель Account, аккаунт можно получить через инстанцию User - tg_user.contest_user.account
-        from accounts.models import Account
-        return Account.objects.get(user=tg_user.contest_user)
+        return TelegramUser.objects.get(chat_id=chat_id).contest_user.account
+        # здесь не нужна модель Account, аккаунт можно получить через инстанцию User - tg_user.contest_user.account - исправил
     except ObjectDoesNotExist:
         return None
 
