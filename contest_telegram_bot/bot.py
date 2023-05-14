@@ -922,7 +922,8 @@ def schedule_callback(message: Message):
             if not same_schedule:
                 recipients = TelegramUser.objects.filter(contest_user__is_active=True,
                                                          contest_user__is_superuser=False)
-                notify_specific_tg_users(notification_msg=f'{action} <b>расписание на {week} ({new_schedule})</b>',
+                notify_specific_tg_users(notification_msg=f'{action} <b>расписание на {week} '
+                                                          f'({new_schedule.date_from} - {new_schedule.date_to})</b>',
                                          tg_users=recipients, notification_obj=new_schedule)
 
         current_date = timezone.now()
@@ -949,7 +950,6 @@ def schedule_callback(message: Message):
                                                    date_from=current_week_date_from(next_week=next_week),
                                                    date_to=current_week_date_to(next_week=next_week),
                                                    owner=User.objects.get(username='telegram_bot'))
-            new_schedule = Schedule.objects.get(pk=new_schedule.id)  # а зачем получать объект из БД, если он строчкой выше был создан?
             same_schedule = False
             action = 'Добавлено'
             create_schedule_files(new_schedule)
