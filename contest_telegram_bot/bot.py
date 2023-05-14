@@ -557,13 +557,14 @@ def send_notify_text(message: Message, notify_msg: Message, notification_initial
                 students = Account.objects.filter(type=-1)  # типа -1 не существует, если нужен пустой QuerySet, то есть Account.students.none()
                 students_faculties_info = notification_for['stu']['faculties']
                 for students_faculty_id in students_faculties_info.keys():
-                    # студенты получаются не так, см. AccountUpdateSet.get_queryset
-                    students = students.union(Account.objects.filter(type=1,
-                                                                     faculty_id=students_faculty_id,
-                                                                     level__in=
-                                                                     students_faculties_info[students_faculty_id][
-                                                                         'levels']))
-                recipients = students.union(moderators, staff).values_list('user')  # подозреваю, что тут не нужны объекты пользователей, а только их user_id
+                    # студенты получаются не так, см. AccountUpdateSet.get_queryset - исправлено
+                    students = students.union(Account.students.filter(faculty_id=students_faculty_id,
+                                                                      level__in=
+                                                                      students_faculties_info[students_faculty_id][
+                                                                          'levels']
+                                                                      ))
+                recipients = students.union(moderators, staff).values_list('user')
+                                        # подозреваю, что тут не нужны объекты пользователей, а только их user_id
 
             send_message_with_status(status_msg='Отправка сообщения...')
             tbot.send_message(chat_id=message.chat.id, text='Сообщение успешно отправлено.')
