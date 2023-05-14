@@ -159,7 +159,9 @@ def tg_authorisation_wrapper(
         authorized_fun(**unauth_fun_args)
 
 
-def all_content_types_with_exclude(exclude: list = []):  # такая ошибка уже была
+def all_content_types_with_exclude(exclude: list = None):  # такая ошибка уже была
+    if exclude is None:
+        exclude = []
     all_content_types = ['text', 'audio', 'document', 'photo', 'sticker', 'video', 'video_note', 'voice', 'location',
                          'contact', 'new_chat_members', 'left_chat_member', 'new_chat_title', 'new_chat_photo',
                          'delete_chat_photo', 'group_chat_created', 'supergroup_chat_created', 'channel_chat_created',
