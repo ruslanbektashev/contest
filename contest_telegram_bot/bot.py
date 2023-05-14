@@ -754,6 +754,8 @@ def submission_file_handler(message: Message):
         max_files_count = AttachmentForm.FILES_MAX
         keyboard, done, cancel = submission_creation_keyboard()
         incorrect_msg_filetype = False
+        msg_filetype_word_plural = 'файлы'
+        msg_text = 'Отправьте файлы.'
 
         if submission_type == 'Verbal':
             if message.voice is None:
@@ -765,8 +767,6 @@ def submission_file_handler(message: Message):
             if message.document is None and message.photo is None:
                 incorrect_msg_filetype = True
                 correct_msg_filetype = 'документом'
-            else:
-                msg_filetype_word_plural = 'файлы'
 
         if not is_correct_file():
             return
@@ -774,7 +774,7 @@ def submission_file_handler(message: Message):
         if len(messages_with_files) < max_files_count:
             messages_with_files.append(message)
             if len(messages_with_files) < max_files_count:
-                # pycharm warning'и иногда стоит исправлять, проверьте все свои файлы
+                # pycharm warning'и иногда стоит исправлять, проверьте все свои файлы - исправил
                 msg_text = f'Вы можете продолжить присылать {msg_filetype_word_plural}.\n' \
                            f'Ещё можно отправить <b>{max_files_count - len(messages_with_files)} файлов.</b>'
         if len(messages_with_files) >= max_files_count:
