@@ -92,43 +92,32 @@ class AttachmentForm(forms.ModelForm):
         if not self.files and self.FILES_MIN == 0:
             return self.files
         elif not self.files:
-            raise ValidationError(
-                'Выберите хотя бы %(files_min)i файл для загрузки',
-                code='not_enough_files',
-                params={'files_min': self.FILES_MIN}
-            )
+            raise ValidationError("Выберите хотя бы %(files_min)i файл для загрузки", code='not_enough_files',
+                                  params={'files_min': self.FILES_MIN})
         files = self.files.getlist('files')
         if len(files) > self.FILES_MAX:
-            raise ValidationError(
-                'Слишком много файлов. Допустимо загружать не более %(files_max)i',
-                code='too_many_files',
-                params={'files_max': self.FILES_MAX}
-            )
+            raise ValidationError("Слишком много файлов. Допустимо загружать не более %(files_max)i",
+                                  code='too_many_files', params={'files_max': self.FILES_MAX})
         else:
             files_size = 0
             for file in files:
                 if file.size > self.FILE_SIZE_LIMIT:
-                    raise ValidationError(
-                        'Размер каждого файла не должен превышать %(file_size_limit)s',
-                        code='large_file',
-                        params={'file_size_limit': filesizeformat(self.FILE_SIZE_LIMIT)}
-                    )
+                    raise ValidationError("Размер каждого файла не должен превышать %(file_size_limit)s",
+                                          code='large_file',
+                                          params={'file_size_limit': filesizeformat(self.FILE_SIZE_LIMIT)})
                 filename = os.path.splitext(file.name)
                 if not filename[1].lower() in self.FILES_ALLOWED_EXTENSIONS:
                     if not filename[0].startswith(self.FILES_ALLOWED_NAMES):
                         raise ValidationError(
-                            'Допустимы только файлы с расширениями: %(files_allowed_extensions)s',
+                            "Допустимы только файлы с расширениями: %(files_allowed_extensions)s",
                             code='invalid_extension',
                             params={'files_allowed_extensions': ', '.join(self.FILES_ALLOWED_EXTENSIONS)}
                         )
                 files_size += file.size
             files_size_limit = self.get_files_size_limit()
             if files_size > files_size_limit:
-                raise ValidationError(
-                    'Размер всех файлов не должен превышать %(files_size_limit)s',
-                    code='large_files',
-                    params={'files_size_limit': filesizeformat(files_size_limit)}
-                )
+                raise ValidationError("Размер всех файлов не должен превышать %(files_size_limit)s", code='large_files',
+                                      params={'files_size_limit': filesizeformat(files_size_limit)})
         return files
 
     def save(self, commit=True):
@@ -138,9 +127,7 @@ class AttachmentForm(forms.ModelForm):
             instance_type = ContentType.objects.get_for_model(instance)
             new_attachments = []
             for file in files:
-                new_attachment = Attachment(owner=instance.owner,
-                                            object_type=instance_type,
-                                            object_id=instance.id,
+                new_attachment = Attachment(owner=instance.owner, object_type=instance_type, object_id=instance.id,
                                             file=file)
                 new_attachments.append(new_attachment)
             Attachment.objects.bulk_create(new_attachments)
