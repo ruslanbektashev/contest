@@ -401,7 +401,7 @@ class CommentManager(models.Manager):
 
 class Comment(models.Model):
     MAX_LEVEL = 5
-    author = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE, verbose_name="Автор")
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments', verbose_name="Автор")
 
     thread_id = models.PositiveIntegerField(default=0, db_index=True)
     parent_id = models.PositiveIntegerField(default=0)
@@ -537,7 +537,7 @@ class AnnouncementQuerySet(models.QuerySet):
 
 
 class Announcement(CRUDEntry):
-    group = models.ForeignKey(Group, blank=True, null=True, on_delete=models.CASCADE, verbose_name="Для группы")
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, blank=True, null=True, verbose_name="Для группы")
 
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     text = models.TextField(verbose_name="Текст объявления")
@@ -628,14 +628,15 @@ class NotificationManager(models.Manager):
 
 
 class Notification(models.Model):
-    recipient = models.ForeignKey(User, related_name='notifications', verbose_name="Получатель", on_delete=models.CASCADE)
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications',
+                                  verbose_name="Получатель")
     subject_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     subject_id = models.PositiveIntegerField()
     subject = GenericForeignKey(ct_field='subject_type', fk_field='subject_id')
-    object_type = models.ForeignKey(ContentType, related_name='+', blank=True, null=True, on_delete=models.CASCADE)
+    object_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, blank=True, null=True, related_name='+')
     object_id = models.PositiveIntegerField(blank=True, null=True)
     object = GenericForeignKey(ct_field='object_type')
-    reference_type = models.ForeignKey(ContentType, related_name='+', blank=True, null=True, on_delete=models.CASCADE)
+    reference_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, blank=True, null=True, related_name='+')
     reference_id = models.PositiveIntegerField(blank=True, null=True)
     reference = GenericForeignKey(ct_field='reference_type', fk_field='reference_id')
 
@@ -768,7 +769,7 @@ class Action(models.Model):
         (DELETION, "Удаление"),
     )
 
-    user = models.ForeignKey(User, null=True, related_name='actions', on_delete=models.DO_NOTHING,
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, related_name='actions',
                              verbose_name="Пользователь")
 
     action_type = models.PositiveSmallIntegerField(choices=ACTION_TYPE_CHOICES, verbose_name="Тип действия")
