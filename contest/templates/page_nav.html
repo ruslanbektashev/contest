@@ -1,6 +1,6 @@
 {% load views %}
 {% if is_paginated %}
-<nav id="page_nav" aria-label="Страницы">
+<nav id="pageNav" aria-label="Страницы">
     <ul class="pagination justify-content-center">
         <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
             <a class="page-link" href="{% get_full_path_with_updated_query_string request page=1 %}#p" aria-label="Первая страница">
