@@ -244,12 +244,12 @@ def tex_gen(attachment):
                     try:
                         found_course = Course.objects.get(title_official=match_components[0])
                     except Course.DoesNotExist:
-                        return file, error + error.format('Неверно задан курс.')
+                        return file, error.format('Неверно задан курс.')
 
                     try:
                         found_contest = Contest.objects.get(title=match_components[1], course=found_course)
                     except Contest.DoesNotExist:
-                        return file, error + error.format('Неверно задан раздел.')
+                        return file, error.format('Неверно задан раздел.')
 
                     if match_components[-1].endswith('.tex'):
                         found_file = None
