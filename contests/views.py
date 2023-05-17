@@ -60,11 +60,21 @@ class AttachmentDetail(DetailView):
         except Attachment.DoesNotExist:
             raise Http404("Attachment with id = %s does not exist." % kwargs.get('attachment_id'))
         if attachment.extension() in '.tex':
-            pdf = compile_template_to_pdf(tex_gen(attachment), '')
-            response = HttpResponse(content_type="application/pdf")
-            response["Content-Disposition"] = 'filename="{}"'.format(attachment.filename)
-            response.write(pdf)
-            return response
+            file, error = tex_gen(attachment)
+            if error is None:
+                try:
+                    pdf = compile_template_to_pdf(file, '')
+                    response = HttpResponse(content_type="application/pdf")
+                    response["Content-Disposition"] = 'filename="{}"'.format(attachment.filename)
+                    response.write(pdf)
+                    return response
+
+                except:
+                    error = 'Возникло исключение, проверьте фильтр и попробуйте позже.'
+
+            context = super().get_context_data(**kwargs)
+            context['code'] = error
+            return self.render_to_response(context)
         if attachment.extension() not in ('.h', '.hpp', '.c', '.cpp', '.ppt', '.pptx', '.xls', '.xlsx', '.doc', '.docx',
                                           '.csv'):
             return HttpResponseRedirect(attachment.file.url)
