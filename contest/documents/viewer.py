@@ -238,17 +238,18 @@ def tex_gen(attachment):
 
             with open(file, 'w', encoding='utf-8') as out_file:
                 for match in matches:
+                    error = 'Возникла проблема при распознавании фильтра: %s Проверьте его и попробуйте снова.'
                     match_components = match.split('/')
 
                     try:
                         found_course = Course.objects.get(title_official=match_components[0])
                     except Course.DoesNotExist:
-                        return file, 'Неверно введен курс'
+                        return file, error + error.format('Неверно задан курс.')
 
                     try:
                         found_contest = Contest.objects.get(title=match_components[1], course=found_course)
                     except Contest.DoesNotExist:
-                        return file, 'Неверно введен раздел'
+                        return file, error + error.format('Неверно задан раздел.')
 
                     if match_components[-1].endswith('.tex'):
                         found_file = None
@@ -267,7 +268,7 @@ def tex_gen(attachment):
                                     break
                                     
                         if found_file is None:
-                            return file, 'Задано неверное имя файла в фильтре'
+                            return file, error.format('Неверно задано имя файла.')
 
                         with open(found_file, 'r', encoding='utf-8') as found_file:
                             found_file_content = found_file.read()

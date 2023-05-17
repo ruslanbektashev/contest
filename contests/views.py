@@ -68,15 +68,13 @@ class AttachmentDetail(DetailView):
                     response["Content-Disposition"] = 'filename="{}"'.format(attachment.filename)
                     response.write(pdf)
                     return response
-
                 except:
-                    error = 'Возникло исключение, проверьте фильтр и попробуйте позже.'
-
+                    error = 'Возникла проблема при компиляции файла. Проверьте его на ошибки и попробуйте снова.'
             context = super().get_context_data(**kwargs)
             context['code'] = error
             return self.render_to_response(context)
         if attachment.extension() not in ('.h', '.hpp', '.c', '.cpp', '.ppt', '.pptx', '.xls', '.xlsx', '.doc', '.docx',
-                                          '.csv'):
+                                          '.csv', '.tex'):
             return HttpResponseRedirect(attachment.file.url)
         context = self.get_context_data(object=self.object, attachment=attachment)
         return self.render_to_response(context)
