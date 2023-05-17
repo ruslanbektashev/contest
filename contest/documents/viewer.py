@@ -1,5 +1,6 @@
 import re
 import random
+import ntpath
 
 from csv import reader
 from io import BytesIO, StringIO
@@ -14,6 +15,7 @@ try:
     from aspose import words as aspose_words
 except ImportError:
     aspose_words = None
+
 from mammoth import convert_to_html
 from openpyxl import Workbook, load_workbook
 from pygments import highlight
@@ -21,9 +23,11 @@ from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer
 from xls2xlsx import XLS2XLSX
 from xlsx2html import xlsx2html
+from pylatexenc.latexwalker import LatexWalker, LatexMacroNode
 
 from contest.documents import replaces
-from contests.models import (Contest, Course, Problem)
+from contests.models import (Contest, Course, Problem, Attachment)
+from django.contrib.contenttypes.models import ContentType
 
 
 def remove_ppt_watermarks(content):
@@ -104,74 +108,230 @@ def to_html(attachment):
         result = convert_to_html(attachment.file.path).value, False
     return result
 
+
+def unique(str_list):
+    return list(dict.fromkeys(str_list))
+
+
+def get_document_class(content):
+    result = ''
+    parser = LatexWalker(content)
+
+    for node in parser.get_latex_nodes()[0]:
+        if node.nodeType() == LatexMacroNode and node.macroname == 'documentclass':
+            result = node.latex_verbatim()
+            break
+
+    return result
+
+
+def get_packages(content):
+    result = []
+    parser = LatexWalker(content)
+
+    for node in parser.get_latex_nodes()[0]:
+        if node.nodeType() == LatexMacroNode and node.macroname == 'usepackage':
+            chunk = node.latex_verbatim()
+            result.append(chunk)
+
+    return result
+
+
+def merge_languages(content):
+    result = content
+    languages = set()
+    languages_package = '\\usepackage['
+
+    for chunk in result:
+        if chunk.endswith('{babel}'):
+            languages_list = chunk.lstrip('\\usepackage').lstrip('[').rstrip('{babel}\n').rstrip(']').split(',')
+            for language in languages_list:
+                languages.add(language.strip())
+            result.remove(chunk)
+
+    for language in languages:
+        languages_package += (language + ', ')
+
+    languages_package = languages_package[:len(languages_package) - 2]
+    languages_package += ']{babel}'
+    result.append(languages_package)
+
+    return result
+
+
+def get_commands(content, special_names=None):
+    result = []
+    parser = LatexWalker(content)
+
+    for node in parser.get_latex_nodes()[0]:
+        if node.nodeType() == LatexMacroNode and node.macroname not in ['documentclass', 'usepackage']:
+            if special_names and node.macroname in special_names.keys():
+                regex = r'\{\\\w+} \{[ \\\n\t\w{@}]+}' if special_names[node.macroname] else r'((\w*\{*[\\\w\./]+}*)|(=\d+\w+))'
+                pattern = re.compile(r'\\' + node.macroname + regex)
+                match = re.search(pattern, content)
+                result.append(match.group() if match else None)
+            else:
+                result.append(node.latex_verbatim())
+
+    return result
+
+
+def rename_user_commands(content, postfix, required_names):
+    command_pattern = re.compile(r'\\newcommand\{\\\w+}')
+    user_commands = re.findall(command_pattern, content)
+    result = content
+
+    for user_command in user_commands:
+        old_command_name = re.search(r'\{\\\w+}', user_command)[0]
+        old_command_name = old_command_name.lstrip('{\\').rstrip('}')
+
+        if old_command_name in required_names:
+            new_command_name = old_command_name + postfix
+            for end in [r'\\', r'\n', r'}', r'\.']:
+                name_pattern = r'\\' + old_command_name + end
+                result = re.sub(name_pattern, r'\\' + new_command_name + (end if end != r'\.' else '.'), result)
+
+    return result
+
+
+def get_concat_command(content, required_name):
+    result = '\n'
+
+    for chunk in content:
+        if chunk.startswith('\\newcommand{\\' + required_name + '}'):
+            result += chunk.replace('newcommand', 'renewcommand')
+            break
+
+    result = re.sub(r'\n', '\n\t', result) + '\n'
+
+    return result
+
+
+def get_body(content):
+    pattern = re.compile(r'\\begin\{document}.*\\end\{document}', re.DOTALL)
+    result = re.search(pattern, content).group().lstrip('\\begin{document}').rstrip('\\end{document}')
+    result = re.sub(r'%.*\n', '\n', result)
+    result = re.sub(r'\n *\n', '\n', result)
+    return result
+
+
+def problem_replace(content, problems_list, problem_index):
+    start = content.find('#!') + 2
+    end = content.find('!#', start)
+    old = content[start:end]
+    new = problems_list[problem_index].description
+    content = content.replace('#!' + old + '!#', new, 1)
+    return content
+
+
 def tex_gen(attachment):
-    lines = ''
-    temp = str(attachment.file)
-    file1 = open(attachment.file.path, encoding="utf-8")
+    file = str(attachment.file)
 
-    for line in file1:
-        lines += line
+    with open(attachment.file.path, encoding='utf-8') as in_file:
+        file_content = in_file.read()
+        pattern = r'#!(.*?)!#'
+        matches = re.findall(pattern, file_content)
+        levels = {'Легкая': 0, 'Средняя': 1, 'Сложная': 2, 'Очень сложная': 3}
 
-    pattern = r"#!(.*?)!#"
-    matches = re.findall(pattern, lines)
-    print(matches)
-    lvl = {'Легкая': 0, 'Средняя': 1, 'Сложная': 2, 'Очень сложная': 3}
-    if len(matches) > 0:
-        # temp = 'attachments/contests/contest/18/temp1.tex'
-        temp = attachment.dirname + '\\temp_tex_generate.tex'
+        if len(matches) > 0:
+            file = attachment.dirname + '\\temp_tex_generate.tex'
 
-        with open(temp, 'w', encoding='utf-8') as infile:
-
-            for match in matches:
-                match = match.split('/')
-
-                try:
-                    found_course = Course.objects.get(title_official=match[0])
-                except Course.DoesNotExis:
-                    pass
-                try:
-                    found_contest = Contest.objects.get(title=match[1], course=found_course)
-                except Contest.DoesNotExist:
-                    pass
-
-                if match[-1].endswith('.tex'):
-                    lines = re.sub(pattern, 'в разработке', lines, count=1)
-
-                elif match[-1] in lvl:
-
-                    # found_course = Course.objects.get(title_official=match[0])
-                    # found_contest = Contest.objects.get(title=match[1], course=found_course)
-                    found_problem = Problem.objects.filter(difficulty=lvl[f'{match[2]}'], contest=found_contest)
-                    random_problem = random.randint(0, len(found_problem) - 1)
+            with open(file, 'w', encoding='utf-8') as out_file:
+                for match in matches:
+                    match_components = match.split('/')
 
                     try:
-                        lines = re.sub(pattern, found_problem[random_problem].description, lines, count=1)
-                    except re.error:
-                        start_index = lines.find("#!") + 2
-                        end_index = lines.find("!#", start_index)
-                        text_to_replace = lines[start_index:end_index]
-                        new_text = found_problem[random_problem].description
-                        lines = lines.replace("#!" + text_to_replace + "!#", new_text, 1)
-
-                else:
-                    # found_course = Course.objects.get(title_official=match[0])
-                    # found_contest = Contest.objects.get(title=match[1], course=found_course)
-
-                    found_problem = Problem.objects.filter(title=match[2], contest=found_contest)
+                        found_course = Course.objects.get(title_official=match_components[0])
+                    except Course.DoesNotExist:
+                        # TODO: Add no course exception handling.
+                        pass
 
                     try:
-                        lines = re.sub(pattern, found_problem[0].description, lines, count=1)
-                    except re.error:
-                        start_index = lines.find("#!") + 2
-                        end_index = lines.find("!#", start_index)
-                        text_to_replace = lines[start_index:end_index]
-                        new_text = found_problem[0].description
-                        lines = lines.replace("#!" + text_to_replace + "!#", new_text, 1)
+                        found_contest = Contest.objects.get(title=match_components[1], course=found_course)
+                    except Contest.DoesNotExist:
+                        # TODO: Add no contest exception handling.
+                        pass
 
-            for line in lines:
-                infile.write(line)
+                    if match_components[-1].endswith('.tex'):
+                        found_file = None
 
-            start_index = temp.find("upload") + 7
-            temp = temp[start_index:].replace('\\', '/')
+                        if len(match_components) == 3:
+                            for attachment in Attachment.objects.filter(object_type=ContentType.objects.get(model='contest'), object_id=found_contest.id):
+                                if ntpath.basename(attachment.file.name) == match_components[-1]:
+                                    found_file = attachment.file.path
+                                    break
 
-    return temp
+                        if len(match_components) == 4:
+                            found_problem = Problem.objects.get(title=match_components[-2], contest=found_contest)
+                            for attachment in Attachment.objects.filter(object_type=ContentType.objects.get(model='problem'), object_id=found_problem.id):
+                                if ntpath.basename(attachment.file.name) == match_components[-1]:
+                                    found_file = attachment.file.path
+                                    break
+
+                        with open(found_file, 'r', encoding='utf-8') as found_file:
+                            found_file_content = found_file.read()
+                            file_content = tex_concat(file_content, 'dest', found_file_content, 'from', match)
+
+                    elif match_components[-1] in levels:
+                        # found_course = Course.objects.get(title_official=match[0])
+                        # found_contest = Contest.objects.get(title=match[1], course=found_course)
+                        found_problem = Problem.objects.filter(difficulty=levels[f'{match_components[2]}'], contest=found_contest)
+                        random_problem = random.randint(0, len(found_problem) - 1)
+
+                        try:
+                            file_content = re.sub(pattern, found_problem[random_problem].description, file_content, count=1)
+                        except re.error:
+                            file_content = problem_replace(file_content, found_problem, random_problem)
+
+                    else:
+                        # found_course = Course.objects.get(title_official=match[0])
+                        # found_contest = Contest.objects.get(title=match[1], course=found_course)
+                        found_problem = Problem.objects.filter(title=match_components[2], contest=found_contest)
+
+                        try:
+                            file_content = re.sub(pattern, found_problem[0].description, file_content, count=1)
+                        except re.error:
+                            file_content = problem_replace(file_content, found_problem, 0)
+
+                out_file.write(file_content)
+                start = file.find('upload') + 7
+                file = file[start:].replace('\\', '/')
+
+    return file
+
+
+def tex_concat(dest_content, dest_postfix, from_content, from_postfix, match):
+    result = ''
+    pattern = r'#!' + match + r'!#'
+    rename_command_names = ['theme', 'class', 'header', 'tasks']
+    special_command_names = {'columnsep': False, 'newlength': False, 'graphicspath': False, 'everymath': False,
+                             # 'makeatletter': False, 'makeatother': False,
+                             'newcounter': False, 'DeclareRobustCommand': True}
+
+    dest_content = rename_user_commands(dest_content, dest_postfix, rename_command_names)
+    from_content = rename_user_commands(from_content, from_postfix, rename_command_names)
+
+    commands = get_commands(dest_content, special_command_names) + get_commands(from_content, special_command_names)
+    packages = get_packages(dest_content) + get_packages(from_content)
+    dest_body = get_body(dest_content)
+    from_body = get_body(from_content) + get_concat_command(commands, 'zZ')
+
+    commands = unique(commands)
+    packages = unique(packages)
+    packages = merge_languages(packages)
+
+    result += (get_document_class(dest_content) + '\n\n')
+
+    for package in packages:
+        result += (package + '\n')
+
+    for command in commands:
+        result += (command + '\n')
+
+    result += '\n\\begin{document}'
+    result += dest_body.replace(pattern, from_body)
+    result += '\\end{document}\n'
+
+    result = result.replace('{{', '{ { ').replace('}}', ' } }')
+
+    return result
