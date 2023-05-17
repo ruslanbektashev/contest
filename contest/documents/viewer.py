@@ -243,14 +243,12 @@ def tex_gen(attachment):
                     try:
                         found_course = Course.objects.get(title_official=match_components[0])
                     except Course.DoesNotExist:
-                        # TODO: Add no course exception handling.
-                        pass
+                        return file, 'Неверно введен курс'
 
                     try:
                         found_contest = Contest.objects.get(title=match_components[1], course=found_course)
                     except Contest.DoesNotExist:
-                        # TODO: Add no contest exception handling.
-                        pass
+                        return file, 'Неверно введен раздел'
 
                     if match_components[-1].endswith('.tex'):
                         found_file = None
@@ -267,6 +265,9 @@ def tex_gen(attachment):
                                 if ntpath.basename(attachment.file.name) == match_components[-1]:
                                     found_file = attachment.file.path
                                     break
+                                    
+                        if found_file is None:
+                            return file, 'Задано неверное имя файла в фильтре'
 
                         with open(found_file, 'r', encoding='utf-8') as found_file:
                             found_file_content = found_file.read()
@@ -297,7 +298,7 @@ def tex_gen(attachment):
                 start = file.find('upload') + 7
                 file = file[start:].replace('\\', '/')
 
-    return file
+    return file, None
 
 
 def tex_concat(dest_content, dest_postfix, from_content, from_postfix, match):
