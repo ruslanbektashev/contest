@@ -2,6 +2,7 @@ import re
 import random
 import ntpath
 
+from os.path import join
 from csv import reader
 from io import BytesIO, StringIO
 from re import sub
@@ -234,7 +235,7 @@ def tex_gen(attachment):
         levels = {'Легкая': 0, 'Средняя': 1, 'Сложная': 2, 'Очень сложная': 3}
 
         if len(matches) > 0:
-            file = attachment.dirname + '\\temp_tex_generate.tex'
+            file = join(attachment.dirname, 'tex_gen_temp.tex')
 
             with open(file, 'w', encoding='utf-8') as out_file:
                 for match in matches:
@@ -295,6 +296,7 @@ def tex_gen(attachment):
                         except re.error:
                             file_content = problem_replace(file_content, found_problem, 0)
 
+                file_content = file_content.replace('{{', '{ { ').replace('}}', ' } }')
                 out_file.write(file_content)
                 start = file.find('upload') + 7
                 file = file[start:].replace('\\', '/')
@@ -333,7 +335,5 @@ def tex_concat(dest_content, dest_postfix, from_content, from_postfix, match):
     result += '\n\\begin{document}'
     result += dest_body.replace(pattern, from_body)
     result += '\\end{document}\n'
-
-    result = result.replace('{{', '{ { ').replace('}}', ' } }')
 
     return result
