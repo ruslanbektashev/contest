@@ -6,6 +6,8 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
+from accounts.models import Account, Faculty
+from contests.models import Course, Assignment
 from contest_telegram_bot.constants import (back_emoji, cross_emoji, empty_progress_emoji, filled_progress_emoji,
                                             loudspeaker_emoji)
 from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
@@ -27,7 +29,6 @@ def get_contest_user_by_tg_id(chat_id: int):
 
 
 def get_user_assignments(user: User, course_id: int = None, contest_id: int = None, problem_id: int = None):
-    from contests.models import Assignment
     user_assignment = Assignment.objects.filter(user=user)
     if course_id is None and contest_id is None and problem_id is None:
         return user_assignment
@@ -111,11 +112,9 @@ def get_active_course_users(course_id: int):
     # с такими импортами внутри функций код будет сложнее и сложнее поддерживать
     # т.к. contest_telegram_bot самый последний в INSTALLED_APPS, то все остальные модули уже загружены и их можно импортировать в начале файла
     # а проблему с циклическими импортами можно решить убрав соответствующий импорт из приложения accounts
-    from accounts.models import Account
-    from contests.models import Course
     course = Course.objects.get(pk=course_id)
     # студенты курса получаются через Account.students.apply_common_filters
-    # а id пользователей - students.values_list('user_id')
+    # а id пользователей - students.values_list('user_id') - исправил
     active_course_accounts = Account.students.apply_common_filters(filters={'course': course, 'faculty_id': 0,
                                                                             'group': 0, 'subgroup': 0, 'debts': False})
     active_course_users = active_course_accounts.values_list('user')
@@ -176,7 +175,6 @@ def progress_bar(loaded_chunks: int, total_chunks: int):
 
 
 def get_all_faculties_without_mfk():
-    from accounts.models import Faculty
     return Faculty.objects.exclude(short_name='МФК')
 
 
@@ -185,7 +183,6 @@ def get_all_faculties_without_mfk__ids():
 
 
 def get_all_study_levels():
-    from accounts.models import Account
     return Account.LEVEL_CHOICES
 
 
