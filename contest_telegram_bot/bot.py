@@ -3,7 +3,6 @@ import json
 import mimetypes
 import os
 import sys
-import threading
 from copy import deepcopy
 
 import requests
@@ -54,6 +53,7 @@ from schedule.models import Schedule, ScheduleAttachment, current_week_date_from
 tbot = telebot.TeleBot(settings.BOT_TOKEN)
 telegram_users_msg_files_info = {}
 notification_info = {}
+schedule_is_creating = False
 
 
 def remove_webhook():
@@ -805,12 +805,11 @@ def status_callback(outer_call: types.CallbackQuery):
 
 
 @tbot.channel_post_handler(content_types=['document'],
-                           func=lambda message: message.chat.id in settings.SCHEDULE_CHANNELS_IDS)
+                           func=lambda message: message.chat.id in settings.SCHEDULE_CHANNELS_IDS and not schedule_is_creating)
 def schedule_callback(message: Message):
     if is_schedule_file(filename=message.document.file_name) is not None:
         def create_schedule_files(schedule):
             ScheduleAttachment.objects.filter(schedule=schedule).delete()
-            schedule.save()
             schedule_file = message.document
             schedule_filename = schedule_file.file_name
             create_file_from_bytes(
@@ -868,6 +867,8 @@ def schedule_callback(message: Message):
                                                           f'({new_schedule.date_from} - {new_schedule.date_to})</b>',
                                          tg_users=recipients, notification_obj=new_schedule)
 
+        global schedule_is_creating
+        schedule_is_creating = True
         current_date = timezone.now()
         if 1 <= current_date.isocalendar()[2] <= 4:
             next_week = False
@@ -879,15 +880,9 @@ def schedule_callback(message: Message):
         try:
             new_schedule = Schedule.objects.get(date_from=current_week_date_from(next_week=next_week),
                                                 date_to=current_week_date_to(next_week=next_week))
-            schedule_update_time_passed = (timezone.now() - new_schedule.date_updated).seconds
             action = 'Обновлено'
-            if schedule_update_time_passed <= 40:
-                same_schedule = True
-                threading.Timer(40 - schedule_update_time_passed, create_schedule_files,
-                                [new_schedule]).start()  # зачем здесь новый поток?
-            else:
-                same_schedule = False
-                create_schedule_files(new_schedule)
+            same_schedule = True
+            create_schedule_files(new_schedule)
         except ObjectDoesNotExist:
             new_schedule = Schedule.objects.create(date_created=current_date, date_updated=current_date,
                                                    date_from=current_week_date_from(next_week=next_week),
@@ -896,6 +891,7 @@ def schedule_callback(message: Message):
             same_schedule = False
             action = 'Добавлено'
             create_schedule_files(new_schedule)
+        schedule_is_creating = False
 
 
 @tbot.my_chat_member_handler(func=lambda message: message.new_chat_member.status == 'kicked')
