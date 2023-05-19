@@ -394,11 +394,6 @@ class CommentQuerySet(models.QuerySet):
         return self.update(is_deleted=True)
 
 
-class CommentManager(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset().select_related('author')
-
-
 class Comment(models.Model):
     MAX_LEVEL = 5
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments', verbose_name="Автор")
@@ -419,7 +414,7 @@ class Comment(models.Model):
     date_created = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     date_updated = models.DateTimeField(auto_now=True, verbose_name="Дата изменения")
 
-    objects = CommentManager.from_queryset(CommentQuerySet)()
+    objects = CommentQuerySet.as_manager()
 
     class Meta:
         ordering = ('-thread_id', 'order')
