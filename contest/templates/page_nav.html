@@ -1,5 +1,5 @@
 {% load views %}
-{% if is_paginated %}
+{% if page_obj.has_other_pages %}
 <nav id="pageNav" aria-label="Страницы">
     <ul class="pagination justify-content-center">
         <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">

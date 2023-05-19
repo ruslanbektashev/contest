@@ -1,7 +1,8 @@
 from django.apps import apps
 from django.contrib.auth.mixins import AccessMixin
 from django.contrib.auth.views import redirect_to_login
-from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.core.paginator import InvalidPage, Paginator
+from django.http import Http404
 
 
 class LoginRedirectMixin(AccessMixin):
@@ -33,25 +34,35 @@ class PaginatorMixin:
     page_kwarg = 'page'
     paginate_by = None
 
-    def paginate_queryset(self, queryset, page_size=None):
-        page_size = page_size or self.paginate_by
-        if page_size:
-            paginator = Paginator(queryset, page_size)
+    def get_queryset_for_paginator(self):
+        raise NotImplementedError("PaginatorMixin: get_queryset_for_paginator method must be defined!")
+
+    def get_paginate_by(self, queryset):
+        return self.paginate_by
+
+    def paginate_queryset(self, queryset, page_size, page_number=None):
+        paginator = Paginator(queryset, page_size)
+        if page_number is None:
             page_kwarg = self.page_kwarg
-            page = self.kwargs.get(page_kwarg) or self.request.GET.get(page_kwarg) or 1
-            try:
-                page_obj = paginator.page(page)
-            except PageNotAnInteger:
-                page_obj = paginator.page(1)
-            except EmptyPage:
-                page_obj = paginator.page(paginator.num_pages)
-            return paginator, page_obj, page_obj.object_list, page_obj.has_other_pages()
-        else:
-            return None, None, queryset, False
+            page_number = self.kwargs.get(page_kwarg) or self.request.GET.get(page_kwarg) or 1
+        try:
+            page_number = int(page_number)
+        except ValueError:
+            if page_number == 'last':
+                page_number = paginator.num_pages
+            else:
+                page_number = 1
+        try:
+            return paginator.page(page_number)
+        except InvalidPage:
+            raise Http404("Страница не найдена")
 
     def get_context_data(self, **kwargs):
-        kwargs.update(focus_page=self.page_kwarg in self.request.GET)
-        return super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
+        queryset = self.get_queryset_for_paginator()
+        page_size = self.get_paginate_by(queryset)
+        context['page_obj'] = self.paginate_queryset(queryset, page_size)
+        return context
 
 
 class LogAdditionMixin:

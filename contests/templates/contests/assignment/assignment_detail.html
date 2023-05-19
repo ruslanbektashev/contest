@@ -91,9 +91,9 @@
 {% render_attachment_list assignment assignment.course %}
 </div>
 <div class="col-xs-12 col-md-6 mx-auto">
-    {% if submissions %}
+    {% if page_obj %}
     <h4>Посылки</h4>
-    {% include 'contests/submission/submission_table.html' with from_assignment=True paginator=submission_paginator page_obj=submission_page_obj is_paginated=submission_is_paginated %}
+    {% include 'contests/submission/submission_table.html' with from_assignment=True %}
     {% endif %}
 </div>
 <div class="d-grid mb-3">
@@ -102,7 +102,7 @@
         <i class="fa fa-comments fa-fw"></i> Комментарии{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
     </a>
 </div>
-{% include 'accounts/comment/comment_list.html' with obj=assignment without_form=True paginator=comment_paginator page_obj=comment_page_obj is_paginated=comment_is_paginated %}
+{% include 'accounts/comment/comment_list.html' with obj=assignment page_obj=comment_page_obj without_form=True %}
 {% endblock main_content %}
 
 {% block main_scripts %}

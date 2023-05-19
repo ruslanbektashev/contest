@@ -1,5 +1,5 @@
 {% load views contests static %}
-{% if submissions %}
+{% if page_obj %}
 <div class="table-responsive-lg">
     <table id="p" class="table {% if not borderless %}table-bordered{% endif %} table-sm mt-{% if mt is not None %}{{ mt }}{% else %}0{% endif %}">
         <thead>
@@ -9,9 +9,6 @@
                 {% if perms.contests.view_submission_list or request|has_leader_permission:course %}
                 <th>Студент</th>
                 {% endif %}
-                {% endif %}
-                {% if not assignment and not problem %}
-                <th>Задача</th>
                 {% endif %}
                 <th class="text-center" style="width: 8%;">Статус</th>
             </tr>
@@ -25,9 +22,6 @@
                 {% if perms.contests.view_submission_list or request|has_leader_permission:course %}
                 <td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>
                 {% endif %}
-                {% endif %}
-                {% if not assignment and not problem %}
-                <td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td>
                 {% endif %}
                 <td class="text-center">
                     <a href="{{ submission.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}" class="contest-status contest-status-{{ submission|get_submission_status:request|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ submission|get_submission_status_display:request }}">
