@@ -103,8 +103,8 @@ def notify_specific_tg_users(notification_msg: str, tg_users, notification_obj=N
                           reply_markup=notification_keyboard(obj=notification_obj), parse_mode='HTML')
 
 
-def notify_specific_tg_users_by_contest_users(notification_msg: str, contest_users):
-    tg_users = TelegramUser.objects.filter(contest_user__in=contest_users)
+def notify_specific_tg_users_by_contest_users(notification_msg: str, contest_users_ids):
+    tg_users = TelegramUser.objects.filter(contest_user_id__in=contest_users_ids)
     notify_specific_tg_users(notification_msg=notification_msg, tg_users=tg_users)
 
 

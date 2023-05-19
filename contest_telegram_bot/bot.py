@@ -538,8 +538,7 @@ def send_notify_text(message: Message, notify_msg: Message, notification_initial
             if send_message:
                 notify_specific_tg_users_by_contest_users(
                     notification_msg=f'Оповещение от <b>{get_account_by_tg_id(chat_id=message.chat.id)}</b>\n\n' +
-                                     notify_msg.text,
-                    contest_users=recipients)
+                                     notify_msg.text, contest_users_ids=recipients_ids)
             tbot.delete_message(chat_id=message.chat.id, message_id=sending_msg.id)
 
         notification_creator = notification_info[message.chat.id][notification_initial_msg_id]['creator']
@@ -547,7 +546,8 @@ def send_notify_text(message: Message, notify_msg: Message, notification_initial
         if message.text == send_notification_text:
             if isinstance(notification_for, int):
                 course_id = int(notification_for)
-                _, recipients = get_active_course_users(course_id=course_id)
+                _, recipients_ids = get_active_course_users(course_id=course_id)
+                recipients_ids = recipients_ids.values_list('user_id')
             else:
                 # зачем здесь модераторы и преподаватели?
                 moderators = Account.objects.filter(type=2,
@@ -555,7 +555,7 @@ def send_notify_text(message: Message, notify_msg: Message, notification_initial
                     user=creator_user)
                 staff = Account.objects.filter(type=3, faculty_id__in=notification_for['staff']['faculties'])
                 students = Account.objects.filter(
-                    type=-1)  # типа -1 не существует, если нужен пустой QuerySet, то есть Account.students.none()
+                    type=-1)  # типа -1 не существует, если нужен пустой QuerySet, то есть Account.students.none() - объяснил
                 students_faculties_info = notification_for['stu']['faculties']
                 for students_faculty_id in students_faculties_info.keys():
                     # студенты получаются не так, см. AccountUpdateSet.get_queryset - исправлено
@@ -564,8 +564,8 @@ def send_notify_text(message: Message, notify_msg: Message, notification_initial
                                                                       students_faculties_info[students_faculty_id][
                                                                           'levels']
                                                                       ))
-                recipients = students.union(moderators, staff).values_list('user')
-                # подозреваю, что тут не нужны объекты пользователей, а только их user_id
+                recipients_ids = students.union(moderators, staff).values_list('user_id')
+                # подозреваю, что тут не нужны объекты пользователей, а только их user_id - исправил
 
             send_message_with_status(status_msg='Отправка сообщения...')
             tbot.send_message(chat_id=message.chat.id, text='Сообщение успешно отправлено.')
