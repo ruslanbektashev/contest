@@ -626,7 +626,7 @@ class NotificationManager(models.Manager):
             new_notifications.append(notification)
 
             from contest_telegram_bot.utils import notify_tg_users
-            notify_tg_users(notification)
+            notify_tg_users(notification)  # вынесите эту функцию из цикла
         self.bulk_create(new_notifications)
 
 

@@ -671,7 +671,7 @@ def submission_files_control(message: Message):
                                     message_id=progress_message.id)
                 tbot.delete_message(chat_id=message.chat.id, message_id=progress_message.id)
 
-                cur_file = open(cur_submission_attachment_filename, 'rb')  # файл не закрывается
+                cur_file = open(cur_submission_attachment_filename, 'rb')
                 content_type, charset = mimetypes.guess_type(cur_submission_attachment_filename)
                 files.append(InMemoryUploadedFile(file=cur_file, field_name='FileField',
                                                   name=cur_submission_attachment_filename, content_type=content_type,
@@ -769,7 +769,6 @@ def submission_file_handler(message: Message):
         if len(messages_with_files) < max_files_count:
             messages_with_files.append(message)
             if len(messages_with_files) < max_files_count:
-                # pycharm warning'и иногда стоит исправлять, проверьте все свои файлы - исправил
                 msg_text = f'Вы можете продолжить присылать {msg_filetype_word_plural}.\n' \
                            f'Ещё можно отправить <b>{max_files_count - len(messages_with_files)} файлов.</b>'
         if len(messages_with_files) >= max_files_count:
@@ -792,7 +791,6 @@ def status_callback(outer_call: types.CallbackQuery):
         submission_status_text = all_submission_statuses[submission_status_code]
         tbot.answer_callback_query(callback_query_id=call.id,
                                    text=submission_status_text,
-                                   # исправил - теперь студент увидит "Посылка не проверена", если дедлайн не прошел
                                    show_alert=True)
 
     unauth_callback_inline_keyboard(outer_call=outer_call, callback_for_authorized=callback_for_authorized)
@@ -823,9 +821,7 @@ def schedule_callback(message: Message):
                     cur_xls.save(cur_sheet_filename)
                     cur_xls.close()
                     with open(cur_sheet_filename, 'rb') as current_course_sch:
-                        # если все прикрепления были удалены ранее, то зачем тут update_or_create? - исправил
-                        ScheduleAttachment.objects.create(schedule=schedule, name=sheet,
-                                                          file=File(current_course_sch))
+                        ScheduleAttachment.objects.create(schedule=schedule, name=sheet, file=File(current_course_sch))
                     os.remove(cur_sheet_filename)
             else:
                 tmp_pdf_file = open(schedule_filename, 'rb')
@@ -843,7 +839,6 @@ def schedule_callback(message: Message):
                             output.write(outputStream)
 
                         with open(current_course_filename, 'rb') as current_course_sch:
-                            # если все прикрепления были удалены ранее, то зачем тут update_or_create? - исправил
                             ScheduleAttachment.objects.create(schedule=schedule, name=current_course_name,
                                                               file=File(current_course_sch))
                         os.remove(current_course_filename)

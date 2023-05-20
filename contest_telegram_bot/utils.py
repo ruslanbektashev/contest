@@ -7,10 +7,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
 from accounts.models import Account, Faculty
-from contests.models import Course, Assignment
 from contest_telegram_bot.constants import (back_emoji, cross_emoji, empty_progress_emoji, filled_progress_emoji,
                                             loudspeaker_emoji)
 from contest_telegram_bot.models import TelegramUser, TelegramUserSettings
+from contests.models import Course
 
 
 def get_telegram_user(chat_id: int):
@@ -29,15 +29,15 @@ def get_contest_user_by_tg_id(chat_id: int):
 
 
 def get_user_assignments(user: User, course_id: int = None, contest_id: int = None, problem_id: int = None):
-    user_assignment = Assignment.objects.filter(user=user)
+    user_assignments = user.assignment_set.all()
     if course_id is None and contest_id is None and problem_id is None:
-        return user_assignment
+        return user_assignments
     if problem_id is not None:
-        return user_assignment.get(problem_id=problem_id)
+        return user_assignments.get(problem_id=problem_id)
     if course_id is not None:
-        return user_assignment.filter(problem__contest__course_id=course_id)
+        return user_assignments.filter(problem__contest__course_id=course_id)
     if contest_id is not None:
-        return user_assignment.filter(problem__contest_id=contest_id)
+        return user_assignments.filter(problem__contest_id=contest_id)
 
 
 def get_user_submission_set_of_problem(user: User, problem_id: int):
@@ -51,8 +51,7 @@ def check_submission_limit_excess(user: User, problem_id: int):
 
 def problem_deadline_expired(contest_user: User, problem_id: int):
     user_problem_assignment = get_user_assignments(user=contest_user, problem_id=problem_id)
-    return (user_problem_assignment.deadline is None) or \
-           (user_problem_assignment.deadline is not None and user_problem_assignment.deadline < timezone.now())
+    return user_problem_assignment.deadline is None or user_problem_assignment.deadline < timezone.now()
 
 
 def notify_tg_users(notification):
@@ -95,6 +94,7 @@ def notify_specific_tg_users(notification_msg: str, tg_users, notification_obj=N
     from contest_telegram_bot.bot import tbot
     from contest_telegram_bot.keyboards import notification_keyboard
     for tg_user in tg_users:
+        # здесь нужно не обращаться каждый раз к БД, а получить все настройки заранее
         notification_setting_item = getattr(TelegramUserSettings.objects.get(contest_user=tg_user.contest_user),
                                             notification_obj_type, None)
         if (notification_setting_item is None) or (not notification_setting_item):
@@ -109,14 +109,9 @@ def notify_specific_tg_users_by_contest_users(notification_msg: str, contest_use
 
 
 def get_active_course_users(course_id: int):
-    # с такими импортами внутри функций код будет сложнее и сложнее поддерживать
-    # т.к. contest_telegram_bot самый последний в INSTALLED_APPS, то все остальные модули уже загружены и их можно импортировать в начале файла
-    # а проблему с циклическими импортами можно решить убрав соответствующий импорт из приложения accounts
     course = Course.objects.get(pk=course_id)
-    # студенты курса получаются через Account.students.apply_common_filters
-    # а id пользователей - students.values_list('user_id') - исправил
-    active_course_accounts = Account.students.apply_common_filters(filters={'course': course, 'faculty_id': 0,
-                                                                            'group': 0, 'subgroup': 0, 'debts': False})
+    active_course_accounts = Account.students.apply_common_filters({'course': course, 'faculty_id': 0, 'group': 0,
+                                                                    'subgroup': 0, 'debts': False})
     active_course_users = active_course_accounts.values_list('user')
     return active_course_accounts, active_course_users
 
@@ -124,7 +119,6 @@ def get_active_course_users(course_id: int):
 def get_account_by_tg_id(chat_id: int):
     try:
         return TelegramUser.objects.get(chat_id=chat_id).contest_user.account
-        # здесь не нужна модель Account, аккаунт можно получить через инстанцию User - tg_user.contest_user.account - исправил
     except ObjectDoesNotExist:
         return None
 
@@ -155,7 +149,7 @@ def tg_authorisation_wrapper(
         authorized_fun(**unauth_fun_args)
 
 
-def all_content_types_with_exclude(exclude: list = None):  # такая ошибка уже была - исправил
+def all_content_types_with_exclude(exclude: list = None):
     if exclude is None:
         exclude = []
     all_content_types = ['text', 'audio', 'document', 'photo', 'sticker', 'video', 'video_note', 'voice', 'location',
