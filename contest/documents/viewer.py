@@ -1,10 +1,9 @@
-import re
+import ntpath  # на сервере пути будут не в формате NT
 import random
-import ntpath
-
-from os.path import join
+import re
 from csv import reader
 from io import BytesIO, StringIO
+from os.path import join
 from re import sub
 from tempfile import TemporaryFile
 
@@ -17,18 +16,18 @@ try:
 except ImportError:
     aspose_words = None
 
+from django.contrib.contenttypes.models import ContentType
 from mammoth import convert_to_html
 from openpyxl import Workbook, load_workbook
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import CppLexer
+from pylatexenc.latexwalker import LatexMacroNode, LatexWalker
 from xls2xlsx import XLS2XLSX
 from xlsx2html import xlsx2html
-from pylatexenc.latexwalker import LatexWalker, LatexMacroNode
 
 from contest.documents import replaces
-from contests.models import (Contest, Course, Problem, Attachment)
-from django.contrib.contenttypes.models import ContentType
+from contests.models import Attachment, Contest, Course, Problem
 
 
 def remove_ppt_watermarks(content):
@@ -111,7 +110,7 @@ def to_html(attachment):
 
 
 def unique(str_list):
-    return list(dict.fromkeys(str_list))
+    return list(dict.fromkeys(str_list))  # можно ведь проще: list(set(str_list))
 
 
 def get_document_class(content):
@@ -232,31 +231,31 @@ def tex_gen(attachment):
         file_content = in_file.read()
         pattern = r'#!(.*?)!#'
         matches = re.findall(pattern, file_content)
-        levels = {'Легкая': 0, 'Средняя': 1, 'Сложная': 2, 'Очень сложная': 3}
+        levels = {'Легкая': 0, 'Средняя': 1, 'Сложная': 2, 'Очень сложная': 3}  # если это сложность задачи в Контесте, то лучше использовать Problem.DIFFICULTY_CHOICES, преобразовав в такой же словарь
 
         if len(matches) > 0:
-            file = join(attachment.dirname, 'tex_gen_temp.tex')
+            file = join(attachment.dirname, 'tex_gen_temp.tex')  # этот файл ведь после отображения пользователю уже не нужен? если да, тогда лучше его сделать временным
 
             with open(file, 'w', encoding='utf-8') as out_file:
                 for match in matches:
-                    error = 'Возникла проблема при распознавании фильтра: %s Проверьте его и попробуйте снова.'
+                    error = "Возникла проблема при распознавании фильтра: %s Проверьте его и попробуйте снова."
                     match_components = match.split('/')
 
                     try:
                         found_course = Course.objects.get(title_official=match_components[0])
                     except Course.DoesNotExist:
-                        return file, error.format('Неверно задан курс.')
+                        return file, error.format("Неверно задан курс.")
 
                     try:
                         found_contest = Contest.objects.get(title=match_components[1], course=found_course)
                     except Contest.DoesNotExist:
-                        return file, error.format('Неверно задан раздел.')
+                        return file, error.format("Неверно задан раздел.")
 
                     if match_components[-1].endswith('.tex'):
                         found_file = None
 
                         if len(match_components) == 3:
-                            for attachment in Attachment.objects.filter(object_type=ContentType.objects.get(model='contest'), object_id=found_contest.id):
+                            for attachment in Attachment.objects.filter(object_type=ContentType.objects.get(model='contest'), object_id=found_contest.id):  # у раздела и задачи есть .attachment_set.all()
                                 if ntpath.basename(attachment.file.name) == match_components[-1]:
                                     found_file = attachment.file.path
                                     break
@@ -269,7 +268,7 @@ def tex_gen(attachment):
                                     break
                                     
                         if found_file is None:
-                            return file, error.format('Неверно задано имя файла.')
+                            return file, error.format("Неверно задано имя файла.")
 
                         with open(found_file, 'r', encoding='utf-8') as found_file:
                             found_file_content = found_file.read()
@@ -278,11 +277,11 @@ def tex_gen(attachment):
                     elif match_components[-1] in levels:
                         # found_course = Course.objects.get(title_official=match[0])
                         # found_contest = Contest.objects.get(title=match[1], course=found_course)
-                        found_problem = Problem.objects.filter(difficulty=levels[f'{match_components[2]}'], contest=found_contest)
+                        found_problem = Problem.objects.filter(difficulty=levels[f'{match_components[2]}'], contest=found_contest)  # тут тоже можно использовать обратную реляцию found_contest.problem_set.filter(...)
                         random_problem = random.randint(0, len(found_problem) - 1)
 
                         try:
-                            file_content = re.sub(pattern, found_problem[random_problem].description, file_content, count=1)
+                            file_content = re.sub(pattern, found_problem[random_problem].description, file_content, count=1)  # а что будет, если в поле description есть html-тэги?
                         except re.error:
                             file_content = problem_replace(file_content, found_problem, random_problem)
 

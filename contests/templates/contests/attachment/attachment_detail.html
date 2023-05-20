@@ -63,7 +63,11 @@
 </div>
 {% else %}
 <div class="alert alert-info border text-center mt-2">
+    {% if error %}
+    {{ error }}
+    {% else %}
     Невозможно отобразить файл. Вы можете <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}">загрузить</a> его и воспользоваться локальным средством просмотра.
+    {% endif %}
 </div>
 {% endif %}
 {% endblock main_content %}
