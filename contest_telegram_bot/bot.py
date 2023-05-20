@@ -547,25 +547,19 @@ def send_notify_text(message: Message, notify_msg: Message, notification_initial
             if isinstance(notification_for, int):
                 course_id = int(notification_for)
                 _, recipients_ids = get_active_course_users(course_id=course_id)
-                recipients_ids = recipients_ids.values_list('user_id')
+                recipients_ids = list(recipients_ids.values_list('user_id', flat=True))
             else:
-                # зачем здесь модераторы и преподаватели?
-                moderators = Account.objects.filter(type=2,
-                                                    faculty_id__in=notification_for['moders']['faculties']).exclude(
-                    user=creator_user)
-                staff = Account.objects.filter(type=3, faculty_id__in=notification_for['staff']['faculties'])
-                students = Account.objects.filter(
-                    type=-1)  # типа -1 не существует, если нужен пустой QuerySet, то есть Account.students.none() - объяснил
+                recipients_ids = []
+                moderators = (Account.objects.filter(type=2, faculty_id__in=notification_for['moders']['faculties'])
+                              .exclude(user=creator_user))
+                recipients_ids.extend(list(moderators.values_list('user_id', flat=True)))
+                instructors = Account.objects.filter(type=3, faculty_id__in=notification_for['staff']['faculties'])
+                recipients_ids.extend(list(instructors.values_list('user_id', flat=True)))
                 students_faculties_info = notification_for['stu']['faculties']
                 for students_faculty_id in students_faculties_info.keys():
-                    # студенты получаются не так, см. AccountUpdateSet.get_queryset - исправлено
-                    students = students.union(Account.students.filter(faculty_id=students_faculty_id,
-                                                                      level__in=
-                                                                      students_faculties_info[students_faculty_id][
-                                                                          'levels']
-                                                                      ))
-                recipients_ids = students.union(moderators, staff).values_list('user_id')
-                # подозреваю, что тут не нужны объекты пользователей, а только их user_id - исправил
+                    students = Account.students.filter(faculty_id=students_faculty_id,
+                                                       level__in=students_faculties_info[students_faculty_id]['levels'])
+                    recipients_ids.extend(list(students.values_list('user_id', flat=True)))
 
             send_message_with_status(status_msg='Отправка сообщения...')
             tbot.send_message(chat_id=message.chat.id, text='Сообщение успешно отправлено.')
