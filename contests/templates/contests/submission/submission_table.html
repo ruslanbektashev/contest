@@ -1,5 +1,5 @@
-{% load views contests %}
-{% if submissions %}
+{% load views contests static %}
+{% if page_obj %}
 <div class="table-responsive-lg">
     <table id="p" class="table {% if not borderless %}table-bordered{% endif %} table-sm mt-{% if mt is not None %}{{ mt }}{% else %}0{% endif %}">
         <thead>
@@ -10,13 +10,10 @@
                 <th>Студент</th>
                 {% endif %}
                 {% endif %}
-                {% if not assignment and not problem %}
-                <th>Задача</th>
-                {% endif %}
                 <th class="text-center" style="width: 8%;">Статус</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="submissionTableBody">
             {% now 'Y' as current_year %}
             {% for submission in page_obj %}
             <tr class="{% if assignment and submission.date_created > assignment.date_updated %}bg-light{% endif %}">
@@ -25,9 +22,6 @@
                 {% if perms.contests.view_submission_list or request|has_leader_permission:course %}
                 <td><a href="{{ submission.owner.account.get_absolute_url }}">{{ submission.owner.account }}</a></td>
                 {% endif %}
-                {% endif %}
-                {% if not assignment and not problem %}
-                <td><a href="{{ submission.problem.get_absolute_url }}">{{ submission.problem }}</a></td>
                 {% endif %}
                 <td class="text-center">
                     <a href="{{ submission.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}" class="contest-status contest-status-{{ submission|get_submission_status:request|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ submission|get_submission_status_display:request }}">
@@ -40,6 +34,13 @@
     </table>
 </div>
 {% render_page_nav %}
+<script src="{% static 'contest/js/page-navigator.js' %}"></script>
+<script>
+const pager = new PageNavigator({
+    pageElement: '#submissionTableBody',
+    navElement: '#pageNav'
+});
+</script>
 {% else %}
 <div class="alert alert-info mb-0">Посылок нет</div>
 {% endif %}

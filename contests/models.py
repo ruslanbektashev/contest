@@ -4,7 +4,6 @@ import json
 import os
 import random
 import zipfile
-from statistics import mean
 
 import docx
 from django.contrib.auth.models import User
@@ -505,7 +504,9 @@ class Problem(SoftDeletionModel, CRUDEntry):
     launch_args = models.CharField(max_length=255, blank=True, verbose_name="Параметры запуска")
     time_limit = models.PositiveSmallIntegerField(default=DEFAULT_TIME_LIMIT, verbose_name="Ограничение по времени")
     memory_limit = models.PositiveIntegerField(default=DEFAULT_MEMORY_LIMIT, verbose_name="Ограничение по памяти")
-    is_testable = models.BooleanField(default=True, verbose_name="Разрешить автоматическую проверку решений")
+    is_testable = models.BooleanField(default=True, verbose_name="Проверять автоматически",
+                                      help_text="Разрешить системе автоматически проверять посылки и обновлять оценку "
+                                                "задания")
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
@@ -878,16 +879,13 @@ class Assignment(CRUDEntry):
                                              verbose_name="Оценка")
     score_max = models.PositiveSmallIntegerField(default=DEFAULT_SCORE_MAX,
                                                  validators=[MinValueValidator(3), MaxValueValidator(5)],
-                                                 verbose_name="Максимальная оценка",
-                                                 help_text="при прохождении посылкой всех тестов, система "
-                                                           "автоматической проверки ставит максимальную оценку минус "
-                                                           "один")
+                                                 verbose_name="Максимальная оценка")
     score_is_locked = models.BooleanField(default=False, verbose_name="Заблокировать оценку",
-                                          help_text="заблокированная оценка не может быть изменена системой "
-                                                    "автоматической проверки")
+                                          help_text="Заблокированная оценка не может быть изменена системой "
+                                                    "автоматической проверки посылок")
     submission_limit = models.PositiveSmallIntegerField(default=DEFAULT_SUBMISSION_LIMIT,
                                                         verbose_name="Ограничение количества посылок")
-    remark = models.CharField(max_length=255, blank=True, verbose_name="Пометка", help_text="для преподавателей")
+    remark = models.CharField(max_length=255, blank=True, verbose_name="Пометка", help_text="Для преподавателей")
     deadline = models.DateTimeField(null=True, blank=True, verbose_name="Принимать посылки до")
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')

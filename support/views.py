@@ -172,12 +172,8 @@ class DiscussionDetail(LoginRedirectMixin, PermissionRequiredMixin, PaginatorMix
     template_name = 'support/discussion/discussion_detail.html'
     permission_required = 'support.view_discussion'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        comments = self.object.comment_set.actual()
-        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
-            self.paginate_queryset(comments)
-        return context
+    def get_queryset_for_paginator(self):
+        return self.object.comment_set.actual().select_related('author', 'author__account')
 
 
 """===================================================== Change ====================================================="""

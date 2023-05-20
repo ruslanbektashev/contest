@@ -8,8 +8,9 @@
 </div>
 {% endif %}
 <div class="contest-comment-list" id="comments">
-    {% for comment in comments %}
-    <div class="contest-comment-list-item d-flex contest-comment-offset-{{ comment.level|add:'-1' }} p-1 mb-3 rounded {% if comment not in request.user.account.comments_read.all and comment.author_id != request.user.id %}bg-light" data-unread=true{% else %}"{% endif %} data-id="{{ comment.id }}">
+    {% with request.user.account.comments_read.all as comments_read %}
+    {% for comment in page_obj %}
+    <div class="contest-comment-list-item d-flex contest-comment-offset-{{ comment.level|add:'-1' }} p-1 mb-3 rounded {% if comment not in comments_read and comment.author_id != request.user.id %}bg-light" data-unread=true{% else %}"{% endif %} data-id="{{ comment.id }}">
         <a id="comment_{{ comment.id }}" class="contest-comment-anchor">&nbsp</a>
         <div class="contest-comment-avatar me-3">
             {% include 'accounts/account/account_image.html' with last_name=comment.author.account.last_name first_name=comment.author.account.first_name size=40 rounded=True %}
@@ -24,7 +25,7 @@
                 <div class="text-muted">∙</div>
                 <div class="text-muted text-nowrap ms-2">
                     <small data-bs-toggle="tooltip" data-bs-placement="top" title="{{ comment.date_created|date:'d E Y г. в H:i' }}">
-                        <a class="text-muted" href="{{ comment.object.get_discussion_url }}{% get_comment_query_string page_obj.number %}#comment_{{ comment.id }}">{{ comment.date_created|naturaltime }}</a>
+                        <a class="text-muted" href="{{ obj.get_discussion_url }}{% get_comment_query_string page_obj.number %}#comment_{{ comment.id }}">{{ comment.date_created|naturaltime }}</a>
                     </small>
                 </div>
             </div>
@@ -51,14 +52,13 @@
     {% empty %}
     <div class="alert alert-light text-center">Комментариев ещё нет</div>
     {% endfor %}
+    {% endwith %}
 </div>
 {% if page_obj.has_next %}
 <div class="d-grid">
     <a class="contest-comment-list-more btn btn-link" href="?page={{ page_obj.next_page_number }}">еще</a>
 </div>
 {% endif %}
-
-{% block javascript %}
 {% if page_obj.has_next %}
 <script src="{% static 'infinite-scroll/infinite-scroll.min.js' %}"></script>
 <script>
@@ -84,4 +84,3 @@ function pollCommentsReadWatcher() {
 addEventListener('scroll', comments_read_watcher);
 setInterval(pollCommentsReadWatcher, 1000);
 </script>
-{% endblock %}

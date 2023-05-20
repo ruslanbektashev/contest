@@ -14,7 +14,7 @@
                     </a>
                 </span>
                 {% endif %}
-                <span class="text-muted ms-auto" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ sub_form.instance.problem.get_type_display }}"><i class="fa {% get_problem_icon sub_form.instance.problem %} fa-fw fa-lg"></i></span>
+                <span class="text-muted ms-auto me-2" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ sub_form.instance.problem.get_type_display }}"><i class="fa {% get_problem_icon sub_form.instance.problem %} fa-fw fa-lg"></i></span>
                 {% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
                 {% if not sub_form.instance.problem.is_testable %}
                 <form class="d-flex align-items-center gap-3" id="submission-update-form-{{ forloop.counter0 }}" action="{% url 'contests:api-submission-update' sub_form.instance.id %}" method="POST" data-sub-submission-id="{{ sub_form.instance.id }}" style="min-width: 0;">
