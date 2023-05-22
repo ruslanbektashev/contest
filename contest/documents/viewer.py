@@ -296,7 +296,7 @@ def tex_gen(attachment):
                         except re.error:
                             file_content = problem_replace(file_content, found_problem, 0)
 
-                file_content = file_content.replace('{{', '{ { ').replace('}}', ' } }')
+                file_content = file_content.replace('{{', '{ {').replace('}}', '} }')
                 out_file.write(file_content)
                 start = file.find('upload') + 7
                 file = file[start:].replace('\\', '/')
