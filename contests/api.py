@@ -1,13 +1,15 @@
 from django.core.exceptions import ImproperlyConfigured
 from django.http import JsonResponse
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import UpdateAPIView
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.serializers import ModelSerializer
 from rest_framework.views import APIView
 
 from accounts.models import Notification
-from contests.models import Submission
+from contests.forms import SubmissionFilesForm, SubmissionVerbalForm
+from contests.models import Assignment, Problem, Submission
 from contests.results import TaskProgress
 from contests.tasks import evaluate_submission
 from contests.templatetags.contests import colorize
@@ -41,9 +43,47 @@ class IsCourseLeader(BasePermission):
         return view.has_leadership()
 
 
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    def enforce_csrf(self, request):
+        return None
+
+
+class SubmissionCreateAPI(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated, DjangoPermission]
+    permission_required = 'contests.add_submission'
+
+    def post(self, request, *args, **kwargs):
+        try:
+            problem = Problem.objects.get(id=kwargs.pop('problem_id'))
+        except Problem.DoesNotExist:
+            return JsonResponse({'status': "Задача не найдена"}, status=404)
+        try:
+            assignment = Assignment.objects.get(user=request.user, problem=problem)
+        except Assignment.DoesNotExist:
+            assignment = None
+        if problem.type == 'Verbal':
+            form_class = SubmissionVerbalForm
+        elif problem.type == 'Files':
+            form_class = SubmissionFilesForm
+        else:
+            return JsonResponse({'status': "Создать посылку через телеграм-бота можно только для задач типа Устный "
+                                           "ответ и Файлы"}, status=400)
+        form = form_class(data=request.POST, files=request._request.FILES, owner=request.user, problem=problem,
+                          assignment=assignment)
+        if form.is_valid():
+            form.instance.owner = request.user
+            form.instance.problem = problem
+            form.instance.assignment = assignment
+            form.save()
+            return JsonResponse({'status': "OK"})
+        else:
+            return JsonResponse({'status': "Ошибка валидации", 'errors': form.errors.get_json_data()})
+
+
 class SubmissionEvaluateAPI(APIView):
+    permission_classes = [IsAuthenticated, DjangoPermission | IsObjectOwner | IsCourseLeader]
     permission_required = 'contests.evaluate_submission'
-    permission_classes = [DjangoPermission | IsObjectOwner | IsCourseLeader]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -78,8 +118,8 @@ class SubmissionEvaluateAPI(APIView):
 
 
 class SubmissionProgressAPI(APIView):
+    permission_classes = [IsAuthenticated, DjangoPermission | IsObjectOwner | IsCourseLeader]
     permission_required = 'contests.evaluate_submission'
-    permission_classes = [DjangoPermission | IsObjectOwner | IsCourseLeader]
 
     def has_ownership(self):
         if not hasattr(self, 'object'):
@@ -127,8 +167,8 @@ class SubmissionUpdateSerializer(ModelSerializer):
 class SubmissionUpdateAPI(UpdateAPIView):
     queryset = Submission.objects.all()
     serializer_class = SubmissionUpdateSerializer
+    permission_classes = [IsAuthenticated, DjangoPermission | IsObjectOwner | IsCourseLeader]
     permission_required = 'contests.change_submission'
-    permission_classes = [DjangoPermission | IsObjectOwner | IsCourseLeader]
 
     def has_ownership(self):
         if not hasattr(self, 'object'):

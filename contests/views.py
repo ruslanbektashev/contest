@@ -10,9 +10,10 @@ from django.views.generic import (CreateView, DeleteView, DetailView, FormView, 
                                   UpdateView, View)
 from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from django.views.generic.list import BaseListView
+from django_tex.core import compile_template_to_pdf
 
 from accounts.models import Account, Action, Announcement, Faculty, Notification
-from contest.documents.viewer import to_html, tex_gen
+from contest.documents.viewer import tex_gen, to_html
 from contest.mixins import (LeadershipOrMixin, LogAdditionMixin, LogChangeMixin, LogDeletionMixin, LoginRedirectMixin,
                             OwnershipOrMixin, PaginatorMixin)
 from contest.soft_deletion import SoftDeletionDeleteView, SoftDeletionUpdateView
@@ -29,7 +30,6 @@ from contests.models import (Assignment, Attachment, Attendance, Contest, Course
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.views import get_query_string, has_leader_permission
 from schedule.models import Schedule
-from django_tex.core import compile_template_to_pdf
 
 
 def get_students_filter_dict(course, request):
@@ -59,22 +59,23 @@ class AttachmentDetail(DetailView):
             attachment = self.object.attachment_set.get(id=kwargs.get('attachment_id'))
         except Attachment.DoesNotExist:
             raise Http404("Attachment with id = %s does not exist." % kwargs.get('attachment_id'))
-        if attachment.extension() in '.tex':
+        attachment_ext = attachment.extension()
+        if attachment_ext == '.tex':
             file, error = tex_gen(attachment)
             if error is None:
                 try:
                     pdf = compile_template_to_pdf(file, '')
                     response = HttpResponse(content_type="application/pdf")
-                    response["Content-Disposition"] = 'filename="{}"'.format(attachment.filename)
+                    response['Content-Disposition'] = 'filename="{}"'.format(attachment.filename)
                     response.write(pdf)
                     return response
                 except:
-                    error = 'Возникла проблема при компиляции файла. Проверьте его на ошибки и попробуйте снова.'
+                    error = "Возникла проблема при компиляции файла. Проверьте его на ошибки и попробуйте снова."
             context = super().get_context_data(**kwargs)
-            context['code'] = error
+            context['error'] = error
             return self.render_to_response(context)
-        if attachment.extension() not in ('.h', '.hpp', '.c', '.cpp', '.ppt', '.pptx', '.xls', '.xlsx', '.doc', '.docx',
-                                          '.csv', '.tex'):
+        if attachment_ext not in ('.h', '.hpp', '.c', '.cpp', '.ppt', '.pptx', '.xls', '.xlsx', '.doc', '.docx', '.csv',
+                                  '.tex'):
             return HttpResponseRedirect(attachment.file.url)
         context = self.get_context_data(object=self.object, attachment=attachment)
         return self.render_to_response(context)
@@ -138,12 +139,8 @@ class CourseDiscussion(LoginRedirectMixin, PaginatorMixin, DetailView):
     template_name = 'contests/course/course_discussion.html'
     paginate_by = 30
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        comments = self.object.comment_set.actual()
-        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
-            self.paginate_queryset(comments)
-        return context
+    def get_queryset_for_paginator(self):
+        return self.object.comment_set.actual().select_related('author', 'author__account')
 
 
 class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, LogAdditionMixin, CreateView):
@@ -337,7 +334,7 @@ class CreditReport(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
                 form.cleaned_data['discipline'], form.cleaned_data['semester'], form.cleaned_data['date']
             )
             response = HttpResponse(report_file, content_type='application/vnd.openxmlformats-officedocument')
-            response['Content-Disposition'] = 'attachment; filename={}.docx'.format(filename)
+            response['Content-Disposition'] = 'attachment; filename="{}.docx"'.format(filename)
             return response
         return self.form_invalid(form)
 
@@ -716,12 +713,8 @@ class ContestDiscussion(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin,
     def test_func(self):
         return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        comments = self.object.comment_set.actual()
-        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
-            self.paginate_queryset(comments)
-        return context
+    def get_queryset_for_paginator(self):
+        return self.object.comment_set.actual().select_related('author', 'author__account')
 
 
 class ContestAttachment(LoginRedirectMixin, UserPassesTestMixin, AttachmentDetail):
@@ -854,12 +847,7 @@ class ProblemDetail(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin, Det
     def test_func(self):
         return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        try:
-            context['assignment'] = Assignment.objects.get(user=self.request.user, problem=self.object)
-        except Assignment.DoesNotExist:
-            context['assignment'] = None
+    def get_queryset_for_paginator(self):
         if self.request.user.has_perm('contests.view_submission_list') or has_leader_permission(self.request,
                                                                                                 self.object.course):
             submissions = self.object.submission_set.all()
@@ -867,8 +855,14 @@ class ProblemDetail(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin, Det
                 submissions = submissions.filter(owner__account__faculty=self.request.user.account.faculty)
         else:
             submissions = self.object.submission_set.filter(owner_id=self.request.user.id)
-        context['paginator'], context['page_obj'], context['submissions'], context['is_paginated'] = \
-            self.paginate_queryset(submissions)
+        return submissions
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            context['assignment'] = Assignment.objects.get(user=self.request.user, problem=self.object)
+        except Assignment.DoesNotExist:
+            context['assignment'] = None
         if self.object.type == 'Test':
             context['subproblems'] = SubProblem.objects.filter(problem=self.object).select_related('sub_problem')
         return context
@@ -882,12 +876,8 @@ class ProblemDiscussion(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin,
     def test_func(self):
         return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        comments = self.object.comment_set.actual()
-        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
-            self.paginate_queryset(comments)
-        return context
+    def get_queryset_for_paginator(self):
+        return self.object.comment_set.actual().select_related('author', 'author__account')
 
 
 class ProblemAttachment(LoginRedirectMixin, UserPassesTestMixin, AttachmentDetail):
@@ -1611,14 +1601,13 @@ class AssignmentDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
             self.object = self.get_object()
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
+    def get_queryset_for_paginator(self):
+        return self.object.submission_set.all()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        submissions = self.object.submission_set.all()
-        context['submission_paginator'], context['submission_page_obj'], context['submissions'], context[
-            'submission_is_paginated'] = self.paginate_queryset(submissions)
-        comments = self.object.comment_set.actual()
-        context['comment_paginator'], context['comment_page_obj'], context['comments'], context[
-            'comment_is_paginated'] = self.paginate_queryset(comments)
+        comments = self.object.comment_set.actual()[:10]
+        context['comment_page_obj'] = self.paginate_queryset(comments, 30, page_number=1)
         context['current_time'] = timezone.now()
         return context
 
@@ -1640,12 +1629,8 @@ class AssignmentDiscussion(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMix
             self.object = self.get_object()
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        comments = self.object.comment_set.actual()
-        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
-            self.paginate_queryset(comments)
-        return context
+    def get_queryset_for_paginator(self):
+        return self.object.comment_set.actual().select_related('author', 'author__account')
 
 
 class AssignmentAttachment(LoginRedirectMixin, AttachmentDetail):
@@ -1979,11 +1964,11 @@ class SubmissionDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
 
+    def get_queryset_for_paginator(self):
+        return self.object.comment_set.actual().select_related('author', 'author__account')
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        comments = self.object.comment_set.actual()
-        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
-            self.paginate_queryset(comments)
         context['current_time'] = timezone.now()
         context['from_assignment'] = 'from_assignment' in self.request.GET
         if 'forms' in self.storage:
@@ -2019,7 +2004,7 @@ class SubmissionDownload(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin
         except FileNotFoundError:
             raise Http404("Cannot create zip file: some files are missing")
         response = HttpResponse(zip_file, content_type='application/zip')
-        response['Content-Disposition'] = 'attachment; filename={}.zip'.format(self.object.pk)
+        response['Content-Disposition'] = 'attachment; filename="{}.zip"'.format(self.object.pk)
         return response
 
 
@@ -2350,7 +2335,7 @@ class SubmissionBackup(LoginRedirectMixin, PermissionRequiredMixin, BaseListView
         self.object_list = self.get_queryset()
         course_id = self.kwargs.get('course_id', None)
         response = HttpResponse(Submission.objects.backup(self.object_list), content_type='application/zip')
-        response['Content-Disposition'] = 'attachment; filename={}.zip'.format(course_id)
+        response['Content-Disposition'] = 'attachment; filename="{}.zip"'.format(course_id)
         return response
 
     def get_queryset(self):

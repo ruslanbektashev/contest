@@ -18,7 +18,7 @@ from accounts.forms import (AccountListForm, AccountPartialForm, AccountSetForm,
                             StaffForm, StudentForm)
 from accounts.models import Account, Action, Announcement, Comment, Faculty, Notification
 from accounts.templatetags.comments import get_comment_query_string
-from contest.mixins import LogChangeMixin, LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
+from contest.mixins import LogChangeMixin, LoginRedirectMixin, OwnershipOrMixin
 from contests.models import Course, Problem
 from contests.templatetags.views import get_query_string, get_updated_query_string
 
@@ -550,14 +550,11 @@ class NotificationDeleteRead(LoginRequiredMixin, RedirectView):
         return super().get(request, *args, **kwargs)
 
 
-class NotificationList(LoginRequiredMixin, PaginatorMixin, ListView):
+class NotificationList(LoginRequiredMixin, ListView):
     model = Notification
     template_name = 'accounts/notification/notification_list.html'
+    context_object_name = 'notifications'
     paginate_by = 30
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        notifications = super().get_queryset().filter(recipient=self.request.user).actual()
-        context['paginator'], context['page_obj'], context['notifications'], context['is_paginated'] = \
-            self.paginate_queryset(notifications)
-        return context
+    def get_queryset(self):
+        return super().get_queryset().filter(recipient=self.request.user).actual()
