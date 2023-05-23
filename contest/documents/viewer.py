@@ -297,13 +297,12 @@ def tex_gen(attachment):
 
                     else:
                         found_problems = Problem.objects.filter(contest=found_contest)
-                        found = 0
+                        found_problem = None
                         for problem in found_problems:
                             if problem.title == match_components[2]:
                                 found_problem = problem
-                                found = 1
                                 break
-                        if found == 0:
+                        if found_problem is None:
                             return file, error.format("Неверно указана задача.")
                         try:
                             file_content = re.sub(pattern, del_html_tags(found_problem.description), file_content, count=1)
