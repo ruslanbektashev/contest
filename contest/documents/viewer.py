@@ -232,7 +232,6 @@ def tex_gen(attachment):
         pattern = r'#!(.*?)!#'
         matches = re.findall(pattern, file_content)
         levels = {'Легкая': 0, 'Средняя': 1, 'Сложная': 2, 'Очень сложная': 3}  # если это сложность задачи в Контесте, то лучше использовать Problem.DIFFICULTY_CHOICES, преобразовав в такой же словарь
-
         if len(matches) > 0:
             file = join(attachment.dirname, 'tex_gen_temp.tex')  # этот файл ведь после отображения пользователю уже не нужен? если да, тогда лучше его сделать временным
 
@@ -275,19 +274,19 @@ def tex_gen(attachment):
                             file_content = tex_concat(file_content, 'dest', found_file_content, 'from', match)
 
                     elif match_components[-1] in levels:
-                        # found_course = Course.objects.get(title_official=match[0])
-                        # found_contest = Contest.objects.get(title=match[1], course=found_course)
                         found_problem = Problem.objects.filter(difficulty=levels[f'{match_components[2]}'], contest=found_contest)  # тут тоже можно использовать обратную реляцию found_contest.problem_set.filter(...)
-                        random_problem = random.randint(0, len(found_problem) - 1)
-
+                        try:
+                            random_problem = random.randint(0, len(found_problem) - 1)
+                        except ValueError:
+                            file_content = re.sub(pattern, '', file_content,
+                                                  count=1)
+                            continue
                         try:
                             file_content = re.sub(pattern, found_problem[random_problem].description, file_content, count=1)  # а что будет, если в поле description есть html-тэги?
                         except re.error:
                             file_content = problem_replace(file_content, found_problem, random_problem)
 
                     else:
-                        # found_course = Course.objects.get(title_official=match[0])
-                        # found_contest = Contest.objects.get(title=match[1], course=found_course)
                         found_problem = Problem.objects.filter(title=match_components[2], contest=found_contest)
 
                         try:
