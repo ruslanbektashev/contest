@@ -231,7 +231,7 @@ def tex_gen(attachment):
         file_content = in_file.read()
         pattern = r'#!(.*?)!#'
         matches = re.findall(pattern, file_content)
-        levels = {'Легкая': 0, 'Средняя': 1, 'Сложная': 2, 'Очень сложная': 3}  # если это сложность задачи в Контесте, то лучше использовать Problem.DIFFICULTY_CHOICES, преобразовав в такой же словарь
+        levels = dict((y, x) for x, y in Problem.DIFFICULTY_CHOICES)
         if len(matches) > 0:
             file = join(attachment.dirname, 'tex_gen_temp.tex')  # этот файл ведь после отображения пользователю уже не нужен? если да, тогда лучше его сделать временным
 
