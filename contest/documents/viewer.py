@@ -215,11 +215,14 @@ def get_body(content):
     return result
 
 
-def problem_replace(content, problems_list, problem_index):
+def problem_replace(content, problems_list, problem_index=None):
     start = content.find('#!') + 2
     end = content.find('!#', start)
     old = content[start:end]
-    new = del_html_tags(problems_list[problem_index].description)
+    if problem_index is None:
+        new = del_html_tags(problems_list.description)
+    else:
+        new = del_html_tags(problems_list[problem_index].description)
     content = content.replace('#!' + old + '!#', new, 1)
     return content
 
@@ -241,7 +244,7 @@ def tex_gen(attachment):
 
             with open(file, 'w', encoding='utf-8') as out_file:
                 for match in matches:
-                    error = "Возникла проблема при распознавании фильтра: %s Проверьте его и попробуйте снова."
+                    error = "Возникла проблема при распознавании фильтра: {} Проверьте его и попробуйте снова."
                     match_components = match.split('/')
                     for i in range(len(match_components)):
                         match_components[i] = match_components[i].strip()
@@ -293,11 +296,19 @@ def tex_gen(attachment):
                             file_content = problem_replace(file_content, found_problem, random_problem)
 
                     else:
-                        found_problem = Problem.objects.filter(title=match_components[2], contest=found_contest)
+                        found_problems = Problem.objects.filter(contest=found_contest)
+                        found = 0
+                        for problem in found_problems:
+                            if problem.title == match_components[2]:
+                                found_problem = problem
+                                found = 1
+                                break
+                        if found == 0:
+                            return file, error.format("Неверно указана задача.")
                         try:
-                            file_content = re.sub(pattern, del_html_tags(found_problem[0].description), file_content, count=1)
+                            file_content = re.sub(pattern, del_html_tags(found_problem.description), file_content, count=1)
                         except re.error:
-                            file_content = problem_replace(file_content, found_problem, 0)
+                            file_content = problem_replace(file_content, found_problem)
 
                 file_content = file_content.replace('{{', '{ {').replace('}}', '} }')
                 out_file.write(file_content)
