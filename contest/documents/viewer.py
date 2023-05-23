@@ -239,6 +239,8 @@ def tex_gen(attachment):
                 for match in matches:
                     error = "Возникла проблема при распознавании фильтра: %s Проверьте его и попробуйте снова."
                     match_components = match.split('/')
+                    for i in range(len(match_components)):
+                        match_components[i] = match_components[i].strip()
 
                     try:
                         found_course = Course.objects.get(title_official=match_components[0])
