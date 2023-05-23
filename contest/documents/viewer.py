@@ -294,7 +294,6 @@ def tex_gen(attachment):
 
                     else:
                         found_problem = Problem.objects.filter(title=match_components[2], contest=found_contest)
-                        print(found_problem[0].description)
                         try:
                             file_content = re.sub(pattern, del_html_tags(found_problem[0].description), file_content, count=1)
                         except re.error:
