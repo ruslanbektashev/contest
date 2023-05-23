@@ -219,10 +219,14 @@ def problem_replace(content, problems_list, problem_index):
     start = content.find('#!') + 2
     end = content.find('!#', start)
     old = content[start:end]
-    new = problems_list[problem_index].description
+    new = del_html_tags(problems_list[problem_index].description)
     content = content.replace('#!' + old + '!#', new, 1)
     return content
 
+
+def del_html_tags(text):
+    clean_text = re.sub('<.*?>', '', text)
+    return re.sub(r'&\w+;', ' ', clean_text)
 
 def tex_gen(attachment):
     file = str(attachment.file)
@@ -284,15 +288,15 @@ def tex_gen(attachment):
                                                   count=1)
                             continue
                         try:
-                            file_content = re.sub(pattern, found_problem[random_problem].description, file_content, count=1)  # а что будет, если в поле description есть html-тэги?
+                            file_content = re.sub(pattern, del_html_tags(found_problem[random_problem].description), file_content, count=1)  # а что будет, если в поле description есть html-тэги?
                         except re.error:
                             file_content = problem_replace(file_content, found_problem, random_problem)
 
                     else:
                         found_problem = Problem.objects.filter(title=match_components[2], contest=found_contest)
-
+                        print(found_problem[0].description)
                         try:
-                            file_content = re.sub(pattern, found_problem[0].description, file_content, count=1)
+                            file_content = re.sub(pattern, del_html_tags(found_problem[0].description), file_content, count=1)
                         except re.error:
                             file_content = problem_replace(file_content, found_problem, 0)
 
