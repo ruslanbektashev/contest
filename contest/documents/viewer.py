@@ -231,6 +231,7 @@ def del_html_tags(text):
     clean_text = re.sub('<.*?>', '', text)
     return re.sub(r'&\w+;', ' ', clean_text)
 
+
 def tex_gen(attachment):
     file = str(attachment.file)
 
@@ -282,8 +283,9 @@ def tex_gen(attachment):
                             found_file_content = found_file.read()
                             file_content = tex_concat(file_content, 'dest', found_file_content, 'from', match)
 
-                    elif match_components[-1] in levels:
-                        found_problem = Problem.objects.filter(difficulty=levels[f'{match_components[2]}'], contest=found_contest)  # тут тоже можно использовать обратную реляцию found_contest.problem_set.filter(...)
+                    elif (match_components[-1].startswith('Сложность:') or match_components[-1].startswith('сложность:')) and match_components[-1].split(':')[-1].strip() in levels:
+
+                        found_problem = Problem.objects.filter(difficulty=levels[f"{match_components[-1].split(':')[-1].strip()}"], contest=found_contest)  # тут тоже можно использовать обратную реляцию found_contest.problem_set.filter(...)
                         try:
                             random_problem = random.randint(0, len(found_problem) - 1)
                         except ValueError:
