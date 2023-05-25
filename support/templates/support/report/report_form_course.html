@@ -1,0 +1,37 @@
+{% extends 'base_main.html' %}
+{% load views forms %}
+
+{% block title %}Сообщение об ошибке{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Помощь" 'support:index' %}
+{% if perms.support.view_report %}
+{% breadcrumb "Сообщения об ошибках" 'support:report-list' %}
+{% endif %}
+{% if report %}
+{% breadcrumb report report %}
+{% breadcrumb "Редактирование" %}
+{% else %}
+{% breadcrumb "Новое сообщение об ошибке" %}
+{% endif %}
+{% endblock breadcrumbs %}
+
+{% block main_content %}
+<legend>{% if report %}Редактирование{% else %}Отправка{% endif %} сообщения об ошибке 2</legend>
+<form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.title class+="form-control" %}
+    {% render_field form.text class+="form-control" %}
+    {% render_field form.file class+="form-control" %}
+    {% endwith %}
+    {% if report %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.closed class+="form-check-input" %}
+    {% endwith %}
+    {% endif %}
+    {% include 'forms/submit_button.html' with value="Отправить" %}
+</form>
+{% endblock main_content %}

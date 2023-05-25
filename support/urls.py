@@ -17,6 +17,7 @@ urlpatterns = [
     ])),
     path('report/', include([
         path('create/', views.ReportCreate.as_view(), name='report-create'),
+        path('createnew/', views.NewReportCreate.as_view(), name='new-report-create'),
         path('<int:pk>/', include([
             path('', views.ReportDetail.as_view(), name='report-detail'),
             path('update/', views.ReportUpdate.as_view(), name='report-update'),

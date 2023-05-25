@@ -11,7 +11,43 @@
 {% block main_content %}
 <legend>Оповещения</legend>
 <div class="contest-notification-list list-group mb-3" id="notifications">
-    {% if notifications %}
+
+    {% if notifications or reports%}
+    {% for report in reports %}
+        <li class="contest-notification-list-item list-group-item d-flex {% if not notification.is_read %}bg-light" data-unread=true{% else %}"{% endif %} data-id={{ notification.id }}>
+        <span class="notification-body me-auto w-100">
+
+            <!-- TODO - ОТОБРАЗИТЬ ПОЛЬЗОВАТЕЛЯ, КОТОРЫЙ ОТПРАВИЛ СООБЩЕНИЕ -->
+
+            <div class="d-flex justify-content-between mb-3 mt-3">
+                <h3>
+                    Тема : {{report.title}} 
+                </h3>
+                <a class="btn-close" href="/accounts/report_course_delete/{{report.id}}"></a>
+            </div>
+
+            
+
+
+           <div class="notif_content d-flex justify-content-between w-100">
+            <p>
+
+                {{report.text}} 
+            </p>
+           
+            {% if report.file %}
+                <a href="{{report.file.url}}" download>Скачать файл</a>
+            {% endif %}
+            
+            
+
+            
+           </div>
+        </span>
+    </li >
+    <br>
+    {% endfor %}
+    
     {% now 'Y' as current_year %}
     {% for notification in notifications %}
     <li class="contest-notification-list-item list-group-item d-flex {% if not notification.is_read %}bg-light" data-unread=true{% else %}"{% endif %} data-id={{ notification.id }}>

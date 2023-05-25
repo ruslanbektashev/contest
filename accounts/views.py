@@ -574,6 +574,51 @@ class NotificationList(LoginRequiredMixin, PaginatorMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         notifications = super().get_queryset().filter(recipient=self.request.user).actual()
+
+
+
+        reports = ReportForCourse.objects.all()
+        coursesOfUser = []
+        newreports = []
+        for own in Course.objects.all():
+            if (str(self.request.user.account.username) == str(own.owner)):
+                print(1);
+                coursesOfUser.append(own.id)
+      
+        for rep in reports:
+            for courseid in coursesOfUser:
+                if(int(rep.page_url.rstrip('/').split('/')[-1]) == int(courseid)):
+                    newreports.append(rep)
+                    
+
+        # context['reports'] = reports
+        print('notif')
+        print(notifications)
+        context['reports'] = newreports
         context['paginator'], context['page_obj'], context['notifications'], context['is_paginated'] = \
             self.paginate_queryset(notifications)
         return context
+
+
+from support.models import ReportForCourse
+class NotificationReportCourseList(LoginRequiredMixin, PaginatorMixin, ListView):
+    model = ReportForCourse
+    template_name = 'accounts/notification/notification_list.html'
+    paginate_by = 10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        notifications = super().get_queryset().filter(recipient=self.request.user).actual()
+        context['paginator'], context['page_obj'], context['notifications'], context['is_paginated'] = \
+            self.paginate_queryset(notifications)
+        return context
+    
+
+
+from django.shortcuts import redirect
+from support.models import ReportForCourse
+
+def notification_delete(request, pk):
+    report_course = ReportForCourse.objects.get(id=pk)
+    report_course.delete()
+    return HttpResponseRedirect('/accounts/notification/list/')

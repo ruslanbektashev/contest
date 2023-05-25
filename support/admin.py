@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from support.models import Discussion, Question, Report
+from support.models import Discussion, Question, Report,ReportForCourse
 
 
 @admin.register(Question)
@@ -24,18 +24,21 @@ class QuestionAdmin(admin.ModelAdmin):
 @admin.register(Report)
 class ReportAdmin(admin.ModelAdmin):
     list_display = ('owner', 'title')
-    fieldsets = (
-        ('Пользователь', {
-            'fields': ('owner',)
-        }),
-        ('Детали', {
-            'fields': ('title', 'text', 'page_url')
-        }),
-        ('Даты', {
-            'fields': ('date_created', 'date_updated')
-        })
-    )
     readonly_fields = ('date_created', 'date_updated')
+
+
+# @admin.register(ReportForCourse)
+# class MyModelAdmin(admin.ModelAdmin):
+#     list_display = ('owner', 'title') # поля, которые будут отображаться в списке объектов
+
+# admin.site.register(ReportForCourse, MyModelAdmin)
+
+admin.site.register(ReportForCourse)
+
+# @admin.register(ReportForCourse)
+# class ReportCourseAdmin(admin.ModelAdmin):
+#     list_display = ('owner', 'title')
+#     readonly_fields = ('date_created', 'date_updated')
 
 
 @admin.register(Discussion)

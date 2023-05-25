@@ -40,16 +40,32 @@ class Question(CRUDEntry):
 """===================================================== Report ====================================================="""
 
 
+class ReportForCourse(CRUDEntry):
+    title = models.CharField(max_length=100, verbose_name="Заголовок")
+    text = models.TextField(blank=True, verbose_name="Сообщение")
+    file = models.FileField(upload_to="report_files/", blank=True, null=True)
+    page_url = models.URLField(verbose_name="Откуда отправлено")
+    
+    class Meta:
+        ordering = ('-date_created',)
+        verbose_name = "Сообщение об ошибке course"
+        verbose_name_plural = "Сообщения об ошибках course"
+    
+    def __str__(self):
+        return self.title
+
+
 class Report(CRUDEntry):
     title = models.CharField(max_length=100, verbose_name="Заголовок")
     text = models.TextField(blank=True, verbose_name="Сообщение")
+    # file = models.FileField(upload_to="report_files/", blank=True, null=True)
     page_url = models.URLField(verbose_name="Откуда отправлено")
     closed = models.BooleanField(default=False, verbose_name="Закрыто")
 
     class Meta:
         ordering = ('-date_created',)
         verbose_name = "Сообщение об ошибке"
-        verbose_name_plural = "Сообщения об ошибках"
+        verbose_name_plural = "Сообщения об ошибках первый"
 
     def save(self, *args, **kwargs):
         created = self._state.adding

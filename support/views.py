@@ -9,7 +9,9 @@ from markdown import markdown
 
 from contest.mixins import LoginRedirectMixin, OwnershipOrMixin, PaginatorMixin
 from support.forms import QuestionForm
-from support.models import Discussion, Question, Report, TutorialStepPass
+from support.models import Discussion, Question, Report, TutorialStepPass,ReportForCourse
+
+
 
 
 class Support(LoginRequiredMixin, TemplateView):
@@ -110,6 +112,29 @@ class ReportDetail(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin
         # Notification.objects.filter(recipient=request.user, subject_type=ContentType.objects.get_for_model(object),
         #                             subject_id=object.id).mark_as_read()
         return super().get(request, *args, **kwargs)
+
+
+
+class NewReportCreate(LoginRequiredMixin, CreateView):
+    model = ReportForCourse
+    template_name = 'support/report/report_form_course.html'
+    fields = ['title', 'text', 'file']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['from_url'] = self.request.GET.get('from', '')
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        form.instance.page_url = self.storage['from_url']
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return self.storage['from_url'] or reverse('support:report-list')
 
 
 class ReportCreate(LoginRequiredMixin, CreateView):

@@ -19,9 +19,11 @@ urlpatterns = [
         path('credentials', views.AccountCredentials.as_view(), name='account-credentials'),
     ])),
     path('notification/', include([
-        path('list', views.NotificationList.as_view(), name='notification-list'),
+        path('list/', views.NotificationList.as_view(), name='notification-list'),
     ])),
-    path('mark_notifications_as_read', views.mark_notifications_as_read, name='mark-notifications-as-read'),
+
+    path('mark_notifications_as_read/', views.mark_notifications_as_read, name='mark-notifications-as-read'),
+
     path('comment/', include([
         path('create', views.CommentCreate.as_view(), name='comment-create'),
         path('<int:pk>/', include([
@@ -41,3 +43,5 @@ urlpatterns = [
         path('list', views.AnnouncementList.as_view(), name='announcement-list'),
     ])),
 ]
+
+urlpatterns += path('report_course_delete/<int:pk>/', views.notification_delete, name="report_course_delete"),
