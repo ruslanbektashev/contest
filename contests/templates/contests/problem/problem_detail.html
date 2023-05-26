@@ -267,10 +267,10 @@
 {% endblock main_content %}
 
 {% block main_scripts %}
-<script src="{% static 'mathjax/es5/tex-chtml.js' %}" type="text/javascript" defer></script>
+<script src="{% static 'mathjax/es5/tex-chtml.js' %}" defer></script>
 {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
-<script src="{% static 'contest/js/utils.js' %}" type="text/javascript"></script>
-<script type="text/javascript">
+<script src="{% static 'contest/js/utils.js' %}"></script>
+<script>
 let correct_option_elements = document.getElementsByClassName('contest-correct-option');
 function toggleCorrectOptions(elem, firstText, secondText) {
     let toggle_fn;

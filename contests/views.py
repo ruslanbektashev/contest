@@ -123,12 +123,8 @@ class CourseDiscussion(LoginRedirectMixin, PaginatorMixin, DetailView):
     template_name = 'contests/course/course_discussion.html'
     paginate_by = 30
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        comments = self.object.comment_set.actual()
-        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
-            self.paginate_queryset(comments)
-        return context
+    def get_queryset_for_paginator(self):
+        return self.object.comment_set.actual().select_related('author', 'author__account')
 
 
 class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, LogAdditionMixin, CreateView):
@@ -701,12 +697,8 @@ class ContestDiscussion(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin,
     def test_func(self):
         return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        comments = self.object.comment_set.actual()
-        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
-            self.paginate_queryset(comments)
-        return context
+    def get_queryset_for_paginator(self):
+        return self.object.comment_set.actual().select_related('author', 'author__account')
 
 
 class ContestAttachment(LoginRedirectMixin, UserPassesTestMixin, AttachmentDetail):
@@ -839,12 +831,7 @@ class ProblemDetail(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin, Det
     def test_func(self):
         return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        try:
-            context['assignment'] = Assignment.objects.get(user=self.request.user, problem=self.object)
-        except Assignment.DoesNotExist:
-            context['assignment'] = None
+    def get_queryset_for_paginator(self):
         if self.request.user.has_perm('contests.view_submission_list') or has_leader_permission(self.request,
                                                                                                 self.object.course):
             submissions = self.object.submission_set.all()
@@ -852,8 +839,14 @@ class ProblemDetail(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin, Det
                 submissions = submissions.filter(owner__account__faculty=self.request.user.account.faculty)
         else:
             submissions = self.object.submission_set.filter(owner_id=self.request.user.id)
-        context['paginator'], context['page_obj'], context['submissions'], context['is_paginated'] = \
-            self.paginate_queryset(submissions)
+        return submissions
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            context['assignment'] = Assignment.objects.get(user=self.request.user, problem=self.object)
+        except Assignment.DoesNotExist:
+            context['assignment'] = None
         if self.object.type == 'Test':
             context['subproblems'] = SubProblem.objects.filter(problem=self.object).select_related('sub_problem')
         return context
@@ -867,12 +860,8 @@ class ProblemDiscussion(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin,
     def test_func(self):
         return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        comments = self.object.comment_set.actual()
-        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
-            self.paginate_queryset(comments)
-        return context
+    def get_queryset_for_paginator(self):
+        return self.object.comment_set.actual().select_related('author', 'author__account')
 
 
 class ProblemAttachment(LoginRedirectMixin, UserPassesTestMixin, AttachmentDetail):
@@ -1596,14 +1585,13 @@ class AssignmentDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
             self.object = self.get_object()
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
+    def get_queryset_for_paginator(self):
+        return self.object.submission_set.all()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        submissions = self.object.submission_set.all()
-        context['submission_paginator'], context['submission_page_obj'], context['submissions'], context[
-            'submission_is_paginated'] = self.paginate_queryset(submissions)
-        comments = self.object.comment_set.actual()
-        context['comment_paginator'], context['comment_page_obj'], context['comments'], context[
-            'comment_is_paginated'] = self.paginate_queryset(comments)
+        comments = self.object.comment_set.actual()[:10]
+        context['comment_page_obj'] = self.paginate_queryset(comments, 30, page_number=1)
         context['current_time'] = timezone.now()
         return context
 
@@ -1625,12 +1613,8 @@ class AssignmentDiscussion(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMix
             self.object = self.get_object()
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        comments = self.object.comment_set.actual()
-        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
-            self.paginate_queryset(comments)
-        return context
+    def get_queryset_for_paginator(self):
+        return self.object.comment_set.actual().select_related('author', 'author__account')
 
 
 class AssignmentAttachment(LoginRedirectMixin, AttachmentDetail):
@@ -1964,11 +1948,11 @@ class SubmissionDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
 
+    def get_queryset_for_paginator(self):
+        return self.object.comment_set.actual().select_related('author', 'author__account')
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        comments = self.object.comment_set.actual()
-        context['paginator'], context['page_obj'], context['comments'], context['is_paginated'] = \
-            self.paginate_queryset(comments)
         context['current_time'] = timezone.now()
         context['from_assignment'] = 'from_assignment' in self.request.GET
         if 'forms' in self.storage:
