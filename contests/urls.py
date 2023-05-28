@@ -44,7 +44,8 @@ urlpatterns = [
             path('discussion', views.ContestDiscussion.as_view(), name='contest-discussion'),
             path('attachment/<int:attachment_id>', views.ContestAttachment.as_view(), name='contest-attachment'),
             path('update', views.ContestUpdate.as_view(), name='contest-update'),
-            path('delete', views.ContestDelete.as_view(), name='contest-delete')
+            path('delete', views.ContestDelete.as_view(), name='contest-delete'),
+            path('create_tasks_leaflet', views.ContestTasksLeaflet.as_view(), name='contest-create-tasks-leaflet'),
         ]))
     ])),
     path('contest/<int:contest_id>/problem/create/<str:type>', views.ProblemCreate.as_view(), name='problem-create'),

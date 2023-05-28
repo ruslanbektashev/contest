@@ -31,6 +31,8 @@
                     <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Test' %}"><i class="fa fa-folder-o fa-fw"></i> Тест</a>
                 </span>
             </span>
+{#            <a id="btn_create_leaflet" href="{% url 'contests:contest-create-tasks-leaflet' contest.id %}" class="text-success" role="button" title="Создать лист с задачами"aria-expanded="false"><i class="fa fa-file-pdf-o fa-fw"></i></a>#}
+            <a id="btn_create_leaflet" href="{% url 'contests:contest-create-tasks-leaflet' contest.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать лист с задачами"><i class="fa fa-file-pdf-o fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.change_contest or request|has_leader_permission:contest.course %}
             <a id="btn_contest_update" href="{% url 'contests:contest-update' contest.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>

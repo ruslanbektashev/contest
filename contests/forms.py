@@ -152,6 +152,25 @@ class CourseFinishForm(forms.Form):
         self.fields['level_ups'].initial = level_ups_queryset.filter(credit_score__gte=3)
 
 
+class ContestCreateTasksLeafletForm(forms.ModelForm):
+    difficulty = forms.ChoiceField(choices=Problem.DIFFICULTY_CHOICES, label="Сложность")
+    problem = forms.ModelChoiceField(queryset=Problem.objects.none(), label="Задача")
+
+    class Meta:
+        model = Assignment
+        fields = ['problem']
+
+    def __init__(self, *args, problem_queryset, **kwargs):
+        super().__init__(*args, **kwargs)
+        # self.fields['problem'].queryset = problem_queryset
+        problem_choices = []
+        for i, problem in enumerate(problem_queryset):
+            problem_choices.append((i, problem.title))
+        self.fields['problem'].choices = problem_choices
+        self.fields['problem'].widget = BootstrapSelect(choices=self.fields['problem'].choices)
+        # print(self.fields['problem'].choices)
+
+
 """================================================== CourseLeader =================================================="""
 
 

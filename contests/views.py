@@ -24,7 +24,8 @@ from contests.forms import (AssignmentEvaluateForm, AssignmentForm, AssignmentSe
                             OptionBaseFormSet, OptionForm, ProblemAttachmentForm, ProblemCommonForm, ProblemMoveForm,
                             ProblemProgramForm, ProblemRollbackResultsForm, ProblemTestForm, SubmissionFilesForm,
                             SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm, SubmissionProgramForm,
-                            SubmissionTextForm, SubmissionUpdateForm, SubmissionVerbalForm, SubProblemForm, UTTestForm)
+                            SubmissionTextForm, SubmissionUpdateForm, SubmissionVerbalForm, SubProblemForm, UTTestForm,
+                            ContestCreateTasksLeafletForm)
 from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, Execution,
                              Filter, FNTest, IOTest, Option, Problem, Submission, SubmissionPattern, SubProblem, UTTest)
 from contests.tasks import evaluate_submission, moss_submission
@@ -834,6 +835,54 @@ class ContestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 
     def get_success_url(self):
         return reverse('contests:course-detail', kwargs={'pk': self.object.course_id})
+
+
+class ContestTasksLeaflet(LoginRedirectMixin, OwnershipOrMixin, PermissionRequiredMixin, FormView):
+    template_name = 'contests/contest/contest_tasks_leaflet.html'
+    permission_required = 'contests.change_contest'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('pk'))
+        self.storage['course'] = self.storage['contest'].course
+        return super().dispatch(request, *args, **kwargs)
+
+    def has_ownership(self):
+        return self.storage['course'].owner_id == self.request.user.id
+
+    def get_queryset(self):
+        return Problem.objects.filter(contest=self.storage['contest'])
+
+    def get_form_class(self):
+        extra = 0 if self.get_queryset().exists() else 1
+        return modelformset_factory(Assignment, ContestCreateTasksLeafletForm, extra=extra, max_num=len(self.get_queryset()), validate_max=True,
+                                    can_delete=True)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['queryset'] = self.get_queryset()
+        kwargs['form_kwargs'] = {
+            'problem_queryset': Problem.objects.filter(contest=self.storage['contest']),
+        }
+        return kwargs
+
+    def form_valid(self, form):
+        form.save()
+        # Action.objects.log_change(self.request.user, formsets=[form])
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # context['formset'] = ContestCreateTasksLeafletForm(problem_queryset=Problem.objects.none())
+        context['formset'] = context['form']
+        context.update(self.storage)
+        return context
+
+    def get_success_url(self):
+        return reverse('contests:course-detail', kwargs={'pk': self.storage['course'].id})
 
 
 """===================================================== Problem ===================================================="""
