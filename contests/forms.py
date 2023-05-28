@@ -154,7 +154,7 @@ class CourseFinishForm(forms.Form):
 
 class ContestCreateTasksLeafletForm(forms.ModelForm):
     difficulty = forms.ChoiceField(choices=Problem.DIFFICULTY_CHOICES, label="Сложность")
-    problem = forms.ModelChoiceField(queryset=Problem.objects.none(), label="Задача")
+    # problem = forms.ModelChoiceField(queryset=Problem.objects.none(), label="Задача")
 
     class Meta:
         model = Assignment
@@ -163,12 +163,14 @@ class ContestCreateTasksLeafletForm(forms.ModelForm):
     def __init__(self, *args, problem_queryset, **kwargs):
         super().__init__(*args, **kwargs)
         # self.fields['problem'].queryset = problem_queryset
-        problem_choices = []
-        for i, problem in enumerate(problem_queryset):
-            problem_choices.append((i, problem.title))
-        self.fields['problem'].choices = problem_choices
+        problem_contest = problem_queryset.first().contest
+        problem_course = problem_contest.course
+        # problem_choices = []
+        # problem_choices.append((0, '-----------'))
+        # for i, problem in enumerate(problem_queryset):
+        #     problem_choices.append((i+1, problem.title))
+        self.fields['problem'].choices = grouped_problems(problem_course, problem_contest)
         self.fields['problem'].widget = BootstrapSelect(choices=self.fields['problem'].choices)
-        # print(self.fields['problem'].choices)
 
 
 """================================================== CourseLeader =================================================="""

@@ -863,14 +863,15 @@ class ContestTasksLeaflet(LoginRedirectMixin, OwnershipOrMixin, PermissionRequir
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['queryset'] = self.get_queryset()
+        kwargs['queryset'] = Problem.objects.filter(pk__in=[self.get_queryset().first().id])
         kwargs['form_kwargs'] = {
             'problem_queryset': Problem.objects.filter(contest=self.storage['contest']),
         }
         return kwargs
 
     def form_valid(self, form):
-        form.save()
+        print(form)
+        # form.save()
         # Action.objects.log_change(self.request.user, formsets=[form])
         return super().form_valid(form)
 
@@ -883,6 +884,12 @@ class ContestTasksLeaflet(LoginRedirectMixin, OwnershipOrMixin, PermissionRequir
 
     def get_success_url(self):
         return reverse('contests:course-detail', kwargs={'pk': self.storage['course'].id})
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        print(form.cleaned_data)
+        print(form.is_valid())
+        return self.form_invalid(form)
 
 
 """===================================================== Problem ===================================================="""
