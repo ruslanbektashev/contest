@@ -1,3 +1,5 @@
+import re
+
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.forms.models import inlineformset_factory, modelformset_factory
@@ -13,7 +15,7 @@ from django.views.generic.list import BaseListView
 from django_tex.core import compile_template_to_pdf
 
 from accounts.models import Account, Action, Announcement, Faculty, Notification
-from contest.documents.viewer import tex_gen, to_html
+from contest.documents.viewer import del_html_tags, tex_gen, to_html
 from contest.mixins import (LeadershipOrMixin, LogAdditionMixin, LogChangeMixin, LogDeletionMixin, LoginRedirectMixin,
                             OwnershipOrMixin, PaginatorMixin)
 from contest.soft_deletion import SoftDeletionDeleteView, SoftDeletionUpdateView
@@ -870,7 +872,7 @@ class ContestTasksLeaflet(LoginRedirectMixin, OwnershipOrMixin, PermissionRequir
         return kwargs
 
     def form_valid(self, form):
-        print(form)
+        # print(form)
         # form.save()
         # Action.objects.log_change(self.request.user, formsets=[form])
         return super().form_valid(form)
@@ -887,9 +889,24 @@ class ContestTasksLeaflet(LoginRedirectMixin, OwnershipOrMixin, PermissionRequir
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
-        print(form.cleaned_data)
-        print(form.is_valid())
-        return self.form_invalid(form)
+        # print(form.cleaned_data)
+        # print(form.is_valid())
+        with open('upload/templates/blank_leaflet.tex', 'r', encoding='utf-8') as in_file:
+            file_content = in_file.read()
+            file_body = r'\\noindent'
+            for i, task in enumerate(form.cleaned_data):
+                try:
+                    file_body += (r'\\textbf{Задача ' + str(i + 1) + '.} ' + del_html_tags(task['problem'].description) + r'\\\\' + '\n')
+                except KeyError:
+                    print('Invalid key!')
+            pattern = re.compile(r'\\begin\{document}.*\\end\{document}', re.DOTALL)
+            file_content = re.sub(pattern, r'\\begin{document}' + '\n' + file_body + r'\\end{document}', file_content)
+            with open('upload/templates/tasks_leaflet.tex', 'w', encoding='utf-8') as out_file:
+                out_file.write(file_content)
+        pdf = compile_template_to_pdf('templates/tasks_leaflet.tex', '')
+        response = HttpResponse(content_type="application/pdf")
+        response.write(pdf)
+        return response
 
 
 """===================================================== Problem ===================================================="""
