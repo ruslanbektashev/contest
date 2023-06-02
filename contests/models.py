@@ -330,6 +330,9 @@ class Credit(CRUDEntry):
 
     class Meta(CRUDEntry.Meta):
         unique_together = ('user', 'course')
+        permissions = [
+            ("report_credit", "Генерировать ведомость"),
+        ]
         ordering = ('-course',)
         verbose_name = "Зачет"
         verbose_name_plural = "Зачеты"
@@ -1029,6 +1032,11 @@ class Submission(CRDEntry):
     objects = SubmissionManager.from_queryset(SubmissionQuerySet)()
 
     class Meta(CRDEntry.Meta):
+        permissions = [
+            ("evaluate_submission", "Проверять Посылку"),
+            ("download_submission", "Скачивать Посылку"),
+            ("moss_submission", "Отправлять на проверку в MOSS"),
+        ]
         ordering = ('-date_created',)
         verbose_name = "Посылка"
         verbose_name_plural = "Посылки"

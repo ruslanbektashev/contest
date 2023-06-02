@@ -23,7 +23,9 @@
                 <a class="nav-link text-center" href="{% url 'accounts:announcement-list' %}"><i class="fa fa-newspaper-o fa-fw fa-lg"></i> Объявления</a>
                 <a class="nav-link text-center" href="{% url 'schedule:schedule-list' %}"><i class="fa fa-map-o fa-fw fa-lg"></i> Расписание</a>
                 <a class="nav-link text-center" href="{% url 'support:index' %}"><i class="fa fa-question-circle-o fa-fw fa-lg"></i> Помощь</a>
+                {% if request.user.is_staff %}
                 <a class="nav-link text-center" href="{% url 'admin:index' %}"><i class="fa fa-cogs fa-fw fa-lg"></i> Админка</a>
+                {% endif %}
                 {% with notification_count=request.user.notifications.unread.count %}
                 <a class="nav-link text-center" href="{% url 'accounts:notification-list' %}">
                     <i class="fa fa-bell-o fa-fw fa-lg"></i> Оповещения{% if notification_count %} <span id="unread_notifications_count" class="badge text-bg-danger rounded-pill align-middle">{{ notification_count }}</span>{% endif %}

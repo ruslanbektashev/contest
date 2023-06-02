@@ -25,7 +25,7 @@
             {% if perms.accounts.view_filter %}
             <a href="{% url 'contests:filter-table' %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Фильтры"><i class="fa fa-bookmark fa-fw"></i></a>
             {% endif %}
-            {% if perms.accounts.add_faculty %}
+            {% if perms.accounts.view_deleted %}
             <div class="dropstart">
                 <a href="#" role="button" id="dropdownMoreMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
                 <div class="dropdown-menu shadow-sm" aria-labelledby="dropdownMoreMenuLink">

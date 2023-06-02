@@ -100,7 +100,7 @@ class AttachmentDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
 
 class DeletedList(LoginRedirectMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'contests/deleted/deleted_list.html'
-    permission_required = 'contests.view_deleted'
+    permission_required = 'accounts.view_deleted'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
