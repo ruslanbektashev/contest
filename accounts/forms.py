@@ -3,6 +3,7 @@ from html.entities import name2codepoint
 from html.parser import HTMLParser
 
 from django import forms
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
@@ -207,6 +208,8 @@ class CommentForm(forms.ModelForm):
 
 
 class AnnouncementForm(forms.ModelForm):
+    group = forms.ModelChoiceField(Group.objects.all(), empty_label="Для всех")
+
     class Meta:
         model = Announcement
         fields = ['group', 'title', 'text', 'actual']

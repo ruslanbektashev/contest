@@ -65,9 +65,11 @@
         {% endif %}
         {% if announcements.exists %}
         <p class="lead">Объявления</p>
-        <div class="list-group list-group-flush mb-3">
+        <div>
             {% for announcement in announcements %}
-            <div class="list-group-item"><a href="{{ announcement.get_absolute_url }}">{{ announcement }}</a></div>
+            <div class="alert alert-info">
+                <a href="{{ announcement.get_absolute_url }}"><i class="fa fa-info fa-fw"></i></a> {{ announcement }}
+            </div>
             {% endfor %}
         </div>
         {% endif %}
