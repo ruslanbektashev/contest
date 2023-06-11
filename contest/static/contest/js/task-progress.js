@@ -113,13 +113,13 @@ class TaskProgress {
                 if (response.ok) {
                     this.execution_list_element.innerHTML = await response.text();
                 } else {
-                    let err = Error('fetch(executions): http status ' + response.status);
+                    let err = new Error('fetch(executions): http status ' + response.status);
                     console.log(err);
                     this.retryPoll("Произошла ошибка при получении результатов проведенной проверки", true);
                 }
             }
         } else {
-            let err = Error('fetch(progress): http status ' + response.status);
+            let err = new Error('fetch(progress): http status ' + response.status);
             console.log(err);
             this.retryPoll("Произошла ошибка при получении статуса проверки", true);
         }
