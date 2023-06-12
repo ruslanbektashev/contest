@@ -277,6 +277,9 @@ class Account(models.Model):
     comments_read = models.ManyToManyField('Comment', blank=True)
 
     class Meta:
+        permissions = [
+            ("view_deleted", "Просматривать корзину"),
+        ]
         ordering = ('user__last_name', 'user__first_name', 'user_id')
         verbose_name = "Аккаунт"
         verbose_name_plural = "Аккаунты"

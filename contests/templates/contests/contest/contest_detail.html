@@ -35,12 +35,16 @@
             {% if perms.contests.change_contest or request|has_leader_permission:contest.course %}
             <a id="btn_contest_update" href="{% url 'contests:contest-update' contest.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
-            {% if perms.contests.delete_contest or request|has_leader_permission:contest.course %}
+            {% if perms.contests.change_contest or perms.contests.delete_contest or request|has_leader_permission:contest.course %}
             <span class="dropstart">
                 <a href="#" role="button" id="dropdownMoreMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
                 <span class="dropdown-menu shadow-sm" aria-labelledby="dropdownMoreMenuLink">
+                    {% if perms.contests.change_contest or request|has_leader_permission:contest.course %}
                     <a href="{% url 'contests:contest-update' contest.id %}?action=move" class="dropdown-item"><i class="fa fa-share-square-o fa-fw"></i> Переместить</a>
+                    {% endif %}
+                    {% if perms.contests.delete_contest or request|has_leader_permission:contest.course %}
                     <a href="{% url 'contests:contest-delete' contest.id %}" class="dropdown-item text-danger"><i class="fa fa-trash-o fa-fw"></i> Удалить</a>
+                    {% endif %}
                 </span>
             </span>
             {% endif %}
