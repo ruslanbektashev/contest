@@ -54,35 +54,36 @@ def problem_deadline_expired(contest_user: User, problem_id: int):
     return user_problem_assignment.deadline is None or user_problem_assignment.deadline < timezone.now()
 
 
-def notify_tg_users(notification):
-    contest_recipient = notification.recipient
-    try:
-        contest_recipient_settings = TelegramUserSettings.objects.get(contest_user=contest_recipient)
-    except ObjectDoesNotExist:
-        return
-
-    notification_obj = notification.object
-    notification_obj_type = str(type(notification_obj)).split('.')[-1].lower()[:-2] + 's'
-    if 'оценку' in notification.action:
-        notification_obj_type += '_mark'
-
-    try:
-        if not getattr(contest_recipient_settings, notification_obj_type):
+def notify_tg_users(notifications):
+    for notification in notifications:
+        contest_recipient = notification.recipient
+        try:
+            contest_recipient_settings = TelegramUserSettings.objects.get(contest_user=contest_recipient)
+        except ObjectDoesNotExist:
             return
-    except AttributeError:
-        pass
 
-    notification_msg = f'{notification.subject.account} {notification.action} <b>{notification_obj}</b> ' \
-                       f'{notification.relation if notification.relation is not None else ""} ' \
-                       f'<b>{notification.reference if notification.reference is not None else ""}</b>'
+        notification_obj = notification.object
+        notification_obj_type = str(type(notification_obj)).split('.')[-1].lower()[:-2] + 's'
+        if 'оценку' in notification.action:
+            notification_obj_type += '_mark'
 
-    recipient_tg_chats = list(TelegramUser.objects.filter(contest_user=contest_recipient))
+        try:
+            if not getattr(contest_recipient_settings, notification_obj_type):
+                return
+        except AttributeError:
+            pass
 
-    from contest_telegram_bot.bot import tbot
-    from contest_telegram_bot.keyboards import notification_keyboard
-    for tg_chat in recipient_tg_chats:
-        tbot.send_message(chat_id=tg_chat.chat_id, text=notification_msg,
-                          reply_markup=notification_keyboard(obj=notification_obj), parse_mode='HTML')
+        notification_msg = f'{notification.subject.account} {notification.action} <b>{notification_obj}</b> ' \
+                           f'{notification.relation if notification.relation is not None else ""} ' \
+                           f'<b>{notification.reference if notification.reference is not None else ""}</b>'
+
+        recipient_tg_chats = list(TelegramUser.objects.filter(contest_user=contest_recipient))
+
+        from contest_telegram_bot.bot import tbot
+        from contest_telegram_bot.keyboards import notification_keyboard
+        for tg_chat in recipient_tg_chats:
+            tbot.send_message(chat_id=tg_chat.chat_id, text=notification_msg,
+                              reply_markup=notification_keyboard(obj=notification_obj), parse_mode='HTML')
 
 
 def notify_specific_tg_users(notification_msg: str, tg_users, notification_obj=None):
