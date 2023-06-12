@@ -87,21 +87,26 @@ def notify_tg_users(notifications):
 
 
 def notify_specific_tg_users(notification_msg: str, tg_users, notification_obj=None):
+    from contest_telegram_bot.bot import tbot
+    from contest_telegram_bot.keyboards import notification_keyboard
+
     if notification_obj is not None:
         notification_obj_type = str(type(notification_obj)).split('.')[-1].lower()[:-2] + 's'
     else:
         notification_obj_type = ''
 
-    from contest_telegram_bot.bot import tbot
-    from contest_telegram_bot.keyboards import notification_keyboard
-    for tg_user in tg_users:
-        # здесь нужно не обращаться каждый раз к БД, а получить все настройки заранее
-        notification_setting_item = getattr(TelegramUserSettings.objects.get(contest_user=tg_user.contest_user),
-                                            notification_obj_type, None)
-        if (notification_setting_item is None) or (not notification_setting_item):
-            continue
-        tbot.send_message(chat_id=tg_user.chat_id, text=notification_msg,
-                          reply_markup=notification_keyboard(obj=notification_obj), parse_mode='HTML')
+    all_tg_users_settings = TelegramUserSettings.objects.filter(contest_user__in=tg_users.values_list('contest_user'))
+    for tg_user_settings in all_tg_users_settings:
+        # здесь нужно не обращаться каждый раз к БД, а получить все настройки заранее - исправил
+        notification_setting_item = getattr(tg_user_settings, notification_obj_type, None)
+        if notification_setting_item is not None:
+            if not notification_setting_item:
+                continue
+
+        tg_users_of_current_contest_user = tg_users.filter(contest_user=tg_user_settings.contest_user)
+        for tg_user in tg_users_of_current_contest_user:
+            tbot.send_message(chat_id=tg_user.chat_id, text=notification_msg,
+                              reply_markup=notification_keyboard(obj=notification_obj), parse_mode='HTML')
 
 
 def notify_specific_tg_users_by_contest_users(notification_msg: str, contest_users_ids):
