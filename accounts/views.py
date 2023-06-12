@@ -520,7 +520,7 @@ class AnnouncementDelete(LoginRedirectMixin, PermissionRequiredMixin, DeleteView
     permission_required = 'accounts.delete_announcement'
 
 
-class AnnouncementList(LoginRequiredMixin, ListView):
+class AnnouncementList(LoginRedirectMixin, ListView):
     model = Announcement
     template_name = 'accounts/announcement/announcement_list.html'
     context_object_name = 'announcements'
@@ -550,7 +550,7 @@ class NotificationDeleteRead(LoginRequiredMixin, RedirectView):
         return super().get(request, *args, **kwargs)
 
 
-class NotificationList(LoginRequiredMixin, ListView):
+class NotificationList(LoginRedirectMixin, ListView):
     model = Notification
     template_name = 'accounts/notification/notification_list.html'
     context_object_name = 'notifications'

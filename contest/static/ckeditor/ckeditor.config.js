@@ -23,6 +23,7 @@ let ckeditorConfigs = {
 			'fontFamily', 'fontSize', 'fontColor', '|',
 			'link', 'insertTable', '|',
 			'code', 'codeBlock', '|',
+			// 'insertImage', 'uploadImage', '|',
 			'undo', 'redo', // '|',
 			// 'sourceEditing'
         ]
