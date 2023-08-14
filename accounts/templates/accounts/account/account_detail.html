@@ -39,7 +39,19 @@
             <tr><td class="text-end" style="width: 30%;">Обучается</td><td>{{ account.enrolled|yesno:'да,нет' }}</td></tr>
             <tr><td class="text-end" style="width: 30%;">Закончил обучение</td><td>{{ account.graduated|yesno:'да,нет' }}</td></tr>
             {% endif %}
-            <tr><td class="text-end" style="width: 30%;">Права</td><td>{% for group in account.user.groups.all %} <span class="badge bg-secondary">{{ group }}</span>{% endfor %}</td></tr>
+            <tr><td class="text-end" style="width: 30%;">Права</td>
+                <td>
+                    {% if perms.auth.view_group %}
+                    {% for group in account.user.groups.all %}
+                    <a href="{% url 'accounts:group-detail' group.pk %}"><span class="badge bg-secondary">{{ group }}</span></a>
+                    {% endfor %}
+                    {% else %}
+                    {% for group in account.user.groups.all %}
+                    <span class="badge bg-secondary">{{ group }}</span>
+                    {% endfor %}
+                    {% endif %}
+                </td>
+            </tr>
             <tr><td class="text-end" style="width: 30%;">Тип учетной записи</td><td>{{ account.get_type_display }}</td></tr>
             {% if perms.accounts.change_account %}
             <tr><td class="text-end" style="width: 30%;">Логин</td><td>{{ account.username }}</td></tr>

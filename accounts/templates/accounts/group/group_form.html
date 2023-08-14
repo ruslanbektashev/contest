@@ -1,0 +1,25 @@
+{% extends 'base_main.html' %}
+{% load views forms static %}
+
+{% block title %}Группа{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Пользователи" 'accounts:account-list' %}
+{% breadcrumb "Права" %}
+{% breadcrumb group 'accounts:group-detail' group.pk %}
+{% breadcrumb "Редактирование" %}
+{% endblock breadcrumbs %}
+
+{% block main_content %}
+<legend>Редактирование группы прав</legend>
+<form action="" method="post">
+    {% csrf_token %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field_left_labeled.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.name class+="form-control" %}
+    {% render_field form.permissions class+="form-control selectpicker" data-selected-text-format="count" data-live-search="true" %}
+    {% endwith %}
+    {% include 'forms/submit_button.html' with value="Сохранить" %}
+</form>
+{% endblock main_content %}

@@ -37,6 +37,9 @@
     {% render_field form.degree class+="form-control" %}
     {% render_field form.position class+="form-control" %}
     {% render_field form.type class+="form-control selectpicker" %}
+    {% if perms.auth.change_group %}
+    {% render_field form.groups class+="form-control selectpicker" data-size=5 %}
+    {% endif %}
     {% endif %}
     {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch_left_labeled.html" %}
     {% render_field form.is_active class+="form-check-input" %}
