@@ -31,11 +31,11 @@
     {% endif %}
     {% if action == 'restore' or action == None %}
     {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-    <div id="field_title">
+    <div class="driver-active-standout" id="fieldTitle">
         {% render_field form.title class+="form-control" %}
     </div>
     {% endwith %}
-    <div id="field_description">
+    <div class="driver-active-standout" id="fieldDescription">
         {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/textarea.html" %}
         {% render_field form.description class+="form-control" %}
         {% endwith %}
@@ -46,14 +46,14 @@
     {% render_field form.course class+="form-control selectpicker" %}
     {% endif %}
     {% if action == 'move' or action == 'restore' or action == None %}
-    <div id="field_number">
+    <div class="driver-active-standout" id="fieldNumber">
         {% render_field form.number class+="form-control" %}
     </div>
     {% endif %}
     {% endwith %}
     {% if action == 'add_files' or action == 'restore' or action == None %}
     {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/file.html" WIDGET_ERROR_CLASS="is-invalid" %}
-    <div id="field_files">
+    <div class="driver-active-standout" id="fieldFiles">
         {% render_field form.files class+="form-control" %}
     </div>
     {% endwith %}
@@ -63,7 +63,7 @@
     {% render_field form.hidden class+="btn-check" autocomplete="off" %}
     {% endwith %}
     {% endif %}
-    <div id="form_submit_button">
+    <div id="formSubmitButton">
         {% include 'forms/submit_button.html' with value="Сохранить" %}
     </div>
 </form>
@@ -79,20 +79,18 @@ document.addEventListener("DOMContentLoaded", function(event) {
     initCKEditor(document.getElementById('id_description'), 'default');
 });
 
-driver.defineSteps([
+driverObj.setSteps([
     {% if request.user.account.is_instructor or request.user.is_superuser %}
     {% if not request|have_passed_step:'field_title' %}
     {
         view: '{% tutorial_step_view request %}',
         step: 'field_title',
-        element: '#field_title',
+        element: '#fieldTitle',
         popover: {
-            title: " ",
-            description: "Заголовок будет отображаться в списке разделов курса. " +
-                "<br>Это поле обязательное и запонено по умолчанию. " +
-                "Введите предпочитаемый заголовок раздела и нажмите &laquo;Далее&raquo;",
-            position: 'bottom',
-            className: 'driver-popover-md'
+            description: "С таким названием раздел будет отображаться в списке разделов курса.<br>" +
+                "Вы можете заменить предложенный вариант заголовка.",
+            side: 'bottom',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -100,12 +98,15 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'field_description',
-        element: '#field_description',
+        element: '#fieldDescription',
         popover: {
-            title: " ",
-            description: "В описание раздела можно добавлять изображения" +
-                "",
-            position: 'top'
+            description: "В это поле можно вставлять форматированный текст, скопированный из документа " +
+                "<em class='text-primary'>Word</em>.<br>" +
+                "Кроме того, доступно форматирование LaTeX через пары символов " +
+                "<span class='text-nowrap'>&laquo;\\(&raquo; и &laquo;\\)&raquo;</span> для " +
+                "строчной нотации, <span class='text-nowrap'>&laquo;$$&raquo; и &laquo;$$&raquo;</span> для блочной.",
+            side: 'top',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -113,12 +114,12 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'field_number',
-        element: '#field_number',
+        element: '#fieldNumber',
         popover: {
-            title: " ",
             description: "Номер раздела определяет порядок отображения столбцов с заданиями в таблице заданий курса. " +
-                "<br>Это поле обязательное и заполнено по умолчанию. Номер раздела должен быть уникальным в данном курсе",
-            position: 'bottom'
+                "<br>Это поле обязательное и заполнено по умолчанию. Номер раздела должен быть уникальным в данном курсе.",
+            side: 'bottom',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -126,16 +127,15 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'field_files',
-        element: '#field_files',
+        element: '#fieldFiles',
         popover: {
-            title: " ",
-            description: "Вы можете прикрепить к разделу файлы следующих типов: " +
-                "<ul>" +
-                "<li>текстовые .txt</li>" +
-                "<li><strong>Microsoft Word</strong> .doc/.docx</li>" +
-                "<li><strong>Excel</strong> .xls/.xlsx</li>" +
-                "<li><strong>PowerPoint</strong> .ppt/.pptx</li>",
-            position: 'bottom'
+            description: "Вы можете прикрепить к разделу файлы следующих типов:<ul>" +
+                "<li><em class='text-primary'>Word</em> - .doc/.docx</li>" +
+                "<li><em class='text-success'>Excel</em> - .xls/.xlsx</li>" +
+                "<li><em class='text-danger'>PowerPoint</em> - .ppt/.pptx</li>" +
+                "<li>а также - .txt, .pdf, .djvu, .csv и др.</li></ul>",
+            side: 'bottom',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -143,11 +143,11 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'form_submit_button',
-        element: '#form_submit_button',
+        element: '#formSubmitButton',
         popover: {
-            title: "Сохранение",
             description: "Когда заполните необходимые поля, нажмите на кнопку &laquo;Сохранить&raquo;",
-            position: 'top'
+            side: 'top',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
