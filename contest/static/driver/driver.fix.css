@@ -2,12 +2,28 @@
     border-radius: 4px;
 }
 
-.driver-popover-md {
-    max-width: 500px !important;
-    width: 500px !important;
+.driver-active-standout {
+    transition: padding-right 0.35s ease-in-out, padding-left 0.35s ease-in-out;
 }
 
-.driver-popover-lg {
-    max-width: 700px !important;
-    width: 700px !important;
+.driver-active-standout.driver-active-element {
+    padding-right: .25rem !important;
+    padding-left: .25rem !important;
+}
+
+@media (min-width: 768px) {
+    .driver-popover-md, .driver-popover-lg {
+        max-width: 540px !important;
+    }
+}
+
+@media (min-width: 992px) {
+    .driver-popover-lg {
+        max-width: 720px !important;
+    }
+}
+
+/* Fix bootstrap-select dropdowns being hidden under svg overlay */
+.dropdown-menu {
+    z-index: 1000000001;
 }
