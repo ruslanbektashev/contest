@@ -4,6 +4,7 @@
 {% block links %}
 <link href="{% static 'bootstrap-select/css/bootstrap-select.min.css' %}" rel="stylesheet">
 <link href="{% static 'driver/driver.min.css' %}" rel="stylesheet">
+<link href="{% static 'driver/driver.fix.css' %}" rel="stylesheet">
 {% block main_links %}{% endblock main_links %}
 {% endblock links %}
 
@@ -48,7 +49,7 @@
     </div>
     <div class="text-center text-small mt-auto gx-3">
         {% if perms.support.delete_tutorialsteppass %}
-        <a class="link-secondary text-nowrap" id="contest_tutorial_reset" href="{% url 'support:tutorial-reset' request.resolver_match.app_name|add:":"|add:request.resolver_match.url_name %}?from={{ request.get_full_path }}">Пройти руководство</a>
+        <a class="link-secondary text-nowrap" id="contestTutorialReset" href="{% url 'support:tutorial-reset' request.resolver_match.app_name|add:":"|add:request.resolver_match.url_name %}?from={{ request.get_full_path }}">Пройти руководство</a>
         <span class="text-muted mx-1">|</span>
         {% endif %}
         <a class="link-secondary text-nowrap" href="{% url 'support:report-create' %}?from={{ request.path }}">Сообщить об ошибке</a>
@@ -107,21 +108,19 @@ function passTutorialStep(step_id, step, view) {
     }
 }
 
-let driver = new Driver({
-    overlayClickNext: true,
+const driverObj = driver.js.driver({
+    animate: true,
+    smoothScroll: false,
     allowClose: true,
-    doneBtnText: 'Завершить',
-    closeBtnText: 'Закрыть',
-    nextBtnText: 'Далее',
-    prevBtnText: 'Назад',
-    animate: false,
-    scrollIntoViewOptions: true,
-    onHighlightStarted: function (element) {
-        window.scroll(0, 0);
-        let step_id = this.view + '/' + this.step;
-        passTutorialStep(step_id, this.step, this.view);
+    stageRadius: 4,
+    nextBtnText: "Далее",
+    prevBtnText: "Назад",
+    doneBtnText: "Завершить",
+    onHighlighted: function (element, driverStep, config) {
+        let step_id = driverStep.view + '/' + driverStep.step;
+        passTutorialStep(step_id, driverStep.step, driverStep.view);
     },
-    onReset: function (element) {
+    onDestroyed: function (element, driverStep, config) {
         let view = '{{ request.resolver_match.app_name }}:{{ request.resolver_match.url_name }}';
         let step = '__all__';
         let step_id = view + '/' + step;
@@ -130,10 +129,9 @@ let driver = new Driver({
 });
 
 function startJourney() {
-    if (driver.getSteps().length > 0) {
-        window.scroll(0, 0);
+    if (!driverObj.isActive()) {
         localStorage.clear();
-        driver.start();
+        driverObj.drive();
     }
 }
 

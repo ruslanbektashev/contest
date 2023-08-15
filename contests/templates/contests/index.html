@@ -13,14 +13,14 @@
         <span class="text-truncate d-none d-md-flex">Главная</span>
         <span class="d-flex justify-content-between gap-1">
             {% if perms.contests.add_course %}
-            <a href="{% url 'contests:course-create' %}" class="text-success" id="btn_course_create" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
+            <a href="{% url 'contests:course-create' %}" class="text-success" id="contestCourseCreateButton" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
             {% endif %}
             <a href="{% url 'contests:course-list' %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Все курсы"><i class="fa fa-book fa-fw"></i></a>
             {% if perms.contests.view_submission_list %}
             <a href="{% url 'contests:submission-list' %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Все посылки"><i class="fa fa-tasks fa-fw"></i></a>
             {% endif %}
             {% if perms.accounts.change_account %}
-            <a href="{% url 'accounts:account-list' %}" id="btn_account_list" data-bs-toggle="tooltip" data-bs-placement="top" title="Пользователи"><i class="fa fa-users fa-fw"></i></a>
+            <a href="{% url 'accounts:account-list' %}" id="contestAccountListButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Пользователи"><i class="fa fa-users fa-fw"></i></a>
             {% endif %}
             {% if perms.accounts.view_filter %}
             <a href="{% url 'contests:filter-table' %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Фильтры"><i class="fa fa-bookmark fa-fw"></i></a>
@@ -36,7 +36,7 @@
         </span>
     </span>
 </legend>
-<div class="row">
+<div class="row" id="contestMainContainer">
     <div class="col-12 col-md-8">
         <p class="lead">Последние посылки</p>
         <table class="table">
@@ -90,13 +90,13 @@
     <div class="col-12 col-md-4">
         <p class="lead">Ваши курсы</p>
         {% for course in courses %}
-        <div class="card shadow-sm mb-3">
+        <div class="card shadow-sm mb-3" id="contestCourseCard{{ forloop.counter }}">
             <div class="card-body">
-                <a href="{{ course.get_absolute_url }}" class="card-title">{{ course }}</a>
+                <a href="{{ course.get_absolute_url }}" class="card-title" id="contestCourseCard{{ forloop.counter }}Link">{{ course }}</a>
                 <p class="card-text"><small class="text-muted">{{ course.get_level_display }}</small></p>
                 <div class="d-flex gap-3">
                     <a href="{% url 'contests:submission-list' course.id %}" class="btn btn-light btn-sm"><i class="fa fa-tasks fa-fw"></i> Посылки</a>
-                    <a href="{% url 'contests:assignment-table' course.id %}" class="btn btn-light btn-sm"><i class="fa fa-table fa-fw"></i> Таблица</a>
+                    <a href="{% url 'contests:assignment-table' course.id %}" class="btn btn-light btn-sm"><i class="fa fa-table fa-fw"></i> Задания</a>
                 </div>
             </div>
         </div>
@@ -107,7 +107,7 @@
 
 {% block main_scripts %}
 <script type="text/javascript">
-driver.defineSteps([
+driverObj.setSteps([
     {% if not request|have_passed_step:'contest_logo' %}
     {
         view: '{% tutorial_step_view request %}',
@@ -117,9 +117,9 @@ driver.defineSteps([
             title: "Добро пожаловать в Контест!",
             description: "Это пошаговое руководство познакомит Вас с основными возможностями системы Контест. " +
                 "<br>Для навигации используйте кнопки &laquo;Далее&raquo; и &laquo;Назад&raquo;. " +
-                "<br>Вы можете в любой момент остановить руководство, нажав на кнопку &laquo;Закрыть&raquo;.",
-            position: 'bottom',
-            className: 'driver-popover-md'
+                "<br>Вы можете остановить руководство в любой момент, нажав на кнопку &laquo;&times;&raquo;.",
+            side: 'bottom',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -127,11 +127,10 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'contest_tutorial_reset',
-        element: '#contest_tutorial_reset',
+        element: '#contestTutorialReset',
         popover: {
-            title: " ",
-            description: "Если Вы случайно закрыли руководство или хотите пройти его заново, нажмите на эту кнопку.",
-            position: 'top'
+            description: "Вы можете повторно пройти руководство щёлкнув по этой ссылке.",
+            side: 'top',
         }
     },
     {% endif %}
@@ -140,12 +139,11 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'contest_main',
-        element: '#contest_main_container',
+        //element: '#contestMainContainer',
         popover: {
-            title: "Главная",
-            description: "На главной странице будет располагаться сводная информация о Ваших курсах.",
-            position: 'mid-center',
-            className: 'driver-popover-shadow'
+            title: "Это главная страница",
+            description: "Здесь будет располагаться сводная информация о Ваших курсах.",
+            side: 'top',
         }
     },
     {% endif %}
@@ -153,11 +151,11 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'contest_course_create_button',
-        element: '#btn_course_create',
+        element: '#contestCourseCreateButton',
         popover: {
-            title: " ",
-            description: "Если у Вас еще нет курсов в Контесте, то Вы можете добавить их перейдя по этой ссылке.",
-            position: 'bottom'
+            title: "Добавьте свой курс",
+            description: "Если у Вас еще нет курсов в Контесте, то Вы можете добавить их нажав на эту кнопку.",
+            side: 'bottom',
         }
     },
     {% endif %}
@@ -165,11 +163,11 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'contest_course_card',
-        element: '#course_card_1',
+        element: '#contestCourseCard1',
         popover: {
-            title: " ",
-            description: "Это карточка курса - в ней отображаются последние посылки решений к задачам данного курса. Ссылки в нижней части карточки помогут быстро перейти к списку всех посылок и таблице заданий.",
-            position: 'bottom',
+            title: "Это карточка курса",
+            description: "Отсюда можно быстро перейти к таблице заданий или списку посылок Вашего курса.",
+            side: 'left',
         }
     },
     {% endif %}
@@ -177,11 +175,10 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'contest_course_card_link',
-        element: '#course_card_1_link',
+        element: '#contestCourseCard1Link',
         popover: {
-            title: " ",
-            description: "Чтобы добавить Ваши учебные материалы к этому курсу, перейдите по ссылке на страницу курса.",
-            position: 'bottom',
+            description: "Чтобы добавить Ваши учебные материалы к этому курсу, перейдите по этой ссылке на страницу курса.",
+            side: 'left',
         }
     },
     {% endif %}
@@ -191,13 +188,15 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'button_account_list',
-        element: '#btn_account_list',
+        element: '#contestAccountListButton',
         popover: {
-            title: "Пользователи",
-            description: "С помощью этой кнопки Вы можете перейти к разделу &laquo;Пользователи&raquo;.<br><br>" +
-            "В этом разделе можно редактировать профили пользователей, сбрасывать их пароли, а также изменять уровень обучения студентов (курс/семестр), отчислять и восстанавливать их.<br><br>" +
+            title: "Управление пользователями",
+            description: "С помощью этой кнопки Вы можете перейти к странице &laquo;Пользователи&raquo;.<br><br>" +
+            "Там можно редактировать профили пользователей, сбрасывать их пароли, а также изменять уровень обучения " +
+            "студентов (курс/семестр), отчислять и восстанавливать их.<br><br>" +
             "Раздел &laquo;Пользователи&raquo; доступен только модераторам.",
-            position: 'left',
+            side: 'left',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
