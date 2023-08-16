@@ -33,7 +33,7 @@
             </span>
             {% endif %}
             {% if perms.contests.change_contest or request|has_leader_permission:contest.course %}
-            <a id="btn_contest_update" href="{% url 'contests:contest-update' contest.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
+            <a id="contestUpdateButton" href="{% url 'contests:contest-update' contest.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.change_contest or perms.contests.delete_contest or request|has_leader_permission:contest.course %}
             <span class="dropstart">
@@ -113,19 +113,20 @@
 {% block main_scripts %}
 <script src="{% static 'mathjax/es5/tex-chtml.js' %}" type="text/javascript" defer></script>
 <script type="text/javascript">
-driver.defineSteps([
+driverObj.setSteps([
     {% if request.user.account.is_instructor or request.user.is_superuser %}
     {% if not request|have_passed_step:'contest_detail' %}
     {
         view: '{% tutorial_step_view request %}',
         step: 'contest_detail',
-        element: '#collapseOne',
+        element: '#contestDescriptionCollapse',
         popover: {
             title: "Описание",
-            description: "В описание раздела Вы можете добавлять все соответствующие ему учебные материалы - текст, " +
-                "ссылки на литературу в ИРЦ, документы <em>Microsoft Word</em>, <em>Excel</em>, " +
-                "<em>PowerPoint</em>, файлы <em>PDF</em>, видео/аудио записи лекций и семинаров. ",
-            position: 'bottom'
+            description: "Здесь будет отображаться краткое описание раздела, а также все прикрепленные материалы: " +
+                "документы <em class='text-primary'>Word</em>, <em class='text-success'>Excel</em>, " +
+                "<em class='text-danger'>PowerPoint</em> и др. ",
+            side: 'bottom',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -133,11 +134,11 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'contest_update_button',
-        element: '#btn_contest_update',
+        element: '#contestUpdateButton',
         popover: {
             title: "Редактирование",
-            description: "Чтобы перейти на страницу редактирования курса, кликните по этой кнопке",
-            position: 'left'
+            description: "Чтобы перейти на страницу редактирования раздела и прикрепления материалов, кликните по этой кнопке.",
+            side: 'left'
         }
     },
     {% endif %}
@@ -145,19 +146,21 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'contest_problems',
-        element: '#collapseTwo',
+        element: '#contestProblemsCollapse',
         popover: {
             title: "Задачи",
-            description: "Студентам доступны для решения все задачи раздела, а назначенные им задачи отображаются в списке заданий. Список заданий студента можно посмотреть в его профиле, а сам студент видит свой список заданиий на своей главной странице Контеста. " +
-                "В Контесте задачи бывают 4 типов и отличаются способом решения:" +
-                "<ul>" +
+            description: "Студентам доступны для решения все задачи раздела, а назначенные им задачи отображаются в их " +
+                "списке заданий. Список заданий студента можно посмотреть в его профиле, а сам студент видит свой " +
+                "список заданий на своей главной странице Контеста.<br>В Контесте задачи бывают:<ul>" +
                 "<li>текстовые - решением таких задач является текст, набранный с клавиатуры прямо на странице Контеста</li>" +
-                "<li>файловые - решением таких задач является файл или набор файлов (файлы с текстом, изображения, документы <em>Microsoft Word</em>, таблицы <em>Excel</em>, презентации <em>PowerPoint</em>, файлы <em>PDF</em> и др.)</li>" +
-                "<li>программы - решением таких задач является файл или набор файлов с исходным кодом (.c/.cpp/.h/.hpp)</li>" +
-                "<li>варианты - задача представляет из себя вопрос с вариантами ответов, а решением служит выбранный студентом один или несколько вариантов ответа</li>" +
-                "</ul>",
-            position: 'top',
-            className: 'driver-popover-lg'
+                "<li>файловые - решением таких задач является файл или набор файлов (файлы с текстом, изображения, " +
+                "документы <em class='text-primary'>Word</em>, таблицы <em class='text-success'>Excel</em>, презентации " +
+                "<em class='text-danger'>PowerPoint</em> и др.)</li>" +
+                "<li>программы - решением таких задач является файл или набор файлов с исходным кодом (.c, .cpp, .h, .hpp)</li>" +
+                "<li>варианты - задача представляет собой вопрос с вариантами ответов, а решением служит выбранный " +
+                "студентом один или несколько вариантов ответа</li></ul>",
+            side: 'top',
+            popoverClass: 'driver-popover-lg'
         }
     },
     {% endif %}
@@ -165,11 +168,12 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'contest_problem_create_button',
-        element: '#btn_problem_create',
+        element: '#problemCreateMenu',
         popover: {
             title: "Добавить задачу",
             description: "Начать добавление задачи к этому разделу можно нажав на кнопку &laquo;Добавить задачу&raquo;",
-            position: 'top'
+            side: 'top',
+            popoverClass: 'driver-popover-md'
         }
     }
     {% endif %}
