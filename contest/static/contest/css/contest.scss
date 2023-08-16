@@ -257,12 +257,18 @@
   color: #5cb85c;
 }
 
-// CSS Patches for other libs
-
-.bootstrap-select .dropdown-menu {
-  //box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important // .shadow
-  box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075) !important // .shadow-sm
+.contest-account-list-toolbar {
+  opacity: 0.3;
+  transition: opacity 0.15s ease-in-out;
+  pointer-events: none;
 }
+
+.contest-account-list-toolbar-active {
+  opacity: 1;
+  pointer-events: revert;
+}
+
+// CSS Patches for other libs
 
 .rounded-0-bottom {
   border-bottom-left-radius: 0;
@@ -276,17 +282,4 @@
 .nav-link .badge {
   position: relative;
   top: -1px;
-}
-
-/* Fix bootstrap-select dropdowns being hidden under svg overlay */
-.dropdown-menu {
-  z-index: 1000000001;
-}
-
-/* Fix tempus-dominus widget being hidden under svg overlay */
-.tempus-dominus-widget {
-  z-index: 1000000001;
-}
-.tempus-dominus-widget * {
-  pointer-events: auto;
 }

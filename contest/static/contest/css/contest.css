@@ -305,8 +305,15 @@
   color: #5cb85c;
 }
 
-.bootstrap-select .dropdown-menu {
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+.contest-account-list-toolbar {
+  opacity: 0.3;
+  transition: opacity 0.15s ease-in-out;
+  pointer-events: none;
+}
+
+.contest-account-list-toolbar-active {
+  opacity: 1;
+  pointer-events: revert;
 }
 
 .rounded-0-bottom {
@@ -321,20 +328,6 @@
 .nav-link .badge {
   position: relative;
   top: -1px;
-}
-
-/* Fix bootstrap-select dropdowns being hidden under svg overlay */
-.dropdown-menu {
-  z-index: 1000000001;
-}
-
-/* Fix tempus-dominus widget being hidden under svg overlay */
-.tempus-dominus-widget {
-  z-index: 1000000001;
-}
-
-.tempus-dominus-widget * {
-  pointer-events: auto;
 }
 
 /*# sourceMappingURL=contest.css.map */

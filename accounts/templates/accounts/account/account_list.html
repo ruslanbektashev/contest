@@ -14,17 +14,17 @@
         <span class="text-truncate">{% if type == 1 %}Студенты{% else %}Сотрудники{% endif %}{% if graduated %}: выпускники{% elif enrolled == False %}: отчисленные{% endif %}</span>
         <span class="d-flex justify-content-between gap-1">
             {% if perms.accounts.add_account %}
-            <a href="{% url 'accounts:account-create-set' %}?faculty_id={{ faculty.id }}" class="text-success" id="account_list_create_set" data-bs-toggle="tooltip" data-bs-placement="top" title="Добавить пользователей"><i class="fa fa-user-plus fa-fw"></i></a>
+            <a href="{% url 'accounts:account-create-set' %}?faculty_id={{ faculty.id }}" class="text-success" id="accountListCreateSet" data-bs-toggle="tooltip" data-bs-placement="top" title="Добавить пользователей"><i class="fa fa-user-plus fa-fw"></i></a>
             {% endif %}
             {% if perms.accounts.change_account %}
-            <a href="{% url 'accounts:account-update-set' %}{{ request|get_query_string }}" id="account_list_update_set" data-bs-placement="left" title="Перейти в режим редактирования"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'accounts:account-update-set' %}{{ request|get_query_string }}" id="accountListUpdateSet" data-bs-placement="left" title="Перейти в режим редактирования"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
         </span>
     </span>
 </legend>
 <form class="mb-3">
     <div class="row g-2">
-        <div class="col-12 col-md-8" id="account_list_filters">
+        <div class="col-12 col-md-8" id="accountListFilters">
             <div class="row g-2">
                 <div class="col-6 col-md-3">
                     <select class="form-control selectpicker" id="type_select" name="type" onchange="document.location=this.options[this.selectedIndex].value;" aria-label="Тип пользователя">
@@ -65,7 +65,7 @@
         {% if perms.accounts.change_account %}
         <div class="col-12 col-md-4 ms-auto">
             <div class="float-end">
-                <div class="btn-toolbar" id="account_list_form_actions" style="visibility: hidden;" role="toolbar" aria-label="Панель управления">
+                <div class="btn-toolbar contest-account-list-toolbar" id="accountListFormActions" role="toolbar" aria-label="Панель управления">
                     <div class="btn-group" role="group" aria-label="Сброс пароля">
                         <button class="btn btn-sm btn-info" type="submit" name="action" form="account_list_form" value="reset_password" data-bs-toggle="tooltip" data-bs-placement="top" title="Сгенерировать новый пароль для профилей выбранных пользователей"><i class="fa fa-key fa-fw"></i></button>
                     </div>
@@ -88,7 +88,7 @@
     {% csrf_token %}
     {% include 'forms/errors/non_field_errors.html' %}
     {% include 'forms/errors/field_errors.html' with field=form.accounts %}
-    <table class="table table-sm table-bordered table-hover" id="account_list_table">
+    <table class="table table-sm table-bordered table-hover" id="accountListTable">
         <thead>
             <tr>
                 <th class="text-center" style="width: 2%;">
@@ -129,11 +129,11 @@ function toggleToolbar() {
     checkboxes.forEach(function (value) {
         if (value.checked) show = true;
     });
-    let toolbar = document.getElementById('account_list_form_actions');
+    let toolbar = document.getElementById('accountListFormActions');
     if (show)
-        toolbar.style.visibility = 'visible';
+        toolbar.classList.toggle('contest-account-list-toolbar-active', true);
     else {
-        toolbar.style.visibility = 'hidden';
+        toolbar.classList.toggle('contest-account-list-toolbar-active', false);
         document.getElementById('check_all').checked = false;
     }
 }
@@ -149,23 +149,27 @@ document.getElementsByName('accounts').forEach(function (e) {
 });
 </script>
 <script>
-driver.defineSteps([
+driverObj.setSteps([
     {% if request.user.account.is_moderator or request.user.is_superuser %}
     {% if not request|have_passed_step:'account_list_table' %}
     {
         view: '{% tutorial_step_view request %}',
         step: 'account_list_table',
-        element: '#account_list_table',
+        element: '#accountListTable',
         popover: {
             title: "Список пользователей",
-            description: "Это список всех пользователей выбранного типа и группы. " +
-                "В Контесте пользователи делятся на 3 типа: студенты, модераторы и преподаватели. " +
-                "<br><span class='text-primary'>Студентам</span> доступна информация о курсах факультета, на котором они обучаются. " +
-                "<br><span class='text-success'>Преподаватели</span> могут вносить изменения в свои курсы, назначать задания студентам своих курсов и осуществлять контроль успеваемости. " +
-                "<br><span class='text-secondary'>Модераторы</span> помогают преподавателям и студентам в процессе обучения: управляют учетными записями пользователей, обновляют расписание занятий, публикуют объявления деканатов своих факультетов. " +
-                "<br>Чтобы выполнить действие с пользователями из списка, отметьте их галочкой слева от ФИО.",
-            position: 'mid-center',
-            className: 'driver-popover-lg'
+            description: "Это список всех пользователей выбранного типа и группы.<br>" +
+                "В Контесте пользователи делятся на 3 типа: студенты, модераторы и преподаватели.<ul>" +
+                "<li><span class='text-primary'>Студентам</span> доступна информация о курсах факультета, на котором " +
+                "они обучаются.</li>" +
+                "<li><span class='text-success'>Преподаватели</span> могут вносить изменения в свои курсы, назначать " +
+                "задания студентам своих курсов и осуществлять контроль успеваемости.</li>" +
+                "<li><span class='text-secondary'>Модераторы</span> помогают преподавателям и студентам в процессе " +
+                "обучения: управляют учетными записями пользователей, обновляют расписание занятий, публикуют " +
+                "объявления деканатов своих факультетов.</li></ul>" +
+                "Чтобы выполнить действие с пользователями из списка, отметьте их галочкой слева от ФИО.",
+            side: 'top',
+            popoverClass: 'driver-popover-lg'
         }
     },
     {% endif %}
@@ -173,18 +177,16 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'account_list_form_actions',
-        element: '#account_list_form_actions',
+        element: '#accountListFormActions',
         popover: {
             title: "Действия с пользователями",
-            description: "С выбранными пользователями Вы можете:<br>" +
-                "<ul>" +
+            description: "С выбранными пользователями Вы можете:<ul>" +
                 "<li>сбросить пароль и сгенерировать новый (полезно когда пользователи забыли свои пароли)</li>" +
                 "<li>повысить и понизить уровень студентов на один семестр (в начале нового учебного года и после зимней сессии)</li>" +
-                "<li>пометить студентов как отчисленных, закончивших обучение (такие студенты не смогут авторизоваться в Контесте)</li>" +
-                "<li>восстановить отчисленных студентов из академического отпуска</li>" +
-                "</ul>",
-            position: 'bottom-right',
-            className: 'driver-popover-lg'
+                "<li>отметить студентов как отчисленных или закончивших обучение (такие студенты не смогут авторизоваться в Контесте)</li>" +
+                "<li>восстановить отчисленных студентов из академического отпуска</li></ul>",
+            side: 'bottom-right',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -192,12 +194,12 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'account_list_filters',
-        element: '#account_list_filters',
+        element: '#accountListFilters',
         popover: {
             title: "Фильтр списка пользователей",
             description: "Здесь Вы можете выбирать, какой тип пользователей отображать и фильтровать список по факультетам и уровню (курс, семестр).",
-            position: 'bottom',
-            className: 'driver-popover-lg'
+            side: 'bottom',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -205,11 +207,10 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'account_list_update_set',
-        element: '#account_list_update_set',
+        element: '#accountListUpdateSet',
         popover: {
-            title: " ",
             description: "С помощью этой кнопки Вы можете перейти на страницу редактирования всех пользователей из списка.",
-            position: 'left'
+            side: 'left'
         }
     },
     {% endif %}
@@ -217,11 +218,10 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'account_list_create_set',
-        element: '#account_list_create_set',
+        element: '#accountListCreateSet',
         popover: {
-            title: " ",
             description: "С помощью этой кнопки Вы можете добавить новых пользователей.",
-            position: 'left'
+            side: 'left'
         }
     },
     {% endif %}
