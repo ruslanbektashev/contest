@@ -20,7 +20,7 @@
 <form action="" method="post">
     {% csrf_token %}
     {% include 'forms/errors/non_field_errors.html' %}
-    <div id="field_date_interval" class="row g-3 mb-3">
+    <div id="field_date_interval" class="row driver-active-standout g-3 mb-3">
         {% with WIDGET_ERROR_CLASS="is-invalid" %}
         <div class="col-4 col-lg-3">
             {% render_field form.date class+="form-control" %}
@@ -42,7 +42,7 @@
     </div>
     {{ formset.management_form }}
     {% include 'forms/errors/non_form_errors.html' with formset=formset %}
-    <div id="attendance_formset_table" class="table-responsive-lg mt-3">
+    <div id="attendanceFormsetTable" class="table-responsive-lg mt-3">
         <table class="table table-bordered table-sm table-hover">
             <thead>
                 <tr id="attendance_formset_table_header">
@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 <script type="text/javascript">
-driver.defineSteps([
+driverObj.setSteps([
     {% if request.user.account.is_instructor or request.user.is_superuser %}
     {% if not request|have_passed_step:'field_date_interval' %}
     {
@@ -105,7 +105,7 @@ driver.defineSteps([
         popover: {
             title: "Пара",
             description: "Выберите текущую или прошедшую пару.",
-            position: 'bottom'
+            side: 'bottom'
         }
     },
     {% endif %}
@@ -117,7 +117,7 @@ driver.defineSteps([
         popover: {
             title: "Отметки",
             description: "В этой таблице отображены все студенты данного курса.",
-            position: 'bottom',
+            side: 'bottom',
         }
     },
     {% endif %}
@@ -125,11 +125,13 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'attendance_formset_table',
-        element: '#attendance_formset_table',
+        element: '#attendanceFormsetTable',
         popover: {
             title: "Отметки",
-            description: "Отметьте присутствующих на паре студентов. Неотмеченные как присутствующие студенты будут учтены как отсутствующие.",
-            position: 'mid-center',
+            description: "Отметьте присутствующих на паре студентов.<br>" +
+                "Остальные студенты будут отмечены как отсутствующие.",
+            side: 'top',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -141,7 +143,7 @@ driver.defineSteps([
         popover: {
             title: "Сохранение",
             description: "Чтобы сохранить отметки посещаемости, нажмите эту кнопку.",
-            position: 'top'
+            side: 'top'
         }
     },
     {% endif %}

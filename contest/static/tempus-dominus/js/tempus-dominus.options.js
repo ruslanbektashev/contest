@@ -88,7 +88,7 @@ let tdOptions = {
             LLLL: 'dddd, D MMMM yyyy г., H:mm'
         },
         ordinal: (n) => n,
-        format: 'L LT',
+        format: 'L',
         hourCycle: 'h23'
     },
     dateRange: false,

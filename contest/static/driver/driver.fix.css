@@ -23,7 +23,6 @@
     }
 }
 
-/* Fix bootstrap-select dropdowns being hidden under svg overlay */
-.dropdown-menu {
-    z-index: 1000000001;
+:not(body):has( > .driver-active-element) {
+    overflow: revert !important;
 }

@@ -18,7 +18,7 @@
         <thead>
             <tr>
                 <th style="width: 25%;">Студент</th>
-                <th class="text-center" style="width: 4%;"><span id="attendance_column" data-bs-toggle="tooltip" data-bs-placement="top" title="Посещаемость">П</span></th>
+                <th class="text-center" style="width: 4%;"><span id="attendanceColumn" data-bs-toggle="tooltip" data-bs-placement="top" title="Посещаемость">П</span></th>
                 {% for contest in contests %}
                 <th class="contest-table-cell text-truncate">
                     <a href="{{ contest.get_absolute_url }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ contest }}">{{ contest.number }}</a>

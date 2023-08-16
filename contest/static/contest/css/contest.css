@@ -323,4 +323,18 @@
   top: -1px;
 }
 
+/* Fix bootstrap-select dropdowns being hidden under svg overlay */
+.dropdown-menu {
+  z-index: 1000000001;
+}
+
+/* Fix tempus-dominus widget being hidden under svg overlay */
+.tempus-dominus-widget {
+  z-index: 1000000001;
+}
+
+.tempus-dominus-widget * {
+  pointer-events: auto;
+}
+
 /*# sourceMappingURL=contest.css.map */
