@@ -34,7 +34,7 @@
                 {% endif %}
             {% endif %}
             {% if perms.contests.change_course or request|has_leader_permission:course %}
-            <a id="btn_course_update" href="{% url 'contests:course-update' course.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
+            <a id="courseUpdateButton" href="{% url 'contests:course-update' course.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.delete_course or request|has_owner_permission:course %}
             <span class="dropstart">
@@ -128,18 +128,18 @@
 {% block main_scripts %}
 <script src="{% static 'mathjax/es5/tex-chtml.js' %}" type="text/javascript" defer></script>
 <script type="text/javascript">
-driver.defineSteps([
+driverObj.setSteps([
     {% if request.user.account.is_instructor or request.user.is_superuser %}
     {% if not request|have_passed_step:'course_description' %}
     {
         view: '{% tutorial_step_view request %}',
         step: 'course_description',
-        element: '#collapseOne',
+        element: '#courseDescriptionCollapse',
         popover: {
             title: "Описание",
-            description: "Описание курса - это поверхностное описание целей, задач, тем и разделов курса. " +
-                "Вы можете изменить или дополнить описание курса",
-            position: 'bottom'
+            description: "Это краткое описание целей, задач, тем и разделов курса. " +
+                "Вы можете изменить или дополнить описание курса.",
+            side: 'bottom'
         }
     },
     {% endif %}
@@ -147,11 +147,11 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'course_update_button',
-        element: '#btn_course_update',
+        element: '#courseUpdateButton',
         popover: {
             title: "Редактирование",
-            description: "Чтобы перейти на страницу редактирования курса, кликните по этой кнопке",
-            position: 'left'
+            description: "Чтобы перейти на страницу редактирования курса, кликните по этой кнопке.",
+            side: 'left'
         }
     },
     {% endif %}
@@ -159,12 +159,15 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'course_contests',
-        element: '#collapseTwo',
+        element: '#courseContestsCollapse',
         popover: {
             title: "Разделы",
-            description: "Список разделов - это структурное разделение курса на небольшие части, содержащие одну или несколько тем. " +
-                "У раздела в Контесте тоже есть описание с возможностью прикрепления изображений, текстовых файлов, документов <em>Microsoft Word</em>, <em>Excel</em>, <em>PowerPoint</em> и др. ",
-            position: 'top'
+            description: "Это структурное разделение курса на небольшие части, содержащие материалы по одной или " +
+                "нескольким темам. К разделу Вы можете прикрепить учебные материалы в виде изображений, видеозаписей, " +
+                "документов <em class='text-primary'>Microsoft Word</em>, <em class='text-success'>Excel</em>, " +
+                "<em class='text-danger'>PowerPoint</em> и др.",
+            side: 'top',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -172,11 +175,12 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'course_contest_create_button',
-        element: '#btn_contest_create',
+        element: '#contestCreateButton',
         popover: {
             title: "Добавить раздел",
-            description: "Начать добавление разделов к этому курсу можно нажав на кнопку &laquo;Добавить раздел&raquo;",
-            position: 'top'
+            description: "Начать добавление раздела к этому курсу можно нажав на кнопку &laquo;Добавить раздел&raquo;",
+            side: 'top',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}

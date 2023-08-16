@@ -278,6 +278,9 @@ class Account(models.Model):
     comments_read = models.ManyToManyField('Comment', blank=True)
 
     class Meta:
+        permissions = [
+            ("view_deleted", "Просматривать корзину"),
+        ]
         ordering = ('user__last_name', 'user__first_name', 'user_id')
         verbose_name = "Аккаунт"
         verbose_name_plural = "Аккаунты"
@@ -330,8 +333,12 @@ class Account(models.Model):
 
     def get_short_name(self):
         if self.first_name:
-            return "{last_name} {first_name_0}.".format(first_name_0=self.first_name[0],
-                                                        last_name=self.last_name).strip()
+            short_name = "{last_name} {first_name_0}.".format(first_name_0=self.first_name[0],
+                                                              last_name=self.last_name).strip()
+            patronymic = self.patronymic.strip()
+            if patronymic:
+                short_name += " {}.".format(patronymic[0])
+            return short_name
         else:
             return self.user.username
 

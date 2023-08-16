@@ -1,0 +1,28 @@
+.driver-popover {
+    border-radius: 4px;
+}
+
+.driver-active-standout {
+    transition: padding-right 0.35s ease-in-out, padding-left 0.35s ease-in-out;
+}
+
+.driver-active-standout.driver-active-element {
+    padding-right: .25rem !important;
+    padding-left: .25rem !important;
+}
+
+@media (min-width: 768px) {
+    .driver-popover-md, .driver-popover-lg {
+        max-width: 540px !important;
+    }
+}
+
+@media (min-width: 992px) {
+    .driver-popover-lg {
+        max-width: 720px !important;
+    }
+}
+
+:not(body):has( > .driver-active-element) {
+    overflow: revert !important;
+}

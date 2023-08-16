@@ -24,27 +24,27 @@
     {% csrf_token %}
     {% include 'forms/errors/non_field_errors.html' %}
     {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-    <div id="field_title_official">
+    <div class="driver-active-standout" id="fieldTitleOfficial">
         {% render_field form.title_official class+="form-control" %}
     </div>
-    <div id="field_title_unofficial">
+    <div class="driver-active-standout" id="fieldTitleUnofficial">
         {% render_field form.title_unofficial class+="form-control" %}
     </div>
     {% endwith %}
-    <div id="field_description">
+    <div class="driver-active-standout" id="fieldDescription">
         {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/textarea.html" %}
         {% render_field form.description class+="form-control" %}
         {% endwith %}
     </div>
     {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-    <div id="field_faculty">
+    <div class="driver-active-standout" id="fieldFaculty">
         {% render_field form.faculty class+="form-control selectpicker" %}
     </div>
-    <div id="field_level">
+    <div class="driver-active-standout" id="fieldLevel">
         {% render_field form.level class+="form-control selectpicker" %}
     </div>
     {% endwith %}
-    <div id="form_submit_button">
+    <div id="formSubmitButton">
         {% include 'forms/submit_button.html' with value="Сохранить" %}
     </div>
 </form>
@@ -60,19 +60,17 @@ document.addEventListener("DOMContentLoaded", function(event) {
     initCKEditor(document.getElementById('id_description'), 'default');
 });
 
-driver.defineSteps([
+driverObj.setSteps([
     {% if request.user.account.is_instructor or request.user.is_superuser %}
     {% if not request|have_passed_step:'field_title_official' %}
     {
         view: '{% tutorial_step_view request %}',
         step: 'field_title_official',
-        element: '#field_title_official',
+        element: '#fieldTitleOfficial',
         popover: {
-            title: "Официальное название",
-            description: "Официальное название курса будет использовано для автоматического заполнения отчетных документов. " +
-                "<br>Это поле обязательное. Введите официальное название Вашего курса и нажмите &laquo;Далее&raquo;",
-            position: 'bottom',
-            className: 'driver-popover-md'
+            description: "Введите официальное название Вашего курса и нажмите &laquo;Далее&raquo;<br>Это поле обязательное. ",
+            side: 'bottom',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -80,13 +78,13 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'field_title_unofficial',
-        element: '#field_title_unofficial',
+        element: '#fieldTitleUnofficial',
         popover: {
-            title: "Неофициальное название",
             description: "Неофициальное название курса будет использовано для отображения курса в Контесте для студентов и преподавателей. " +
-                "<br>Это поле может быть пустым. Если Вы оставите поле незаполненным, то при отображении курса в Контесте будет использовано его официальное название",
-            position: 'bottom',
-            className: 'driver-popover-md'
+                "<br>Это поле может быть пустым. Если Вы оставите поле незаполненным, то при отображении курса в " +
+                "Контесте будет использовано его официальное название.",
+            side: 'bottom',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -94,14 +92,17 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'field_description',
-        element: '#field_description',
+        element: '#fieldDescription',
         popover: {
-            title: "Описание",
-            description: "В это поле можно вставлять форматированный текст, скопированный из документа <em>Microsoft Word</em>. " +
-                "<br>Кроме того, доступно форматирование LaTeX через пары символов &laquo;\\(&raquo; и &laquo;\\)&raquo; для " +
-                "строчной нотации, &laquo;$$&raquo; и &laquo;$$&raquo; для блочной.",
-            position: 'top',
-            className: 'driver-popover-md'
+            description: "Введите краткое содержание курса и/или список литературы. " +
+                "Основные материалы курса Вы сможете добавить в разделы внутри курса.<br><br>" +
+                "В это поле можно вставлять форматированный текст, скопированный из документа " +
+                "<em class='text-primary'>Word</em>.<br>" +
+                "Кроме того, доступно форматирование LaTeX через пары символов " +
+                "<span class='text-nowrap'>&laquo;\\(&raquo; и &laquo;\\)&raquo;</span> для " +
+                "строчной нотации, <span class='text-nowrap'>&laquo;$$&raquo; и &laquo;$$&raquo;</span> для блочной.",
+            side: 'top',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -109,11 +110,11 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'field_faculty',
-        element: '#field_faculty',
+        element: '#fieldFaculty',
         popover: {
-            title: "Факультет",
-            description: "Это поле устанавливается автоматически",
-            position: 'bottom'
+            description: "Это поле устанавливается автоматически в зависимости от Вашего факультета.",
+            side: 'bottom',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -121,11 +122,11 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'field_level',
-        element: '#field_level',
+        element: '#fieldLevel',
         popover: {
-            title: "Уровень",
-            description: "Выберите семестр, в котором начинается курс. Если курс годичный, то выберите первый семестр курса",
-            position: 'bottom'
+            description: "Выберите семестр, в котором начинается курс. Если курс годичный, то выберите первый семестр курса.",
+            side: 'bottom',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -133,11 +134,11 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'form_submit_button',
-        element: '#form_submit_button',
+        element: '#formSubmitButton',
         popover: {
-            title: "Сохранение",
             description: "Когда заполните необходимые поля, нажмите на кнопку &laquo;Сохранить&raquo;",
-            position: 'top'
+            side: 'top',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}

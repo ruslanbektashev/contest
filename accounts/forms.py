@@ -3,11 +3,18 @@ from html.entities import name2codepoint
 from html.parser import HTMLParser
 
 from django import forms
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from accounts.models import Account, Announcement, Comment
 from accounts.templatetags.markdown import markdown
+
+
+class GroupForm(forms.ModelForm):
+    class Meta:
+        model = Group
+        fields = ['name', 'permissions']
 
 
 class AccountPartialForm(forms.ModelForm):
@@ -40,6 +47,8 @@ class AccountForm(AccountPartialForm):
     first_name = forms.CharField(max_length=30, label="Имя")
     last_name = forms.CharField(max_length=150, label="Фамилия")
     is_active = forms.BooleanField(required=False, label="Активен")
+    groups = forms.ModelMultipleChoiceField(Group.objects.filter(name__in=['Преподаватель', 'Модератор', 'Студент']),
+                                            label="Права")
 
     class Meta:
         model = Account
@@ -52,7 +61,8 @@ class AccountForm(AccountPartialForm):
             initial = {
                 'first_name': instance.user.first_name,
                 'last_name': instance.user.last_name,
-                'is_active': instance.user.is_active
+                'is_active': instance.user.is_active,
+                'groups': instance.user.groups.all()
             }
             if 'initial' in kwargs:
                 kwargs['initial'].update(initial)
@@ -65,6 +75,8 @@ class AccountForm(AccountPartialForm):
         for field_name in ['email', 'first_name', 'last_name', 'is_active']:
             if field_name in self.changed_data:
                 setattr(self.instance.user, field_name, self.cleaned_data[field_name])
+        if 'groups' in self.changed_data:
+            self.instance.user.groups.set(self.cleaned_data['groups'])
         self.instance.user.save()
         return self.instance
 
@@ -207,6 +219,8 @@ class CommentForm(forms.ModelForm):
 
 
 class AnnouncementForm(forms.ModelForm):
+    group = forms.ModelChoiceField(Group.objects.all(), empty_label="Для всех")
+
     class Meta:
         model = Announcement
         fields = ['group', 'title', 'text', 'actual']

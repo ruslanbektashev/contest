@@ -1,6 +1,7 @@
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.models import Group
 from django.core.exceptions import PermissionDenied
 from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect
@@ -15,12 +16,32 @@ from django.views.generic import (CreateView, DeleteView, DetailView, FormView, 
 from markdown import markdown
 
 from accounts.forms import (AccountListForm, AccountPartialForm, AccountSetForm, AnnouncementForm, CommentForm,
-                            StaffForm, StudentForm)
+                            GroupForm, StaffForm, StudentForm)
 from accounts.models import Account, Action, Announcement, Comment, Faculty, Notification
 from accounts.templatetags.comments import get_comment_query_string
 from contest.mixins import LogChangeMixin, LoginRedirectMixin, OwnershipOrMixin
 from contests.models import Course, Problem
 from contests.templatetags.views import get_query_string, get_updated_query_string
+
+
+class GroupDetail(LoginRedirectMixin, PermissionRequiredMixin, DetailView):
+    model = Group
+    template_name = "accounts/group/group_detail.html"
+    permission_required = "auth.view_group"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['group_users'] = (self.object.user_set.select_related('account')
+                                  .order_by('-account__type', 'last_name', 'first_name'))
+        return context
+
+
+class GroupUpdate(LoginRedirectMixin, PermissionRequiredMixin, LogChangeMixin, UpdateView):
+    model = Group
+    form_class = GroupForm
+    template_name = "accounts/group/group_form.html"
+    permission_required = "auth.change_group"
+
 
 """==================================================== Account ====================================================="""
 
@@ -520,7 +541,7 @@ class AnnouncementDelete(LoginRedirectMixin, PermissionRequiredMixin, DeleteView
     permission_required = 'accounts.delete_announcement'
 
 
-class AnnouncementList(LoginRequiredMixin, ListView):
+class AnnouncementList(LoginRedirectMixin, ListView):
     model = Announcement
     template_name = 'accounts/announcement/announcement_list.html'
     context_object_name = 'announcements'
@@ -550,7 +571,7 @@ class NotificationDeleteRead(LoginRequiredMixin, RedirectView):
         return super().get(request, *args, **kwargs)
 
 
-class NotificationList(LoginRequiredMixin, ListView):
+class NotificationList(LoginRedirectMixin, ListView):
     model = Notification
     template_name = 'accounts/notification/notification_list.html'
     context_object_name = 'notifications'

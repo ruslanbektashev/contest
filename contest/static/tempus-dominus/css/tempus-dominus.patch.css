@@ -23,3 +23,11 @@
 .tempus-dominus-widget .time-container-clock {
   justify-items: center;
 }
+
+ /* Fix tempus-dominus widget being hidden under svg overlay of driver.js */
+.tempus-dominus-widget {
+  z-index: 1000000001;
+}
+.tempus-dominus-widget * {
+  pointer-events: auto;
+}

@@ -23,7 +23,6 @@
 <div class="card{% if forloop.counter > 1 %} mt-3{% endif %}">
     <div class="card-header d-flex align-items-center gap-2">
         <a class="text-primary me-auto" href="{% url 'accounts:announcement-detail' announcement.id %}">{{ announcement.title }}</a>
-        <span class="text-muted">Актуально до: {{ announcement.actual }}</span>
         {% if perms.accounts.change_announcement %}
         <a href="{% url 'accounts:announcement-update' announcement.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать объявление"><i class="fa fa-edit fa-lg fa-fw"></i></a>
         {% endif %}
@@ -34,9 +33,9 @@
     <div class="card-body">
         <div class="card-text">{{ announcement.text|safe }}</div>
     </div>
-    <div class="card-footer d-flex align-items-center">
-        <span class="text-muted me-auto">{{ announcement.date_created }}</span>
+    <div class="card-footer d-flex justify-content-between">
         <span class="contest-status-number bg-secondary">{{ announcement.group_name }}</span>
+        <span class="text-muted">{{ announcement.date_created }} ∙ до {{ announcement.actual }}</span>
     </div>
 </div>
 {% empty %}

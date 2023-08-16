@@ -26,7 +26,8 @@
 <div class="alert alert-light">
     {{ text|safe }}
 </div>
-<div class="text-end">
-    <p><span class="contest-status-number bg-secondary">{{ announcement.group_name }}</span> | {{ announcement.date_created }}</p>
+<div class="d-flex justify-content-between">
+    <span class="contest-status-number bg-secondary">{{ announcement.group_name }}</span>
+    <span class="text-muted">{{ announcement.date_created }} ∙ до {{ announcement.actual }}</span>
 </div>
 {% endblock main_content %}

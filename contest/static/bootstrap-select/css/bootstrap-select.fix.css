@@ -1,0 +1,5 @@
+.bootstrap-select .dropdown-menu {
+  /*box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;*/
+  box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075) !important;
+  z-index: 1000000001; /* fix bootstrap-select dropdowns being hidden under svg overlay */
+}

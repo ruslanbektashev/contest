@@ -5,6 +5,12 @@ from accounts import api, views
 app_name = 'accounts'
 
 urlpatterns = [
+    path('group/', include([
+        path('<int:pk>/', include([
+            path('', views.GroupDetail.as_view(), name='group-detail'),
+            path('update', views.GroupUpdate.as_view(), name='group-update'),
+        ])),
+    ])),
     path('account/', include([
         path('create/set', views.AccountCreateSet.as_view(), name='account-create-set'),
         path('update/set', views.AccountUpdateSet.as_view(), name='account-update-set'),

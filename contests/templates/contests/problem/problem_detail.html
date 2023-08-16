@@ -39,12 +39,16 @@
             {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
             <a href="{% url 'contests:problem-update' problem.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
-            {% if perms.contests.delete_problem or request|has_leader_permission:problem.course %}
+            {% if perms.contests.change_problem or perms.contests.delete_problem or request|has_leader_permission:problem.course %}
             <span class="dropstart">
                 <a href="#" role="button" id="dropdownMoreMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
                 <span class="dropdown-menu shadow-sm" aria-labelledby="dropdownMoreMenuLink">
-                    <a class="dropdown-item" href="{% url 'contests:problem-update' problem.id %}?action=move"><i class="fa fa-share-square-o fa-fw"></i> Переместить</a>
-                    <a class="dropdown-item text-danger" href="{% url 'contests:problem-delete' problem.id %}"><i class="fa fa-trash-o fa-fw"></i> Удалить</a>
+                    {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
+                    <a href="{% url 'contests:problem-update' problem.id %}?action=move" class="dropdown-item"><i class="fa fa-share-square-o fa-fw"></i> Переместить</a>
+                    {% endif %}
+                    {% if perms.contests.delete_problem or request|has_leader_permission:problem.course %}
+                    <a href="{% url 'contests:problem-delete' problem.id %}" class="dropdown-item text-danger"><i class="fa fa-trash-o fa-fw"></i> Удалить</a>
+                    {% endif %}
                 </span>
             </span>
             {% endif %}

@@ -15,23 +15,23 @@
     {% csrf_token %}
     {% include 'forms/errors/non_field_errors.html' %}
     {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
-    <div id="field_faculty">
+    <div class="driver-active-standout" id="fieldFaculty">
         {% render_field form.faculty class+="form-control selectpicker" %}
     </div>
-    <div id="field_level">
+    <div class="driver-active-standout" id="fieldLevel">
         {% render_field form.level class+="form-control selectpicker" %}
     </div>
-    <div id="field_type">
+    <div class="driver-active-standout" id="fieldType">
         {% render_field form.type class+="form-control selectpicker" %}
     </div>
-    <div id="field_admission_year">
+    <div class="driver-active-standout" id="fieldAdmissionYear">
         {% render_field form.admission_year class+="form-control selectpicker" %}
     </div>
-    <div id="field_names">
+    <div class="driver-active-standout" id="fieldNames">
         {% render_field form.names class+="form-control" placeholder="в формате: Фамилия Имя Отчество" %}
     </div>
     {% endwith %}
-    <div id="form_submit_button">
+    <div id="formSubmitButton">
         {% include 'forms/submit_button.html' with value="Зарегистрировать" %}
     </div>
 </form>
@@ -39,20 +39,19 @@
 
 {% block main_scripts %}
 <script>
-driver.defineSteps([
+driverObj.setSteps([
     {% if request.user.account.is_moderator or request.user.is_superuser %}
     {% if not request|have_passed_step:'field_faculty' %}
     {
         view: '{% tutorial_step_view request %}',
         step: 'field_faculty',
-        element: '#field_faculty',
+        element: '#fieldFaculty',
         popover: {
-            title: " ",
             description: "Выберите факультет добавляемых пользователей.<br>" +
                 "Доступны факультеты &laquo;ПМиИ&raquo;, &laquo;Психология&raquo;, &laquo;Филология&raquo; и &laquo;РиСО&raquo;.<br>" +
                 "По умолчанию выбран Ваш факультет.",
-            position: 'bottom-right',
-            className: 'driver-popover-md'
+            side: 'bottom',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -60,14 +59,13 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'field_level',
-        element: '#field_level',
+        element: '#fieldLevel',
         popover: {
-            title: " ",
             description: "Выберите уровень добавляемых студентов. Если Вы добавляете преподавателей или модераторов, то пропустите это поле.<br>" +
                 "Уровни соответствуют семестру обучения студентов.<br>" +
                 "По умолчанию выбран 1 курс, I семестр.",
-            position: 'bottom-right',
-            className: 'driver-popover-md'
+            side: 'bottom',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -75,17 +73,19 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'field_type',
-        element: '#field_type',
+        element: '#fieldType',
         popover: {
-            title: " ",
-            description: "Выберите тип добавляемых пользователей.<br>" +
-                "Напомним, что:<br>" +
-                "<span class='text-primary'>Студенты</span> имеют доступ к просмотру курсов факультета, на котором они обучаются и могут отправлять решения к задачам по заданиям преподавателей.<br>" +
-                "<span class='text-success'>Преподаватели</span> могут вносить изменения в свои курсы, назначать задания студентам своих курсов и осуществлять контроль успеваемости.<br>" +
-                "<span class='text-secondary'>Модераторы</span> помогают преподавателям и студентам в процессе обучения: управляют учетными записями пользователей, обновляют расписание занятий, публикуют объявления деканатов своих факультетов.<br>" +
+            description: "Выберите тип добавляемых пользователей. Напомним, что:<ul>" +
+                "<li><span class='text-primary'>Студенты</span> имеют доступ к просмотру курсов факультета, на котором " +
+                "они обучаются и могут отправлять решения к задачам по заданиям преподавателей.</li>" +
+                "<li><span class='text-success'>Преподаватели</span> могут вносить изменения в свои курсы, назначать " +
+                "задания студентам своих курсов и осуществлять контроль успеваемости.</li>" +
+                "<li><span class='text-secondary'>Модераторы</span> помогают преподавателям и студентам в процессе " +
+                "обучения: управляют учетными записями пользователей, обновляют расписание занятий, публикуют " +
+                "объявления деканатов своих факультетов.</li></ul>" +
                 "По умолчанию выбран тип студент.",
-            position: 'bottom-right',
-            className: 'driver-popover-md'
+            side: 'bottom',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -93,13 +93,12 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'field_admission_year',
-        element: '#field_admission_year',
+        element: '#fieldAdmissionYear',
         popover: {
-            title: " ",
             description: "Выберите год поступления добавляемых студентов. Если Вы добавляете преподавателей или модераторов, то пропустите это поле.<br>" +
                 "По умолчанию выбран текущий год.",
-            position: 'bottom-right',
-            className: 'driver-popover-md'
+            side: 'bottom',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -107,14 +106,14 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'field_names',
-        element: '#field_names',
+        element: '#fieldNames',
         popover: {
-            title: " ",
-            description: "Введите Ф.И.О. добавляемых пользователей так, что на каждой новой строке располагается Фамилия Имя Отчество пользователя, например:<br>" +
+            description: "Введите Ф.И.О. добавляемых пользователей так, что на каждой новой строке располагается " +
+                "Фамилия Имя Отчество пользователя, например:<br>" +
                 "Иванов Иван Иванович<br>" +
                 "Александров Александр Александрович<br>",
-            position: 'top',
-            className: 'driver-popover-md'
+            side: 'top',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}
@@ -122,12 +121,11 @@ driver.defineSteps([
     {
         view: '{% tutorial_step_view request %}',
         step: 'form_submit_button',
-        element: '#form_submit_button',
+        element: '#formSubmitButton',
         popover: {
-            title: " ",
             description: "Когда заполните необходимые поля, нажмите на кнопку &laquo;Сохранить&raquo;.",
-            position: 'top',
-            className: 'driver-popover-md'
+            side: 'top',
+            popoverClass: 'driver-popover-md'
         }
     },
     {% endif %}

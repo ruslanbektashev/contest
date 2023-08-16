@@ -18,7 +18,7 @@
     </li>
     {% endfor %}
     {% if perms.contests.add_attachment or request|has_leader_permission:course %}
-    <a href="{% url update_view_name obj.id %}?action=add_files" class="list-group-item list-group-item-action text-center contest-list-add">
+    <a href="{% url update_view_name obj.id %}?action=add_files" class="list-group-item list-group-item-action text-center contest-list-group-item">
         <i class="fa fa-files-o fa-fw"></i> Добавить файлы
     </a>
     {% endif %}

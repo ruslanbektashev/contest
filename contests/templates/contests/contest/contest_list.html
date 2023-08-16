@@ -18,10 +18,10 @@
     <span class="list-group-item d-flex text-muted">#{{ contest.number }}. Скрытый раздел <span class="ms-auto"><i class="fa fa-lock fa-fw"></i></span></span>
     {% endif %}
     {% empty %}
-    <div class="alert alert-info mb-0" role="alert">Разделы еще не добавлены</div>
+    <div class="alert alert-info mb-0 contest-alert" role="alert">Разделы еще не добавлены</div>
     {% endfor %}
     {% if perms.contests.add_contest or request|has_leader_permission:course %}
-    <a href="{% url 'contests:contest-create' course.id %}" class="list-group-item list-group-item-action text-center contest-list-add">
+    <a href="{% url 'contests:contest-create' course.id %}" class="list-group-item list-group-item-action text-center contest-list-group-item" id="contestCreateButton">
         <i class="fa fa-plus fa-fw"></i> Добавить раздел
     </a>
     {% endif %}

@@ -1,0 +1,40 @@
+{% extends 'base_main.html' %}
+{% load views contests static %}
+
+{% block title %}Группа{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Пользователи" 'accounts:account-list' %}
+{% breadcrumb "Права" %}
+{% breadcrumb group %}
+{% endblock breadcrumbs %}
+
+{% block main_content %}
+<legend>
+    <span class="d-flex justify-content-between">
+        <span class="text-truncate">{{ group }}: состав группы прав</span>
+        <span class="d-flex justify-content-between gap-1">
+            {% if perms.auth.change_group %}
+            <a href="{% url 'accounts:group-update' group.pk %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать группу"><i class="fa fa-edit fa-fw"></i></a>
+            {% endif %}
+        </span>
+    </span>
+</legend>
+<table class="table table-sm">
+    <thead>
+        <tr>
+            <th style="width: 80%;">Ф.И.О.</th>
+            <th class="text-center" style="width: 20%;">Тип учетной записи</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in group_users %}
+        <tr>
+            <td><a href="{{ user.account.get_absolute_url }}">{{ user.account.get_short_name }}</a></td>
+            <td class="text-center" >{{ user.account.get_type_display }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock main_content %}
