@@ -35,8 +35,8 @@
                 <a href="{{ sub_form.instance.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}">
                     <i class="fa fa-edit fa-fw fa-lg" data-bs-toggle="tooltip" data-bs-placement="top" title="Изменить статус или оценку"></i>
                 </a>
+                {% endif %}
             </div>
-            {% endif %}
             <button class="contest-accordion-button accordion-button bg-light w-auto {% if sub_form.instance|get_submission_status:request == 'OK' %}collapsed{% endif %}" data-bs-toggle="collapse" data-bs-target="#sub_submission_{{ sub_form.instance.id }}" aria-expanded="{% if sub_form.instance|get_submission_status:request != 'OK' %}true{% else %}false{% endif %}" aria-controls="sub_submission_{{ sub_form.instance.id }}"></button>
         </div>
         <div class="contest-accordion-collapse accordion-collapse collapse {% if sub_form.instance|get_submission_status:request != 'OK' %}show{% endif %}" id="sub_submission_{{ sub_form.instance.id }}" aria-labelledby="heading_{{ sub_form.instance.id }}">
