@@ -36,11 +36,11 @@
     {% if assignment.deadline is not None %}
     <tr>
         <td class="text-end" style="width: 20%;">
-        {% if assignment.deadline > current_time %}
+            {% if assignment.deadline > current_time %}
             Посылки принимаются до</td><td>{{ assignment.deadline }} <span id="countdown_wrapper">(осталось: <span id="countdown_to_deadline"></span>)</span>
-        {% else %}
+            {% else %}
             Посылки принимались до</td><td>{{ assignment.deadline }}
-        {% endif %}
+            {% endif %}
         </td>
     </tr>
     {% endif %}

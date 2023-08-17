@@ -1142,7 +1142,7 @@ class Submission(CRDEntry):
                 self.status = 'OK'
             elif score == 4:
                 self.status = 'PS'
-            elif score <= 3:
+            elif score == 3:
                 self.status = 'WA'
 
     def evaluate_options(self):
