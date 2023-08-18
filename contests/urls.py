@@ -108,14 +108,15 @@ urlpatterns = [
             path('discussion', views.AssignmentDiscussion.as_view(), name='assignment-discussion'),
             path('attachment/<int:attachment_id>', views.AssignmentAttachment.as_view(), name='assignment-attachment'),
             path('update', views.AssignmentUpdate.as_view(), name='assignment-update'),
-            path('delete', views.AssignmentDelete.as_view(), name='assignment-delete')
+            path('delete', views.AssignmentDelete.as_view(), name='assignment-delete'),
+            path('clear/key', views.AssignmentClearSecureSubmissionKey.as_view(), name='assignment-clear-key')
         ])),
         path('list', views.AssignmentUserTable.as_view(), name='assignment-list')
     ])),
     path('course/<int:course_id>/submission/list', views.SubmissionList.as_view(), name='submission-list'),
     path('course/<int:course_id>/submission/backup', views.SubmissionBackup.as_view(), name='submission-backup'),
     path('problem/<int:problem_id>/submission/create', views.SubmissionCreate.as_view(), name='submission-create'),
-    path('problem/<int:problem_id>/submission/<int:submission_id>', views.SubmissionCreate.as_view(), name='sub-submission-create'),
+    path('problem/<int:problem_id>/submission/<int:submission_id>/create', views.SubmissionCreate.as_view(), name='sub-submission-create'),
     path('submission/', include([
         path('<int:pk>/', include([
             path('', views.SubmissionDetail.as_view(), name='submission-detail'),

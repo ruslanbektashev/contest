@@ -1,10 +1,12 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
+from django.core.exceptions import NON_FIELD_ERRORS, PermissionDenied
 from django.forms.models import inlineformset_factory, modelformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django.utils.text import get_text_list
 from django.views.generic import (CreateView, DeleteView, DetailView, FormView, ListView, RedirectView, TemplateView,
                                   UpdateView, View)
@@ -1714,10 +1716,12 @@ class AssignmentCreateRandomSet(LoginRedirectMixin, LeadershipOrMixin, Ownership
     def post(self, request, *args, **kwargs):
         form = self.get_form()
         if form.is_valid():
-            Assignment.objects.create_random_set(request.user, form.cleaned_data['contest'], form.cleaned_data['type'],
-                                                 form.cleaned_data['limit_per_user'],
-                                                 form.cleaned_data['submission_limit'], form.cleaned_data['deadline'],
-                                                 self.storage)
+            params = {
+                'owner': request.user,
+                'filters': self.storage
+            }
+            params.update(form.cleaned_data)
+            Assignment.objects.create_random_set(**params)
             return self.form_valid(form)
         return self.form_invalid(form)
 
@@ -1786,6 +1790,29 @@ class AssignmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
         else:
             context['title'] = "Редактирование задания"
         return context
+
+
+class AssignmentClearSecureSubmissionKey(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin,
+                                         PermissionRequiredMixin, LogChangeMixin, SingleObjectMixin, RedirectView):
+    model = Assignment
+    pattern_name = 'contests:assignment-detail'
+    permission_required = 'contests.change_assignment'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
+
+    def get(self, request, *args, **kwargs):
+        assignment = self.get_object()
+        assignment.secure_submission_key = ""
+        assignment.save()
+        return super().get(request, *args, **kwargs)
 
 
 class AssignmentDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
@@ -1892,9 +1919,9 @@ class SubmissionDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
                     sub_submission_id = int(sub_submission_id)
                     self.storage['sub_submission_id'] = sub_submission_id
                     if not self.object.sub_submissions.filter(id=sub_submission_id).exists():
-                        raise Http404("Sub submission does not exist")
+                        raise Http404("Подпосылка не найдена")
                 else:
-                    raise Http404("sub_submission_id must contain only digits")
+                    raise Http404("Некорректный формат идентификатора подпосылки")
         return super().dispatch(request, *args, **kwargs)
 
     def has_ownership(self):
@@ -2058,6 +2085,15 @@ class SubmissionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
                 self.storage['problem'] = problem
         return super().dispatch(request, *args, **kwargs)
 
+    def get(self, request, *args, **kwargs):
+        assignment = self.storage['assignment']
+        if assignment.secure_submission:
+            if assignment.secure_submission_key:
+                raise PermissionDenied("Доступ запрещен")
+            assignment.secure_submission_key = get_random_string(length=32)
+            assignment.save(update_fields=['secure_submission_key'])
+        return super().get(request, *args, **kwargs)
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['owner'] = self.request.user
@@ -2088,6 +2124,9 @@ class SubmissionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
                 self.storage['main_submission'] = Submission.objects.create(problem=self.storage.get('main_problem'),
                                                                             owner=self.request.user,
                                                                             assignment=self.storage['assignment'])
+            if self.storage['assignment'].secure_submission:
+                self.storage['assignment'].secure_submission_key = ""
+                self.storage['assignment'].save(update_fields=['secure_submission_key'])
         else:
             form.instance.assignment = self.storage['assignment']
         form.instance.main_submission = self.storage.get('main_submission')
@@ -2097,6 +2136,11 @@ class SubmissionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
             self.object.task_id = task.id
             self.object.save()
         return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form):
+        if form.has_error(NON_FIELD_ERRORS, 'assignment_security_check_failed'):
+            raise PermissionDenied("Доступ запрещен")
+        return super().form_invalid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

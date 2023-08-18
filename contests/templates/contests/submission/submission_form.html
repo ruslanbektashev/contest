@@ -52,6 +52,7 @@
 {% endif %}
 <form id="submission-form" action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    {{ form.secure_submission_key }}
     {% include 'forms/errors/non_field_errors.html' %}
     {% if problem.type == 'Program' %}
     <div class="alert alert-warning" role="alert">
@@ -104,7 +105,7 @@
     </div>
     {% endif %}
 </form>
-{% if pending_sub_problems %}
+{% if pending_sub_problems and not assignment.secure_submission %}
 <h6 class="text-muted">Вы можете перейти к решению других задач этого теста. Неотправленное решение текущей задачи будет утеряно!</h6>
 <div class="list-group mb-0">
     {% for sub_problem in pending_sub_problems %}
@@ -113,6 +114,24 @@
         <span data-bs-toggle="tooltip" data-bs-placement="left" title="{{ sub_problem.get_type_display }}"><i class="fa {% get_problem_icon sub_problem %} fa-fw"></i></span>
     </a>
     {% endfor %}
+</div>
+{% endif %}
+{% if assignment.secure_submission and not main_submission %}
+<div class="modal fade" id="secureSubmissionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="secureSubmissionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="secureSubmissionModalLabel">Внимание!</h1>
+            </div>
+            <div class="modal-body">
+                Приступайте к решению контрольной задачи. Не закрывайте и не обновляйте эту страницу - открыть её
+                повторно возможно только с разрешения ведущего преподавателя.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Понятно</button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endif %}
 {% endblock main_content %}
@@ -174,6 +193,14 @@ function hideConfirmation() {
 <script type="text/javascript">
 document.addEventListener("DOMContentLoaded", function() {
     startCountdown("{{ assignment.deadline.isoformat }}");
+});
+</script>
+{% endif %}
+{% if assignment.secure_submission and not main_submission %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const secureSubmissionModal = new bootstrap.Modal('#secureSubmissionModal');
+    secureSubmissionModal.show();
 });
 </script>
 {% endif %}

@@ -35,6 +35,7 @@
     {% render_field form.score_max class+="form-control" %}
     {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch.html" %}
     {% render_field form.score_is_locked class+="form-check-input" %}
+    {% render_field form.secure_submission class+="form-check-input" %}
     {% endwith %}
     {% render_field form.submission_limit class+="form-control" %}
     {% render_field form.deadline class+="form-control" placeholder="Неограниченно" %}

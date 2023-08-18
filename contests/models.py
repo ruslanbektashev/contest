@@ -838,11 +838,14 @@ class AssignmentQuerySet(models.QuerySet):
 
 
 class AssignmentManager(models.Manager):
-    def create_random_set(self, owner, contest, type, limit_per_user, submission_limit, deadline, params):
+    def create_random_set(self, **kwargs):
         """ create random set of assignments with problems of given contest
             aligning their number to limit_per_user for contest.course.level students """
-        problem_ids = contest.problem_set.filter(type=type).order_by('number').values_list('id', flat=True)
-        student_ids = Account.students.apply_common_filters(params).values_list('user_id', flat=True)
+        owner, contest, problem_type = kwargs['owner'], kwargs['contest'], kwargs['problem_type']
+        limit_per_user, submission_limit = kwargs['limit_per_user'], kwargs['submission_limit']
+        deadline, secure_submission, filters = kwargs['deadline'], kwargs['secure_submission'], kwargs['filters']
+        problem_ids = contest.problem_set.filter(type=problem_type).order_by('number').values_list('id', flat=True)
+        student_ids = Account.students.apply_common_filters(filters).values_list('user_id', flat=True)
         new_assignments = []
         for student_id in student_ids:
             assigned_problem_ids = (self.filter(user_id=student_id, problem_id__in=problem_ids)
@@ -861,7 +864,7 @@ class AssignmentManager(models.Manager):
                 to_assign_problem_id_list = list(filter(lambda x: x in to_assign_problem_id_list, problem_ids))
                 for to_assign_problem_id in to_assign_problem_id_list:
                     new_assignment = Assignment(owner_id=owner.id, user_id=student_id, problem_id=to_assign_problem_id,
-                                                submission_limit=submission_limit)
+                                                submission_limit=submission_limit, secure_submission=secure_submission)
                     if deadline is not None:
                         new_assignment.deadline = deadline
                     new_assignments.append(new_assignment)
@@ -890,6 +893,10 @@ class Assignment(CRUDEntry):
                                                         verbose_name="Ограничение количества посылок")
     remark = models.CharField(max_length=255, blank=True, verbose_name="Пометка", help_text="Для преподавателей")
     deadline = models.DateTimeField(null=True, blank=True, verbose_name="Принимать посылки до")
+    secure_submission = models.BooleanField(default=False, verbose_name="Обезопасить посылки",
+                                            help_text="Этот режим повысит защиту от посторонней помощи студентам во "
+                                                      "время экзамена")
+    secure_submission_key = models.CharField(max_length=255, blank=True)
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')

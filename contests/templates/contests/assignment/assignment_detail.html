@@ -19,12 +19,15 @@
     <span class="d-flex justify-content-between">
         <span class="text-truncate">Задание</span>
         <span class="d-flex justify-content-between gap-1">
-        {% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %}
+            {% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %}
+            {% if assignment.secure_submission and assignment.secure_submission_key %}
+            <a href="{% url 'contests:assignment-clear-key' assignment.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Разрешить повторную посылку"><i class="fa fa-repeat fa-fw"></i></a>
+            {% endif %}
             <a href="{% url 'contests:assignment-update' assignment.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать задание"><i class="fa fa-edit fa-fw"></i></a>
-        {% endif %}
-        {% if perms.contests.delete_assignment or request|has_leader_permission:assignment.course %}
+            {% endif %}
+            {% if perms.contests.delete_assignment or request|has_leader_permission:assignment.course %}
             <a href="{% url 'contests:assignment-delete' assignment.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить задание"><i class="fa fa-trash-o fa-fw"></i></a>
-        {% endif %}
+            {% endif %}
         </span>
     </span>
 </legend>
@@ -44,7 +47,14 @@
         </td>
     </tr>
     {% endif %}
-    <tr><td class="text-end" style="width: 20%;">Посылок</td><td>{{ assignment.submission_set.count }} / {{ assignment.submission_limit }}</td></tr>
+    <tr><td class="text-end" style="width: 20%;">Посылок</td>
+        <td>
+            {{ assignment.submission_set.count }} / {{ assignment.submission_limit }}
+            {% if assignment.secure_submission %}
+            <i class="fa fa-shield fa-fw fa-lg" data-bs-toggle="tooltip" data-bs-placement="right" title="Безопасные посылки"></i>
+            {% endif %}
+        </td>
+    </tr>
     <tr>
         <td class="text-end" style="width: 20%;">Оценка</td>
         <td>

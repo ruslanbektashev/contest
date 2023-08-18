@@ -589,7 +589,8 @@ class AssignmentUpdateAttachmentForm(SubmissionFilesAttachmentMixin, AttachmentF
 class AssignmentEvaluateForm(AssignmentUpdateAttachmentForm):
     class Meta:
         model = Assignment
-        fields = ['score', 'score_max', 'score_is_locked', 'submission_limit', 'remark', 'deadline']
+        fields = ['score', 'score_max', 'score_is_locked', 'submission_limit', 'remark', 'deadline',
+                  'secure_submission']
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -607,6 +608,11 @@ class AssignmentEvaluateForm(AssignmentUpdateAttachmentForm):
         if self.cleaned_data['score'] > self.cleaned_data['score_max']:
             raise ValidationError("Оценка не может превышать максимальную оценку", code='score_gt_score_max')
         return self.cleaned_data
+
+    def save(self, commit=True):
+        if 'secure_submission' in self.changed_data and not self.cleaned_data['secure_submission']:
+            self.instance.secure_submission_key = ""
+        return super().save(commit)
 
 
 class AssignmentUpdateForm(AssignmentEvaluateForm):
@@ -635,7 +641,7 @@ class AssignmentForm(AssignmentUpdateForm):
 
 class AssignmentSetForm(forms.Form):
     contest = forms.ModelChoiceField(queryset=Contest.objects.none(), label="Раздел")
-    type = forms.ChoiceField(choices=Problem.TYPE_CHOICES, initial='Program', label="Тип задач")
+    problem_type = forms.ChoiceField(choices=Problem.TYPE_CHOICES, initial='Program', label="Тип задач")
     limit_per_user = forms.IntegerField(min_value=1, max_value=20, initial=1, label="Дополнить до",
                                         help_text="Количество заданий в выбранном разделе увеличится до указанного "
                                                   "значения у каждого студента")
@@ -644,6 +650,9 @@ class AssignmentSetForm(forms.Form):
                                           help_text="Каждый студент сможет отправить не более указанного количества "
                                                     "посылок по каждому новому заданию")
     deadline = forms.DateTimeField(required=False, label="Принимать посылки до")
+    secure_submission = forms.BooleanField(required=False, label="Обезопасить посылки",
+                                           help_text="Этот режим повысит защиту от посторонней помощи студентам во "
+                                                     "время экзамена")
 
     def __init__(self, course, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -679,6 +688,8 @@ def grouped_problems(course, contest, multiple=False):
 
 
 class SubmissionForm(forms.ModelForm):
+    secure_submission_key = forms.CharField(required=False, widget=forms.HiddenInput)
+
     class Meta:
         abstract = True
         model = Submission
@@ -690,6 +701,8 @@ class SubmissionForm(forms.ModelForm):
         self.assignment = kwargs.pop('assignment')
         self.main_submission = kwargs.pop('main_submission', None)
         super().__init__(*args, **kwargs)
+        if self.assignment is not None and self.assignment.secure_submission:
+            self.fields['secure_submission_key'].initial = self.assignment.secure_submission_key
 
     def clean(self):
         if self.assignment is None and not self.owner.is_superuser:
@@ -705,11 +718,15 @@ class SubmissionForm(forms.ModelForm):
                 raise ValidationError("Невозможно отправить посылку к задаче завершенного курса",
                                       code='assignment_credit_complete')
             if self.assignment.deadline is not None and self.assignment.deadline < timezone.now():
-                raise ValidationError("Время приема посылок по Вашему заданию истекло",
+                raise ValidationError("Время приема посылок по этому заданию истекло",
                                       code='assignment_deadline_reached')
             submission_count = self.assignment.submission_set.count()
             if submission_count >= self.assignment.submission_limit and self.main_submission is None:
                 raise ValidationError("Количество попыток исчерпано", code='submission_limit_reached')
+            if self.assignment.secure_submission:
+                if self.cleaned_data['secure_submission_key'] != self.assignment.secure_submission_key:
+                    raise ValidationError("Невозможно отправить посылку по этому заданию",
+                                          code='assignment_security_check_failed')
         return super().clean()
 
 
