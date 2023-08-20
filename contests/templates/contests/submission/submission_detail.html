@@ -176,13 +176,21 @@
     {% else %}
     <span class="text-success">Вставка текста не обнаружена.</span>
     {% endif %}
-    <button class="btn btn-link p-0" id="footprintChartToggleButton" data-bs-toggle="collapse" data-bs-target="#footprintChartCollapse" aria-expanded="false" aria-controls="footprintChartCollapse">
+    <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#footprintChartModal">
         Показать график
     </button>
 </div>
-<div class="collapse mb-3" id="footprintChartCollapse">
-    <div class="card card-body">
-        <canvas id="footprintChart" height="120"></canvas>
+<div class="modal fade" id="footprintChartModal" tabindex="-1" aria-labelledby="footprintChartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="footprintChartModalLabel">График набора текста</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <canvas id="footprintChart" height="120"></canvas>
+            </div>
+        </div>
     </div>
 </div>
 {% endif %}
@@ -293,12 +301,6 @@ const footprintChart = new Chart(
     document.getElementById('footprintChart'),
     footprintChartConfig
 );
-const footprintChartCollapse = document.getElementById('footprintChartCollapse');
-for (let eventType of ['show.bs.collapse', 'hide.bs.collapse']) {
-    footprintChartCollapse.addEventListener(eventType, event => {
-        toggleText(document.getElementById('footprintChartToggleButton'), "Показать график", "Скрыть график");
-    });
-}
 </script>
 {% endif %}
 {% endif %}
