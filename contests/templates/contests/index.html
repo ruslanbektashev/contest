@@ -53,7 +53,7 @@
                         отправил решение задачи
                         <a href="{{ submission.problem.get_absolute_url }}" class="text-truncate" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ submission.contest }}, {{ submission.course }}">{{ submission.problem }}</a>
                     </td>
-                    <td class="text-muted text-end">
+                    <td class="text-muted text-nowrap text-end">
                         <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{ submission.date_created|date:'d E Y г. в H:i' }}">{{ submission.date_created|naturaltime }}</span>
                     </td>
                 </tr>
