@@ -22,19 +22,19 @@
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="contestMainNav">
             <div class="navbar-nav w-100">
-                <a class="nav-link text-center" href="{% url 'accounts:announcement-list' %}"><i class="fa fa-newspaper-o fa-fw fa-lg"></i> Объявления</a>
-                <a class="nav-link text-center" href="{% url 'schedule:schedule-list' %}"><i class="fa fa-map-o fa-fw fa-lg"></i> Расписание</a>
-                <a class="nav-link text-center" href="{% url 'support:index' %}"><i class="fa fa-question-circle-o fa-fw fa-lg"></i> Помощь</a>
+                <a class="nav-link text-center" href="{% url 'accounts:announcement-list' %}"><svg class="contest-icon-inline me-1"><use href="{% static 'icons/sprites/regular.svg' %}#newspaper"></use></svg> Объявления</a>
+                <a class="nav-link text-center" href="{% url 'schedule:schedule-list' %}"><svg class="contest-icon-inline me-1"><use href="{% static 'icons/sprites/solid.svg' %}#calendar-week"></use></svg> Расписание</a>
+                <a class="nav-link text-center" href="{% url 'support:index' %}"><svg class="contest-icon-inline me-1"><use href="{% static 'icons/sprites/regular.svg' %}#life-ring"></use></svg> Помощь</a>
                 {% if request.user.is_staff %}
-                <a class="nav-link text-center" href="{% url 'admin:index' %}"><i class="fa fa-cogs fa-fw fa-lg"></i> Админка</a>
+                <a class="nav-link text-center" href="{% url 'admin:index' %}"><svg class="contest-icon-inline me-1"><use href="{% static 'icons/sprites/solid.svg' %}#screwdriver-wrench"></use></svg> Админка</a>
                 {% endif %}
                 {% with notification_count=request.user.notifications.unread.count %}
                 <a class="nav-link text-center" href="{% url 'accounts:notification-list' %}">
-                    <i class="fa fa-bell-o fa-fw fa-lg"></i> Оповещения{% if notification_count %} <span id="unread_notifications_count" class="badge text-bg-danger rounded-pill align-middle">{{ notification_count }}</span>{% endif %}
+                    <svg class="contest-icon-inline me-1"><use href="{% static 'icons/sprites/regular.svg' %}#bell"></use></svg> Оповещения{% if notification_count %} <span id="unread_notifications_count" class="badge text-bg-danger rounded-pill align-middle">{{ notification_count }}</span>{% endif %}
                 </a>
                 {% endwith %}
                 <a class="nav-link text-center my-2 my-lg-0 ms-0 ms-lg-auto me-0 me-lg-3" href="{{ request.user.account.get_absolute_url }}">{{ request.user.account.get_full_name }}</a>
-                <a class="nav-link text-center text-danger-hover mb-2 mb-lg-0" href="{% url 'logout' %}"><i class="fa fa-sign-out fa-fw fa-lg"></i> Выйти</a>
+                <a class="nav-link text-center text-danger-hover mb-2 mb-lg-0" href="{% url 'logout' %}"><svg class="contest-icon-inline me-1"><use href="{% static 'icons/sprites/solid.svg' %}#right-from-bracket"></use></svg> Выйти</a>
             </div>
         </div>
     </div>

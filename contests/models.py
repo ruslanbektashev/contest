@@ -945,7 +945,7 @@ class Assignment(CRUDEntry):
         return reverse('contests:assignment-discussion', kwargs={'pk': self.pk})
 
     def __str__(self):
-        return f"Задание для {self.user.account.get_short_name()}: {self.problem}"
+        return f"{self.user.account.get_short_name()} → {self.problem}"
 
 
 @receiver(models.signals.post_save, sender=Assignment)
