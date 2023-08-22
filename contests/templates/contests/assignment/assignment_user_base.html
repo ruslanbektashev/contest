@@ -1,5 +1,5 @@
 {% extends 'base_main.html' %}
-{% load views contests %}
+{% load views contests static %}
 
 {% block title %}Мои задания{% endblock title %}
 
@@ -12,8 +12,10 @@
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">Мои задания</span>
-        <span class="d-flex justify-content-between gap-1">
-            <a href="{% url 'contests:course-list' %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Все курсы"><i class="fa fa-book fa-fw"></i></a>
+        <span class="d-flex justify-content-between gap-2">
+            <a href="{% url 'contests:course-list' %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Все курсы">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/solid.svg' %}#book"></use></svg>
+            </a>
         </span>
     </span>
 </legend>

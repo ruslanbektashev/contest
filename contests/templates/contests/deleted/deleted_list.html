@@ -28,8 +28,8 @@
                 <td>Курс</td>
                 <td>{{ course }}</td>
                 <td class="text-end" style="width: 20%;">{{ course.date_updated }}</td>
-                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:course-update' course.id %}?action=restore"><i class="fa fa-undo fa-fw fa-lg"></i></a></td>
-                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:course-delete' course.id %}?action=delete_permanently" class="text-danger"><i class="fa fa-trash-o fa-fw fa-lg"></i></a></td>
+                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:course-update' course.id %}?action=restore"><i class="fa-solid fa-rotate-left fa-fw fa-lg"></i></a></td>
+                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:course-delete' course.id %}?action=delete_permanently" class="text-danger"><i class="fa-regular fa-trash-can fa-fw fa-lg"></i></a></td>
             </tr>
             {% endfor %}
             {% for contest in deleted_contests %}
@@ -37,8 +37,8 @@
                 <td>Раздел</td>
                 <td>{{ contest }}</td>
                 <td class="text-end" style="width: 20%;">{{ contest.date_updated }}</td>
-                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:contest-update' contest.id %}?action=restore"><i class="fa fa-undo fa-fw fa-lg"></i></a></td>
-                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:contest-delete' contest.id %}?action=delete_permanently" class="text-danger"><i class="fa fa-trash-o fa-fw fa-lg"></i></a></td>
+                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:contest-update' contest.id %}?action=restore"><i class="fa-solid fa-rotate-left fa-fw fa-lg"></i></a></td>
+                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:contest-delete' contest.id %}?action=delete_permanently" class="text-danger"><i class="fa-regular fa-trash-can fa-fw fa-lg"></i></a></td>
             </tr>
             {% endfor %}
             {% for problem in deleted_problems %}
@@ -46,8 +46,8 @@
                 <td>Задача</td>
                 <td>{{ problem }}</td>
                 <td class="text-end" style="width: 20%;">{{ problem.date_updated }}</td>
-                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:problem-update' problem.id %}?action=restore"><i class="fa fa-undo fa-fw fa-lg"></i></a></td>
-                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:problem-delete' problem.id %}?action=delete_permanently" class="text-danger"><i class="fa fa-trash-o fa-fw fa-lg"></i></a></td>
+                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:problem-update' problem.id %}?action=restore"><i class="fa-solid fa-rotate-left fa-fw fa-lg"></i></a></td>
+                <td class="text-center" style="width: 5%;"><a href="{% url 'contests:problem-delete' problem.id %}?action=delete_permanently" class="text-danger"><i class="fa-regular fa-trash-can fa-fw fa-lg"></i></a></td>
             </tr>
             {% endfor %}
         </tbody>

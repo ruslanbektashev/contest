@@ -20,11 +20,11 @@
 <div class="d-grid mb-3">
     <div class="btn-group">
         <a class="btn btn-light border col-md-2" href="{% url 'contests:contest-detail' contest.id %}">
-            <i class="fa fa-chevron-left fa-fw"></i> Вернуться к разделу
+            <i class="fa-solid fa-chevron-left fa-fw"></i> Вернуться к разделу
         </a>
         <a class="btn btn-light border col-md-10 disabled">
             {% unread_comments_count request.user.account contest as ucc %}
-            <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
+            <i class="fa-regular fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
         </a>
     </div>
 </div>

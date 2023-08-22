@@ -1,5 +1,5 @@
 {% extends 'base_main.html' %}
-{% load views %}
+{% load views static %}
 
 {% block title %}Расписание{% endblock title %}
 
@@ -12,9 +12,11 @@
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">Расписание</span>
-        <span class="d-flex justify-content-between gap-1">
+        <span class="d-flex justify-content-between gap-2">
             {% if perms.schedule.add_schedule %}
-            <a href="{% url 'schedule:schedule-create' %}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить расписание"><i class="fa fa-plus fa-fw"></i></a>
+            <a href="{% url 'schedule:schedule-create' %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить расписание">
+                <svg class="contest-icon text-success"><use href="{% static 'icons/sprites/solid.svg' %}#plus"></use></svg>
+            </a>
             {% endif %}
         </span>
     </span>

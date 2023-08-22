@@ -14,9 +14,11 @@
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">{{ group }}: состав группы прав</span>
-        <span class="d-flex justify-content-between gap-1">
+        <span class="d-flex justify-content-between gap-2">
             {% if perms.auth.change_group %}
-            <a href="{% url 'accounts:group-update' group.pk %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать группу"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'accounts:group-update' group.pk %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать группу">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#pen-to-square"></use></svg>
+            </a>
             {% endif %}
         </span>
     </span>

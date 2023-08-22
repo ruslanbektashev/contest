@@ -4,7 +4,7 @@
     <ul class="pagination justify-content-center">
         <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
             <a class="page-link" href="{% get_full_path_with_updated_query_string request page=1 %}#p" aria-label="Первая страница">
-                <span aria-hidden="true"><i class="fa fa-angle-double-left fa-fw"></i></span>
+                <span aria-hidden="true"><i class="fa-solid fa-angles-left fa-fw"></i></span>
             </a>
         </li>
         {% for i in page_range %}
@@ -20,7 +20,7 @@
         {% endfor %}
         <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
             <a class="page-link" href="{% get_full_path_with_updated_query_string request page=page_obj.paginator.num_pages %}#p" aria-label="Последняя страница">
-                <span aria-hidden="true"><i class="fa fa-angle-double-right fa-fw"></i></span>
+                <span aria-hidden="true"><i class="fa-solid fa-angles-right fa-fw"></i></span>
             </a>
         </li>
     </ul>

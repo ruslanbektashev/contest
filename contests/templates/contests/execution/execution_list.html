@@ -5,9 +5,9 @@
         <div class="accordion-header d-flex align-items-center" style="min-width: 0;">
             <div class="contest-accordion-header bg-light pe-0 gap-3 {% if execution.test_is_passed %}collapsed{% endif %}" style="min-width: 0;">
                 {% if execution.test_is_passed %}
-                <span class="badge bg-success p-1 align-self-center" data-bs-toggle="tooltip" data-bs-placement="top" title="Тест пройден"><i class="fa fa-check fa-l fa-fw"></i></span>
+                <span class="badge bg-success p-1 align-self-center" data-bs-toggle="tooltip" data-bs-placement="top" title="Тест пройден"><i class="fa-solid fa-check fa-lg fa-fw"></i></span>
                 {% else %}
-                <span class="badge bg-danger p-1 align-self-center" data-bs-toggle="tooltip" data-bs-placement="top" title="Тест провален"><i class="fa fa-times fa-l fa-fw"></i></span>
+                <span class="badge bg-danger p-1 align-self-center" data-bs-toggle="tooltip" data-bs-placement="top" title="Тест провален"><i class="fa-solid fa-times fa-lg fa-fw"></i></span>
                 {% endif %}
                 <span class="text-truncate">
                     {% if perms.contests.view_submission and execution.test or request|has_leader_permission:course and execution.test %}
@@ -43,7 +43,7 @@
                 {% endif %}
                 {% if execution.execution_stdout %}
                 {% if perms.contests.view_submission or request|has_leader_permission:course %}
-                <span class="badge text-bg-warning rounded-0-bottom"><i class="fa fa-lock fa-fw" data-bs-toggle="tooltip" data-bs-placement="right" title="Отображается только для преподавателя"></i>Вывод программы в stdout:</span>
+                <span class="badge text-bg-warning rounded-0-bottom"><i class="fa-solid fa-lock fa-fw" data-bs-toggle="tooltip" data-bs-placement="right" title="Отображается только для преподавателя"></i> Вывод программы в stdout:</span>
                 <pre class="alert alert-secondary rounded-0-top-left">{{ execution.execution_stdout }}</pre>
                 {% endif %}
                 {% endif %}
@@ -71,7 +71,7 @@
                 {% endif %}
                 {% if execution.exception %}
                 {% if perms.contests.view_submission or request|has_leader_permission:course %}
-                <span class="badge text-bg-warning rounded-0-bottom">Исключение: <i class="fa fa-lock fa-fw" data-bs-toggle="tooltip" data-bs-placement="right" title="Отображается только для преподавателя"></i></span>
+                <span class="badge text-bg-warning rounded-0-bottom">Исключение: <i class="fa-solid fa-lock fa-fw" data-bs-toggle="tooltip" data-bs-placement="right" title="Отображается только для преподавателя"></i></span>
                 <pre class="alert alert-secondary rounded-0-top-left">{{ execution.exception }}</pre>
                 {% endif %}
                 {% endif %}

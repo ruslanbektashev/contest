@@ -41,7 +41,7 @@
                         {% if form.instance.id %}
                         {% render_field form.DELETE class+="d-none" %}
                         {% endif %}
-                        <button class="btn btn-link btn-sm text-secondary" type="button" {% if form.instance.id %}onclick="markAsDeleted(this)" data-target="{{ form.DELETE.id_for_label }}" {% else %}onclick="removeEmptyForm(this)" {% endif %} data-bs-toggle="tooltip" data-bs-placement="left" title="Удалить запись"><i class="fa fa-times fa-2x"></i></button>
+                        <button class="btn btn-link btn-sm text-secondary" type="button" {% if form.instance.id %}onclick="markAsDeleted(this)" data-target="{{ form.DELETE.id_for_label }}" {% else %}onclick="removeEmptyForm(this)" {% endif %} data-bs-toggle="tooltip" data-bs-placement="left" title="Удалить запись"><i class="fa-solid fa-xmark fa-2x"></i></button>
                     </td>
                     {% endwith %}
                 </tr>
@@ -52,13 +52,13 @@
                     <td>{% render_field formset.empty_form.group class+="form-control" data-container="body" %}</td>
                     <td>{% render_field formset.empty_form.subgroup class+="form-control" data-container="body" %}</td>
                     <td class="text-center">
-                        <button class="btn btn-link btn-sm text-secondary" type="button" onclick="removeEmptyForm(this)" data-bs-toggle="tooltip" data-bs-placement="left" title="Удалить запись"><i class="fa fa-times fa-2x"></i></button>
+                        <button class="btn btn-link btn-sm text-secondary" type="button" onclick="removeEmptyForm(this)" data-bs-toggle="tooltip" data-bs-placement="left" title="Удалить запись"><i class="fa-solid fa-xmark fa-2x"></i></button>
                     </td>
                 </tr>
                 <tr>
                     <td colspan="3">
                         <div class="d-grid">
-                            <button class="btn btn-light text-success" id="add_empty_form_row" type="button" onclick="addEmptyForm()"><i class="fa fa-plus fa-lg"></i></button>
+                            <button class="btn btn-light text-success" id="add_empty_form_row" type="button" onclick="addEmptyForm()"><i class="fa-solid fa-plus fa-lg"></i></button>
                         </div>
                     </td>
                 </tr>

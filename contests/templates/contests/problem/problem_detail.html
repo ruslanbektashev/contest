@@ -18,36 +18,44 @@
 <legend>
     <span class="d-flex justify-content-between flex-column flex-md-row">
         <span class="text-truncate"><span class="text-muted">№{{ problem.number }}</span> {{ problem.title }}</span>
-        <span class="d-flex justify-content-between gap-1">
+        <span class="d-flex justify-content-between gap-2">
             {% if problem.type == 'Program' %}
             {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
             <span class="dropstart" data-bs-toggle="tooltip" data-bs-placement="top" title="Добавить тест">
-                <a href="#" class="text-success" role="button" id="dropdownAddTestMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-plus fa-fw"></i></a>
+                <a href="#" class="btn btn-light" role="button" id="dropdownAddTestMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                    <svg class="contest-icon text-success"><use href="{% static 'icons/sprites/solid.svg' %}#plus"></use></svg>
+                </a>
                 <span class="dropdown-menu shadow-sm" aria-labelledby="dropdownAddTestMenuLink">
-                    <a class="dropdown-item" href="{% url 'contests:iotest-create' problem.id %}"><i class="fa fa-keyboard-o fa-fw"></i> IO-тест</a>
-                    <a class="dropdown-item" href="{% url 'contests:uttest-create' problem.id %}"><i class="fa fa-keyboard-o fa-fw"></i> UT-тест</a>
-                    <a class="dropdown-item" href="{% url 'contests:fntest-create' problem.id %}"><i class="fa fa-keyboard-o fa-fw"></i> FN-тест</a>
+                    <a class="dropdown-item" href="{% url 'contests:iotest-create' problem.id %}"><i class="fa-solid fa-code fa-fw"></i> IO-тест</a>
+                    <a class="dropdown-item" href="{% url 'contests:uttest-create' problem.id %}"><i class="fa-solid fa-code fa-fw"></i> UT-тест</a>
+                    <a class="dropdown-item" href="{% url 'contests:fntest-create' problem.id %}"><i class="fa-solid fa-code fa-fw"></i> FN-тест</a>
                 </span>
             </span>
             {% endif %}
             {% endif %}
             {% if problem.type == 'Program' or problem.type == 'Files' %}
             {% if perms.contests.add_submission_pattern or request|has_leader_permission:problem.course %}
-            <a href="{% url 'contests:submission-pattern-create' problem.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Добавить шаблон посылки"><i class="fa fa-clone fa-fw"></i></a>
+            <a href="{% url 'contests:submission-pattern-create' problem.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Добавить шаблон посылки">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/solid.svg' %}#scroll"></use></svg>
+            </a>
             {% endif %}
             {% endif %}
             {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
-            <a href="{% url 'contests:problem-update' problem.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'contests:problem-update' problem.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#pen-to-square"></use></svg>
+            </a>
             {% endif %}
             {% if perms.contests.change_problem or perms.contests.delete_problem or request|has_leader_permission:problem.course %}
             <span class="dropstart">
-                <a href="#" role="button" id="dropdownMoreMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
+                <a class="btn btn-light" href="#" role="button" id="dropdownMoreMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                    <svg class="contest-icon"><use href="{% static 'icons/sprites/solid.svg' %}#ellipsis"></use></svg>
+                </a>
                 <span class="dropdown-menu shadow-sm" aria-labelledby="dropdownMoreMenuLink">
                     {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
-                    <a href="{% url 'contests:problem-update' problem.id %}?action=move" class="dropdown-item"><i class="fa fa-share-square-o fa-fw"></i> Переместить</a>
+                    <a href="{% url 'contests:problem-update' problem.id %}?action=move" class="dropdown-item"><i class="fa-regular fa-share-from-square fa-fw"></i> Переместить</a>
                     {% endif %}
                     {% if perms.contests.delete_problem or request|has_leader_permission:problem.course %}
-                    <a href="{% url 'contests:problem-delete' problem.id %}" class="dropdown-item text-danger"><i class="fa fa-trash-o fa-fw"></i> Удалить</a>
+                    <a href="{% url 'contests:problem-delete' problem.id %}" class="dropdown-item text-danger"><i class="fa-regular fa-trash-can fa-fw"></i> Удалить</a>
                     {% endif %}
                 </span>
             </span>
@@ -77,7 +85,7 @@
                     <li class="list-group-item d-flex">
                         {{ option.text }}
                         {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
-                            {% if option.is_correct %}<span class="contest-correct-option text-success ms-auto d-none"><i class="fa fa-check fa-fw"></i></span>{% endif %}
+                        {% if option.is_correct %}<span class="contest-correct-option text-success ms-auto d-none"><i class="fa-solid fa-check fa-fw"></i></span>{% endif %}
                         {% endif %}
                     </li>
                     {% endfor %}
@@ -96,14 +104,14 @@
                         </small>
                         {% endif %}
                         <span class="ps-2" data-bs-toggle="tooltip" data-bs-placement="left" title="{{ subproblem.sub_problem.get_type_display }}">
-                            <i class="fa {% get_problem_icon subproblem.sub_problem %} fa-fw"></i>
+                            <i class="{% get_problem_icon subproblem.sub_problem %} fa-fw fa-lg"></i>
                         </span>
                         {% if perms.contests.change_subproblem and perms.contests.delete_subproblem or request|has_leader_permission:problem.course %}
                         <a href="{% url 'contests:subproblem-update' subproblem.id %}" class="ms-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Изменить номер">
-                            <i class="fa fa-edit fa-fw fa-lg"></i>
+                            <i class="fa-regular fa-pen-to-square fa-fw fa-lg"></i>
                         </a>
-                        <a href="{% url 'contests:subproblem-delete' subproblem.id %}" class="text-danger ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить из теста">
-                            <i class="fa fa-trash-o fa-fw fa-lg"></i>
+                        <a href="{% url 'contests:subproblem-delete' subproblem.id %}" class="text-danger ms-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить из теста">
+                            <i class="fa-regular fa-trash-can fa-fw fa-lg"></i>
                         </a>
                         {% endif %}
                     </div>
@@ -118,7 +126,7 @@
                                 {% for option in subproblem.sub_problem.option_set.order_randomly %}
                                     <li class="list-group-item d-flex">{{ option.text }}
                                     {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
-                                        {% if option.is_correct %}<span class="contest-correct-option text-success ms-auto d-none"><i class="fa fa-check fa-fw"></i></span>{% endif %}
+                                    {% if option.is_correct %}<span class="contest-correct-option text-success ms-auto d-none"><i class="fa-solid fa-check fa-fw"></i></span>{% endif %}
                                     {% endif %}
                                     </li>
                                 {% endfor %}
@@ -133,7 +141,7 @@
             {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
                 <div class="text-end d-flex mb-3">
                     <div class="text-end ms-auto">
-                        <i class="fa fa-lock fa-fw" data-bs-toggle="tooltip" data-bs-placement="left" title="Отображается только преподавателям"></i>
+                        <i class="fa-solid fa-lock fa-fw" data-bs-toggle="tooltip" data-bs-placement="left" title="Отображается только преподавателям"></i>
                         <button class="btn btn-light" type="button" onclick="toggleCorrectOptions(this, 'Показать верные ответы', 'Скрыть верные ответы')" data-bs-toggle="button" aria-pressed="false">
                             Показать верные ответы
                         </button>
@@ -142,7 +150,7 @@
             {% endif %}
             {% endif %}
                 <table class="table table-sm">
-                    <tr><td class="text-end">Тип</td><td style="width: 20%;"><span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ problem.get_type_display }}"><i class="fa {% get_problem_icon problem %} fa-fw"></i></span></td></tr>
+                    <tr><td class="text-end">Тип</td><td style="width: 20%;"><span data-bs-toggle="tooltip" data-bs-placement="right" title="{{ problem.get_type_display }}"><i class="{% get_problem_icon problem %} fa-fw fa-lg"></i></span></td></tr>
                     {% if problem.type != 'Test' %}
                     <tr><td class="text-end">Максимальная оценка в баллах</td><td style="width: 20%;">{{ problem.score_max }}</td></tr>
                     {% endif %}
@@ -160,7 +168,7 @@
                     {% endif %}
                     <tr><td class="text-end">Ограничение по времени</td><td style="width: 20%;">{{ problem.time_limit }} с</td></tr>
                     <tr><td class="text-end">Ограничение по памяти</td><td style="width: 20%;">{{ problem.memory_limit|filesizeformat }}</td></tr>
-                    <tr><td class="text-end">Автоматическая проверка</td><td style="width: 20%;">{% if problem.is_testable %}<i class="fa fa-check-circle fa-lg text-success"></i>{% else %}<i class="fa fa-times-circle fa-lg text-danger"></i>{% endif %}</td></tr>
+                    <tr><td class="text-end">Автоматическая проверка</td><td style="width: 20%;">{% if problem.is_testable %}<i class="fa-solid fa-circle-check fa-lg text-success"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-lg text-danger"></i>{% endif %}</td></tr>
                     {% endif %}
                 </table>
                 <div class="w-100 mt-3">
@@ -170,7 +178,7 @@
             {% if assignment and assignment.credit_incomplete or request.user.is_superuser %}
                 <div class="d-grid mt-3">
                     <a href="{% url 'contests:submission-create' problem.id %}" class="btn btn-primary mb-2">
-                        <i class="fa fa-file-o fa-fw"></i> Отправить решение
+                        <i class="fa-regular fa-file-arrow-up fa-fw"></i> Отправить решение
                     </a>
                 </div>
             {% endif %}
@@ -222,7 +230,7 @@
         </h2>
         <div class="accordion-collapse collapse" id="problemSubmissionPatternsCollapse" aria-labelledby="problemSubmissionPatternsHeader">
             <div class="accordion-body">
-                <div class="alert alert-warning"><i class="fa fa-lock fa-fw"></i> Доступно только преподавателям</div>
+                <div class="alert alert-warning"><i class="fa-solid fa-lock fa-fw"></i> Доступно только преподавателям</div>
                 {% include 'list.html' with lst=problem.submission_patterns.all warn_if_empty="Шаблоны посылки еще не добавлены" %}
             </div>
         </div>
@@ -238,7 +246,7 @@
         </h2>
         <div class="accordion-collapse collapse" id="problemTestsCollapse" aria-labelledby="problemTestsHeader">
             <div class="accordion-body">
-                <div class="alert alert-warning"><i class="fa fa-lock fa-fw"></i> Доступно только преподавателям</div>
+                <div class="alert alert-warning"><i class="fa-solid fa-lock fa-fw"></i> Доступно только преподавателям</div>
                 {% if problem.iotest_set.exists or problem.uttest_set.exists or problem.fntest_set.exists %}
                 {% include 'list.html' with lst=problem.iotest_set.all title="IO-тесты:" %}
                 {% include 'list.html' with lst=problem.uttest_set.all title="UT-тесты:" %}
@@ -265,7 +273,7 @@
 <div class="d-grid">
     <a class="btn btn-light border" href="{% url 'contests:problem-discussion' problem.id %}">
         {% unread_comments_count request.user.account problem as ucc %}
-        <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
+        <i class="fa-regular fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
     </a>
 </div>
 {% endblock main_content %}

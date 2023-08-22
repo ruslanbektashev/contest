@@ -148,19 +148,19 @@ def solved(submissions, problem):
 @register.simple_tag()
 def get_problem_icon(problem):
     if problem.type == 'Text':
-        return "fa-keyboard-o"
+        return "fa-regular fa-keyboard"
     elif problem.type == 'Files':
-        return "fa-file-text-o"
+        return "fa-regular fa-file"
     elif problem.type == 'Options':
-        return "fa-check-square-o"
+        return "fa-regular fa-square-check"
     elif problem.type == 'Program':
-        return "fa-file-code-o"
+        return "fa-regular fa-file-code"
     elif problem.type == 'Verbal':
-        return "fa-microphone"
+        return "fa-regular fa-file-audio"
     elif problem.type == 'Test':
-        return "fa-folder-o"
+        return "fa-regular fa-folder"
     else:
-        return "fa-ban"
+        return "fa-regular fa-ban"
 
 
 @register.simple_tag()

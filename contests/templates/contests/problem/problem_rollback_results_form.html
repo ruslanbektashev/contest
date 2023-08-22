@@ -51,19 +51,19 @@
                     <a href="{{ submission.assignment.get_absolute_url }}" class="contest-status-number contest-status-{{ submission.assignment.score|colorize }}">
                         {{ submission.assignment.score }}
                     </a>
-                    <i class="fa fa-arrow-right"></i>
+                    <i class="fa-solid fa-arrow-right fa-fw"></i>
                     <span class="contest-status-number contest-status-{{ submission.assignment.score|add:'-1'|colorize }}">
                         {{ submission.assignment.score|add:'-1' }}
                     </span>
                     {% else %}
-                    <i class="fa fa-minus"></i>
+                    <i class="fa-solid fa-minus"></i>
                     {% endif %}
                 </td>
                 <td class="text-center">
                     <a href="{{ submission.get_absolute_url }}" class="contest-status contest-status-{{ submission.status|colorize }}">
                         {{ submission.status }}
                     </a>
-                    <i class="fa fa-arrow-right"></i>
+                    <i class="fa-solid fa-arrow-right fa-fw"></i>
                     <span class="contest-status contest-status-{{ 'TR'|colorize }}">
                         TR
                     </span>

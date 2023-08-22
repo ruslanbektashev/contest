@@ -1,5 +1,5 @@
 {% extends 'base_main.html' %}
-{% load views contests %}
+{% load views contests static %}
 
 {% block title %}Курсы{% endblock title %}
 
@@ -12,9 +12,11 @@
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">Курсы</span>
-        <span class="d-flex justify-content-between gap-1">
+        <span class="d-flex justify-content-between gap-2">
             {% if perms.contests.add_course %}
-            <a href="{% url 'contests:course-create' %}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить курс"><i class="fa fa-plus fa-fw"></i></a>
+            <a href="{% url 'contests:course-create' %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить курс">
+                <svg class="contest-icon text-success"><use href="{% static 'icons/sprites/solid.svg' %}#plus"></use></svg>
+            </a>
             {% endif %}
         </span>
     </span>

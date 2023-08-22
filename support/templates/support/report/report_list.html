@@ -1,5 +1,5 @@
 {% extends 'base_main.html' %}
-{% load views views %}
+{% load views views static %}
 
 {% block title %}Сообщения об ошибках{% endblock title %}
 
@@ -13,8 +13,10 @@
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">Сообщения об ошибках</span>
-        <span class="d-flex justify-content-between gap-1">
-            <a href="{% url 'support:report-create' %}?from={{ request.path }}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="left" title="Сообщить об ошибке"><i class="fa fa-plus fa-fw"></i></a>
+        <span class="d-flex justify-content-between gap-2">
+            <a href="{% url 'support:report-create' %}?from={{ request.path }}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Сообщить об ошибке">
+                <svg class="contest-icon text-success"><use href="{% static 'icons/sprites/solid.svg' %}#plus"></use></svg>
+            </a>
         </span>
     </span>
 </legend>

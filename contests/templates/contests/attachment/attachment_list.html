@@ -1,25 +1,31 @@
 {% load views %}
 <ul class="list-group mb-0">
     {% for attachment in attachments %}
-    <li class="list-group-item d-flex">
+    <li class="list-group-item d-flex gap-3">
         <a class="text-truncate me-auto" href="{% url detail_view_name obj.id attachment.id %}" target="_blank">
             <samp>{{ attachment.filename }}</samp>
         </a>
-        <span class="text-muted text-nowrap me-2">{% if attachment.file|exists %}{{ attachment.file.size|filesizeformat }} ∙ {% endif %}{{ attachment.date_created|date:'d E Y H:i' }}</span>
+        <span class="text-muted text-nowrap">{% if attachment.file|exists %}{{ attachment.file.size|filesizeformat }} ∙ {% endif %}{{ attachment.date_created|date:'d E Y H:i' }}</span>
         {% if attachment.extension == '.pdf' or attachment.extension == '.ppt' or attachment.extension == '.pptx' or attachment.extension == '.doc' or attachment.extension == '.docx' or attachment.extension == '.xls' or attachment.extension == '.xlsx' or attachment.extension == '.csv' %}
-        <a href="https://docs.google.com/viewer?url=https://{{ contest_domain }}{{ attachment.file.url }}" class="me-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Смотреть в Google Docs" target="_blank"><i class="fa fa-external-link"></i></a>
+        <a href="https://docs.google.com/viewer?url=https://{{ contest_domain }}{{ attachment.file.url }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Смотреть в Google Docs" target="_blank">
+            <i class="fa-regular fa-arrow-up-right-from-square fa-fw fa-lg"></i>
+        </a>
         {% endif %}
         {% if attachment.file|exists %}
-        <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}" class="me-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
+        <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Скачать">
+            <i class="fa-solid fa-download fa-fw fa-lg"></i>
+        </a>
         {% endif %}
         {% if perms.contests.delete_attachment or request|has_leader_permission:course %}
-        <a href="{% url 'contests:attachment-delete' attachment.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить"><i class="fa fa-trash-o fa-fw"></i></a>
+        <a href="{% url 'contests:attachment-delete' attachment.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить">
+            <i class="fa-regular fa-trash-can fa-fw fa-lg"></i>
+        </a>
         {% endif %}
     </li>
     {% endfor %}
     {% if perms.contests.add_attachment or request|has_leader_permission:course %}
     <a href="{% url update_view_name obj.id %}?action=add_files" class="list-group-item list-group-item-action text-center contest-list-group-item">
-        <i class="fa fa-files-o fa-fw"></i> Прикрепить файлы
+        <i class="fa-regular fa-paperclip fa-fw"></i> Прикрепить файлы
     </a>
     {% endif %}
 </ul>

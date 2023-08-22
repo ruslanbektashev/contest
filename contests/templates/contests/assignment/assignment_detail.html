@@ -18,15 +18,21 @@
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">Задание</span>
-        <span class="d-flex justify-content-between gap-1">
+        <span class="d-flex justify-content-between gap-2">
             {% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %}
             {% if assignment.secure_submission and assignment.secure_submission_key %}
-            <a href="{% url 'contests:assignment-clear-key' assignment.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Разрешить повторную посылку"><i class="fa fa-repeat fa-fw"></i></a>
+            <a href="{% url 'contests:assignment-clear-key' assignment.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Разрешить повторную посылку">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/solid.svg' %}#repeat"></use></svg>
+            </a>
             {% endif %}
-            <a href="{% url 'contests:assignment-update' assignment.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать задание"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'contests:assignment-update' assignment.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать задание">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#pen-to-square"></use></svg>
+            </a>
             {% endif %}
             {% if perms.contests.delete_assignment or request|has_leader_permission:assignment.course %}
-            <a href="{% url 'contests:assignment-delete' assignment.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить задание"><i class="fa fa-trash-o fa-fw"></i></a>
+            <a href="{% url 'contests:assignment-delete' assignment.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить задание">
+                <svg class="contest-icon text-danger"><use href="{% static 'icons/sprites/regular.svg' %}#trash-can"></use></svg>
+            </a>
             {% endif %}
         </span>
     </span>
@@ -51,20 +57,30 @@
         <td>
             {{ assignment.submission_set.count }} / {{ assignment.submission_limit }}
             {% if assignment.secure_submission %}
-            <i class="fa fa-shield fa-fw fa-lg" data-bs-toggle="tooltip" data-bs-placement="right" title="Безопасные посылки"></i>
+            <i class="fa-regular fa-shield-halved fa-fw fa-lg" data-bs-toggle="tooltip" data-bs-placement="right" title="Безопасные посылки"></i>
             {% endif %}
         </td>
     </tr>
     <tr>
         <td class="text-end" style="width: 20%;">Оценка</td>
         <td>
-            <span class="contest-status-number contest-status-{{ assignment|get_assignment_score:request|colorize }}">{{ assignment|get_assignment_score:request|default:'-' }}</span>{% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %} {% if assignment.score_max < 5 %}/ {{ assignment.score_max }}{% endif %}{% if assignment.score_is_locked %} <span class="contest-status-number contest-status-default" data-bs-toggle="tooltip" data-bs-placement="right" title="Оценка заблокирована и не может быть изменена системой автоматической проверки посылок"><i class="fa fa-lock"></i></span>{% endif %}{% endif %}
+            <span class="contest-status-number contest-status-{{ assignment|get_assignment_score:request|colorize }}">{{ assignment|get_assignment_score:request|default:'-' }}</span>
+            {% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %}
+            {% if assignment.score_max < 5 %}
+            / {{ assignment.score_max }}
+            {% endif %}
+            {% if assignment.score_is_locked %}
+            <i class="fa-regular fa-lock fa-fw fa-lg" data-bs-toggle="tooltip" data-bs-placement="right" title="Оценка заблокирована и не может быть изменена системой автоматической проверки посылок"></i>
+            {% endif %}
+            {% endif %}
         </td>
     </tr>
 </table>
 {% if perms.contests.change_assignment or request|has_leader_permission:assignment.course %}
 <div class="d-grid">
-    <a href="{% url 'contests:assignment-update' assignment.id %}?action=evaluate" class="btn btn-light border mb-3"><i class="fa fa-pencil fa-fw"></i> Изменить оценку</a>
+    <a href="{% url 'contests:assignment-update' assignment.id %}?action=evaluate" class="btn btn-light border mb-3">
+        <i class="fa-solid fa-pencil fa-fw"></i> Изменить оценку
+    </a>
 </div>
 {% endif %}
 {% if perms.contests.add_submission and request|has_student_permission:assignment.user %}
@@ -82,7 +98,9 @@
 </div>
 {% else %}
 <div class="d-grid mb-3">
-    <a class="btn btn-primary" href="{% url 'contests:submission-create' assignment.problem.id %}?from_assignment=1"><i class="fa fa-file-o fa-fw"></i> Отправить решение</a>
+    <a class="btn btn-primary" href="{% url 'contests:submission-create' assignment.problem.id %}?from_assignment=1">
+        <i class="fa-solid fa-file-arrow-up fa-fw"></i> Отправить решение
+    </a>
 </div>
 {% endif %}
 {% endif %}
@@ -109,7 +127,7 @@
 <div class="d-grid mb-3">
     <a class="btn btn-light border" href="{% url 'contests:assignment-discussion' assignment.id %}">
         {% unread_comments_count request.user.account assignment as ucc %}
-        <i class="fa fa-comments fa-fw"></i> Комментарии{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
+        <i class="fa-regular fa-comments fa-fw"></i> Комментарии{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
     </a>
 </div>
 {% include 'accounts/comment/comment_list.html' with obj=assignment page_obj=comment_page_obj without_form=True %}

@@ -2,10 +2,10 @@
 {% load static %}
 
 {% block links %}
-<link href="{% static 'bootstrap-select/css/bootstrap-select.min.css' %}" rel="stylesheet">
-<link href="{% static 'bootstrap-select/css/bootstrap-select.fix.css' %}" rel="stylesheet">
-<link href="{% static 'driver/driver.min.css' %}" rel="stylesheet">
-<link href="{% static 'driver/driver.fix.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'bootstrap-select/css/bootstrap-select.min.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap-select/css/bootstrap-select.fix.css' %}">
+<link rel="stylesheet" href="{% static 'driver/driver.min.css' %}">
+<link rel="stylesheet" href="{% static 'driver/driver.fix.css' %}">
 {% block main_links %}{% endblock main_links %}
 {% endblock links %}
 
@@ -22,19 +22,19 @@
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="contestMainNav">
             <div class="navbar-nav w-100">
-                <a class="nav-link text-center" href="{% url 'accounts:announcement-list' %}"><svg class="contest-icon-inline me-1"><use href="{% static 'icons/sprites/regular.svg' %}#newspaper"></use></svg> Объявления</a>
-                <a class="nav-link text-center" href="{% url 'schedule:schedule-list' %}"><svg class="contest-icon-inline me-1"><use href="{% static 'icons/sprites/solid.svg' %}#calendar-week"></use></svg> Расписание</a>
-                <a class="nav-link text-center" href="{% url 'support:index' %}"><svg class="contest-icon-inline me-1"><use href="{% static 'icons/sprites/regular.svg' %}#life-ring"></use></svg> Помощь</a>
+                <a class="nav-link text-center" href="{% url 'accounts:announcement-list' %}"><i class="fa-regular fa-newspaper fa-fw"></i> Объявления</a>
+                <a class="nav-link text-center" href="{% url 'schedule:schedule-list' %}"><i class="fa-solid fa-calendar-week fa-fw"></i> Расписание</a>
+                <a class="nav-link text-center" href="{% url 'support:index' %}"><i class="fa-regular fa-life-ring fa-fw"></i> Помощь</a>
                 {% if request.user.is_staff %}
-                <a class="nav-link text-center" href="{% url 'admin:index' %}"><svg class="contest-icon-inline me-1"><use href="{% static 'icons/sprites/solid.svg' %}#screwdriver-wrench"></use></svg> Админка</a>
+                <a class="nav-link text-center" href="{% url 'admin:index' %}"><i class="fa-solid fa-screwdriver-wrench fa-fw"></i> Админка</a>
                 {% endif %}
                 {% with notification_count=request.user.notifications.unread.count %}
                 <a class="nav-link text-center" href="{% url 'accounts:notification-list' %}">
-                    <svg class="contest-icon-inline me-1"><use href="{% static 'icons/sprites/regular.svg' %}#bell"></use></svg> Оповещения{% if notification_count %} <span id="unread_notifications_count" class="badge text-bg-danger rounded-pill align-middle">{{ notification_count }}</span>{% endif %}
+                    <i class="fa-regular fa-bell fa-fw"></i> Оповещения{% if notification_count %} <span id="unread_notifications_count" class="badge text-bg-danger rounded-pill align-middle">{{ notification_count }}</span>{% endif %}
                 </a>
                 {% endwith %}
                 <a class="nav-link text-center my-2 my-lg-0 ms-0 ms-lg-auto me-0 me-lg-3" href="{{ request.user.account.get_absolute_url }}">{{ request.user.account.get_full_name }}</a>
-                <a class="nav-link text-center text-danger-hover mb-2 mb-lg-0" href="{% url 'logout' %}"><svg class="contest-icon-inline me-1"><use href="{% static 'icons/sprites/solid.svg' %}#right-from-bracket"></use></svg> Выйти</a>
+                <a class="nav-link text-center text-danger-hover mb-2 mb-lg-0" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket fa-fw"></i> Выйти</a>
             </div>
         </div>
     </div>
@@ -67,15 +67,15 @@ const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstra
     delay: {'show': 500, 'hide': 0}
 }));
 </script>
-<script src="{% static 'bootstrap-select/js/jquery.slim.min.js' %}" type="text/javascript"></script>
-<script src="{% static 'bootstrap-select/js/bootstrap-select.min.js' %}" type="text/javascript"></script>
-<script src="{% static 'bootstrap-select/js/i18n/defaults-ru_RU.min.js' %}" type="text/javascript"></script>
+<script type="text/javascript" src="{% static 'bootstrap-select/js/jquery.slim.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'bootstrap-select/js/bootstrap-select.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'bootstrap-select/js/i18n/defaults-ru_RU.min.js' %}"></script>
 <script type="text/javascript">
 $(function () {
     $('.selectpicker').selectpicker();
 });
 </script>
-<script src="{% static 'driver/driver.min.js' %}" type="text/javascript"></script>
+<script type="text/javascript" src="{% static 'driver/driver.min.js' %}"></script>
 <script type="text/javascript">
 function getCookie(name) {
     let cookieValue = null;

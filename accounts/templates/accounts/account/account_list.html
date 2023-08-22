@@ -1,5 +1,5 @@
 {% extends 'base_main.html' %}
-{% load views forms contests tutorial %}
+{% load views forms contests tutorial static %}
 
 {% block title %}Пользователи{% endblock title %}
 
@@ -12,12 +12,16 @@
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">{% if type == 1 %}Студенты{% else %}Сотрудники{% endif %}{% if graduated %}: выпускники{% elif enrolled == False %}: отчисленные{% endif %}</span>
-        <span class="d-flex justify-content-between gap-1">
+        <span class="d-flex justify-content-between gap-2">
             {% if perms.accounts.add_account %}
-            <a href="{% url 'accounts:account-create-set' %}?faculty_id={{ faculty.id }}" class="text-success" id="accountListCreateSet" data-bs-toggle="tooltip" data-bs-placement="top" title="Добавить пользователей"><i class="fa fa-user-plus fa-fw"></i></a>
+            <a href="{% url 'accounts:account-create-set' %}?faculty_id={{ faculty.id }}" class="btn btn-light" id="accountListCreateSet" data-bs-toggle="tooltip" data-bs-placement="top" title="Добавить пользователей">
+                <svg class="contest-icon text-success"><use href="{% static 'icons/sprites/solid.svg' %}#plus"></use></svg>
+            </a>
             {% endif %}
             {% if perms.accounts.change_account %}
-            <a href="{% url 'accounts:account-update-set' %}{{ request|get_query_string }}" id="accountListUpdateSet" data-bs-placement="left" title="Перейти в режим редактирования"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'accounts:account-update-set' %}{{ request|get_query_string }}" class="btn btn-light" id="accountListUpdateSet" data-bs-placement="left" title="Перейти в режим редактирования">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#pen-to-square"></use></svg>
+            </a>
             {% endif %}
         </span>
     </span>
@@ -67,15 +71,27 @@
             <div class="float-end">
                 <div class="btn-toolbar contest-account-list-toolbar" id="accountListFormActions" role="toolbar" aria-label="Панель управления">
                     <div class="btn-group" role="group" aria-label="Сброс пароля">
-                        <button class="btn btn-sm btn-info" type="submit" name="action" form="account_list_form" value="reset_password" data-bs-toggle="tooltip" data-bs-placement="top" title="Сгенерировать новый пароль для профилей выбранных пользователей"><i class="fa fa-key fa-fw"></i></button>
+                        <button class="btn btn-sm btn-info" type="submit" name="action" form="account_list_form" value="reset_password" data-bs-toggle="tooltip" data-bs-placement="top" title="Сгенерировать новый пароль для профилей выбранных пользователей">
+                            <i class="fa-solid fa-key fa-fw fa-lg"></i>
+                        </button>
                     </div>
                     {% if type == 1 %}
                     <div class="btn-group ms-2" role="group" aria-label="Основное">
-                        <button class="btn btn-info" type="submit" name="action" form="account_list_form" value="level_up" data-bs-toggle="tooltip" data-bs-placement="top" title="Повысить уровень выбранных студентов на 1"><i class="fa fa-level-up fa-fw"></i></button>
-                        <button class="btn btn-info" type="submit" name="action" form="account_list_form" value="level_down" data-bs-toggle="tooltip" data-bs-placement="top" title="Понизить уровень выбранных студентов на 1"><i class="fa fa-level-down fa-fw"></i></button>
-                        <button class="btn btn-info" type="submit" name="action" form="account_list_form" value="enroll" data-bs-toggle="tooltip" data-bs-placement="top" title="Восстановить выбранных отчисленных студентов"><i class="fa fa-undo fa-fw"></i></button>
-                        <button class="btn btn-success" type="submit" name="action" form="account_list_form" value="graduate" data-bs-toggle="tooltip" data-bs-placement="top" title="Пометить выбранных студентов как выпускников"><i class="fa fa-graduation-cap fa-fw"></i></button>
-                        <button class="btn btn-danger" type="submit" name="action" form="account_list_form" value="expel" data-bs-toggle="tooltip" data-bs-placement="top" title="Пометить выбранных студентов как отчисленных"><i class="fa fa-ban fa-fw"></i></button>
+                        <button class="btn btn-info" type="submit" name="action" form="account_list_form" value="level_up" data-bs-toggle="tooltip" data-bs-placement="top" title="Повысить уровень выбранных студентов на 1">
+                            <i class="fa-solid fa-level-up fa-fw"></i>
+                        </button>
+                        <button class="btn btn-info" type="submit" name="action" form="account_list_form" value="level_down" data-bs-toggle="tooltip" data-bs-placement="top" title="Понизить уровень выбранных студентов на 1">
+                            <i class="fa-solid fa-level-down fa-fw"></i>
+                        </button>
+                        <button class="btn btn-info" type="submit" name="action" form="account_list_form" value="enroll" data-bs-toggle="tooltip" data-bs-placement="top" title="Восстановить выбранных отчисленных студентов">
+                            <i class="fa-solid fa-undo fa-fw"></i>
+                        </button>
+                        <button class="btn btn-success" type="submit" name="action" form="account_list_form" value="graduate" data-bs-toggle="tooltip" data-bs-placement="top" title="Пометить выбранных студентов как выпускников">
+                            <i class="fa-solid fa-graduation-cap fa-fw"></i>
+                        </button>
+                        <button class="btn btn-danger" type="submit" name="action" form="account_list_form" value="expel" data-bs-toggle="tooltip" data-bs-placement="top" title="Пометить выбранных студентов как отчисленных">
+                            <i class="fa-solid fa-ban fa-fw"></i>
+                        </button>
                     </div>
                     {% endif %}
                 </div>

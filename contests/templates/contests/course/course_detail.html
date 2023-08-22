@@ -16,31 +16,45 @@
 <legend>
     <span class="d-flex justify-content-between flex-column flex-md-row">
         <span class="text-truncate">{{ course }}</span>
-        <span class="d-flex justify-content-between gap-1">
+        <span class="d-flex justify-content-between gap-2">
             {% if perms.contests.add_contest or request|has_leader_permission:course %}
-            <a href="{% url 'contests:contest-create' course.id %}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить раздел"><i class="fa fa-plus fa-fw"></i></a>
+            <a href="{% url 'contests:contest-create' course.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить раздел">
+                <svg class="contest-icon text-success"><use href="{% static 'icons/sprites/solid.svg' %}#plus"></use></svg>
+            </a>
             {% endif %}
             {% if perms.contests.view_assignment_table or request|has_leader_permission:course %}
-            <a href="{% url 'contests:assignment-table' course.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Таблица заданий"><i class="fa fa-table fa-fw"></i></a>
+            <a href="{% url 'contests:assignment-table' course.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Таблица заданий">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/solid.svg' %}#table-cells"></use></svg>
+            </a>
             {% endif %}
             {% if perms.contests.view_submission_list or request|has_leader_permission:course %}
-            <a href="{% url 'contests:submission-list' course.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Посылки"><i class="fa fa-tasks fa-fw"></i></a>
+            <a href="{% url 'contests:submission-list' course.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Посылки">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/solid.svg' %}#list-check"></use></svg>
+            </a>
             {% endif %}
             {% if perms.contests.change_course or request|has_leader_permission:course %}
-                {% if request|course_filtered:course %}
-            <a href="{% url 'contests:filter-delete' %}?course_id={{ course.id }}&from={{ request.get_full_path }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Открепить от главной страницы"><i class="fa fa-bookmark fa-fw"></i></a>
-                {% else %}
-            <a href="{% url 'contests:filter-create' %}?course_id={{ course.id }}&from={{ request.get_full_path }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Закрепить на главной странице"><i class="fa fa-bookmark-o fa-fw"></i></a>
-                {% endif %}
+            {% if request|course_filtered:course %}
+            <a href="{% url 'contests:filter-delete' %}?course_id={{ course.id }}&from={{ request.get_full_path }}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Открепить от главной страницы">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/solid.svg' %}#bookmark"></use></svg>
+            </a>
+            {% else %}
+            <a href="{% url 'contests:filter-create' %}?course_id={{ course.id }}&from={{ request.get_full_path }}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Закрепить на главной странице">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#bookmark"></use></svg>
+            </a>
+            {% endif %}
             {% endif %}
             {% if perms.contests.change_course or request|has_leader_permission:course %}
-            <a id="courseUpdateButton" href="{% url 'contests:course-update' course.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
+            <a id="courseUpdateButton" href="{% url 'contests:course-update' course.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#pen-to-square"></use></svg>
+            </a>
             {% endif %}
             {% if perms.contests.delete_course or request|has_owner_permission:course %}
             <span class="dropstart">
-                <a href="#" role="button" id="dropdownMoreMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
+                <a class="btn btn-light" href="#" role="button" id="dropdownMoreMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                    <svg class="contest-icon"><use href="{% static 'icons/sprites/solid.svg' %}#ellipsis"></use></svg>
+                </a>
                 <div class="dropdown-menu shadow-sm" aria-labelledby="dropdownMoreMenuLink">
-                    <a href="{% url 'contests:course-delete' course.id %}" class="dropdown-item text-danger"><i class="fa fa-trash-o fa-fw"></i> Удалить</a>
+                    <a href="{% url 'contests:course-delete' course.id %}" class="dropdown-item text-danger"><i class="fa-regular fa-trash-can fa-fw"></i> Удалить</a>
                 </div>
             </span>
             {% endif %}
@@ -97,15 +111,17 @@
 <div class="d-grid">
     <a class="btn btn-light border mb-3" href="{% url 'contests:course-discussion' course.id %}">
         {% unread_comments_count request.user.account course as ucc %}
-        <i class="fa fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
+        <i class="fa-regular fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
     </a>
 </div>
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">Преподаватели</span>
-        <span class="d-flex justify-content-between gap-1">
+        <span class="d-flex justify-content-between gap-2">
             {% if perms.contests.change_course or request|has_leader_permission:course %}
-            <a href="{% url 'contests:course-update-leaders' course.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Изменить ведущих преподавателей"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'contests:course-update-leaders' course.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Изменить ведущих преподавателей">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#pen-to-square"></use></svg>
+            </a>
             {% endif %}
         </span>
     </span>

@@ -13,25 +13,39 @@
 <legend>
     <span class="d-flex justify-content-between flex-column flex-md-row">
         <span class="text-truncate">Таблица заданий {% if debts %}должников{% endif %}</span>
-        <span class="d-flex justify-content-between gap-1" id="assignment_table_controls">
+        <span class="d-flex justify-content-between gap-2" id="assignment_table_controls">
             {% if perms.contests.add_assignment or request|has_leader_permission:course %}
-            <a href="{% url 'contests:assignment-create' course.id %}{% get_updated_query_string request %}" class="text-success" id="assignmentCreateButton" data-bs-toggle="tooltip" data-bs-placement="left" title="Назначить новое задание"><i class="fa fa-plus fa-fw"></i></a>
-            <a href="{% url 'contests:assignment-randomize' course.id %}{% get_updated_query_string request %}" id="assignmentRandomizeButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Распределить задания случайно"><i class="fa fa-random fa-fw"></i></a>
+            <a href="{% url 'contests:assignment-create' course.id %}{% get_updated_query_string request %}" class="btn btn-light" id="assignmentCreateButton" data-bs-toggle="tooltip" data-bs-placement="left" title="Назначить новое задание">
+                <svg class="contest-icon text-success"><use href="{% static 'icons/sprites/solid.svg' %}#plus"></use></svg>
+            </a>
+            <a href="{% url 'contests:assignment-randomize' course.id %}{% get_updated_query_string request %}" class="btn btn-light" id="assignmentRandomizeButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Распределить задания случайно">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/solid.svg' %}#shuffle"></use></svg>
+            </a>
             {% endif %}
             {% if perms.contests.add_attendance or request|has_leader_permission:course %}
-            <a href="{% url 'contests:attendance-mark' course.id %}{% get_updated_query_string request %}" id="attendanceMarkButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Отметить посещаемость"><i class="fa fa-calendar-check-o fa-fw"></i></a>
+            <a href="{% url 'contests:attendance-mark' course.id %}{% get_updated_query_string request %}" class="btn btn-light" id="attendanceMarkButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Отметить посещаемость">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#calendar-check"></use></svg>
+            </a>
             {% endif %}
             {% if perms.contests.view_attendance or request|has_leader_permission:course %}
-            <a href="{% url 'contests:attendance-table' course.id %}{% get_updated_query_string request %}" id="attendanceTableButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Таблица посещаемости"><i class="fa fa-calendar fa-fw"></i></a>
+            <a href="{% url 'contests:attendance-table' course.id %}{% get_updated_query_string request %}" class="btn btn-light" id="attendanceTableButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Таблица посещаемости">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#calendar"></use></svg>
+            </a>
             {% endif %}
             {% if perms.accounts.change_account %}
-            <a href="{% url 'contests:course-finish' course.id %}{% get_updated_query_string request %}" id="courseFinishButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Завершить курс"><i class="fa fa-stop fa-fw"></i></a>
+            <a href="{% url 'contests:course-finish' course.id %}{% get_updated_query_string request %}" class="btn btn-light" id="courseFinishButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Завершить курс">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/solid.svg' %}#stop"></use></svg>
+            </a>
             {% endif %}
             {% if perms.contests.add_credit or request|has_leader_permission:course %}
-            <a href="{% url 'contests:course-start' course.id %}{% get_updated_query_string request %}" id="courseStartButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Начать курс"><i class="fa fa-play fa-fw"></i></a>
+            <a href="{% url 'contests:course-start' course.id %}{% get_updated_query_string request %}" class="btn btn-light" id="courseStartButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Начать курс">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/solid.svg' %}#play"></use></svg>
+            </a>
             {% endif %}
             {% if perms.contests.report_credit or request|has_leader_permission:course %}
-            <a href="{% url 'contests:credit-report' course.id %}{% get_updated_query_string request %}" id="creditReportButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать ведомость"><i class="fa fa-file-word-o fa-fw"></i></a>
+            <a href="{% url 'contests:credit-report' course.id %}{% get_updated_query_string request %}" class="btn btn-light" id="creditReportButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать ведомость">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#file-word"></use></svg>
+            </a>
             {% endif %}
         </span>
     </span>

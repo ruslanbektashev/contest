@@ -1,5 +1,5 @@
 {% extends 'base_main.html' %}
-{% load views accounts comments %}
+{% load views accounts comments static %}
 
 {% block title %}Объявление{% endblock title %}
 
@@ -13,12 +13,16 @@
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">{{ announcement }}</span>
-        <span class="d-flex justify-content-between gap-1">
+        <span class="d-flex justify-content-between gap-2">
             {% if perms.accounts.change_announcement %}
-            <a href="{% url 'accounts:announcement-update' announcement.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать объявление"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'accounts:announcement-update' announcement.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать объявление">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#pen-to-square"></use></svg>
+            </a>
             {% endif %}
             {% if perms.accounts.delete_announcement %}
-            <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить объявление"><i class="fa fa-trash-o fa-fw"></i></a>
+            <a href="{% url 'accounts:announcement-delete' announcement.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить объявление">
+                <svg class="contest-icon text-danger"><use href="{% static 'icons/sprites/regular.svg' %}#trash-can"></use></svg>
+            </a>
             {% endif %}
         </span>
     </span>

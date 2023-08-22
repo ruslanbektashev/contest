@@ -1,5 +1,5 @@
 {% extends 'base_main.html' %}
-{% load views %}
+{% load views static %}
 
 {% block title %}Объявления{% endblock title %}
 
@@ -12,22 +12,28 @@
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">Объявления</span>
-        <span class="d-flex justify-content-between gap-1">
-        {% if perms.accounts.add_announcement %}
-            <a class="text-success" href="{% url 'accounts:announcement-create' %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить объявление"><i class="fa fa-plus fa-fw"></i></a>
-        {% endif %}
+        <span class="d-flex justify-content-between gap-2">
+            {% if perms.accounts.add_announcement %}
+            <a class="btn btn-light" href="{% url 'accounts:announcement-create' %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить объявление">
+                <svg class="contest-icon text-success"><use href="{% static 'icons/sprites/solid.svg' %}#plus"></use></svg>
+            </a>
+            {% endif %}
         </span>
     </span>
 </legend>
 {% for announcement in announcements %}
 <div class="card{% if forloop.counter > 1 %} mt-3{% endif %}">
-    <div class="card-header d-flex align-items-center gap-2">
+    <div class="card-header d-flex align-items-center gap-3">
         <a class="text-primary me-auto" href="{% url 'accounts:announcement-detail' announcement.id %}">{{ announcement.title }}</a>
         {% if perms.accounts.change_announcement %}
-        <a href="{% url 'accounts:announcement-update' announcement.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать объявление"><i class="fa fa-edit fa-lg fa-fw"></i></a>
+        <a href="{% url 'accounts:announcement-update' announcement.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать объявление">
+            <i class="fa-regular fa-pen-to-square fa-lg fa-fw"></i>
+        </a>
         {% endif %}
         {% if perms.accounts.delete_announcement %}
-        <a class="text-danger" href="{% url 'accounts:announcement-delete' announcement.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить объявление"><i class="fa fa-trash-o fa-lg fa-fw"></i></a>
+        <a class="text-danger" href="{% url 'accounts:announcement-delete' announcement.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить объявление">
+            <i class="fa-regular fa-trash-can fa-lg fa-fw"></i>
+        </a>
         {% endif %}
     </div>
     <div class="card-body">

@@ -13,12 +13,16 @@
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">{{ account }}</span>
-        <span class="d-flex justify-content-between gap-1">
+        <span class="d-flex justify-content-between gap-2">
             {% if account.user_id == request.user.id %}
-            <a href="{% url 'password-change' %}" class="text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Изменить пароль"><i class="fa fa-lock fa-fw"></i></a>
+            <a href="{% url 'password-change' %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Изменить пароль">
+                <svg class="contest-icon text-secondary"><use href="{% static 'icons/sprites/solid.svg' %}#key"></use></svg>
+            </a>
             {% endif %}
             {% if perms.accounts.change_account or perms.auth.change_user_email or account.user_id == request.user.id %}
-            <a href="{% url 'accounts:account-update' account.user.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать профиль"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'accounts:account-update' account.user.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать профиль">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#pen-to-square"></use></svg>
+            </a>
             {% endif %}
         </span>
     </span>
@@ -55,7 +59,15 @@
             <tr><td class="text-end" style="width: 30%;">Тип учетной записи</td><td>{{ account.get_type_display }}</td></tr>
             {% if perms.accounts.change_account %}
             <tr><td class="text-end" style="width: 30%;">Логин</td><td>{{ account.username }}</td></tr>
-            <tr><td class="text-end" style="width: 30%;">Активен</td><td>{% if account.is_active %}<i class="fa fa-check-circle fa-lg text-success"></i>{% else %}<i class="fa fa-times-circle fa-lg text-danger"></i>{% endif %}</td></tr>
+            <tr><td class="text-end" style="width: 30%;">Активен</td>
+                <td>
+                    {% if account.is_active %}
+                    <i class="fa-solid fa-circle-check fa-lg text-success"></i>
+                    {% else %}
+                    <i class="fa-solid fa-circle-xmark fa-lg text-danger"></i>
+                    {% endif %}
+                </td>
+            </tr>
             <tr><td class="text-end" style="width: 30%;">Последний вход</td><td>{{ account.last_login|date:'d E Y, H:i' }}</td></tr>
             <tr><td class="text-end" style="width: 30%;">Дата регистрации</td><td>{{ account.date_joined|date:'d E Y' }}</td></tr>
             {% endif %}
@@ -120,8 +132,10 @@
 <legend>
     <span class="d-flex justify-content-between">
         <span>Результаты</span>
-        <span class="d-flex justify-content-between gap-1">
-            <a href="{% if account.user_id == request.user.id %} {% url 'contests:assignment-list' %} {% else %} {% url 'accounts:account-assignment-list' account.user_id %} {% endif %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Задания"><i class="fa fa-list-ol fa-fw"></i></a>
+        <span class="d-flex justify-content-between gap-2">
+            <a class="btn btn-light" href="{% if account.user_id == request.user.id %} {% url 'contests:assignment-list' %} {% else %} {% url 'accounts:account-assignment-list' account.user_id %} {% endif %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Задания">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#rectangle-list"></use></svg>
+            </a>
         </span>
     </span>
 </legend>
@@ -136,7 +150,7 @@
                 </td>
                 <td class="text-center" style="width: 4%;">
                     <span data-bs-toggle="tooltip" data-bs-placement="left" title="Отражает способность решать задачи с первой попытки">
-                        <i class="fa fa-question-circle fa-fw text-muted"></i>
+                        <i class="fa-solid fa-circle-question fa-fw fa-lg text-muted"></i>
                     </span>
                 </td>
             </tr>

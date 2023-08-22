@@ -29,9 +29,9 @@
                     {% for a in col.attendance %}
                     <span data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ a.date_from|date:'H:i' }} - {{ a.date_to|date:'H:i' }}">
                         {% if a.flag %}
-                        <i class="fa fa-check fa-fw text-success"></i>
+                        <i class="fa-solid fa-check fa-fw fa-lg text-success"></i>
                         {% else %}
-                        <i class="fa fa-times fa-fw text-danger"></i>
+                        <i class="fa-solid fa-xmark fa-fw fa-lg text-danger"></i>
                         {% endif %}
                     </span>
                     {% endfor %}

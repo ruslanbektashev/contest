@@ -1,5 +1,5 @@
 {% extends 'base_main.html' %}
-{% load views contests %}
+{% load views contests static %}
 
 {% block title %}UT-Тест{% endblock title %}
 
@@ -15,12 +15,16 @@
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">{{ uttest }}</span>
-        <span class="d-flex justify-content-between gap-1">
+        <span class="d-flex justify-content-between gap-2">
             {% if perms.contests.change_uttest or request|has_leader_permission:uttest.course %}
-            <a href="{% url 'contests:uttest-update' uttest.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать UT-тест"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'contests:uttest-update' uttest.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать UT-тест">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#pen-to-square"></use></svg>
+            </a>
             {% endif %}
             {% if perms.contests.delete_uttest or request|has_leader_permission:uttest.course %}
-            <a href="{% url 'contests:uttest-delete' uttest.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить UT-тест"><i class="fa fa-trash-o fa-fw"></i></a>
+            <a href="{% url 'contests:uttest-delete' uttest.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить UT-тест">
+                <svg class="contest-icon text-danger"><use href="{% static 'icons/sprites/regular.svg' %}#trash-can"></use></svg>
+            </a>
             {% endif %}
         </span>
     </span>
@@ -29,22 +33,22 @@
     <tr>
         <td class="text-end" style="width: 22%;">Параметры компиляции</td>
         <td>
-            <code class="me-2">{{ uttest.compile_args|default:"не указаны" }}</code>
+            <code>{{ uttest.compile_args|default:"не указаны" }}</code>
             {% if uttest.compile_args_override %}
-            <span title="Затирают параметры задачи!" class="badge bg-danger"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+            <span data-bs-toggle="tooltip" data-bs-placement="right" title="Затирают параметры задачи!"><i class="fa-solid fa-circle-exclamation fa-fw text-danger"></i></span>
             {% else %}
-            <span title="Дополняют параметры задачи!" class="badge bg-info"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+            <span data-bs-toggle="tooltip" data-bs-placement="right" title="Дополняют параметры задачи!"><i class="fa-solid fa-circle-exclamation fa-fw text-info"></i></span>
             {% endif %}
         </td>
     </tr>
     <tr>
         <td class="text-end" style="width: 22%;">Параметры запуска</td>
         <td>
-            <code class="me-2">{{ uttest.launch_args|default:"не указаны" }}</code>
+            <code>{{ uttest.launch_args|default:"не указаны" }}</code>
             {% if uttest.launch_args_override %}
-            <span title="Затирают параметры задачи!" class="badge bg-danger"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+            <span data-bs-toggle="tooltip" data-bs-placement="right" title="Затирают параметры задачи!"><i class="fa-solid fa-circle-exclamation fa-fw text-danger"></i></span>
             {% else %}
-            <span title="Дополняют параметры задачи!" class="badge bg-info"><i class="fa fa-exclamation-circle fa-fw"></i></span>
+            <span data-bs-toggle="tooltip" data-bs-placement="right" title="Дополняют параметры задачи!"><i class="fa-solid fa-circle-exclamation fa-fw text-info"></i></span>
             {% endif %}
         </td>
     </tr>

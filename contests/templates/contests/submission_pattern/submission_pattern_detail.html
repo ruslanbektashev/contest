@@ -1,5 +1,5 @@
 {% extends 'base_main.html' %}
-{% load views %}
+{% load views static %}
 
 {% block title %}Шаблон посылки{% endblock title %}
 
@@ -12,12 +12,16 @@
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">{{ submission_pattern }}</span>
-        <span class="d-flex justify-content-between gap-1">
+        <span class="d-flex justify-content-between gap-2">
             {% if perms.contests.change_submission_pattern or request|has_leader_permission:course %}
-            <a href="{% url 'contests:submission-pattern-update' submission_pattern.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать шаблон посылки"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'contests:submission-pattern-update' submission_pattern.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать шаблон посылки">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#pen-to-square"></use></svg>
+            </a>
             {% endif %}
             {% if perms.contests.delete_submission_pattern or request|has_leader_permission:course %}
-            <a href="{% url 'contests:submission-pattern-delete' submission_pattern.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить шаблон посылки"><i class="fa fa-trash-o fa-fw"></i></a>
+            <a href="{% url 'contests:submission-pattern-delete' submission_pattern.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить шаблон посылки">
+                <svg class="contest-icon text-danger"><use href="{% static 'icons/sprites/regular.svg' %}#trash-can"></use></svg>
+            </a>
             {% endif %}
         </span>
     </span>

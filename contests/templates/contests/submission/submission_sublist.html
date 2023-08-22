@@ -24,16 +24,16 @@
                     <small>
                         <input id="{{ sub_form.score.id_for_label }}" type="{{ sub_form.score.field.widget.input_type }}" name="{{ sub_form.score.html_name }}" max="{{ sub_form.score.field.widget.attrs.max }}" min="{{ sub_form.score.field.widget.attrs.min }}" {% if sub_form.score.value != None %} value="{{ sub_form.score.value|stringformat:'s' }}"{% endif %} aria-label="Оценка" style="border: none; background-color: transparent; width: 40px;">
                     </small>
-                    <button class="invisible" id="submission-update-button-{{ forloop.counter0 }}" style="border: none; background-color: transparent; padding: 0;">
-                        <a href><i class="fa fa-floppy-o fa-fw fa-lg" data-bs-toggle="tooltip" data-bs-placement="top" title="Сохранить оценку"></i></a>
+                    <button class="invisible" id="submission-update-button-{{ forloop.counter0 }}" style="border: none; background-color: transparent; padding: 0;" data-bs-toggle="tooltip" data-bs-placement="top" title="Сохранить оценку">
+                        <a href><i class="fa-regular fa-floppy-disk fa-fw fa-lg"></i></a>
                     </button>
                 </form>
                 {% else %}
                 <small class="text-muted">Оценка: </small>
                 <small>{{ sub_form.instance.score }}</small>
                 {% endif %}
-                <a href="{{ sub_form.instance.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}">
-                    <i class="fa fa-edit fa-fw fa-lg" data-bs-toggle="tooltip" data-bs-placement="top" title="Изменить статус или оценку"></i>
+                <a href="{{ sub_form.instance.get_absolute_url }}{% if from_assignment %}?from_assignment=1{% endif %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Изменить статус или оценку">
+                    <i class="fa-regular fa-pen-to-square fa-fw fa-lg"></i>
                 </a>
                 {% endif %}
             </div>
@@ -49,7 +49,7 @@
                     {% if sub_form.instance.problem.type == 'Text' %}
                     {% if perms.contests.change_submission or request|has_leader_permission:submission.course %}
                     {% if sub_form.instance.has_footprint_increments %}
-                    <span class="text-warning" data-bs-toggle="tooltip" data-bs-placement="left" title="Обнаружена вставка текста"><i class="fa fa-exclamation-triangle fa-fw fa-lg"></i></span>
+                    <span class="text-warning" data-bs-toggle="tooltip" data-bs-placement="top" title="Обнаружена вставка текста"><i class="fa-solid fa-triangle-exclamation fa-fw fa-lg"></i></span>
                     {% endif %}
                     {% endif %}
                     {% endif %}
@@ -58,8 +58,8 @@
                 <div class="text-end text-muted">
                     {% if sub_form.instance.moss_to_submissions %}
                     {% if perms.contests.moss_submission or request|has_leader_permission:submission.course %}
-                    <p class="text-warning text-wrap" data-bs-toggle="tooltip" data-bs-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>с посылками MOSS: {% for to_submission_id in sub_form.instance.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-                    <p class="text-warning text-wrap" data-bs-toggle="tooltip" data-bs-placement="left" title="Отображается только преподавателям"><i class="fa fa-lock fa-fw"></i>ссылка на отчет MOSS: {% if sub_form.instance.moss_report_url %}<a href="{{ sub_form.instance.moss_report_url }}" target="_blank">{{ sub_form.instance.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
+                    <p class="text-warning text-wrap" data-bs-toggle="tooltip" data-bs-placement="left" title="Отображается только преподавателям"><i class="fa-solid fa-lock fa-fw"></i> с посылками MOSS: {% for to_submission_id in sub_form.instance.moss_to_submissions_list %}<a href="{% url 'contests:submission-detail' to_submission_id %}">{{ to_submission_id }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+                    <p class="text-warning text-wrap" data-bs-toggle="tooltip" data-bs-placement="left" title="Отображается только преподавателям"><i class="fa-solid fa-lock fa-fw"></i> ссылка на отчет MOSS: {% if sub_form.instance.moss_report_url %}<a href="{{ sub_form.instance.moss_report_url }}" target="_blank">{{ sub_form.instance.moss_report_url }}</a>{% else %}ожидание ответа...{% endif %}</p>
                     {% endif %}
                     {% endif %}
                 </div>
@@ -67,7 +67,7 @@
                     Файлы
                     <span class="float-end">
                     {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
-                        <a href="{% url 'contests:submission-download' sub_form.instance.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Скачать все файлы"><i class="fa fa-download fa-fw"></i></a>
+                        <a href="{% url 'contests:submission-download' sub_form.instance.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Скачать все файлы"><i class="fa-solid fa-download fa-fw"></i></a>
                     {% endif %}
                     </span>
                 </h6>
@@ -76,7 +76,7 @@
                     <span class="list-group-item d-flex">
                         {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
                         <a class="me-auto" href="{% url 'contests:submission-attachment' sub_form.instance.id attachment.id %}"><samp>{{ attachment.filename }}</samp></a>
-                        <a href="{{ attachment.file.url }}" data-bs-toggle="tooltip" data-bs-placement="left" title="Скачать"><i class="fa fa-download fa-fw"></i></a>
+                        <a href="{{ attachment.file.url }}" data-bs-toggle="tooltip" data-bs-placement="left" title="Скачать"><i class="fa-solid fa-download fa-fw"></i></a>
                         {% else %}
                         <samp>{{ attachment.filename }}</samp>
                         {% endif %}
@@ -99,7 +99,7 @@
                     <li class="list-group-item d-flex">
                         {{ option.text }}
                         {% if option in submission_options %}
-                        <span class="ms-auto"><i class="fa fa-check fa-fw" aria-hidden="true"></i></span>
+                        <span class="ms-auto"><i class="fa-solid fa-check fa-fw" aria-hidden="true"></i></span>
                         {% endif %}
                     </li>
                     {% endfor %}
@@ -110,9 +110,9 @@
                         {% if option in submission_options %}
                         <span class="ms-auto" data-bs-toggle="tooltip" data-bs-placement="left" title="Выбранный вариант ответа">
                             {% if option.is_correct %}
-                            <i class="fa fa-check fa-fw" aria-hidden="true"></i>
+                            <i class="fa-solid fa-check fa-fw" aria-hidden="true"></i>
                             {% else %}
-                            <i class="fa fa-times fa-fw" aria-hidden="true"></i>
+                            <i class="fa-solid fa-xmark fa-fw" aria-hidden="true"></i>
                             {% endif %}
                         </span>
                         {% endif %}

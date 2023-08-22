@@ -1,5 +1,5 @@
 {% extends 'base_main.html' %}
-{% load views %}
+{% load views static %}
 
 {% block title %}Вопросы{% endblock title %}
 
@@ -13,9 +13,11 @@
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">Вопросы</span>
-        <span class="d-flex justify-content-between gap-1">
+        <span class="d-flex justify-content-between gap-2">
             {% if perms.support.add_question %}
-            <a href="{% url 'support:question-create' %}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="left" title="Задать вопрос"><i class="fa fa-plus fa-fw"></i></a>
+            <a href="{% url 'support:question-create' %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Задать вопрос">
+                <svg class="contest-icon text-success"><use href="{% static 'icons/sprites/solid.svg' %}#plus"></use></svg>
+            </a>
             {% endif %}
         </span>
     </span>

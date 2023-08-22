@@ -149,6 +149,11 @@
   background-color: #ffffff !important;
 }
 
+.contest-list-group-item i.fa-plus,
+.contest-list-group-menu .contest-list-group-menu-button i.fa-plus {
+  transition: color 0.15s ease-in-out;
+}
+
 .contest-list-group-item:hover i.fa-plus,
 .contest-list-group-menu .contest-list-group-menu-button:hover i.fa-plus {
   color: #5cb85c !important;
@@ -243,7 +248,7 @@
 
 .contest-form-check::after {
   pointer-events: none;
-  font: normal normal normal 14px/1 FontAwesome;
+  font: var(--fa-font-solid);
   font-size: 1.2rem;
 }
 
@@ -282,4 +287,10 @@
 .nav-link .badge {
   position: relative;
   top: -1px;
+}
+
+.contest-icon {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
 }

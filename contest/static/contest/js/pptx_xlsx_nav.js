@@ -66,13 +66,13 @@ $('#Change_mode').on('click', function () {
         $id = '#slideslideIface' + $ind;
         $($id).css({opacity: 1, position: 'relative', height: 'auto', left: 'unset', right: 0})
         $(".hide_button").css("display", "none");
-        $('#mode_view').removeClass('fa fa-file-text-o');
-        $('#mode_view').addClass('fa fa-files-o');
+        $('#mode_view').removeClass('fa-solid fa-file fa-fw');
+        $('#mode_view').addClass('fa-solid fa-scroll fa-fw');
         $flag = false;
         $(".excel_nav").css("display", "block");
     } else {
-        $('#mode_view').removeClass('fa fa-files-o');
-        $('#mode_view').addClass('fa fa-file-text-o');
+        $('#mode_view').removeClass('fa-solid fa-scroll fa-fw');
+        $('#mode_view').addClass('fa-solid fa-file fa-fw');
         $(".hide_button").css("display", "block");
         $(".slide").css({opacity: 0, position: 'absolute', top: 0, height: 0, right: '-300px',left: 'unset', transition: '0.3s'});
         $('#slideslideIface1').css({opacity: 1, position: 'relative', height: 'auto', left: 'unset', right: 0});

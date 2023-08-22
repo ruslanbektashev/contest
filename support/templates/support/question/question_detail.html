@@ -1,5 +1,5 @@
 {% extends 'base_main.html' %}
-{% load views comments %}
+{% load views comments static %}
 
 {% block title %}Вопрос{% endblock title %}
 
@@ -14,12 +14,16 @@
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">Вопрос {{ question.id }}</span>
-        <span class="d-flex justify-content-between gap-1">
+        <span class="d-flex justify-content-between gap-2">
             {% if perms.support.change_question %}
-            <a href="{% url 'support:question-update' question.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать вопрос"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'support:question-update' question.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать вопрос">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#pen-to-square"></use></svg>
+            </a>
             {% endif %}
             {% if perms.support.delete_question %}
-            <a href="{% url 'support:question-delete' question.id %}" class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить вопрос"><i class="fa fa-trash-o fa-fw"></i></a>
+            <a href="{% url 'support:question-delete' question.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить вопрос">
+                <svg class="contest-icon text-danger"><use href="{% static 'icons/sprites/regular.svg' %}#trash-can"></use></svg>
+            </a>
             {% endif %}
         </span>
     </span>
