@@ -219,7 +219,7 @@ class CommentForm(forms.ModelForm):
 
 
 class AnnouncementForm(forms.ModelForm):
-    group = forms.ModelChoiceField(Group.objects.all(), empty_label="Для всех")
+    group = forms.ModelChoiceField(Group.objects.all(), empty_label="Для всех", label="Группа")
 
     class Meta:
         model = Announcement
