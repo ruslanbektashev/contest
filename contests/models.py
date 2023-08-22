@@ -1170,9 +1170,6 @@ class Submission(CRDEntry):
             self.footprint = "[]"
         created = self._state.adding
         super().save(*args, **kwargs)
-        if created and self.problem.type == 'Options':
-            self.evaluate_options()
-            super().save(update_fields=['status', 'score'])
         if self.main_submission is not None:
             self.main_submission.update_main_score()
             self.main_submission.update_main_status()

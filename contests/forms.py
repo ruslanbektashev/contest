@@ -826,6 +826,12 @@ class SubmissionOptionsForm(SubmissionForm):
             widget_class.allow_multiple_selected = True
         self.fields['options'].widget = widget_class(choices=self.fields['options'].choices)
 
+    def save(self, commit=True):
+        instance = super().save(commit)
+        instance.evaluate_options()
+        instance.save(update_fields=['status', 'score'])
+        return instance
+
 
 class SubmissionUpdateForm(forms.ModelForm):
     class Meta:
