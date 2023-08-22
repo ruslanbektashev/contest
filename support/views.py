@@ -171,6 +171,7 @@ class DiscussionDetail(LoginRedirectMixin, PermissionRequiredMixin, PaginatorMix
     model = Discussion
     template_name = 'support/discussion/discussion_detail.html'
     permission_required = 'support.view_discussion'
+    paginate_by = 30
 
     def get_queryset_for_paginator(self):
         return self.object.comment_set.actual().select_related('author', 'author__account')

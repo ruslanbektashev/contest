@@ -38,6 +38,8 @@ class PaginatorMixin:
         raise NotImplementedError("PaginatorMixin: get_queryset_for_paginator method must be defined!")
 
     def get_paginate_by(self, queryset):
+        if self.paginate_by is None:
+            raise NotImplementedError("PaginatorMixin: paginate_by or get_paginate_by should be overriden!")
         return self.paginate_by
 
     def paginate_queryset(self, queryset, page_size, page_number=None):
