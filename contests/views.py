@@ -2087,7 +2087,7 @@ class SubmissionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):
 
     def get(self, request, *args, **kwargs):
         assignment = self.storage['assignment']
-        if assignment.secure_submission:
+        if assignment is not None and assignment.secure_submission:
             if assignment.secure_submission_key:
                 raise PermissionDenied("Доступ запрещен")
             assignment.secure_submission_key = get_random_string(length=32)
