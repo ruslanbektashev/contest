@@ -1,0 +1,100 @@
+{% extends 'base_main.html' %}
+{% load views forms %}
+
+{% block title %}Курс{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb course course %}
+{% breadcrumb "Ведущие преподаватели" %}
+{% endblock breadcrumbs %}
+
+{% block main_content %}
+<legend>{{ course }}</legend>
+<form action="" method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    {% include 'forms/errors/non_form_errors.html' with formset=formset %}
+    <div class="table-responsive-lg">
+        <table class="table table-borderless table-sm">
+            <thead>
+                <tr>
+                    <td>Преподаватель</td>
+                    <td style="width: 6em;">Группа</td>
+                    <td style="width: 7em;">Подгруппа</td>
+                    <td style="width: 1em;"></td>
+                    <td style="width: 3em;">Права</td>
+                    <td style="width: 4em;"></td>
+                </tr>
+            </thead>
+            <tbody id="formset_table_body">
+                {% for form in formset %}
+                <tr>
+                    {% include 'forms/errors/non_field_errors.html' %}
+                    {% if form.instance.id %}
+                    {% render_field form.id %}
+                    {% endif %}
+                    {% render_field form.course %}
+                    {% with WIDGET_ERROR_CLASS="is-invalid" %}
+                    <td>{% render_field form.leader class+="form-control selectpicker" data-live-search="true" %}</td>
+                    <td>{% render_field form.group class+="form-control selectpicker" data-container="body" %}</td>
+                    <td>{% render_field form.subgroup class+="form-control selectpicker" data-container="body" %}</td>
+                    <td><a href="{% url 'contests:course-update-leaders' course.id %}" data-bs-toggle="tooltip" data-bs-placement="center" title="Изменить ведущих преподавателей"><i class="fa fa-edit fa-fw"></i></a></td>
+                    {% endwith %}
+                </tr>
+                {% endfor %}
+                <tr class="d-none" id="empty_form_row">
+                    {% render_field formset.empty_form.course %}
+                    <td>{% render_field formset.empty_form.leader class+="form-control" data-container="body" %}</td>
+                    <td>{% render_field formset.empty_form.group class+="form-control" data-container="body" %}</td>
+                    <td>{% render_field formset.empty_form.subgroup class+="form-control" data-container="body" %}</td>
+
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+    <div class="d-grid">
+        <input class="btn btn-light border" type="submit" value="Сохранить" />
+    </div>
+</form>
+{% endblock main_content %}
+
+{% block main_scripts %}
+<script type="text/javascript">
+function addEmptyForm() {
+    let total_form_field = document.getElementById('id_form-TOTAL_FORMS');
+    let total_form_max = parseInt(document.getElementById('id_form-MAX_NUM_FORMS').value);
+    let total_form_count = parseInt(total_form_field.value);
+    if (total_form_count < total_form_max) {
+        let formset_table_body = document.getElementById('formset_table_body');
+        let formset_rows_count = formset_table_body.rows.length;
+        let empty_form_row = document.getElementById('empty_form_row');
+        let added_empty_form_row = formset_table_body.insertRow(formset_rows_count - 2);
+        added_empty_form_row.innerHTML = empty_form_row.innerHTML.replace(/__prefix__/g, total_form_field.value);
+        $(added_empty_form_row).find('.form-control').selectpicker(); // selectpicker works only with jQuery
+        total_form_field.value = total_form_count + 1;
+    }
+}
+
+function removeEmptyForm(element) {
+    let total_form_field = document.getElementById('id_form-TOTAL_FORMS');
+    let total_form_count = parseInt(total_form_field.value);
+    element.parentElement.parentElement.remove();
+    if (total_form_count > 0)
+        total_form_field.value = total_form_count - 1;
+}
+
+function markAsDeleted(element) {
+    let form_delete_field = document.getElementById(element.getAttribute('data-target'));
+    form_delete_field.checked = !form_delete_field.checked;
+    if (form_delete_field.checked) {
+        element.classList.remove('text-secondary');
+        element.classList.add('text-danger');
+    } else {
+        element.classList.remove('text-danger');
+        element.classList.add('text-secondary');
+    }
+}
+</script>
+{% endblock main_scripts %}

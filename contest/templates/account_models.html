@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Assign Roles for {{ user.username }}</h2>
+  <form method="post">
+    {% csrf_token %}
+    {% for role in roles %}
+      <div>
+        <input type="checkbox" name="roles" value="{{ role.id }}"
+          {% if role in user.roles.all %}checked{% endif %}>
+        <label>{{ role.name }}</label>
+      </div>
+    {% endfor %}
+    <button type="submit">Save</button>
+  </form>
+{% endblock %}

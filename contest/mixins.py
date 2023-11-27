@@ -30,6 +30,14 @@ class LeadershipOrMixin:
         return self.has_leadership() or super().has_permission()
 
 
+class AuthorMixin:
+    def has_authorship(self):
+        raise NotImplementedError("AuthorMixin: has_authorship method must be defined!")
+
+    def has_permission(self):
+        return self.has_authorship() or super().has_permission()
+
+
 class PaginatorMixin:
     page_kwarg = 'page'
     paginate_by = None

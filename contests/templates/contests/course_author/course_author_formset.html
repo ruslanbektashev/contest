@@ -1,0 +1,45 @@
+{% extends 'base_main.html' %}
+{% load views forms %}
+
+{% block title %}Курс{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb course course %}
+{% breadcrumb "Текущий автор" %}
+{% endblock breadcrumbs %}
+
+{% block main_content %}
+<legend>{{ course }}</legend>
+<form action="" method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    {% include 'forms/errors/non_form_errors.html' with formset=formset %}
+    <div class="table-responsive-lg">
+        <table class="table table-borderless table-sm">
+            <thead>
+                <tr>
+                    <td>Автор</td>
+                </tr>
+            </thead>
+            <tbody id="formset_table_body">
+                {% for form in formset %}
+                <tr>
+                    {% include 'forms/errors/non_field_errors.html' %}
+                    {% if form.instance.id %}
+                    {% render_field form.id %}
+                    {% endif %}
+                    {% render_field form.course %}
+                    {% with WIDGET_ERROR_CLASS="is-invalid" %}
+                    <td>{% render_field form.author class+="form-control selectpicker" data-container="body" data-live-search="true" %}</td>
+                    {% endwith %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="d-grid">
+        <input class="btn btn-light border" type="submit" value="Сохранить" />
+    </div>
+</form>
+{% endblock main_content %}

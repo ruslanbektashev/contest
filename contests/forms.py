@@ -11,9 +11,11 @@ from django.core.validators import EMPTY_VALUES
 from django.template.defaultfilters import date, filesizeformat
 from django.utils import timezone
 
+from rules.permissions import permissions
+
 from accounts.models import Account
 from contest.widgets import BootstrapSelect, BootstrapSelectMultiple, OptionCheckboxSelect, OptionRadioSelect
-from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, FNTest, Option,
+from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, CourseAuthor, Credit, FNTest, Option,
                              Problem, Submission, SubmissionPattern, SubProblem, UTTest)
 
 
@@ -195,6 +197,28 @@ class CourseLeaderForm(forms.ModelForm):
         self.fields['leader'].widget = BootstrapSelect(choices=self.fields['leader'].choices, option_attrs=option_attrs)
 
 
+"""================================================== CourseAuthor =================================================="""
+
+
+class CourseAuthorForm(forms.ModelForm):
+    author = UserChoiceField(queryset=User.objects.none(), label="Автор курса")
+
+    class Meta:
+        model = CourseAuthor
+        fields = ['course', 'author']
+        widgets = {'course': forms.HiddenInput}
+
+    def __init__(self, *args, course, author_queryset, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['course'].initial = course
+        self.fields['author'].queryset = author_queryset
+        option_subtext_data = author_queryset.values_list('pk', 'account__faculty__short_name')
+        option_subtext_data = {pk: faculty_short_name for pk, faculty_short_name in option_subtext_data}
+        option_subtext_data[''] = ''
+        option_attrs = {'data-subtext': option_subtext_data}
+        self.fields['author'].widget = AccountSelect(choices=self.fields['author'].choices, option_attrs=option_attrs)
+
+
 """===================================================== Credit ====================================================="""
 
 
@@ -202,7 +226,7 @@ class CreditUpdateForm(forms.ModelForm):
     class Meta:
         model = Credit
         fields = ['score']
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['score'].help_text = "последнее изменение: " + date(self.instance.date_updated, 'd M Y г. в H:i')
@@ -884,3 +908,13 @@ class SubmissionMossForm(forms.Form):
     def __init__(self, to_submissions_queryset, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['to_submissions'].queryset = to_submissions_queryset
+
+
+class PermissionsForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        user_id = kwargs.pop('user_id')
+        user = User.objects.get(id=user_id)
+        super().__init__(*args, **kwargs)
+        #permissions = perm_model.objects.all()
+        for perm in permissions.items():
+            self.fields[perm[0]] = forms.BooleanField(label=perm[0], initial=user.has_perm(perm[0]), required=False)

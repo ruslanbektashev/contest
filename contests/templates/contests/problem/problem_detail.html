@@ -20,7 +20,7 @@
         <span class="text-truncate"><span class="text-muted">№{{ problem.number }}</span> {{ problem.title }}</span>
         <span class="d-flex justify-content-between gap-1">
             {% if problem.type == 'Program' %}
-            {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
+            {% if "Update problem" in permissions or request|has_author_permission:problem.course %}
             <span class="dropstart" data-bs-toggle="tooltip" data-bs-placement="top" title="Добавить тест">
                 <a href="#" class="text-success" role="button" id="dropdownAddTestMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-plus fa-fw"></i></a>
                 <span class="dropdown-menu shadow-sm" aria-labelledby="dropdownAddTestMenuLink">
@@ -36,17 +36,17 @@
             <a href="{% url 'contests:submission-pattern-create' problem.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Добавить шаблон посылки"><i class="fa fa-clone fa-fw"></i></a>
             {% endif %}
             {% endif %}
-            {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
+            {% if "Update problem" in permissions or request|has_author_permission:problem.course %}
             <a href="{% url 'contests:problem-update' problem.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
-            {% if perms.contests.change_problem or perms.contests.delete_problem or request|has_leader_permission:problem.course %}
+            {% if "Delete problem" in permissions or "Update problem" in permissions or request|has_author_permission:problem.course %}
             <span class="dropstart">
                 <a href="#" role="button" id="dropdownMoreMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
                 <span class="dropdown-menu shadow-sm" aria-labelledby="dropdownMoreMenuLink">
-                    {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
+                    {% if "Update problem" in permissions or request|has_author_permission:problem.course %}
                     <a href="{% url 'contests:problem-update' problem.id %}?action=move" class="dropdown-item"><i class="fa fa-share-square-o fa-fw"></i> Переместить</a>
                     {% endif %}
-                    {% if perms.contests.delete_problem or request|has_leader_permission:problem.course %}
+                    {% if "Delete problem" in permissions or request|has_author_permission:problem.course %}
                     <a href="{% url 'contests:problem-delete' problem.id %}" class="dropdown-item text-danger"><i class="fa fa-trash-o fa-fw"></i> Удалить</a>
                     {% endif %}
                 </span>
@@ -76,7 +76,7 @@
                     {% for option in problem.option_set.order_randomly %}
                     <li class="list-group-item d-flex">
                         {{ option.text }}
-                        {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
+                        {% if "Update problem" in permissions or request|has_author_permission:problem.course %}
                             {% if option.is_correct %}<span class="contest-correct-option text-success ms-auto d-none"><i class="fa fa-check fa-fw"></i></span>{% endif %}
                         {% endif %}
                     </li>
@@ -98,7 +98,7 @@
                         <span class="ps-2" data-bs-toggle="tooltip" data-bs-placement="left" title="{{ subproblem.sub_problem.get_type_display }}">
                             <i class="fa {% get_problem_icon subproblem.sub_problem %} fa-fw"></i>
                         </span>
-                        {% if perms.contests.change_subproblem and perms.contests.delete_subproblem or request|has_leader_permission:problem.course %}
+                        {% if "Update subproblem" in permissions and "Delete subproblem" in permissions or request|has_author_permission:problem.course %}
                         <a href="{% url 'contests:subproblem-update' subproblem.id %}" class="ms-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Изменить номер">
                             <i class="fa fa-edit fa-fw fa-lg"></i>
                         </a>
@@ -117,7 +117,7 @@
                             <ul class="list-group list-group-flush">
                                 {% for option in subproblem.sub_problem.option_set.order_randomly %}
                                     <li class="list-group-item d-flex">{{ option.text }}
-                                    {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
+                                    {% if "Update problem" in permissions or request|has_author_permission:problem.course %}
                                         {% if option.is_correct %}<span class="contest-correct-option text-success ms-auto d-none"><i class="fa fa-check fa-fw"></i></span>{% endif %}
                                     {% endif %}
                                     </li>
@@ -130,7 +130,7 @@
             {% endfor %}
             {% endif %}
             {% if problem.type == 'Options' %}
-            {% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
+            {% if "Update problem" in permissions or request|has_author_permission:problem.course %}
                 <div class="text-end d-flex mb-3">
                     <div class="text-end ms-auto">
                         <i class="fa fa-lock fa-fw" data-bs-toggle="tooltip" data-bs-placement="left" title="Отображается только преподавателям"></i>
@@ -272,7 +272,7 @@
 
 {% block main_scripts %}
 <script src="{% static 'mathjax/es5/tex-chtml.js' %}" defer></script>
-{% if perms.contests.change_problem or request|has_leader_permission:problem.course %}
+{% if "Update problem" in permissions or request|has_author_permission:problem.course %}
 <script src="{% static 'contest/js/utils.js' %}"></script>
 <script>
 let correct_option_elements = document.getElementsByClassName('contest-correct-option');

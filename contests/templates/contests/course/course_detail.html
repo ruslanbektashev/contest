@@ -17,23 +17,23 @@
     <span class="d-flex justify-content-between flex-column flex-md-row">
         <span class="text-truncate">{{ course }}</span>
         <span class="d-flex justify-content-between gap-1">
-            {% if perms.contests.add_contest or request|has_leader_permission:course %}
+            {% if 'Add contest' in permissions or request|has_author_permission:course or request|has_owner_permission:course %}
             <a href="{% url 'contests:contest-create' course.id %}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="left" title="Добавить раздел"><i class="fa fa-plus fa-fw"></i></a>
             {% endif %}
-            {% if perms.contests.view_assignment_table or request|has_leader_permission:course %}
+            {% if 'View assignment table' in permissions or request|has_author_permission:course or request|has_owner_permission:course or perms.contests.view_assignment_list %}
             <a href="{% url 'contests:assignment-table' course.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Таблица заданий"><i class="fa fa-table fa-fw"></i></a>
             {% endif %}
-            {% if perms.contests.view_submission_list or request|has_leader_permission:course %}
+            {% if 'View submission list' in permissions or request|has_author_permission:course or request|has_owner_permission:course or perms.contests.view_submission_list%}
             <a href="{% url 'contests:submission-list' course.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Посылки"><i class="fa fa-tasks fa-fw"></i></a>
             {% endif %}
-            {% if perms.contests.change_course or request|has_leader_permission:course %}
+            {% if request|has_owner_permission:course or request|has_author_permission:course or request|has_leader_permission:course %}
                 {% if request|course_filtered:course %}
             <a href="{% url 'contests:filter-delete' %}?course_id={{ course.id }}&from={{ request.get_full_path }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Открепить от главной страницы"><i class="fa fa-bookmark fa-fw"></i></a>
                 {% else %}
             <a href="{% url 'contests:filter-create' %}?course_id={{ course.id }}&from={{ request.get_full_path }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Закрепить на главной странице"><i class="fa fa-bookmark-o fa-fw"></i></a>
                 {% endif %}
             {% endif %}
-            {% if perms.contests.change_course or request|has_leader_permission:course %}
+            {% if perms.contests.change_course or request|has_owner_permission:course or request|has_author_permission:course %}
             <a id="courseUpdateButton" href="{% url 'contests:course-update' course.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
             {% if perms.contests.delete_course or request|has_owner_permission:course %}
@@ -102,10 +102,35 @@
 </div>
 <legend>
     <span class="d-flex justify-content-between">
+        <span class="text-truncate">Автор курса</span>
+        <span class="d-flex justify-content-between gap-1">
+            {% if perms.contests.change_course or request|has_owner_permission:course %}
+            <a href="{% url 'contests:course-update-author' course.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Изменить автора курса"><i class="fa fa-edit fa-fw"></i></a>
+            {% endif %}
+        </span>
+    </span>
+</legend>
+<div class="row">
+    {% if course.author %}
+    <div class="col-12 col-md-4">
+        {% include 'accounts/account/account_card.html' with account=course.author.account link=True %}
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            Автор этого курса не назначен. {% if perms.contests.change_course or request|has_owner_permission:course %}Вы можете это <a href="{% url 'contests:course-update-author' course.id %}">исправить</a>.{% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<legend>
+    <span class="d-flex justify-content-between">
         <span class="text-truncate">Преподаватели</span>
         <span class="d-flex justify-content-between gap-1">
-            {% if perms.contests.change_course or request|has_leader_permission:course %}
+            {% if perms.contests.change_course or request|has_owner_permission:course or request|has_author_permission:course %}
             <a href="{% url 'contests:course-update-leaders' course.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Изменить ведущих преподавателей"><i class="fa fa-edit fa-fw"></i></a>
+            <a href="{% url 'contests:course-rules' course.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Изменить права преподавателей"><i class="fa fa-edit fa-fw"></i></a>
             {% endif %}
         </span>
     </span>
@@ -118,7 +143,7 @@
     {% empty %}
     <div class="col-12">
         <div class="alert alert-info">
-            Ведущие преподаватели на этом курсе не назначены. {% if perms.contests.change_course or request|has_leader_permission:course %}Вы можете это <a href="{% url 'contests:course-update-leaders' course.id %}">исправить</a>.{% endif %}
+            Ведущие преподаватели на этом курсе не назначены. {% if perms.contests.change_course or request|has_author_permission:course or request|has_owner_permission:course %}Вы можете это <a href="{% url 'contests:course-update-leaders' course.id %}">исправить</a>.{% endif %}
         </div>
     </div>
     {% endfor %}

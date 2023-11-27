@@ -18,6 +18,40 @@
     <span class="d-flex justify-content-between flex-column flex-md-row">
         <span class="text-truncate"><span class="text-muted">№{{ contest.number }}</span> {{ contest.title }}</span>
         <span class="d-flex justify-content-between gap-1">
+            {% if "Add problem" in permissions or request|has_author_permission:contest.course or request|has_owner_permission:contest.course %}
+            <span class="dropstart" data-bs-toggle="tooltip" data-bs-placement="top" title="Добавить задачу">
+                <a href="#" class="text-success" role="button" id="dropdownAddProblemMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-plus fa-fw"></i></a>
+                <span class="dropdown-menu shadow-sm" aria-labelledby="dropdownAddProblemMenuLink">
+                    <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Text' %}"><i class="fa fa-keyboard-o fa-fw"></i> С ответом в виде текста</a>
+                    <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Files' %}"><i class="fa fa-file-text-o fa-fw"></i> С ответом в виде файлов</a>
+                    <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Program' %}"><i class="fa fa-file-code-o fa-fw"></i> С ответом в виде программы</a>
+                    <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Options' %}"><i class="fa fa-check-square-o fa-fw"></i> С вариантами ответа</a>
+                    <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Verbal' %}"><i class="fa fa-microphone fa-fw"></i> С устным ответом</a>
+                    <span><hr class="dropdown-divider"></span>
+                    <a class="dropdown-item" href="{% url 'contests:problem-create' contest.id 'Test' %}"><i class="fa fa-folder-o fa-fw"></i> Тест</a>
+                </span>
+            </span>
+            {% endif %}
+            {% if 'Update contest' in permissions or request|has_author_permission:contest.course %}
+            <a id="btn_contest_update" href="{% url 'contests:contest-update' contest.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать"><i class="fa fa-edit fa-fw"></i></a>
+            {% endif %}
+            {% if 'Update contest' in permissions or 'Delete contest' in permissions or request|has_author_permission:contest.course %}
+            <span class="dropstart">
+                <a href="#" role="button" id="dropdownMoreMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-ellipsis-h fa-fw"></i></a>
+                <span class="dropdown-menu shadow-sm" aria-labelledby="dropdownMoreMenuLink">
+                    {% if 'Update contest' in permissions or request|has_author_permission:contest.course or request|has_owner_permission:contest.course %}
+                    <a href="{% url 'contests:contest-update' contest.id %}?action=move" class="dropdown-item"><i class="fa fa-share-square-o fa-fw"></i> Переместить</a>
+                    {% endif %}
+                    {% if 'Delete contest' in permissions or request|has_author_permission:contest.course or request|has_owner_permission:contest.course %}
+                    <a href="{% url 'contests:contest-delete' contest.id %}" class="dropdown-item text-danger"><i class="fa fa-trash-o fa-fw"></i> Удалить</a>
+                    {% endif %}
+                </span>
+            </span>
+            {% endif %}
+        </span>
+    <span class="d-flex justify-content-between flex-column flex-md-row">
+        <span class="text-truncate"><span class="text-muted">№{{ contest.number }}</span> {{ contest.title }}</span>
+        <span class="d-flex justify-content-between gap-1">
             {% if perms.contests.add_problem or request|has_leader_permission:contest.course %}
             <span class="dropstart" data-bs-toggle="tooltip" data-bs-placement="top" title="Добавить задачу">
                 <a href="#" class="text-success" role="button" id="dropdownAddProblemMenuLink" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa fa-plus fa-fw"></i></a>

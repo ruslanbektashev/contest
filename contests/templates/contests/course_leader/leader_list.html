@@ -1,0 +1,47 @@
+{% extends 'base_wide.html' %}
+{% load views humanize %}
+
+{% block title %}
+Фильтры
+{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb "Права" %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<legend>Права</legend>
+<div class="table-responsive-lg">
+    <table class="table assignment-table">
+        <thead>
+            <tr>
+                <th class="sticky-column"></th>
+                {% for perm in perms_names %}
+                <th class="text-center">{{ perm }}</a></th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in table %}
+            <tr>
+                <td class="sticky-column text-nowrap" style="width: 12%;"><a href="{{ row.user.account.get_absolute_url }}">{{ row.user.account.get_short_name }}</a></td>
+                {% for col in row.cols %}
+                <td class="text-center lake {% if col.exists %}bg-success{% endif %}">
+                    {% if col.exists %}
+                    <a href="{% url 'contests:rules-delete' course.id %}?user_id={{ col.params.user_id }}&perm_name={{ col.params.perm_name }}">
+                        <span class="numtus bg-success comment-timesince p-0"><i class="fa fa-check fa-fw fa-2x comment-naturaltime"></i><i class="fa fa-remove fa-fw fa-2x comment-datetime"></i></span>
+                    </a>
+                    {% else %}
+                    <a href="{% url 'contests:rules-create' course.id %}?user_id={{ col.params.user_id }}&perm_name={{ col.params.perm_name }}">
+                        <span class="numtus bg-info p-0"><i class="fa fa-plus fa-fw fa-2x"></i></span>
+                    </a>
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}

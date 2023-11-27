@@ -13,7 +13,6 @@ class PermissionAdmin(admin.ModelAdmin):
 @admin.register(LogEntry)
 class LogEntryAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'user_full_name', 'get_edited_object', 'action_time')
-
     def user_full_name(self, obj):
         return obj.user.get_full_name()
     user_full_name.short_description = "Пользователь"
