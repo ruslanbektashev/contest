@@ -2,21 +2,7 @@ import rules
 
 
 @rules.predicate
-def is_owner(user, objects):
-    return objects['course'].owner_id == user.id
-
-
-@rules.predicate
-def is_author(user, objects):
-    if objects['course'].author is None:
-        return False
-    return objects['course'].author.id == user.id
-
-
-@rules.predicate
 def is_leader(user, objects):
-    if objects['course'].leaders is None:
-        return False
     return objects['course'].leaders.filter(id=user.id).exists()
 
 
@@ -105,23 +91,23 @@ def delete_subproblem(user, objects):
     return "subproblem/delete" in objects['request'].path
 
 
-rules.add_perm("Update course", is_owner | is_author | (is_leader & update_course))
-rules.add_perm('Add contest', is_owner | is_author | (is_leader & add_contest))
-rules.add_perm('Update contest', is_owner | is_author | (is_leader & update_contest))
-rules.add_perm('Delete contest', is_owner | is_author | (is_leader & delete_contest))
-rules.add_perm('Add problem', is_owner | is_author | (is_leader & add_problem))
-rules.add_perm('Update problem', is_owner | is_author | (is_leader & update_problem))
-rules.add_perm('Delete problem', is_owner | is_author | (is_leader & delete_problem))
-rules.add_perm('Start course', is_owner | is_author | (is_leader & start_course))
-rules.add_perm('Finish course', is_owner | is_author | (is_leader & finish_course))
-rules.add_perm('Mark attendance', is_owner | is_author | (is_leader & mark_attendance))
-rules.add_perm('Distribute problems', is_owner | is_author | (is_leader & distribute_problems))
-rules.add_perm('View assignment table', is_owner | is_author | (is_leader & view_assignment_table))
-rules.add_perm('View submission list', is_owner | is_author | (is_leader & view_submission_list))
-rules.add_perm('Update credit', is_owner | is_author | (is_leader & credit_update))
-rules.add_perm('Credit report', is_owner | is_author | (is_leader & credit_report))
-rules.add_perm('Update subproblem', is_owner | is_author | (is_leader & update_subproblem))
-rules.add_perm('Delete subproblem', is_owner | is_author | (is_leader & delete_subproblem))
+rules.add_perm("Update course", (is_leader & update_course))
+rules.add_perm('Add contest', (is_leader & add_contest))
+rules.add_perm('Update contest', (is_leader & update_contest))
+rules.add_perm('Delete contest', (is_leader & delete_contest))
+rules.add_perm('Add problem', (is_leader & add_problem))
+rules.add_perm('Update problem', (is_leader & update_problem))
+rules.add_perm('Delete problem', (is_leader & delete_problem))
+rules.add_perm('Start course', (is_leader & start_course))
+rules.add_perm('Finish course', (is_leader & finish_course))
+rules.add_perm('Mark attendance', (is_leader & mark_attendance))
+rules.add_perm('Distribute problems', (is_leader & distribute_problems))
+rules.add_perm('View assignment table', (is_leader & view_assignment_table))
+rules.add_perm('View submission list', (is_leader & view_submission_list))
+rules.add_perm('Update credit', (is_leader & credit_update))
+rules.add_perm('Credit report', (is_leader & credit_report))
+rules.add_perm('Update subproblem', (is_leader & update_subproblem))
+rules.add_perm('Delete subproblem', (is_leader & delete_subproblem))
 
 LABELS = {'Update course': "Изменять курс",
           'Add contest': "Создавать раздел",

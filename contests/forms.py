@@ -216,7 +216,7 @@ class CourseAuthorForm(forms.ModelForm):
         option_subtext_data = {pk: faculty_short_name for pk, faculty_short_name in option_subtext_data}
         option_subtext_data[''] = ''
         option_attrs = {'data-subtext': option_subtext_data}
-        self.fields['author'].widget = AccountSelect(choices=self.fields['author'].choices, option_attrs=option_attrs)
+        self.fields['author'].widget = BootstrapSelect(choices=self.fields['author'].choices, option_attrs=option_attrs)
 
 
 """===================================================== Credit ====================================================="""

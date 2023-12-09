@@ -3,7 +3,7 @@ import re
 import contests.custom_permissions
 from contests.custom_permissions import ru
 from rules.contrib.views import PermissionRequiredMixin
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.forms.models import inlineformset_factory, modelformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse, HttpResponseForbidden
@@ -2788,7 +2788,7 @@ class ExecutionList(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 
 """==================================================== Specific ===================================================="""
 
-class LeaderListView(LoginRedirectMixin, PermissionRequiredMixin, AuthorMixin, OwnershipOrMixin, TemplateView):
+class LeaderListView(LoginRedirectMixin, AuthorMixin, PermissionRequiredMixin, OwnershipOrMixin, TemplateView):
     template_name = 'contests/course_leader/leader_permission_table.html'
     permission_required = 'Update course'
 

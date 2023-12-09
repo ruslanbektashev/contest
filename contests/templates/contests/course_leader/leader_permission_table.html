@@ -1,4 +1,4 @@
-{% extends 'base_wide.html' %}
+{% extends 'base_main.html' %}
 {% load views humanize %}
 
 {% block title %}
@@ -43,6 +43,10 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
+<div class="d-grid">
+    <a href="{% url 'contests:course-detail' course.id %}">
+        <input class='btn btn-light border' value="Вернуться" ></a>
 </div>
 {% endblock content %}
 
