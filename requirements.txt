@@ -27,3 +27,4 @@ pycryptodome~=3.17
 django-tex>=1.1.10
 pylatexenc~=2.10
 requests~=2.29.0
+rules~=3.3

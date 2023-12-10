@@ -7,6 +7,7 @@ import zipfile
 
 import docx
 from django.contrib.auth.models import User
+import contests.custom_permissions
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
@@ -21,6 +22,7 @@ from accounts.models import Account, Comment, Faculty, Notification
 from contest.abstract import CDEntry, CRDEntry, CRUDEntry
 from contest.soft_deletion import SoftDeletionManager, SoftDeletionModel, SoftDeletionQuerySet
 from contest.utils import transliterate
+from rules.permissions import permissions
 
 try:
     from tools.sandbox import get_sandbox_class
@@ -93,6 +95,8 @@ class Course(SoftDeletionModel, CRUDEntry):
     LEVEL_CHOICES = Account.LEVEL_CHOICES
 
     faculty = models.ForeignKey(Faculty, on_delete=models.DO_NOTHING, verbose_name="Факультет")
+    author = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="Ведущий автор курса",
+                               related_name='authored', null=True)
     leaders = models.ManyToManyField(User, through='CourseLeader', through_fields=('course', 'leader'),
                                      related_name='courses_leading', verbose_name="Ведущие преподаватели")
 
@@ -159,6 +163,25 @@ class CourseLeader(models.Model):
         super().save(*args, **kwargs)
         if created:
             Filter.objects.get_or_create(user=self.leader, course=self.course)
+
+
+"""================================================== CourseAuthor =================================================="""
+
+
+class CourseAuthor(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='+', verbose_name="Преподаваемый курс")
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+', verbose_name="Автор курса")
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=('course', 'author'), name='unique_course_author')]
+        verbose_name = "Автор курса"
+
+    def __str__(self):
+        return f"{self.author.account.get_short_name()} владеет {self.course}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        Filter.objects.get_or_create(user=self.author, course=self.course)
 
 
 """===================================================== Credit ====================================================="""
@@ -428,6 +451,23 @@ class Contest(SoftDeletionModel, CRUDEntry):
 
     def __str__(self):
         return f"{self.number}. {self.title}"
+
+
+"""==================================================== Permission =================================================="""
+
+
+class Permission(models.Model):
+    permission_name = models.CharField(max_length=128, verbose_name="Имя правила")
+
+
+class UserPermission(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Курс")
+    perms = models.ManyToManyField(Permission, verbose_name="Правила")
+
+    class Meta:
+        verbose_name = "Право пользователя на курсе"
+        verbose_name_plural = "Права пользователя на курсе"
 
 
 """==================================================== Problem ====================================================="""

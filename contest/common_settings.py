@@ -22,8 +22,14 @@ INSTALLED_APPS = [
     'contests',
     'schedule',
     'support',
-    'contest_telegram_bot',
     'django_tex',
+    'contest_telegram_bot',
+    'rules',
+]
+
+AUTHENTICATION_BACKENDS = [
+       'django.contrib.auth.backends.ModelBackend',
+       'rules.permissions.ObjectPermissionBackend',
 ]
 
 MIDDLEWARE = [

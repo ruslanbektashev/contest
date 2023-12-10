@@ -17,9 +17,16 @@ urlpatterns = [
             path('discussion', views.CourseDiscussion.as_view(), name='course-discussion'),
             path('update', views.CourseUpdate.as_view(), name='course-update'),
             path('leader', views.CourseUpdateLeaders.as_view(), name='course-update-leaders'),
-            path('delete', views.CourseDelete.as_view(), name='course-delete')
+            path('author', views.CourseUpdateAuthor.as_view(), name='course-update-author'),
+            path('delete', views.CourseDelete.as_view(), name='course-delete'),
+            path('rules/', include([
+                path('create', views.PermissionFilterCreate.as_view(), name='rules-create'),
+                path('delete', views.PermissionFilterDelete.as_view(), name='rules-delete'),
+                path('table', views.LeaderListView.as_view(), name='course-rules')
+            ]))
         ])),
         path('list', views.CourseList.as_view(), name='course-list')
+
     ])),
     path('course/<int:course_id>/credit/report', views.CreditReport.as_view(), name='credit-report'),
     path('credit/', include([

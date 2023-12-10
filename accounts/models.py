@@ -150,7 +150,12 @@ class StaffManager(models.Manager):
                 'last_name': last_name,
                 'patronymic': patronymic
             })
-        group_name = "Преподаватель" if type > 2 else "Модератор"
+            if type == 2:
+                group_name = "Преподаватель"
+            elif type == 3:
+                group_name = "Модератор"
+            elif type == 4:
+                group_name = "Автор"
         group, _ = Group.objects.get_or_create(name=group_name)
         for new_user_data in new_users_data:
             user = User.objects.create_user(username=new_user_data['username'], password=new_user_data['password'],
@@ -170,6 +175,13 @@ class StaffManager(models.Manager):
             leader_queryset = leader_queryset.filter(Q(account__faculty=faculty) | Q(account__faculty__short_name="МФК")).distinct()
         leader_queryset = leader_queryset.order_by('account__faculty__short_name', 'last_name', 'first_name')
         return leader_queryset
+
+    def get_author_queryset(self, faculty):
+        author_queryset = User.objects.filter(groups__name="Автор курса")
+        if not faculty.is_interfaculty:
+            author_queryset = author_queryset.filter(Q(account__faculty=faculty) | Q(account__faculty__short_name="МФК")).distinct()
+        author_queryset = author_queryset.order_by('account__faculty__short_name', 'last_name', 'first_name')
+        return author_queryset
 
 
 class StudentManager(models.Manager):
@@ -242,11 +254,12 @@ class Account(models.Model):
     LEVEL_DEFAULT = 1
     LEVEL_MIN = 1
     LEVEL_MAX = 8
-    TYPE_CHOICES = (
-        (1, "студент"),
-        (2, "модератор"),
-        (3, "преподаватель"),
-    )
+    TYPE_CHOICES = [
+        (1, 'студент'),
+        (2, 'модератор'),
+        (3, 'преподаватель'),
+        (4, 'автор курса'),
+    ]
     TYPE_DEFAULT = 1
     ADMISSION_YEAR_CHOICES = ((y, y) for y in range(2006, timezone.now().year + 1))
     ADMISSION_YEAR_DEFAULT = timezone.now().year
@@ -306,6 +319,9 @@ class Account(models.Model):
     def is_instructor(self):
         return self.type == 3  # self.user.groups.filter(name="Преподаватель").exists()
 
+    def is_author(self):
+        return self.type == 4
+###
     @property
     def owner(self):
         return self.user

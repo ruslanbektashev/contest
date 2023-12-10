@@ -26,6 +26,11 @@ def has_leader_permission(request, course):
 
 
 @register.filter()
+def has_author_permission(request, course):
+    return course.author.id == request.user.id
+
+
+@register.filter()
 def has_student_permission(request, user):
     return user.id == request.user.id
 
