@@ -269,6 +269,8 @@ class Account(models.Model):
     admission_year = models.PositiveSmallIntegerField(choices=ADMISSION_YEAR_CHOICES, default=ADMISSION_YEAR_DEFAULT,
                                                       verbose_name="Год поступления")
 
+    USERNAME_FIELD = 'user.username'
+
     date_updated = models.DateTimeField(auto_now=True)
 
     objects = models.Manager()
@@ -818,6 +820,7 @@ class Action(models.Model):
 
 
 
+'''
 class TempAccount(models.Model):
         GROUP_CHOICES = (
             (1, "1"),
@@ -990,3 +993,4 @@ class TempAccount(models.Model):
 
         def __str__(self):
             return self.get_full_name()
+'''

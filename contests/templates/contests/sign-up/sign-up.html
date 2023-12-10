@@ -54,7 +54,25 @@
                 {% endif %}
             </div>
             <p></p>
+            <div class="form-floating">
+                {% render_field form.email class+="form-control" placeholder="Адрес электронной почты" %}
+                <label for="{{ form.email.id_for_label }}">Адрес электронной почты</label>
+                {% if form.errors.email %}
+                <p></p>
+                <div class="form-error" style="color: red">{{form.errors.email}}</div>
+                {% endif %}
+          </div>
+          <p></p>
           <div class="form-floating">
+                {% render_field form.faculty class+="form-control" placeholder="Факультет" %}
+                <label for="{{ form.faculty.id_for_label }}">Факультет</label>
+                {% if form.errors.faculty %}
+                <p></p>
+                <div class="form-error" style="color: red">{{form.errors.faculty}}</div>
+                {% endif %}
+          </div>
+          <p></p>
+            <div class="form-floating">
                 {% render_field form.level class+="form-control" placeholder="Уровень" %}
                 <label for="{{ form.level.id_for_label }}">Уровень</label>
                 {% if form.errors.level %}
@@ -64,23 +82,14 @@
           </div>
           <p></p>
           <div class="form-floating">
-                {% render_field form.email class+="form-control" placeholder="Адрес электронной почты" %}
-                <label for="{{ form.email.id_for_label }}">Адрес электронной почты</label>
-                {% if form.errors.email %}
+                {% render_field form.group class+="form-control" placeholder="Группа" %}
+                <label for="{{ form.level.id_for_label }}">Группа</label>
+                {% if form.errors.level %}
                 <p></p>
-                <div class="form-error" style="color: red">{{form.errors.email}}</div>
+                <div class="form-error" style="color: red">{{form.errors.level}}</div>
                 {% endif %}
           </div>
-            <p></p>
-          <div class="form-floating">
-                {% render_field form.faculty class+="form-control" placeholder="Факультет" %}
-                <label for="{{ form.faculty.id_for_label }}">Факультет</label>
-                {% if form.errors.faculty %}
-                <p></p>
-                <div class="form-error" style="color: red">{{form.errors.faculty}}</div>
-                {% endif %}
-          </div>
-            <p></p>
+          <p></p>
           <div class="form-floating">
                 {% render_field form.admission_year class+="form-control" placeholder="Год поступления" %}
                 <label for="{{ form.admission_year.id_for_label }}">Год поступления</label>

@@ -11,7 +11,7 @@ from django.core.validators import EMPTY_VALUES
 from django.template.defaultfilters import date, filesizeformat
 from django.utils import timezone
 
-from accounts.models import TempAccount, Account
+from accounts.models import Account
 from accounts.forms import AccountPartialForm
 from contest.widgets import BootstrapSelect, BootstrapSelectMultiple, OptionCheckboxSelect, OptionRadioSelect
 from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, FNTest, Option,
@@ -902,10 +902,10 @@ class SignUpForm(UserCreationForm):
     #password2 = forms.CharField(label='Подтверждение пароля',  widget=forms.PasswordInput, , min_length=8, max_length=30)
 
     class Meta:
-        model = TempAccount
+        model = Account
         fields = ("first_name","last_name",
                   "record_book_id","patronymic",
-                  "level", "faculty",
+                  "level", "group", "faculty",
                   "admission_year", "email", "username")
         widgets = {'password1': forms.PasswordInput(attrs={'class': 'form-input'}),
                    'password2': forms.PasswordInput(attrs={'class': 'form-input'})
@@ -932,7 +932,7 @@ class SignUpForm(UserCreationForm):
 
     def clean_record_book_id(self):
         record_book_id = self.cleaned_data['record_book_id']
-        if TempAccount.objects.filter(record_book_id=record_book_id).exists():
+        if Account.objects.filter(record_book_id=record_book_id).exists():
             raise ValidationError("Пользователь с таким номером зачётной книжки уже существует")
         return record_book_id
 

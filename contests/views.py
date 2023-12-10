@@ -17,7 +17,7 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from django.views.generic.list import BaseListView
 from django_tex.core import compile_template_to_pdf
 
-from accounts.models import Account, Action, Announcement, Faculty, Notification, TempAccount
+from accounts.models import Account, Action, Announcement, Faculty, Notification
 from contest.documents.viewer import del_html_tags, tex_gen, to_html
 from contest.mixins import (LeadershipOrMixin, LogAdditionMixin, LogChangeMixin, LogDeletionMixin, LoginRedirectMixin,
                             OwnershipOrMixin, PaginatorMixin)
@@ -2526,10 +2526,12 @@ class SignUpView(FormView):
         self.storage['last_name'] = form.cleaned_data['last_name']
         self.storage['email'] = form.cleaned_data['email']
         self.storage['faculty'] = form.cleaned_data['faculty']
+        self.storage['group'] = form.cleaned_data['group']
         self.storage['patronymic'] = form.cleaned_data['patronymic']
         self.storage['record_book_id'] = form.cleaned_data['record_book_id']
         self.storage['password1'] = form.cleaned_data['password1']
         self.storage['password2'] = form.cleaned_data['password2']
+
 
         user = User.objects.create_user(username=self.storage['username'],
                                         first_name=self.storage['first_name'],
@@ -2538,7 +2540,7 @@ class SignUpView(FormView):
                                         password=self.storage['password1'],
                                         is_active=False)
 
-        TempAccount.objects.create(user=user,
+        Account.objects.create(user=user,
                                    faculty=self.storage['faculty'],
                                    patronymic=self.storage['patronymic'],
                                    record_book_id=self.storage['record_book_id'])
@@ -2561,8 +2563,6 @@ class SignUpView(FormView):
 
         email.send()
 
-        # it can be broken when many clients will register
-        # TODO: send it to celery
 
 
 
@@ -2574,114 +2574,6 @@ class SignUpView(FormView):
 
     def get_request(self):
         return self.request()
-
-
-'''
-        try:
-            SignUpForm.is_valid_password1(form)
-        except ValidationError as ve:
-            form.add_error('password',ve)
-            return HttpResponseRedirect('',{'form':form})
-'''
-
-# password = form.cleaned_data['password']
-# password1 = form.cleaned_data['password1']
-# self.storage['first_name'] = first_name
-# breakpoint()
-
-'''
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['formset'] = context['form']
-        context.update(self.storage)
-        breakpoint()
-        return context
-'''
-
-'''
-    def get_queryset(self):
-
-        return super().get_queryset()
-'''
-
-'''
-    def get_context_data(self, **kwargs):
-        breakpoint()
-        context = super().get_context_data(**kwargs)
-        context.update(self.storage)
-        if 'formset' not in kwargs:
-            kwargs['formset'] = self.get_formset()
-        # context['first_name'] = self.storage['first_name']
-        return context
-'''
-
-'''
-    def get_formset(self, form=None):
-        breakpoint()
-        formset_class = self.get_formset_class()
-        return formset_class(**self.get_formset_kwargs(form))
-
-    def get_formset_kwargs(self, form=None):
-        breakpoint()
-        users = (User.objects.filter(id__in=self.get_queryset().values_list('user_id', flat=True))
-                 .order_by('last_name', 'first_name', 'id'))
-        kwargs = {'initial': [{'user': user} for user in users],
-                  'queryset': Attendance.objects.none()}
-        if self.request.method in ('POST', 'PUT'):
-            kwargs['data'] = self.request.POST.copy()  # pass mutable copy that will be updated
-            if form is not None:
-                kwargs['date'] = form.get_date()
-        return kwargs
-
-    def get_formset_class(self):
-        breakpoint()
-        num_extra = self.get_queryset().count()
-        return modelformset_factory(Attendance, AttendanceForm, formset=AttendanceFormSet, extra=num_extra,
-                                    min_num=num_extra, max_num=num_extra, validate_max=True)
-'''
-
-'''
-    def get_context_data(self, **kwargs):
-        #self.object = self.get_object()
-        breakpoint()
-        context = super().get_context_data(**kwargs)
-        context.update(self.storage)
-        if 'formset' not in kwargs:
-            kwargs['formset'] = self.get_formset()
-        #context['first_name'] = self.storage['first_name']
-        return context
-    '''
-'''
-    def dispatch(self, request, *args, **kwargs):
-        #self.storage['account'] = get_object_or_404(Account, id)
-        #breakpoint()
-        return super().dispatch(request, *args, **kwargs)
-'''
-
-'''
-    def get_queryset(self):
-        breakpoint()
-        return Account.students.apply_common_filters(self.storage, with_credits=False)
-        #return super().get_queryset()
-
-'''
-
-'''
-    def get_success_url(self):
-        success_url = reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
-        return success_url + get_query_string(self.request)
-'''
-'''
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return super().get(request, *args, **kwargs)
-
-    
-'''
-
-
-# success_url = reverse_lazy('considered')
-# success_message = "Вы учпешно зарегистрировались!
 
 
 class ProcessingView(TemplateView):
@@ -2702,22 +2594,8 @@ def activate(request, uidb64, token):
     if user is not None and account_activation_token.check_token(user, token):
         user.is_active = True
         user.save()
-        return HttpResponse('Thank you for your email confirmation. Now you can login your account.')
+        return HttpResponse('Благодарим Вас за подтверждение своего адреса электронной почты! Теперь вы можете войти в свой аккаунт!')
     else:
-        return HttpResponse('Activation link is invalid!')
-
-
-
-'''
-class SignUpUserView(CreateView):
-    form_class = RegisterUserForm
-    template_name = 'women/register.html'
-    success_url = reverse_lazy('login')
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        c_def = self.get_user_context(title="Регистрация")
-        return dict(list(context.items()) + list(c_def.items()))
-'''
+        return HttpResponse('Ссылка для активации неверная!')
 
 
