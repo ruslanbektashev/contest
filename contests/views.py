@@ -2,9 +2,12 @@ import re
 
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
+from django.core.mail import EmailMessage
 from django.forms.models import inlineformset_factory, modelformset_factory
+from django.forms import ValidationError
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.text import get_text_list
@@ -14,7 +17,7 @@ from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from django.views.generic.list import BaseListView
 from django_tex.core import compile_template_to_pdf
 
-from accounts.models import Account, Action, Announcement, Faculty, Notification
+from accounts.models import Account, Action, Announcement, Faculty, Notification, TempAccount
 from contest.documents.viewer import del_html_tags, tex_gen, to_html
 from contest.mixins import (LeadershipOrMixin, LogAdditionMixin, LogChangeMixin, LogDeletionMixin, LoginRedirectMixin,
                             OwnershipOrMixin, PaginatorMixin)
@@ -33,6 +36,21 @@ from contests.models import (Assignment, Attachment, Attendance, Contest, Course
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.views import get_query_string, has_leader_permission
 from schedule.models import Schedule
+# for registration
+from django.contrib.auth import login, get_user_model
+from django.views.generic import FormView
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+
+from contests.forms import SignUpForm
+from contests.models import User
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from contests.token import account_activation_token
+from django.utils.encoding import force_bytes, force_str
+from django.utils.html import strip_tags
+
 
 
 def get_students_filter_dict(course, request):
@@ -286,6 +304,7 @@ class CourseUpdateLeaders(LoginRedirectMixin, OwnershipOrMixin, PermissionRequir
         context = super().get_context_data(**kwargs)
         context['formset'] = context['form']
         context.update(self.storage)
+        breakpoint()
         return context
 
     def get_success_url(self):
@@ -860,7 +879,8 @@ class ContestTasksLeaflet(LoginRedirectMixin, OwnershipOrMixin, PermissionRequir
 
     def get_form_class(self):
         extra = 0 if self.get_queryset().exists() else 1
-        return modelformset_factory(Assignment, ContestCreateTasksLeafletForm, extra=extra, max_num=len(self.get_queryset()), validate_max=True,
+        return modelformset_factory(Assignment, ContestCreateTasksLeafletForm, extra=extra,
+                                    max_num=len(self.get_queryset()), validate_max=True,
                                     can_delete=True)
 
     def get_form_kwargs(self):
@@ -896,7 +916,8 @@ class ContestTasksLeaflet(LoginRedirectMixin, OwnershipOrMixin, PermissionRequir
             file_body = r'\\noindent'
             for i, task in enumerate(form.cleaned_data):
                 try:
-                    file_body += (r'\\textbf{Задача ' + str(i + 1) + '.} ' + del_html_tags(task['problem'].description) + r'\\\\' + '\n')
+                    file_body += (r'\\textbf{Задача ' + str(i + 1) + '.} ' + del_html_tags(
+                        task['problem'].description) + r'\\\\' + '\n')
                 except KeyError:
                     print('Invalid key!')
             pattern = re.compile(r'\\begin\{document}.*\\end\{document}', re.DOTALL)
@@ -1752,6 +1773,7 @@ class AssignmentCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
+        breakpoint()
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -2483,3 +2505,219 @@ class Main(LoginRedirectMixin, TemplateView):
         context['announcements'] = Announcement.objects.proper_group(self.request.user).actual()
         context['latest_submissions'] = self.get_latest_submissions()
         return context
+
+
+"""==================================================== Sign-Up ===================================================="""
+
+
+class SignUpView(FormView):
+    template_name = 'contests/sign-up/sign-up.html'
+    form_class = SignUpForm
+
+    # model = Account
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def form_valid(self, form):
+        self.storage['first_name'] = form.cleaned_data['first_name']
+        self.storage['username'] = form.cleaned_data['username']
+        self.storage['last_name'] = form.cleaned_data['last_name']
+        self.storage['email'] = form.cleaned_data['email']
+        self.storage['faculty'] = form.cleaned_data['faculty']
+        self.storage['patronymic'] = form.cleaned_data['patronymic']
+        self.storage['record_book_id'] = form.cleaned_data['record_book_id']
+        self.storage['password1'] = form.cleaned_data['password1']
+        self.storage['password2'] = form.cleaned_data['password2']
+
+        user = User.objects.create_user(username=self.storage['username'],
+                                        first_name=self.storage['first_name'],
+                                        last_name=self.storage['last_name'],
+                                        email=self.storage['email'],
+                                        password=self.storage['password1'],
+                                        is_active=False)
+
+        TempAccount.objects.create(user=user,
+                                   faculty=self.storage['faculty'],
+                                   patronymic=self.storage['patronymic'],
+                                   record_book_id=self.storage['record_book_id'])
+        # login(self.request, user)
+
+        current_site = get_current_site(self.request)
+        mail_subject = 'Activation link has been sent to your email id'
+        message = render_to_string('contests/sign-up/acc_active_email.html', {
+            'user': user,
+            'domain': current_site.domain,
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'token': account_activation_token.make_token(user),
+        })
+        #message = strip_tags(message)
+        message.content_subtype = 'html'
+        to_email = form.cleaned_data.get('email')
+        email = EmailMessage(
+            mail_subject, message, to=[to_email]
+        )
+
+        email.send()
+
+        # it can be broken when many clients will register
+        # TODO: send it to celery
+
+
+
+        # login(self.request, user)
+        return HttpResponseRedirect(reverse('contests:processing'))
+
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+    def get_request(self):
+        return self.request()
+
+
+'''
+        try:
+            SignUpForm.is_valid_password1(form)
+        except ValidationError as ve:
+            form.add_error('password',ve)
+            return HttpResponseRedirect('',{'form':form})
+'''
+
+# password = form.cleaned_data['password']
+# password1 = form.cleaned_data['password1']
+# self.storage['first_name'] = first_name
+# breakpoint()
+
+'''
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['formset'] = context['form']
+        context.update(self.storage)
+        breakpoint()
+        return context
+'''
+
+'''
+    def get_queryset(self):
+
+        return super().get_queryset()
+'''
+
+'''
+    def get_context_data(self, **kwargs):
+        breakpoint()
+        context = super().get_context_data(**kwargs)
+        context.update(self.storage)
+        if 'formset' not in kwargs:
+            kwargs['formset'] = self.get_formset()
+        # context['first_name'] = self.storage['first_name']
+        return context
+'''
+
+'''
+    def get_formset(self, form=None):
+        breakpoint()
+        formset_class = self.get_formset_class()
+        return formset_class(**self.get_formset_kwargs(form))
+
+    def get_formset_kwargs(self, form=None):
+        breakpoint()
+        users = (User.objects.filter(id__in=self.get_queryset().values_list('user_id', flat=True))
+                 .order_by('last_name', 'first_name', 'id'))
+        kwargs = {'initial': [{'user': user} for user in users],
+                  'queryset': Attendance.objects.none()}
+        if self.request.method in ('POST', 'PUT'):
+            kwargs['data'] = self.request.POST.copy()  # pass mutable copy that will be updated
+            if form is not None:
+                kwargs['date'] = form.get_date()
+        return kwargs
+
+    def get_formset_class(self):
+        breakpoint()
+        num_extra = self.get_queryset().count()
+        return modelformset_factory(Attendance, AttendanceForm, formset=AttendanceFormSet, extra=num_extra,
+                                    min_num=num_extra, max_num=num_extra, validate_max=True)
+'''
+
+'''
+    def get_context_data(self, **kwargs):
+        #self.object = self.get_object()
+        breakpoint()
+        context = super().get_context_data(**kwargs)
+        context.update(self.storage)
+        if 'formset' not in kwargs:
+            kwargs['formset'] = self.get_formset()
+        #context['first_name'] = self.storage['first_name']
+        return context
+    '''
+'''
+    def dispatch(self, request, *args, **kwargs):
+        #self.storage['account'] = get_object_or_404(Account, id)
+        #breakpoint()
+        return super().dispatch(request, *args, **kwargs)
+'''
+
+'''
+    def get_queryset(self):
+        breakpoint()
+        return Account.students.apply_common_filters(self.storage, with_credits=False)
+        #return super().get_queryset()
+
+'''
+
+'''
+    def get_success_url(self):
+        success_url = reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
+        return success_url + get_query_string(self.request)
+'''
+'''
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().get(request, *args, **kwargs)
+
+    
+'''
+
+
+# success_url = reverse_lazy('considered')
+# success_message = "Вы учпешно зарегистрировались!
+
+
+class ProcessingView(TemplateView):
+    template_name = 'contests/sign-up/processing.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+
+def activate(request, uidb64, token):
+    User = get_user_model()
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return HttpResponse('Thank you for your email confirmation. Now you can login your account.')
+    else:
+        return HttpResponse('Activation link is invalid!')
+
+
+
+'''
+class SignUpUserView(CreateView):
+    form_class = RegisterUserForm
+    template_name = 'women/register.html'
+    success_url = reverse_lazy('login')
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        c_def = self.get_user_context(title="Регистрация")
+        return dict(list(context.items()) + list(c_def.items()))
+'''
+
+

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Permission
 
-from accounts.models import Account, Action, Announcement, Comment, Faculty, Notification
+from accounts.models import Account, TempAccount, Action, Announcement, Comment, Faculty, Notification
 
 
 @admin.register(Permission)
@@ -31,6 +31,29 @@ class FacultyAdmin(admin.ModelAdmin):
 
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'user', 'date_joined', 'last_login', 'faculty', 'level', 'admission_year')
+    list_filter = ('department', 'faculty', 'level', 'type', 'admission_year', 'enrolled', 'graduated')
+    search_fields = ('user__last_name', 'user__first_name')
+    fieldsets = (
+        ('Пользователь', {
+            'fields': ('user',)
+        }),
+        ('Детали', {
+            'fields': ('patronymic', 'department', 'position', 'degree', 'image', 'faculty', 'level', 'type',
+                       'admission_year', 'enrolled', 'graduated', 'record_book_id')
+        }),
+        ('Даты', {
+            'fields': ('date_updated',)
+        }),
+        ('Другое', {
+            'fields': ('comments_read',)
+        })
+    )
+    readonly_fields = ('date_updated',)
+
+
+@admin.register(TempAccount)
+class TempAccountAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'user', 'date_joined', 'last_login', 'faculty', 'level', 'admission_year')
     list_filter = ('department', 'faculty', 'level', 'type', 'admission_year', 'enrolled', 'graduated')
     search_fields = ('user__last_name', 'user__first_name')

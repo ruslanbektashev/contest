@@ -1,0 +1,146 @@
+{% extends 'base_new.html' %}
+{% load forms static %}
+{% block links %}
+<link href="{% static 'contest/css/login.css' %}" rel="stylesheet"/>
+{% endblock links %}
+
+{% block content %}
+<main class="d-flex h-100 mx-auto">
+    <div class="d-flex flex-column text-center">
+        <p class="mb-auto">&nbsp;</p>
+        <form class="form-signin align-self-center" method="post">
+            {% csrf_token %}
+            <img class="mb-4" src="{% static 'contest/images/msu-logo.png' %}" alt="" width="72" height="72">
+            <h1 class="h3 mb-3 fw-normal">МГУ Контест</h1>
+            {% block sign_up_content %}
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger text-start">
+            </div>
+            {% endif %}
+            <div class="form-floating">
+                {% render_field form.username class+="form-control" placeholder="Логин" %}
+                <label for="{{ form.username.id_for_label }}">Логин</label>
+                {% if form.errors.username %}
+                <p></p>
+                <div class="form-error" style="color: red">{{form.errors.username}}</div>
+                {% endif %}
+            </div>
+            <p></p>
+            <div class="form-floating">
+                {% render_field form.first_name class+="form-control" placeholder="Фамилия" %}
+                <label for="{{ form.first_name.id_for_label }}">Имя</label>
+                {% if form.errors.first_name %}
+                <p></p>
+                <div class="form-error" style="color: red">{{form.errors.first_name}}</div>
+                {% endif %}
+            </div>
+            <p></p>
+            <div class="form-floating">
+                {% render_field form.last_name class+="form-control" placeholder="Имя" %}
+                <label for="{{ form.last_name.id_for_label }}">Фамилия</label>
+                {% if form.errors.last_name %}
+                <p></p>
+                <div class="form-error" style="color: red">{{form.errors.last_name}}</div>
+                {% endif %}
+            </div>
+
+            <p></p>
+            <div class="form-floating">
+                {% render_field form.patronymic class+="form-control" placeholder="Отчество" %}
+                <label for="{{ form.patronymic.id_for_label }}">Отчество</label>
+                {% if form.errors.patronymic %}
+                <p></p>
+                <div class="form-error" style="color: red">{{form.errors.patronymic}}</div>
+                {% endif %}
+            </div>
+            <p></p>
+          <div class="form-floating">
+                {% render_field form.level class+="form-control" placeholder="Уровень" %}
+                <label for="{{ form.level.id_for_label }}">Уровень</label>
+                {% if form.errors.level %}
+                <p></p>
+                <div class="form-error" style="color: red">{{form.errors.level}}</div>
+                {% endif %}
+          </div>
+          <p></p>
+          <div class="form-floating">
+                {% render_field form.email class+="form-control" placeholder="Адрес электронной почты" %}
+                <label for="{{ form.email.id_for_label }}">Адрес электронной почты</label>
+                {% if form.errors.email %}
+                <p></p>
+                <div class="form-error" style="color: red">{{form.errors.email}}</div>
+                {% endif %}
+          </div>
+            <p></p>
+          <div class="form-floating">
+                {% render_field form.faculty class+="form-control" placeholder="Факультет" %}
+                <label for="{{ form.faculty.id_for_label }}">Факультет</label>
+                {% if form.errors.faculty %}
+                <p></p>
+                <div class="form-error" style="color: red">{{form.errors.faculty}}</div>
+                {% endif %}
+          </div>
+            <p></p>
+          <div class="form-floating">
+                {% render_field form.admission_year class+="form-control" placeholder="Год поступления" %}
+                <label for="{{ form.admission_year.id_for_label }}">Год поступления</label>
+                {% if form.errors.admission_year %}
+                <p></p>
+                <div class="form-error" style="color: red">{{form.errors.admission_year}}</div>
+                {% endif %}
+          </div>
+            <p></p>
+            <div class="form-floating">
+                {% render_field form.record_book_id class+="form-control" placeholder="НЗК" %}
+                <label for="{{ form.record_book_id.id_for_label }}"> Номер зачётной книжки </label>
+                {% if form.errors.record_book_id %}
+                <p></p>
+                <div class="form-error" style="color: red">{{form.errors.record_book_id}}</div>
+                {% endif %}
+            </div>
+            <p></p>
+            <div class="form-floating">
+                {% render_field form.password1 class+="form-control" placeholder="Пароль" %}
+                <label for="{{ form.password1.id_for_label }}"> Пароль </label>
+
+                {% if form.errors.password1 %}
+                <p></p>
+                <div class="form-error" style="color: red">{{form.errors.password1}}</div>
+                {% endif %}
+            </div>
+            <!--
+            {% for f in form %}
+                <div class="form-error">{{f.errors}}</div>
+            {% endfor %}
+            -->
+            <p></p>
+            <div class="form-floating">
+                {% render_field form.password2 class+="form-control" placeholder="Подтверждение пароля" %}
+                <label for="{{ form.password2.id_for_label }}"> Подтверждение пароля </label>
+                {% if form.errors.password2 %}
+                <p></p>
+                <div class="form-error" style="color: red">{{form.errors.password2}}</div>
+                {% endif %}
+            </div>
+            <!--
+          <p></p>
+          <div class="form-floating">
+                {% render_field form.username class+="form-control" placeholder="Пароль" %}
+                <label for="{{ form.username.id_for_label }}">Пароль</label>
+            </div>
+
+          <p></p>
+          <div class="form-floating">
+                {% render_field form.username class+="form-control" placeholder="Подтверждение пароля" %}
+                <label for="{{ form.username.id_for_label }}">Подтверждение пароля</label>
+            </div>
+            -->
+           <button class="btn btn-outline-primary btn-lg mt-3 w-100" type="submit">Зарегистрироваться</button>
+            <p></p>
+            <p class="copyright text-nowrap mt-auto">Уже зарегистрированы? <a href="{% url 'login' %}" class="text-muted">Войти в свой аккаунт.</a></p>
+          {% endblock sign_up_content %}
+        </form>
+        <p class="copyright text-nowrap mt-auto">Филиал МГУ им. М.В. Ломоносова в г. Ташкент &copy; {% now "Y" %}</p>
+    </div>
+</main>
+{% endblock content %}

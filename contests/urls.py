@@ -2,9 +2,16 @@ from django.urls import include, path
 
 from contests import api, views
 
+
 app_name = 'contests'
 
 urlpatterns = [
+    path('sign-up/', include([
+        path('', views.SignUpView.as_view(), name='sign-up'),
+        path('processing', views.ProcessingView.as_view(), name='processing'),
+        path('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+            views.activate, name='activate'),
+    ])),
     path('', views.Main.as_view(), name='index'),
     path('attachment/<int:pk>/delete', views.AttachmentDelete.as_view(), name='attachment-delete'),
     path('deleted/list', views.DeletedList.as_view(), name='deleted-list'),
