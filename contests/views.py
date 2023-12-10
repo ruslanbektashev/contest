@@ -215,16 +215,19 @@ class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
     def has_leadership(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.object.leaders.filter(id=self.request.user.id).exists() and \
-            self.object.course.leaders.filter(id=self.request.user.id).exists() and \
-            UserPermission.objects.filter(user=self.request.user.id, course=self.get_object(),
-                                          perms=needed_permission.id).exists()
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.object.leaders.filter(id=self.request.user.id).exists() and \
+                self.object.course.leaders.filter(id=self.request.user.id).exists() and \
+                UserPermission.objects.filter(user=self.request.user.id, course=self.get_object(),
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def has_authorship(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        return self.object.course.author.id == self.request.user.id
+        return self.object.course.author is not None and self.object.course.author.id == self.request.user.id
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -293,7 +296,7 @@ class CourseUpdateLeaders(LoginRedirectMixin, OwnershipOrMixin, AuthorMixin, Per
         return self.storage['course'].owner_id == self.request.user.id
 
     def has_authorship(self):
-        return self.storage['course'].author.id == self.request.user.id
+        return self.storage['course'].author is not None and self.storage['course'].author.id == self.request.user.id
 
     def get_queryset(self):
         return CourseLeader.objects.filter(course=self.storage['course'])
@@ -405,13 +408,16 @@ class CreditReport(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Auth
         return self.storage['course'].owner_id == self.request.user.id
 
     def has_authorship(self):
-        return self.storage['course'].author.id == self.request.user.id
+        return self.storage['course'].author is not None and self.storage['course'].author.id == self.request.user.id
 
     def has_leadership(self):
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
-            UserPermission.objects.filter(user=self.request.user.id, course=self.storage['course'],
-                                          perms=needed_permission.id).exists()
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
+                UserPermission.objects.filter(user=self.request.user.id, course=self.storage['course'],
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -465,13 +471,16 @@ class CourseStart(LoginRedirectMixin, OwnershipOrMixin, LeadershipOrMixin, Autho
         return super().dispatch(request, *args, **kwargs)
 
     def has_leadership(self):
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
-            UserPermission.objects.filter(user=self.request.user, course=self.storage['course'],
-                                          perms=needed_permission.id).exists()
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
+                UserPermission.objects.filter(user=self.request.user, course=self.storage['course'],
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def has_authorship(self):
-        return self.storage['course'].author.id == self.request.user.id
+        return self.storage['course'].author is not None and self.storage['course'].author.id == self.request.user.id
 
     def has_ownership(self):
         return self.storage['course'].owner_id == self.request.user.id
@@ -526,13 +535,16 @@ class CourseFinish(LoginRedirectMixin, LeadershipOrMixin, AuthorMixin, Permissio
         return super().dispatch(request, *args, **kwargs)
 
     def has_leadership(self):
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
-            UserPermission.objects.filter(user=self.request.user, course=self.storage['course'],
-                                          perms=needed_permission.id).exists()
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
+                UserPermission.objects.filter(user=self.request.user, course=self.storage['course'],
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def has_authorship(self):
-        return self.storage['course'].author.id == self.request.user.id
+        return self.storage['course'].author is not None and self.storage['course'].author.id == self.request.user.id
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -584,15 +596,18 @@ class CreditUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Auth
     def has_authorship(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        return self.object.course.author.id == self.request.user.id
+        return self.object.course.author is not None and self.object.course.author.id == self.request.user.id
 
     def has_leadership(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.object.course.leaders.filter(id=self.request.user.id).exists() and \
-            UserPermission.objects.filter(user=self.request.user, course=self.object.course,
-                                          perms=needed_permission.id).exists()
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.object.course.leaders.filter(id=self.request.user.id).exists() and \
+                UserPermission.objects.filter(user=self.request.user, course=self.object.course,
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def form_valid(self, form):
         Notification.objects.notify(self.object.user, subject=self.request.user,
@@ -677,14 +692,16 @@ class AttendanceCreateSet(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixi
         return self.storage['course'].owner_id == self.request.user.id
 
     def has_authorship(self):
-        return self.storage['course'].author.id == self.request.user.id
+        return self.storage['course'].author is not None and self.storage['course'].author.id == self.request.user.id
 
     def has_leadership(self):
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
-            UserPermission.objects.filter(user=self.request.user, course=self.storage['course'],
-                                          perms=needed_permission.id).exists()
-
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
+                UserPermission.objects.filter(user=self.request.user, course=self.storage['course'],
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
     def get_queryset(self):
         return Account.students.apply_common_filters(self.storage)
 
@@ -791,7 +808,7 @@ class FilterCreate(LoginRequiredMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         return self.storage['course'].owner_id == self.request.user.id
 
     def has_authorship(self):
-        return self.storage['course'].author.id == self.request.user.id
+        return self.storage['course'].author is not None and self.storage['course'].author.id == self.request.user.id
 
     def has_leadership(self):
         return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
@@ -819,7 +836,7 @@ class FilterDelete(LoginRequiredMixin, LeadershipOrMixin, AuthorMixin, Ownership
         return self.storage['course'].owner_id == self.request.user.id
 
     def has_authorship(self):
-        return self.storage['course'].author.id == self.request.user.id
+        return self.storage['course'].author is not None and self.storage['course'].author.id == self.request.user.id
 
     def has_leadership(self):
         return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
@@ -912,17 +929,20 @@ class ContestCreate(LoginRedirectMixin, OwnershipOrMixin, LeadershipOrMixin, Aut
         return objs
 
     def has_leadership(self):
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
-            UserPermission.objects.filter(user=self.request.user, course=self.storage['course'],
-                                          perms=needed_permission.id).exists()
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
+                UserPermission.objects.filter(user=self.request.user, course=self.storage['course'],
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['course'] = get_object_or_404(Course, id=kwargs.pop('course_id'))
         return super().dispatch(request, *args, **kwargs)
 
     def has_authorship(self):
-        return self.storage['course'].author.id == self.request.user.id
+        return self.storage['course'].author is not None and self.storage['course'].author.id == self.request.user.id
 
     def has_ownership(self):
         return self.storage['course'].owner_id == self.request.user.id
@@ -963,10 +983,13 @@ class ContestUpdate(LoginRedirectMixin, OwnershipOrMixin, LeadershipOrMixin, Aut
     def has_leadership(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.object.course.leaders.filter(id=self.request.user.id).exists() and\
-            UserPermission.objects.filter(user=self.request.user, course=self.object.course,
-                                          perms=needed_permission.id).exists()
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.object.course.leaders.filter(id=self.request.user.id).exists() and\
+                UserPermission.objects.filter(user=self.request.user, course=self.object.course,
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['action'] = request.GET.get('action', None)
@@ -975,7 +998,7 @@ class ContestUpdate(LoginRedirectMixin, OwnershipOrMixin, LeadershipOrMixin, Aut
     def has_authorship(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        return self.object.course.author.id == self.request.user.id
+        return self.object.course.author is not None and self.object.course.author.id == self.request.user.id
 
     def has_ownership(self):
         if not hasattr(self, 'object'):
@@ -1027,15 +1050,18 @@ class ContestDelete(LoginRedirectMixin, LeadershipOrMixin, AuthorMixin, Ownershi
         return self.object.course.owner_id == self.request.user.id
 
     def has_authorship(self):
-        return self.object.course.author.id == self.request.user.id
+        return self.object.course.author is not None and self.object.course.author.id == self.request.user.id
 
     def has_leadership(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.object.course.leaders.filter(id=self.request.user.id).exists() and \
-            UserPermission.objects.filter(user=self.request.user, course=self.object.course,
-                                          perms=needed_permission.id).exists()
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.object.course.leaders.filter(id=self.request.user.id).exists() and \
+                UserPermission.objects.filter(user=self.request.user, course=self.object.course,
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def get_success_url(self):
         return reverse('contests:course-detail', kwargs={'pk': self.object.course_id})
@@ -1236,13 +1262,17 @@ class ProblemCreate(LoginRedirectMixin, PermissionRequiredMixin, AuthorMixin, Ow
         return self.storage['problem'].course.owner_id == self.request.user.id
 
     def has_leadership(self):
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.storage['problem'].course.author_id == self.request.user.id and \
-            UserPermission.objects.filter(user=self.request.user.id, course=self.storage['problem'].course,
-                                          perms=needed_permission.id).exists()
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.storage['problem'].course.author_id == self.request.user.id and \
+                UserPermission.objects.filter(user=self.request.user.id, course=self.storage['problem'].course,
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def has_authorship(self):
-        return self.storage['problem'].course.author.id == self.request.user.id
+        return self.storage['problem'].course.author is not None and\
+            self.storage['problem'].course.author.id == self.request.user.id
 
     def dispatch(self, request, *args, **kwargs):
         self.storage['contest'] = get_object_or_404(Contest, id=kwargs.pop('contest_id'))
@@ -1342,15 +1372,18 @@ class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
     def has_leadership(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.object.course.leaders.filter(id=self.request.user.id).exists() and \
-            UserPermission.objects.filter(user=self.request.user.id, course=self.object.course,
-                                          perms=needed_permission.id).exists()
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.object.course.leaders.filter(id=self.request.user.id).exists() and \
+                UserPermission.objects.filter(user=self.request.user.id, course=self.object.course,
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def has_authorship(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        return self.object.course.author.id == self.request.user.id
+        return self.object.course.author is not None and self.object.course.author.id == self.request.user.id
 
     def get_form_class(self):
         if self.storage['action'] == 'add_files':
@@ -1413,10 +1446,13 @@ class ProblemDelete(LoginRedirectMixin, OwnershipOrMixin, AuthorMixin, Leadershi
         return objs
 
     def has_leadership(self):
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.object.course.leaders.filter(id=self.request.user.id).exists() and \
-            UserPermission.objects.filter(user=self.request.user, course=self.object.course,
-                                          perms=needed_permission.id).exists()
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.object.course.leaders.filter(id=self.request.user.id).exists() and \
+                UserPermission.objects.filter(user=self.request.user, course=self.object.course,
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def has_ownership(self):
         if not hasattr(self, 'object'):
@@ -1426,7 +1462,7 @@ class ProblemDelete(LoginRedirectMixin, OwnershipOrMixin, AuthorMixin, Leadershi
     def has_authorship(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        return self.object.course.author.id == self.request.user.id
+        return self.object.course.author is not None and self.object.course.author.id == self.request.user.id
 
     def get_success_url(self):
         return reverse('contests:contest-detail', kwargs={'pk': self.object.contest_id})
@@ -1454,16 +1490,20 @@ class SubProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, AuthorMixin, Owner
     def has_authorship(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        return self.object.problem.course.author.id == self.request.user.id
+        return self.object.problem.course.author is not None and\
+            self.object.problem.course.author.id == self.request.user.id
 
     def has_leadership(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
 
-        return self.object.problem.course.leaders.filter(id=self.request.user.id).exists() and\
-            UserPermission.objects.filter(user=self.request.user.id, course=self.object.problem.course,
-                                          perms=needed_permission.id).exists()
+            return self.object.problem.course.leaders.filter(id=self.request.user.id).exists() and\
+                UserPermission.objects.filter(user=self.request.user.id, course=self.object.problem.course,
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def get_success_url(self):
         return reverse('contests:problem-detail', kwargs={'pk': self.object.problem_id})
@@ -1487,15 +1527,19 @@ class SubProblemDelete(LoginRedirectMixin, LeadershipOrMixin, AuthorMixin, Owner
     def has_leadership(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.object.problem.course.leaders.filter(id=self.request.user.id).exists() and \
-            UserPermission.objects.filter(user=self.request.user.id, course=self.object.problem.course,
-                                          perms=needed_permission.id).exists()
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.object.problem.course.leaders.filter(id=self.request.user.id).exists() and \
+                UserPermission.objects.filter(user=self.request.user.id, course=self.object.problem.course,
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def has_authorship(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        return self.object.problem.course.author.id == self.request.user.id
+        return self.object.problem.course.author is not None and\
+            self.object.problem.course.author.id == self.request.user.id
 
     def get_success_url(self):
         return reverse('contests:problem-detail', kwargs={'pk': self.object.problem_id})
@@ -2013,14 +2057,16 @@ class AssignmentCreate(LoginRedirectMixin, LeadershipOrMixin, AuthorMixin, Owner
         return self.storage['course'].owner_id == self.request.user.id
 
     def has_authorship(self):
-        return self.storage['course'].author.id == self.request.user.id
+        return self.storage['course'].author is not None and self.storage['course'].author.id == self.request.user.id
 
     def has_leadership(self):
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
-            UserPermission.objects.filter(user=self.request.user, course=self.storage['course'],
-                                          perms=needed_permission.id).exists()
-
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
+                UserPermission.objects.filter(user=self.request.user, course=self.storage['course'],
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
     def get(self, request, *args, **kwargs):
         contest_id, user_id = request.GET.get('contest_id'), request.GET.get('user_id')
         if contest_id and user_id:
@@ -2081,13 +2127,16 @@ class AssignmentCreateRandomSet(LoginRedirectMixin, LeadershipOrMixin, AuthorMix
         return self.storage['course'].owner_id == self.request.user.id
 
     def has_authorship(self):
-        return self.storage['course'].author.id == self.request.user.id
+        return self.storage['course'].author is not None and self.storage['course'].author.id == self.request.user.id
 
     def has_leadership(self):
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
-            UserPermission.objects.filter(user=self.request.user, course=self.storage['course'],
-                                          perms=needed_permission.id).exists()
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
+                UserPermission.objects.filter(user=self.request.user, course=self.storage['course'],
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def get_initial(self):
         initial = super().get_initial()
@@ -2243,13 +2292,16 @@ class AssignmentCourseTable(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMi
         return self.storage['course'].owner_id == self.request.user.id
 
     def has_leadership(self):
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
-            UserPermission.objects.filter(user=self.request.user.id, course=self.storage['course'],
-                                          perms=needed_permission.id).exists()
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
+                UserPermission.objects.filter(user=self.request.user.id, course=self.storage['course'],
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def has_authorship(self):
-        return self.storage['course'].author.id == self.request.user.id
+        return self.storage['course'].author is not None and self.storage['course'].author.id == self.request.user.id
 
     def get_queryset(self):
         self.storage['students'] = (Account.students.apply_common_filters(self.storage)
@@ -2687,8 +2739,12 @@ class SubmissionList(LoginRequiredMixin, LeadershipOrMixin, AuthorMixin, Permiss
         self.storage = dict()
 
     def get_permission_object(self):
-        objs = {'course': self.storage['course'],
-                'request': self.request}
+        course_id = self.kwargs.get('course_id', None)
+        if course_id:
+            objs = {'course': self.storage['course'],
+                    'request': self.request}
+        else:
+            objs = {'request': self.request}
         return objs
 
     def dispatch(self, request, *args, **kwargs):
@@ -2701,13 +2757,17 @@ class SubmissionList(LoginRequiredMixin, LeadershipOrMixin, AuthorMixin, Permiss
         return 'course' in self.storage and self.storage['course'].owner_id == self.request.user.id
 
     def has_authorship(self):
-        return 'course' in self.storage and self.storage['course'].author.id == self.request.user.id
+        return 'course' in self.storage and self.storage['course'].author is not None and\
+            self.storage['course'].author.id == self.request.user.id
     
     def has_leadership(self):
-        needed_permission = Permission.objects.get(permission_name=self.permission_required)
-        return 'course' in self.storage and self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
-            UserPermission.objects.filter(user=self.request.user.id, course=self.storage['course'],
-                                          perms=needed_permission.id).exists()
+        if Permission.objects.filter(permission_name=self.permission_required).exists():
+            needed_permission = Permission.objects.get(permission_name=self.permission_required)
+            return 'course' in self.storage and self.storage['course'].leaders.filter(id=self.request.user.id).exists() and \
+                UserPermission.objects.filter(user=self.request.user.id, course=self.storage['course'],
+                                              perms=needed_permission.id).exists()
+        else:
+            return False
 
     def get_queryset(self):
         queryset = super().get_queryset().select_related('owner', 'problem', 'problem__contest')
@@ -2806,7 +2866,7 @@ class LeaderListView(LoginRedirectMixin, AuthorMixin, PermissionRequiredMixin, O
         return super().dispatch(request, *args, **kwargs)
 
     def has_authorship(self):
-        return self.storage['course'].author.id == self.request.user.id
+        return self.storage['course'].author is not None and self.storage['course'].author.id == self.request.user.id
 
     def has_ownership(self):
         return self.storage['course'].owner_id == self.request.user.id

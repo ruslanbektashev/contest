@@ -3,7 +3,7 @@ import rules
 
 @rules.predicate
 def is_leader(user, objects):
-    return objects['course'].leaders.filter(id=user.id).exists()
+    return 'course' in objects and objects['course'].leaders.filter(id=user.id).exists()
 
 
 @rules.predicate
@@ -28,27 +28,27 @@ def add_problem(user, objects):
 
 @rules.predicate
 def update_problem(user, objects):
-    return f"/problem/{objects['problem'].id}/update" in objects['request']
+    return 'problem' in objects and f"/problem/{objects['problem'].id}/update" in objects['request']
 
 
 @rules.predicate
 def delete_problem(user, objects):
-    return f"/problem/{objects['problem'].id}/delete" in objects['request']
+    return 'problem' in objects and f"/problem/{objects['problem'].id}/delete" in objects['request']
 
 
 @rules.predicate
 def start_course(user, objects):
-    return f"/course/{objects['course'].id}/start/" in objects['request'].path
+    return 'course' in objects and f"/course/{objects['course'].id}/start/" in objects['request'].path
 
 
 @rules.predicate
 def update_course(user, objects):
-    return f"/course/{objects['course'].id}/update" in objects['request'].path
+    return 'course' in objects and f"/course/{objects['course'].id}/update" in objects['request'].path
 
 
 @rules.predicate
 def finish_course(user, objects):
-    return f"/course/{objects['course'].id}/finish/" in objects['request'].path
+    return 'course' in objects and f"/course/{objects['course'].id}/finish/" in objects['request'].path
 
 
 @rules.predicate
