@@ -1,0 +1,5 @@
+{% autoescape off %}
+Здравствуйте {{ user.username }},
+Пройдите по ссылке, чтобы подтвердить свой адрес электронной почты и завершить регистрацию:
+https:://{{domain}}{% url 'contests:activate' uidb64=uid token=token %}
+{% endautoescape %}

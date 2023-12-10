@@ -1,0 +1,23 @@
+{% extends 'base_new.html' %}
+{% load forms static %}
+
+{% block links %}
+<link href="{% static 'contest/css/login.css' %}" rel="stylesheet"/>
+{% endblock links %}
+
+{% block content %}
+<main class="d-flex h-100 mx-auto">
+    <div class="d-flex flex-column text-center">
+        <p class="mb-auto">&nbsp;</p>
+        {% csrf_token %}
+        <div class="text-center">
+            <img class="mb-4" src="{% static 'contest/images/msu-logo.png' %}" alt="" width="72" height="72">
+            <h1 class="h3 mb-3 fw-normal">МГУ Контест</h1>
+        </div>
+        <div class='text-center'>
+            <p>Письмо со ссылкой для подтверждения адреса электронной почты отправлена! Проверьте вашу почту и перейдите по ссылке для активации своего аккаунта!</p>
+        </div>
+        <p class="copyright text-nowrap mt-auto">Филиал МГУ им. М.В. Ломоносова в г. Ташкент &copy; {% now "Y" %}</p>
+    </div>
+</main>
+{% endblock content %}

@@ -12,10 +12,13 @@ from django.template.defaultfilters import date, filesizeformat
 from django.utils import timezone
 
 from accounts.models import Account
+from accounts.forms import AccountPartialForm
 from contest.widgets import BootstrapSelect, BootstrapSelectMultiple, OptionCheckboxSelect, OptionRadioSelect
 from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, FNTest, Option,
                              Problem, Submission, SubmissionPattern, SubProblem, UTTest)
 
+from django.contrib.auth.forms import UserCreationForm, UsernameField
+from .models import User
 
 class UserChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
@@ -884,3 +887,89 @@ class SubmissionMossForm(forms.Form):
     def __init__(self, to_submissions_queryset, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['to_submissions'].queryset = to_submissions_queryset
+
+
+"""==================================================== Sign-Up ===================================================="""
+
+
+class SignUpForm(UserCreationForm):
+    first_name = forms.CharField(max_length=30, label="Имя", required=True)
+    last_name = forms.CharField(max_length=150, label="Фамилия", required=True)
+    email = forms.EmailField(label="e-mail", required=True)
+    username = forms.CharField(max_length=150, label="Логин", required=True)
+
+    #password1 = forms.CharField(label='Пароль',  widget=forms.PasswordInput, min_length=8, max_length=30)
+    #password2 = forms.CharField(label='Подтверждение пароля',  widget=forms.PasswordInput, , min_length=8, max_length=30)
+
+    class Meta:
+        model = Account
+        fields = ("first_name","last_name",
+                  "record_book_id","patronymic",
+                  "level", "group", "faculty",
+                  "admission_year", "email", "username")
+        widgets = {'password1': forms.PasswordInput(attrs={'class': 'form-input'}),
+                   'password2': forms.PasswordInput(attrs={'class': 'form-input'})
+                   }
+        # field_classes = {'first_name': }
+
+
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args, **kwargs)
+        # self.fields['patronymic'].required = True
+        # self.fields['record_book_id'].required = True
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if User.objects.filter(email=email).exists():
+            raise ValidationError("Такой адрес электронной почты уже существует")
+        return email
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if User.objects.filter(username=username).exists():
+            raise ValidationError("Такой логин уже существует")
+        return username
+
+    def clean_record_book_id(self):
+        record_book_id = self.cleaned_data['record_book_id']
+        if Account.objects.filter(record_book_id=record_book_id).exists():
+            raise ValidationError("Пользователь с таким номером зачётной книжки уже существует")
+        return record_book_id
+
+'''
+        instance = kwargs.get('instance')
+        if instance is not None:
+            initial = {
+                'first_name': instance.user.first_name,
+                'last_name': instance.user.last_name
+            }
+            if 'initial' in kwargs:
+                kwargs['initial'].update(initial)
+            else:
+                kwargs.update(initial=initial)
+        
+        super().__init__(*args, **kwargs)
+'''
+
+
+"""
+    def is_valid_password1(self):
+        cd = self.cleaned_data
+
+        if cd['password'] != cd['password1']:
+            raise ValidationError('Password error')
+        return cd['password']
+
+"""
+
+
+
+'''
+        def save(self, commit=True):
+            super(AccountPartialForm, self).save(commit)
+            for field_name in ['email', 'first_name', 'last_name']:
+                if field_name in self.changed_data:
+                    setattr(self.instance.user, field_name, self.cleaned_data[field_name])
+            self.instance.user.save()
+            return self.instance
+'''

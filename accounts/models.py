@@ -265,9 +265,11 @@ class Account(models.Model):
     subgroup = models.PositiveSmallIntegerField(choices=GROUP_CHOICES, default=GROUP_DEFAULT, verbose_name="Подгруппа")
     enrolled = models.BooleanField(default=True, verbose_name="Обучается?")
     graduated = models.BooleanField(default=False, verbose_name="Закончил обучение?")
-    record_book_id = models.PositiveIntegerField(null=True, blank=True, verbose_name="№ зачетной книжки")
+    record_book_id = models.PositiveIntegerField(null=True, blank=False, verbose_name="№ зачетной книжки")
     admission_year = models.PositiveSmallIntegerField(choices=ADMISSION_YEAR_CHOICES, default=ADMISSION_YEAR_DEFAULT,
                                                       verbose_name="Год поступления")
+
+    USERNAME_FIELD = 'user.username'
 
     date_updated = models.DateTimeField(auto_now=True)
 
@@ -405,7 +407,6 @@ class CommentQuerySet(models.QuerySet):
 class Comment(models.Model):
     MAX_LEVEL = 5
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments', verbose_name="Автор")
-
     thread_id = models.PositiveIntegerField(default=0, db_index=True)
     parent_id = models.PositiveIntegerField(default=0)
     level = models.PositiveIntegerField(default=1)
@@ -816,3 +817,180 @@ class Action(models.Model):
     def __str__(self):
         messages = self.get_details()
         return messages[:150] + (messages[150:] and "... (обрезано)")
+
+
+
+'''
+class TempAccount(models.Model):
+        GROUP_CHOICES = (
+            (1, "1"),
+            (2, "2"),
+            (3, "3"),
+        )
+        GROUP_DEFAULT = 1
+        LEVEL_CHOICES = (
+            (1, "1 курс, I семестр"),
+            (2, "1 курс, II семестр"),
+            (3, "2 курс, III семестр"),
+            (4, "2 курс, IV семестр"),
+            (5, "3 курс, V семестр"),
+            (6, "3 курс, VI семестр"),
+            (7, "4 курс, VII семестр"),
+            (8, "4 курс, VIII семестр"),
+            (9, "1 курс, I семестр, магистратура"),
+            (10, "1 курс, II семестр, магистратура"),
+            (11, "2 курс, III семестр, магистратура"),
+            (12, "2 курс, IV семестр, магистратура"),
+        )
+        LEVEL_DEFAULT = 1
+        LEVEL_MIN = 1
+        LEVEL_MAX = 8
+        TYPE_CHOICES = (
+            (1, "студент"),
+            (2, "модератор"),
+            (3, "преподаватель"),
+        )
+        TYPE_DEFAULT = 1
+        ADMISSION_YEAR_CHOICES = ((y, y) for y in range(2006, timezone.now().year + 1))
+        ADMISSION_YEAR_DEFAULT = timezone.now().year
+
+
+        user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+        faculty = models.ForeignKey(Faculty, on_delete=models.DO_NOTHING, verbose_name="Факультет")
+
+        patronymic = models.CharField(max_length=30, blank=True, verbose_name="Отчество")
+        department = models.CharField(max_length=150, blank=True, verbose_name="Кафедра")
+        position = models.CharField(max_length=100, blank=True, verbose_name="Должность")
+        degree = models.CharField(max_length=50, blank=True, verbose_name="Ученая степень")
+        image = models.ImageField(upload_to=account_image_path, blank=True, verbose_name="Аватар")
+        type = models.PositiveSmallIntegerField(choices=TYPE_CHOICES, default=TYPE_DEFAULT, verbose_name="Тип")
+        level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, default=LEVEL_DEFAULT, verbose_name="Уровень")
+        group = models.PositiveSmallIntegerField(choices=GROUP_CHOICES, default=GROUP_DEFAULT, verbose_name="Группа")
+        subgroup = models.PositiveSmallIntegerField(choices=GROUP_CHOICES, default=GROUP_DEFAULT,
+                                                    verbose_name="Подгруппа")
+        enrolled = models.BooleanField(default=True, verbose_name="Обучается?")
+        graduated = models.BooleanField(default=False, verbose_name="Закончил обучение?")
+        record_book_id = models.PositiveIntegerField(null=True, blank=False, verbose_name="№ зачетной книжки")
+        admission_year = models.PositiveSmallIntegerField(choices=ADMISSION_YEAR_CHOICES,
+                                                          default=ADMISSION_YEAR_DEFAULT,
+                                                          verbose_name="Год поступления")
+
+        USERNAME_FIELD = 'user.username'
+
+        date_updated = models.DateTimeField(auto_now=True)
+
+        objects = models.Manager()
+
+        comments_read = models.ManyToManyField('Comment', blank=True)
+
+        class Meta:
+            permissions = [
+                ("view_deleted", "Просматривать корзину"),
+            ]
+            ordering = ('user__last_name', 'user__first_name', 'user_id')
+            verbose_name = "Временный аккаунт"
+            verbose_name_plural = "Временные аккаунты"
+
+        @staticmethod
+        def make_group_name(group_prefix, group, level):
+            group_suffix = (timezone.now().year - level // 2) % 100
+            return "{}{}-{}".format(group_prefix, group, group_suffix)
+
+        @property
+        def get_group_name(self):
+            return self.make_group_name(self.faculty.group_prefix, self.group, self.level)
+
+        @property
+        def is_student(self):
+            return self.type == 1  # self.user.groups.filter(name="Студент").exists()
+
+        @property
+        def is_moderator(self):
+            return self.type == 2  # self.user.groups.filter(name="Модератор").exists()
+
+        @property
+        def is_instructor(self):
+            return self.type == 3  # self.user.groups.filter(name="Преподаватель").exists()
+
+        @property
+        def owner(self):
+            return self.user
+
+        @property
+        def username(self):
+            return self.user.username
+
+        @property
+        def first_name(self):
+            return self.user.first_name
+
+        @property
+        def last_name(self):
+            return self.user.last_name
+
+        @property
+        def is_active(self):
+            return self.user.is_active
+
+        def get_full_name(self):
+            full_name = "{last_name} {first_name} {patronymic}".format(first_name=self.first_name,
+                                                                       last_name=self.last_name,
+                                                                       patronymic=self.patronymic)
+            return full_name.strip() or self.user.username
+
+        def get_short_name(self):
+            if self.first_name:
+                short_name = "{last_name} {first_name_0}.".format(first_name_0=self.first_name[0],
+                                                                  last_name=self.last_name).strip()
+                patronymic = self.patronymic.strip()
+                if patronymic:
+                    short_name += " {}.".format(patronymic[0])
+                return short_name
+            else:
+                return self.user.username
+
+        @property
+        def email(self):
+            return self.user.email
+
+        @property
+        def last_login(self):
+            return self.user.last_login
+
+        @property
+        def date_joined(self):
+            return self.user.date_joined
+
+        def count_solved_problems(self):
+            Problem = apps.get_model('contests', 'Problem')
+            return Problem.objects.filter(submission__owner=self.user, submission__status='OK').count()
+
+        def count_completed_assignments(self):
+            return self.user.assignment_set.filter(score__gt=2).count()
+
+        def get_accuracy(self, course_id=None):
+            submissions = self.user.submission_set.all()
+            if course_id:
+                submissions = submissions.filter(problem__contest__course=course_id)
+            accuracy = 100 * submissions.filter(status='OK').count() / (submissions.count() or 1)
+            return round(accuracy)
+
+        def get_absolute_url(self):
+            return reverse('accounts:account-detail', kwargs={'pk': self.pk})
+
+        def mark_comments_as_read(self, comments):
+            # TODO: mark corresponding notifications as read?
+            # Notification.objects.filter(recipient=self.user, object_type=ContentType.objects.get_for_model(Comment),
+            #                             object_id__in=comments.values_list('id', flat=True)).mark_as_read()
+            self.comments_read.add(*comments)
+
+        def unread_comments_count(self, obj):
+            comments_on_object = obj.comment_set.exclude(author=self.user)
+            comments_on_object_read_by_user = self.comments_read.filter(
+                object_type=ContentType.objects.get_for_model(obj),
+                object_id=obj.id).exclude(author=self.user)
+            return comments_on_object.count() - comments_on_object_read_by_user.count()
+
+        def __str__(self):
+            return self.get_full_name()
+'''

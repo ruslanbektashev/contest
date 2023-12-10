@@ -2,9 +2,12 @@ import re
 
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
+from django.core.mail import EmailMessage
 from django.forms.models import inlineformset_factory, modelformset_factory
+from django.forms import ValidationError
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.text import get_text_list
@@ -33,6 +36,21 @@ from contests.models import (Assignment, Attachment, Attendance, Contest, Course
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.views import get_query_string, has_leader_permission
 from schedule.models import Schedule
+# for registration
+from django.contrib.auth import login, get_user_model
+from django.views.generic import FormView
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+
+from contests.forms import SignUpForm
+from contests.models import User
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from contests.token import account_activation_token
+from django.utils.encoding import force_bytes, force_str
+from django.utils.html import strip_tags
+
 
 
 def get_students_filter_dict(course, request):
@@ -286,6 +304,7 @@ class CourseUpdateLeaders(LoginRedirectMixin, OwnershipOrMixin, PermissionRequir
         context = super().get_context_data(**kwargs)
         context['formset'] = context['form']
         context.update(self.storage)
+        breakpoint()
         return context
 
     def get_success_url(self):
@@ -860,7 +879,8 @@ class ContestTasksLeaflet(LoginRedirectMixin, OwnershipOrMixin, PermissionRequir
 
     def get_form_class(self):
         extra = 0 if self.get_queryset().exists() else 1
-        return modelformset_factory(Assignment, ContestCreateTasksLeafletForm, extra=extra, max_num=len(self.get_queryset()), validate_max=True,
+        return modelformset_factory(Assignment, ContestCreateTasksLeafletForm, extra=extra,
+                                    max_num=len(self.get_queryset()), validate_max=True,
                                     can_delete=True)
 
     def get_form_kwargs(self):
@@ -896,7 +916,8 @@ class ContestTasksLeaflet(LoginRedirectMixin, OwnershipOrMixin, PermissionRequir
             file_body = r'\\noindent'
             for i, task in enumerate(form.cleaned_data):
                 try:
-                    file_body += (r'\\textbf{Задача ' + str(i + 1) + '.} ' + del_html_tags(task['problem'].description) + r'\\\\' + '\n')
+                    file_body += (r'\\textbf{Задача ' + str(i + 1) + '.} ' + del_html_tags(
+                        task['problem'].description) + r'\\\\' + '\n')
                 except KeyError:
                     print('Invalid key!')
             pattern = re.compile(r'\\begin\{document}.*\\end\{document}', re.DOTALL)
@@ -1752,6 +1773,7 @@ class AssignmentCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
+        breakpoint()
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -2483,3 +2505,97 @@ class Main(LoginRedirectMixin, TemplateView):
         context['announcements'] = Announcement.objects.proper_group(self.request.user).actual()
         context['latest_submissions'] = self.get_latest_submissions()
         return context
+
+
+"""==================================================== Sign-Up ===================================================="""
+
+
+class SignUpView(FormView):
+    template_name = 'contests/sign-up/sign-up.html'
+    form_class = SignUpForm
+
+    # model = Account
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def form_valid(self, form):
+        self.storage['first_name'] = form.cleaned_data['first_name']
+        self.storage['username'] = form.cleaned_data['username']
+        self.storage['last_name'] = form.cleaned_data['last_name']
+        self.storage['email'] = form.cleaned_data['email']
+        self.storage['faculty'] = form.cleaned_data['faculty']
+        self.storage['group'] = form.cleaned_data['group']
+        self.storage['patronymic'] = form.cleaned_data['patronymic']
+        self.storage['record_book_id'] = form.cleaned_data['record_book_id']
+        self.storage['password1'] = form.cleaned_data['password1']
+        self.storage['password2'] = form.cleaned_data['password2']
+
+
+        user = User.objects.create_user(username=self.storage['username'],
+                                        first_name=self.storage['first_name'],
+                                        last_name=self.storage['last_name'],
+                                        email=self.storage['email'],
+                                        password=self.storage['password1'],
+                                        is_active=False)
+
+        Account.objects.create(user=user,
+                                   faculty=self.storage['faculty'],
+                                   patronymic=self.storage['patronymic'],
+                                   record_book_id=self.storage['record_book_id'])
+        # login(self.request, user)
+
+        current_site = get_current_site(self.request)
+        mail_subject = 'Activation link has been sent to your email id'
+        message = render_to_string('contests/sign-up/acc_active_email.html', {
+            'user': user,
+            'domain': current_site.domain,
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'token': account_activation_token.make_token(user),
+        })
+        #message = strip_tags(message)
+        message.content_subtype = 'html'
+        to_email = form.cleaned_data.get('email')
+        email = EmailMessage(
+            mail_subject, message, to=[to_email]
+        )
+
+        email.send()
+
+
+
+
+        # login(self.request, user)
+        return HttpResponseRedirect(reverse('contests:processing'))
+
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+    def get_request(self):
+        return self.request()
+
+
+class ProcessingView(TemplateView):
+    template_name = 'contests/sign-up/processing.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+
+def activate(request, uidb64, token):
+    User = get_user_model()
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return HttpResponse('Благодарим Вас за подтверждение своего адреса электронной почты! Теперь вы можете войти в свой аккаунт!')
+    else:
+        return HttpResponse('Ссылка для активации неверная!')
+
+
