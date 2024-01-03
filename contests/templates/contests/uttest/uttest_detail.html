@@ -29,29 +29,29 @@
         </span>
     </span>
 </legend>
-<table class="table table-sm">
+{% render_attachment_list uttest uttest.course %}
+<table class="table table-sm mt-3">
     <tr>
         <td class="text-end" style="width: 22%;">Параметры компиляции</td>
         <td>
-            <code>{{ uttest.compile_args|default:"не указаны" }}</code>
+            <code>{{ uttest.compile_args|default:"не заданы" }}</code>
             {% if uttest.compile_args_override %}
-            <span data-bs-toggle="tooltip" data-bs-placement="right" title="Затирают параметры задачи!"><i class="fa-solid fa-circle-exclamation fa-fw text-danger"></i></span>
+            <span data-bs-toggle="tooltip" data-bs-placement="right" title="Заменяют параметры компиляции задачи"><i class="fa-solid fa-circle-exclamation fa-fw text-danger"></i></span>
             {% else %}
-            <span data-bs-toggle="tooltip" data-bs-placement="right" title="Дополняют параметры задачи!"><i class="fa-solid fa-circle-exclamation fa-fw text-info"></i></span>
+            <span data-bs-toggle="tooltip" data-bs-placement="right" title="Дополняют параметры компиляции задачи"><i class="fa-solid fa-circle-exclamation fa-fw text-info"></i></span>
             {% endif %}
         </td>
     </tr>
     <tr>
         <td class="text-end" style="width: 22%;">Параметры запуска</td>
         <td>
-            <code>{{ uttest.launch_args|default:"не указаны" }}</code>
+            <code>{{ uttest.launch_args|default:"не заданы" }}</code>
             {% if uttest.launch_args_override %}
-            <span data-bs-toggle="tooltip" data-bs-placement="right" title="Затирают параметры задачи!"><i class="fa-solid fa-circle-exclamation fa-fw text-danger"></i></span>
+            <span data-bs-toggle="tooltip" data-bs-placement="right" title="Заменяют параметры запуска задачи"><i class="fa-solid fa-circle-exclamation fa-fw text-danger"></i></span>
             {% else %}
-            <span data-bs-toggle="tooltip" data-bs-placement="right" title="Дополняют параметры задачи!"><i class="fa-solid fa-circle-exclamation fa-fw text-info"></i></span>
+            <span data-bs-toggle="tooltip" data-bs-placement="right" title="Дополняют параметры запуска задачи"><i class="fa-solid fa-circle-exclamation fa-fw text-info"></i></span>
             {% endif %}
         </td>
     </tr>
 </table>
-{% render_attachment_list uttest uttest.course %}
 {% endblock main_content %}
