@@ -59,8 +59,8 @@
     {% endwith %}
     {% endif %}
     {% if action == 'restore' or action == None %}
-    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/check_button.html" WIDGET_ERROR_CLASS="is-invalid" %}
-    {% render_field form.hidden class+="btn-check" autocomplete="off" %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch.html" %}
+    {% render_field form.hidden class+="form-check-input" autocomplete="off" %}
     {% endwith %}
     {% endif %}
     <div id="formSubmitButton">

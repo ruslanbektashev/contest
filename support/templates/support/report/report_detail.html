@@ -31,7 +31,7 @@
 <div class="alert alert-warning">
     {{ report.text }}
 </div>
-<div class="row">
+<div class="row text-muted">
     {% if perms.support.change_report or report.owner == request.user %}
     <div class="col-12 col-md-6">
         Отправитель: <a href="{{ report.owner.account.get_absolute_url }}">{{ report.owner.account }}</a>

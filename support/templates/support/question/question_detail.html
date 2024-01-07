@@ -38,7 +38,7 @@
     <hr>
     {{ answer|safe }}
 </div>
-<div class="row">
+<div class="row text-muted">
     {% if perms.support.change_question or question.owner == request.user %}
     <div class="col-12">
         Отправитель: <a href="{{ question.owner.account.get_absolute_url }}">{{ question.owner.account }}</a>
