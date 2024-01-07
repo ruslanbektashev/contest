@@ -53,7 +53,7 @@
     {% endif %}
 </div>
 {% if page_obj.has_next %}
-<div class="d-grid">
+<div class="d-grid invisible">
     <a class="contest-notification-list-more btn btn-link" href="?page={{ page_obj.next_page_number }}">еще</a>
 </div>
 {% endif %}
