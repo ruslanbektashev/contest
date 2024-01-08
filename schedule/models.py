@@ -13,7 +13,7 @@ from contest.abstract import CRUDEntry
 from schedule.templatetags.events import iso_to_gregorian
 
 
-def current_week_date_from(format_string='Y-m-d', next_week: bool = False):
+def current_week_date_from(format_string='Y-m-d', next_week=False):
     iso_today = timezone.now().isocalendar()
     week = (iso_today[1] + next_week) if (iso_today[1] + next_week) <= 52 else 1
     year = iso_today[0] if (iso_today[1] + next_week) <= 52 else iso_today[0] + 1
@@ -21,7 +21,7 @@ def current_week_date_from(format_string='Y-m-d', next_week: bool = False):
     return "{}".format(date(date_from, format_string))
 
 
-def current_week_date_to(format_string='Y-m-d', next_week: bool = False):
+def current_week_date_to(format_string='Y-m-d', next_week=False):
     iso_today = timezone.now().isocalendar()
     week = (iso_today[1] + next_week) if (iso_today[1] + next_week) <= 52 else 1
     year = iso_today[0] if (iso_today[1] + next_week) <= 52 else iso_today[0] + 1
