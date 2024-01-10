@@ -180,6 +180,9 @@ class SubmissionUpdateAPI(UpdateAPIView):
             self.object = self.get_object()
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
+    def get_object(self):
+        return Submission.objects.get(pk=self.kwargs.get('pk'))
+
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.object if hasattr(self, 'object') else self.get_object()
