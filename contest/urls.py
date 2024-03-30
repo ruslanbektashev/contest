@@ -20,6 +20,8 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
+from contest import views
+
 urlpatterns = [
     path('login', auth_views.LoginView.as_view(redirect_authenticated_user=True), name='login'),
     path('logout', auth_views.logout_then_login, name='logout'),
@@ -40,5 +42,6 @@ urlpatterns = [
     path('schedule/', include('schedule.urls')),
     path('support/', include('support.urls')),
     path('admin/', admin.site.urls),
+    path('upload/', views.ProtectedUpload.as_view(), name='protected-upload')
 ] + (static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) +
      static(settings.STATIC_URL, document_root=settings.STATIC_ROOT))
