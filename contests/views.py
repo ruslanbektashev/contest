@@ -62,7 +62,10 @@ class AttachmentDetail(DetailView):
             raise Http404("Attachment with id = %s does not exist." % kwargs.get('attachment_id'))
         if attachment.extension() not in ('.h', '.hpp', '.c', '.cpp', '.ppt', '.pptx', '.xls', '.xlsx', '.doc', '.docx',
                                           '.csv'):
-            return HttpResponseRedirect(attachment.file.url)
+            response = HttpResponse(status=200)
+            response['Content-Type'] = ''
+            response['X-Accel-Redirect'] = attachment.file.url
+            return response
         context = self.get_context_data(object=self.object, attachment=attachment)
         return self.render_to_response(context)
 
