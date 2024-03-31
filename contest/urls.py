@@ -18,7 +18,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.urls import include, path
+from django.urls import include, path, re_path
 
 from contest import views
 
@@ -42,6 +42,6 @@ urlpatterns = [
     path('schedule/', include('schedule.urls')),
     path('support/', include('support.urls')),
     path('admin/', admin.site.urls),
-    path('upload/', views.ProtectedUpload.as_view(), name='protected-upload')
+    re_path(r'^upload/', views.ProtectedUpload.as_view(), name='protected-upload')
 ] + (static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) +
      static(settings.STATIC_URL, document_root=settings.STATIC_ROOT))
