@@ -7,6 +7,8 @@ from django.views import View
 
 
 class ProtectedUpload(LoginRequiredMixin, View):
+    raise_exception = True
+
     def get(self, request, *args, **kwargs):
         content_type, encoding = mimetypes.guess_type(request.path)
         content_type = content_type or 'application/octet-stream'
