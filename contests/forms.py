@@ -759,7 +759,7 @@ class SubmissionProgramForm(SubmissionAttachmentForm):
                     match = re.match(pattern, f.name)
                     if match:
                         patterns.remove(pattern)
-                        if match.lastindex > 0:
+                        if match.lastindex is not None and match.lastindex > 0:
                             if label is None:
                                 label = match.group(1)
                             elif label != match.group(1):
@@ -769,7 +769,7 @@ class SubmissionProgramForm(SubmissionAttachmentForm):
                 else:
                     raise ValidationError("Некорректное имя файла: %(filename)s", code='invalid_filename',
                                           params={'filename': f.name})
-            if int(label[-2:]) != self.problem.number:
+            if label is not None and int(label[-2:]) != self.problem.number:
                 raise ValidationError("Идентификатор %(label)s не соответствует комплекту поставки решения",
                                       code='wrong_label', params={'label': label})
         return files
