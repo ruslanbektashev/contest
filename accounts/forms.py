@@ -69,6 +69,7 @@ class AccountForm(AccountPartialForm):
             else:
                 kwargs.update(initial=initial)
         super().__init__(*args, **kwargs)
+        self.fields['admission_year'].initial = timezone.now().year
 
     def save(self, commit=True):
         super(AccountPartialForm, self).save(commit)
