@@ -3,19 +3,10 @@
 from django.db import migrations
 
 
-def translate_old_levels_to_new_types(apps, schema_editor):
-    Account = apps.get_model('accounts', 'Account')
-    Account.objects.filter(level=0).update(enrolled=False, level=4)
-    Account.objects.filter(level=9).update(enrolled=False, graduated=True, level=8)
-    Account.objects.filter(level=10).update(enrolled=False, graduated=True, level=8, type=3)
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
         ('accounts', '0022_auto_20190927_1953'),
     ]
 
-    operations = [
-        migrations.RunPython(translate_old_levels_to_new_types, elidable=True)
-    ]
+    operations = []

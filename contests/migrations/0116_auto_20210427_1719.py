@@ -3,13 +3,6 @@
 from django.db import migrations
 
 
-def update_courses(apps, schema_editor):
-    Faculty = apps.get_model('accounts', 'Faculty')
-    f = Faculty.objects.get(name="Прикладная Математика и Информатика")
-    Course = apps.get_model('contests', 'Course')
-    Course.objects.update(faculty=f)
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -17,6 +10,4 @@ class Migration(migrations.Migration):
         ('accounts', '0041_auto_20210427_0211'),
     ]
 
-    operations = [
-        migrations.RunPython(update_courses, migrations.RunPython.noop, elidable=True)
-    ]
+    operations = []
