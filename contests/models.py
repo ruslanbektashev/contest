@@ -791,6 +791,9 @@ class FNTest(CRUDEntry):
         ('evc.init', "собственные значения: тривиальный"),
         ('evc.main', "собственные значения: основной"),
         ('evc.extd', "собственные значения: расширенный"),
+        ('tmt.main_100', "машина тьюринга: основной, 100 тестов"),
+        ('tmt.main_50', "машина тьюринга: основной, 50 тестов"),
+        ('tmt.main_25', "машина тьюринга: основной, 25 тестов"),
     )  # catch choices from problems.modules
 
     problems = models.ManyToManyField(Problem, verbose_name="Задачи")
