@@ -39,7 +39,7 @@ def get_students_filter_dict(course, request):
         user_as_leader_queryset = CourseLeader.objects.filter(course=course, leader=request.user)
         user_as_leader = user_as_leader_queryset.get() if user_as_leader_queryset.exists() else None
         default_faculty_id = request.user.account.faculty_id
-        if course.faculty.is_interfaculty and request.user.account.faculty.is_interfaculty:
+        if request.user.account.faculty.is_interfaculty:
             default_faculty_id = 0
         default_group = user_as_leader.group if user_as_leader is not None else 0
         default_subgroup = user_as_leader.subgroup if user_as_leader is not None else 0
