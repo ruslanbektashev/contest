@@ -474,7 +474,8 @@ class Problem(SoftDeletionModel, CRUDEntry):
 
     LANGUAGE_CHOICES = (
         ('C++', "C++"),
-        ('C', "C")
+        ('C', "C"),
+        ('PC', "Псевдокод")
     )
 
     DEFAULT_DIFFICULTY = 0
