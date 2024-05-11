@@ -247,8 +247,6 @@ class Account(models.Model):
         (3, "преподаватель"),
     )
     TYPE_DEFAULT = 1
-    ADMISSION_YEAR_CHOICES = ((y, y) for y in range(2006, timezone.now().year + 1))
-    ADMISSION_YEAR_DEFAULT = timezone.now().year
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     faculty = models.ForeignKey(Faculty, on_delete=models.DO_NOTHING, verbose_name="Факультет")
@@ -265,8 +263,7 @@ class Account(models.Model):
     enrolled = models.BooleanField(default=True, verbose_name="Обучается?")
     graduated = models.BooleanField(default=False, verbose_name="Закончил обучение?")
     record_book_id = models.PositiveIntegerField(null=True, blank=True, verbose_name="№ зачетной книжки")
-    admission_year = models.PositiveSmallIntegerField(choices=ADMISSION_YEAR_CHOICES, default=ADMISSION_YEAR_DEFAULT,
-                                                      verbose_name="Год поступления")
+    admission_year = models.PositiveSmallIntegerField(verbose_name="Год поступления")
 
     date_updated = models.DateTimeField(auto_now=True)
 

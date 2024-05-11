@@ -3,18 +3,10 @@
 from django.db import migrations
 
 
-def add_new_faculty(apps, schema_editor):
-    Faculty = apps.get_model('accounts', 'Faculty')
-    Faculty.objects.get_or_create(name="Межфакультетские Курсы", short_name="МФК", group_name="Меж-факультет",
-                                  group_prefix="МФ")
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
         ('accounts', '0060_auto_20220215_1814'),
     ]
 
-    operations = [
-        migrations.RunPython(add_new_faculty, migrations.RunPython.noop, elidable=True)
-    ]
+    operations = []

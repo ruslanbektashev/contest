@@ -59,6 +59,7 @@ class AccountForm(AccountPartialForm):
         instance = kwargs.get('instance')
         if instance is not None:
             initial = {
+                'admission_year': timezone.now().year,
                 'first_name': instance.user.first_name,
                 'last_name': instance.user.last_name,
                 'is_active': instance.user.is_active,
