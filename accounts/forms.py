@@ -59,6 +59,7 @@ class AccountForm(AccountPartialForm):
         instance = kwargs.get('instance')
         if instance is not None:
             initial = {
+                'admission_year': timezone.now().year,
                 'first_name': instance.user.first_name,
                 'last_name': instance.user.last_name,
                 'is_active': instance.user.is_active,
@@ -69,7 +70,6 @@ class AccountForm(AccountPartialForm):
             else:
                 kwargs.update(initial=initial)
         super().__init__(*args, **kwargs)
-        self.fields['admission_year'].initial = timezone.now().year
 
     def save(self, commit=True):
         super(AccountPartialForm, self).save(commit)
