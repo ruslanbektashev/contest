@@ -137,6 +137,7 @@
 {% endblock main_content %}
 
 {% block main_scripts %}
+<script src="{% static 'mathjax/es5/tex-chtml.js' %}" defer></script>
 {% if problem.type == 'Text' %}
 <script src="{% static 'ckeditor/ckeditor.min.js' %}" type="text/javascript"></script>
 <script src="{% static 'ckeditor/ckeditor.config.js' %}" type="text/javascript"></script>
