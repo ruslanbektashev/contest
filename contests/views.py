@@ -1583,7 +1583,7 @@ class FNTestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         return self.object.problems.first().course.leaders.filter(id=self.request.user.id).exists()
 
     def get_success_url(self):
-        return reverse('contests:problem-detail', kwargs={'pk': self.object.problem_id})
+        return reverse('contests:index')
 
 
 """=================================================== Assignment ==================================================="""
