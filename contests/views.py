@@ -19,7 +19,7 @@ from contest.mixins import (LeadershipOrMixin, LogAdditionMixin, LogChangeMixin,
                             OwnershipOrMixin, PaginatorMixin)
 from contest.soft_deletion import SoftDeletionDeleteView, SoftDeletionUpdateView
 from contests.forms import (AssignmentEvaluateForm, AssignmentForm, AssignmentSetForm, AssignmentUpdateAttachmentForm,
-                            AssignmentUpdateForm, AttendanceDateForm, AttendanceForm, AttendanceFormSet,
+                            AssignmentUpdateForm, AttachmentUpdateForm, AttendanceDateForm, AttendanceForm, AttendanceFormSet,
                             ContestAttachmentForm, ContestForm, ContestMoveForm, CourseFinishForm, CourseForm,
                             CourseLeaderForm, CreditReportForm, CreditSetForm, CreditUpdateForm, FNTestForm,
                             OptionBaseFormSet, OptionForm, ProblemAttachmentForm, ProblemCommonForm, ProblemMoveForm,
@@ -53,28 +53,65 @@ def get_students_filter_dict(course, request):
 """=================================================== Attachment ==================================================="""
 
 
-class AttachmentDetail(DetailView):
-    def get(self, request, *args, **kwargs):
+class AttachmentDetail(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    model = Attachment
+    template_name = 'contests/attachment/attachment_detail.html'
+
+    def test_func(self):
         self.object = self.get_object()
-        try:
-            attachment = self.object.attachment_set.get(id=kwargs.get('attachment_id'))
-        except Attachment.DoesNotExist:
-            raise Http404("Attachment with id = %s does not exist." % kwargs.get('attachment_id'))
-        if attachment.extension() not in ('.h', '.hpp', '.c', '.cpp', '.ppt', '.pptx', '.xls', '.xlsx', '.doc', '.docx',
-                                          '.csv'):
-            return HttpResponseRedirect(attachment.file.url)
-        context = self.get_context_data(object=self.object, attachment=attachment)
-        return self.render_to_response(context)
+        self.parent = self.object.object
+        if isinstance(self.parent, Submission):
+            has_ownership = hasattr(self.parent, 'course') and self.parent.course.owner_id == self.request.user.id
+            has_leadership = hasattr(self.parent, 'course') and self.parent.course.leaders.filter(id=self.request.user.id).exists()
+            return has_ownership or has_leadership
+        else:
+            visible = True
+            if hasattr(self.parent, 'visible_to'):
+                visible = self.parent.visible_to(self.request.user)
+            return not self.request.user.account.is_student or visible
+
+    def get(self, request, *args, **kwargs):
+        if self.object.extension() not in ('.h', '.hpp', '.c', '.cpp', '.ppt', '.pptx', '.xls', '.xlsx', '.doc', '.docx',
+                                           '.csv'):
+            return HttpResponseRedirect(self.object.file.url)
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        attachment = kwargs.get('attachment')
-        context['ext'] = attachment.extension()
+        context['course'] = getattr(self.parent, 'course', None)
+        context['ext'] = self.object.extension()
         try:
-            context['code'], context['display_aspose_controls'] = to_html(attachment)
+            context['code'], context['display_aspose_controls'] = to_html(self.object)
         except FileNotFoundError:
-            raise Http404("File %s does not exist." % attachment.filename)
+            raise Http404("File %s does not exist." % self.object.filename)
         return context
+
+
+class AttachmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
+    model = Attachment
+    form_class = AttachmentUpdateForm
+    template_name = 'contests/attachment/attachment_form.html'
+    permission_required = 'contests.change_attachment'
+
+    def has_ownership(self):
+        obj = self.get_object()
+        return hasattr(obj.object, 'course') and obj.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        obj = self.get_object()
+        return hasattr(obj.object, 'course') and obj.object.course.leaders.filter(id=self.request.user.id).exists()
+    
+    def get_initial(self):
+        initial = super().get_initial()
+        data = self.object.file.read()
+        initial['content'] = data.decode()
+        return initial
+    
+    def form_valid(self, form):
+        content = form.cleaned_data['content']
+        with open(self.object.file.path, 'wt') as f:
+            f.write(content)
+        return super().form_valid(form)
 
 
 class AttachmentDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
@@ -83,15 +120,18 @@ class AttachmentDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
     permission_required = 'contests.delete_attachment'
 
     def has_ownership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return hasattr(self.object.object, 'course') and self.object.object.course.owner_id == self.request.user.id
+        obj = self.get_object()
+        return hasattr(obj.object, 'course') and obj.object.course.owner_id == self.request.user.id
 
     def has_leadership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return hasattr(self.object.object, 'course') and (self.object.object.course.leaders
-                                                          .filter(id=self.request.user.id).exists())
+        obj = self.get_object()
+        return hasattr(obj.object, 'course') and obj.object.course.leaders.filter(id=self.request.user.id).exists()
+    
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if isinstance(self.object.object, Submission):
+            raise PermissionDenied("Удалять файлы посылки запрещено.")
+        return super().delete(request, *args, **kwargs)
 
     def get_success_url(self):
         return self.object.object.get_absolute_url()
@@ -703,14 +743,6 @@ class ContestDiscussion(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin,
         return self.object.comment_set.actual().select_related('author', 'author__account')
 
 
-class ContestAttachment(LoginRedirectMixin, UserPassesTestMixin, AttachmentDetail):
-    model = Contest
-    template_name = 'contests/contest/contest_attachment.html'
-
-    def test_func(self):
-        return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
-
-
 class ContestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogAdditionMixin,
                     CreateView):
     model = Contest
@@ -864,14 +896,6 @@ class ProblemDiscussion(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin,
 
     def get_queryset_for_paginator(self):
         return self.object.comment_set.actual().select_related('author', 'author__account')
-
-
-class ProblemAttachment(LoginRedirectMixin, UserPassesTestMixin, AttachmentDetail):
-    model = Problem
-    template_name = 'contests/problem/problem_attachment.html'
-
-    def test_func(self):
-        return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
 
 
 class ProblemRollbackResults(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
@@ -1371,11 +1395,6 @@ class UTTestDetail(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         return self.object.problem.course.leaders.filter(id=self.request.user.id).exists()
 
 
-class UTTestAttachment(LoginRedirectMixin, AttachmentDetail):
-    model = UTTest
-    template_name = 'contests/uttest/uttest_attachment.html'
-
-
 class UTTestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogAdditionMixin,
                    CreateView):
     model = UTTest
@@ -1617,11 +1636,6 @@ class AssignmentDiscussion(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMix
 
     def get_queryset_for_paginator(self):
         return self.object.comment_set.actual().select_related('author', 'author__account')
-
-
-class AssignmentAttachment(LoginRedirectMixin, AttachmentDetail):
-    model = Assignment
-    template_name = 'contests/assignment/assignment_attachment.html'
 
 
 class AssignmentCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
@@ -2017,28 +2031,6 @@ class SubmissionDownload(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin
         response = HttpResponse(zip_file, content_type='application/zip')
         response['Content-Disposition'] = 'attachment; filename={}.zip'.format(self.object.pk)
         return response
-
-
-class SubmissionAttachment(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin,
-                           AttachmentDetail):
-    model = Submission
-    template_name = 'contests/submission/submission_attachment.html'
-    permission_required = 'contests.view_submission'
-
-    def has_ownership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.course.owner_id == self.request.user.id
-
-    def has_leadership(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object.course.leaders.filter(id=self.request.user.id).exists()
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['from_assignment'] = 'from_assignment' in self.request.GET
-        return context
 
 
 class SubmissionCreate(LoginRedirectMixin, PermissionRequiredMixin, CreateView):

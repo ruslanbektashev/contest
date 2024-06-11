@@ -6,7 +6,13 @@ app_name = 'contests'
 
 urlpatterns = [
     path('', views.Main.as_view(), name='index'),
-    path('attachment/<int:pk>/delete', views.AttachmentDelete.as_view(), name='attachment-delete'),
+    path('attachment/', include([
+        path('<int:pk>/', include([
+            path('', views.AttachmentDetail.as_view(), name='attachment-detail'),
+            path('update', views.AttachmentUpdate.as_view(), name='attachment-update'),
+            path('delete', views.AttachmentDelete.as_view(), name='attachment-delete')
+        ]))
+    ])),
     path('deleted/list', views.DeletedList.as_view(), name='deleted-list'),
     path('course/<int:course_id>/start', views.CourseStart.as_view(), name='course-start'),
     path('course/<int:course_id>/finish', views.CourseFinish.as_view(), name='course-finish'),
@@ -42,7 +48,6 @@ urlpatterns = [
         path('<int:pk>/', include([
             path('', views.ContestDetail.as_view(), name='contest-detail'),
             path('discussion', views.ContestDiscussion.as_view(), name='contest-discussion'),
-            path('attachment/<int:attachment_id>', views.ContestAttachment.as_view(), name='contest-attachment'),
             path('update', views.ContestUpdate.as_view(), name='contest-update'),
             path('delete', views.ContestDelete.as_view(), name='contest-delete')
         ]))
@@ -53,7 +58,6 @@ urlpatterns = [
             path('', views.ProblemDetail.as_view(), name='problem-detail'),
             path('rollback', views.ProblemRollbackResults.as_view(), name='problem-rollback-results'),
             path('discussion', views.ProblemDiscussion.as_view(), name='problem-discussion'),
-            path('attachment/<int:attachment_id>', views.ProblemAttachment.as_view(), name='problem-attachment'),
             path('update', views.ProblemUpdate.as_view(), name='problem-update'),
             path('delete', views.ProblemDelete.as_view(), name='problem-delete')
         ]))
@@ -84,7 +88,6 @@ urlpatterns = [
     path('uttest/', include([
         path('<int:pk>/', include([
             path('', views.UTTestDetail.as_view(), name='uttest-detail'),
-            path('attachment/<int:attachment_id>', views.UTTestAttachment.as_view(), name='uttest-attachment'),
             path('update', views.UTTestUpdate.as_view(), name='uttest-update'),
             path('delete', views.UTTestDelete.as_view(), name='uttest-delete')
         ]))
@@ -106,7 +109,6 @@ urlpatterns = [
         path('<int:pk>/', include([
             path('', views.AssignmentDetail.as_view(), name='assignment-detail'),
             path('discussion', views.AssignmentDiscussion.as_view(), name='assignment-discussion'),
-            path('attachment/<int:attachment_id>', views.AssignmentAttachment.as_view(), name='assignment-attachment'),
             path('update', views.AssignmentUpdate.as_view(), name='assignment-update'),
             path('delete', views.AssignmentDelete.as_view(), name='assignment-delete'),
             path('clear/key', views.AssignmentClearSecureSubmissionKey.as_view(), name='assignment-clear-key')
@@ -125,7 +127,6 @@ urlpatterns = [
             path('clear/task', views.SubmissionClearTask.as_view(), name='submission-clear-task'),
             path('moss', views.SubmissionMoss.as_view(), name='submission-moss'),
             path('download', views.SubmissionDownload.as_view(), name='submission-download'),
-            path('attachment/<int:attachment_id>', views.SubmissionAttachment.as_view(), name='submission-attachment'),
             path('get/executions', views.ExecutionList.as_view(), name='submission-get-executions'),
         ])),
         path('list', views.SubmissionList.as_view(), name='submission-list'),

@@ -38,7 +38,7 @@ def attachment_path(instance, filename):
                                                                     filename=filename)
 
 
-class Attachment(CDEntry):
+class Attachment(CRDEntry):
     object_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     object = GenericForeignKey(ct_field='object_type')
@@ -59,6 +59,9 @@ class Attachment(CDEntry):
     @property
     def filename(self):
         return os.path.split(self.file.name)[1]
+    
+    def get_parent(self):
+        return self.object
 
     def __str__(self):
         return self.filename
@@ -419,6 +422,9 @@ class Contest(SoftDeletionModel, CRUDEntry):
     @property
     def hidden_from_students(self):
         return self.hidden
+    
+    def get_parent(self):
+        return self.course
 
     def visible_to(self, student):
         return not self.hidden or Assignment.objects.filter(user=student, problem__contest=self).exists()
@@ -530,6 +536,9 @@ class Problem(SoftDeletionModel, CRUDEntry):
     @property
     def files(self):
         return [attachment.file.path for attachment in self.attachment_set.all()]
+    
+    def get_parent(self):
+        return self.contest
 
     def visible_to(self, student):
         return self.contest.visible_to(student)
@@ -748,6 +757,9 @@ class UTTest(BasicTest):
     @property
     def files(self):
         return [attachment.file.path for attachment in self.attachment_set.all()]
+    
+    def get_parent(self):
+        return self.problem
 
     def run(self, submission, observer, _, user=None, sandbox_type='subprocess'):
         sources = submission.files
@@ -934,6 +946,9 @@ class Assignment(CRUDEntry):
     @property
     def hidden_from_students(self):
         return self.deadline is not None and timezone.now() < self.deadline
+    
+    def get_parent(self):
+        return self.problem
 
     def get_latest_submission(self):
         return self.problem.get_latest_submission_by(self.user)
@@ -1102,6 +1117,9 @@ class Submission(CRDEntry):
                     return True
                 prev = cur
         return False
+    
+    def get_parent(self):
+        return self.problem
 
     def get_files_as_zip(self):
         stream = io.BytesIO()

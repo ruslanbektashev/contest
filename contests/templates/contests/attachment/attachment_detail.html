@@ -1,6 +1,8 @@
 {% extends 'base_main.html' %}
 {% load views static %}
 
+{% block title %}Файл{% endblock title %}
+
 {% block main_links %}
 <link href="{% static 'contest/css/highlight.css' %}" rel="stylesheet">
 {% if display_aspose_controls %}
@@ -19,20 +21,33 @@
 {% endif %}
 {% endblock main_links %}
 
+{% block breadcrumbs %}
+{% breadcrumb_auto attachment %}
+{% endblock breadcrumbs %}
+
 {% block main_content %}
 <legend>
     <span class="d-flex justify-content-between">
-        <span class="text-truncate">{{ attachment.object }}</span>
-        {% if display_aspose_controls %}
+        <span class="text-truncate"><samp>{{ attachment.filename }}</samp></span>
         <span class="d-flex justify-content-between gap-2">
+            {% if display_aspose_controls %}
             <a id="Change_mode" title="Изменить режим просмотра"><i class="fa-solid fa-file fa-fw" id="mode_view" style="color:#007BFF" aria-hidden="true"></i></a>
+            {% endif %}
+            {% if perms.contests.change_attachment %}
+            <a href="{% url 'contests:attachment-update' attachment.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Редактировать файл">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#pen-to-square"></use></svg>
+            </a>
+            {% endif %}
+            {% if perms.contests.delete_attachment or request|has_leader_permission:course %}
+            <a href="{% url 'contests:attachment-delete' attachment.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить файл">
+                <svg class="contest-icon text-danger"><use href="{% static 'icons/sprites/regular.svg' %}#trash-can"></use></svg>
+            </a>
+            {% endif %}
         </span>
-        {% endif %}
     </span>
 </legend>
-<samp>{{ attachment.filename }}</samp>
 {% if code is not None %}
-<div class="alert alert-light border mt-2 {% if display_aspose_controls %}overflow-hidden{% else %}overflow-auto{% endif %}">
+<div class="alert alert-light border p-1 {% if display_aspose_controls %}overflow-hidden{% else %}overflow-auto{% endif %}">
     {{ code|safe }}
     {% if display_aspose_controls %}
     <nav class="hide_button">

@@ -134,6 +134,19 @@ class AttachmentForm(forms.ModelForm):
         return instance
 
 
+class AttachmentUpdateForm(forms.ModelForm):
+    content = forms.CharField(strip=False, widget=forms.Textarea, required=False)
+
+    class Meta:
+        model = Attachment
+        fields = []
+    
+    def clean(self):
+        if isinstance(self.instance.object, Submission):
+            raise ValidationError("Изменять содержимое файлов посылки запрещено.", code='forbidden')
+        return self.cleaned_data
+
+
 """===================================================== Course ====================================================="""
 
 

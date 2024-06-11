@@ -14,6 +14,26 @@ def breadcrumb(title, *args, query_string=None, **kwargs):
         context['url'] += query_string
     return context
 
+@register.inclusion_tag('breadcrumbs.html')
+def breadcrumb_auto(object, subaction=None):
+    breadcrumbs = []
+    if subaction is None:
+        breadcrumbs.append({'title': str(object), 'url': None})
+    else:
+        breadcrumbs.extend([
+            {'title': str(subaction), 'url': None},
+            {'title': str(object), 'url': resolve_url(object)}
+        ])
+    current_object = object
+    while hasattr(current_object, 'get_parent'):
+        current_object = current_object.get_parent()
+        breadcrumbs.append({'title': str(current_object), 'url': resolve_url(current_object)})
+    breadcrumbs.append({'title': "Главная", 'url': resolve_url('contests:index')})
+    context = {
+        'breadcrumbs': reversed(breadcrumbs)
+    }
+    return context
+
 
 @register.filter()
 def has_owner_permission(request, course):

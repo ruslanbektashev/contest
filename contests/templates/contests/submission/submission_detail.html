@@ -154,7 +154,7 @@
     {% for attachment in submission.attachment_set.all %}
     <span class="list-group-item d-flex">
         {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
-        <a class="me-auto" href="{% url 'contests:submission-attachment' submission.id attachment.id %}{% if from_assignment %}?from_assignment=1{% endif %}"><samp>{{ attachment.filename }}</samp></a>
+        <a class="me-auto" href="{% url 'contests:attachment-detail' attachment.id %}{% if from_assignment %}?from_assignment=1{% endif %}"><samp>{{ attachment.filename }}</samp></a>
         {% if attachment.file|exists %}
         <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}" data-bs-toggle="tooltip" data-bs-placement="left" title="Скачать"><i class="fa-solid fa-download fa-fw fa-lg"></i></a>
         {% endif %}

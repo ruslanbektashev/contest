@@ -2,7 +2,7 @@
 <ul class="list-group mb-0">
     {% for attachment in attachments %}
     <li class="list-group-item d-flex gap-3">
-        <a class="text-truncate me-auto" href="{% url detail_view_name obj.id attachment.id %}" target="_blank">
+        <a class="text-truncate me-auto" href="{% url 'contests:attachment-detail' attachment.id %}">
             <samp>{{ attachment.filename }}</samp>
         </a>
         <span class="text-muted text-nowrap">{% if attachment.file|exists %}{{ attachment.file.size|filesizeformat }} ∙ {% endif %}{{ attachment.date_created|date:'d E Y H:i' }}</span>
