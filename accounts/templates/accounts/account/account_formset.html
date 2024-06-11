@@ -60,12 +60,12 @@
                     <td>{% render_field form.record_book_id class+="form-control rounded-0" %}</td>
                     <td class="text-center">
                         <div class="form-check mt-2">
-                            {% render_field form.enrolled class+="form-check-input" aria-label=form.enrolled.label %}
+                            {% render_field form.enrolled class+="form-check-input float-none" aria-label=form.enrolled.label %}
                         </div>
                     </td>
                     <td class="text-center">
                         <div class="form-check mt-2">
-                            {% render_field form.graduated class+="form-check-input" aria-label=form.graduated.label %}
+                            {% render_field form.graduated class+="form-check-input float-none" aria-label=form.graduated.label %}
                         </div>
                     </td>
                     {% else %}
@@ -76,7 +76,7 @@
                     {% endif %}
                     <td class="text-center">
                         <div class="form-check mt-2">
-                            {% render_field form.is_active class+="form-check-input" aria-label=form.is_active.label %}
+                            {% render_field form.is_active class+="form-check-input float-none" aria-label=form.is_active.label %}
                         </div>
                     </td>
                     {% endwith %}
