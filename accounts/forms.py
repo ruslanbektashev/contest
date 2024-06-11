@@ -48,7 +48,7 @@ class AccountForm(AccountPartialForm):
     last_name = forms.CharField(max_length=150, label="Фамилия")
     is_active = forms.BooleanField(required=False, label="Активен")
     groups = forms.ModelMultipleChoiceField(Group.objects.filter(name__in=['Преподаватель', 'Модератор', 'Студент']),
-                                            label="Права")
+                                            required=False, label="Права")
 
     class Meta:
         model = Account
