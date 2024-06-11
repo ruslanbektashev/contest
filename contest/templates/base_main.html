@@ -64,8 +64,14 @@
 const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl, {
     container: 'body',
+    trigger: 'hover',
     delay: {'show': 500, 'hide': 0}
 }));
+[...tooltipTriggerList].forEach(tooltipTriggerEl => {
+    tooltipTriggerEl.addEventListener('click', function(event) {
+        bootstrap.Tooltip.getInstance(event.currentTarget).hide();
+    })
+});
 </script>
 <script type="text/javascript" src="{% static 'bootstrap-select/js/jquery.slim.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'bootstrap-select/js/bootstrap-select.min.js' %}"></script>
