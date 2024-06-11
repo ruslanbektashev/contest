@@ -1205,7 +1205,7 @@ class Submission(CRDEntry):
         self.update_assignment()
 
     def __str__(self):
-        return f"Посылка от {self.owner.account.get_short_name()} к задаче {self.problem}"
+        return self.short_title
 
 
 """=================================================== Execution ===================================================="""

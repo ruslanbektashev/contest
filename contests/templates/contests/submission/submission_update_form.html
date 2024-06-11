@@ -14,17 +14,17 @@
 {% endif %}
 {% breadcrumb submission.get_assignment submission.get_assignment %}
 {% if submission.main_submission %}
-{% breadcrumb submission.main_submission.short_title submission.main_submission query_string='?from_assignment=1' %}
+{% breadcrumb submission.main_submission submission.main_submission query_string='?from_assignment=1' %}
 {% endif %}
-{% breadcrumb submission.short_title submission query_string='?from_assignment=1' %}
+{% breadcrumb submission submission query_string='?from_assignment=1' %}
 {% else %}
 {% breadcrumb submission.course submission.course %}
 {% breadcrumb submission.contest submission.contest %}
 {% breadcrumb submission.problem submission.problem %}
 {% if submission.main_submission %}
-{% breadcrumb submission.main_submission.short_title submission.main_submission %}
+{% breadcrumb submission.main_submission submission.main_submission %}
 {% endif %}
-{% breadcrumb submission.short_title submission %}
+{% breadcrumb submission submission %}
 {% endif %}
 {% breadcrumb "Редактирование" %}
 {% endblock breadcrumbs %}

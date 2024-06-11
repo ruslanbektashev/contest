@@ -22,14 +22,14 @@
 {% endif %}
 {% breadcrumb assignment assignment %}
 {% if main_submission %}
-{% breadcrumb main_submission.short_title main_submission query_string='?from_assignment=1' %}
+{% breadcrumb main_submission main_submission query_string='?from_assignment=1' %}
 {% endif %}
 {% else %}
 {% breadcrumb problem.course problem.course %}
 {% breadcrumb problem.contest problem.contest %}
 {% breadcrumb problem problem %}
 {% if main_submission %}
-{% breadcrumb main_submission.short_title main_submission %}
+{% breadcrumb main_submission main_submission %}
 {% endif %}
 {% endif %}
 {% breadcrumb "Новая посылка" %}
