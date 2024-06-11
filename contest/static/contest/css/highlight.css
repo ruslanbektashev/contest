@@ -70,6 +70,9 @@
 code {
     word-wrap: normal;
 }
+
 .linenos {
-    margin-right: 1em;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+    color: #bbbbbb;
 }
