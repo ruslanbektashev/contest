@@ -5,7 +5,7 @@
         <a class="text-truncate me-auto" href="{% url 'contests:attachment-detail' attachment.id %}">
             <samp>{{ attachment.filename }}</samp>
         </a>
-        <span class="text-muted text-nowrap">{% if attachment.file|exists %}{{ attachment.file.size|filesizeformat }} ∙ {% endif %}{{ attachment.date_created|date:'d E Y H:i' }}</span>
+        <span class="d-none d-sm-block text-muted text-nowrap">{% if attachment.file|exists %}{{ attachment.file.size|filesizeformat }} ∙ {% endif %}{{ attachment.date_created|date:'d E Y H:i' }}</span>
         {% if attachment.extension == '.pdf' or attachment.extension == '.ppt' or attachment.extension == '.pptx' or attachment.extension == '.doc' or attachment.extension == '.docx' or attachment.extension == '.xls' or attachment.extension == '.xlsx' or attachment.extension == '.csv' %}
         <a href="https://docs.google.com/viewer?url=https://{{ contest_domain }}{{ attachment.file.url }}" data-bs-toggle="tooltip" data-bs-placement="top" title="Смотреть в Google Docs" target="_blank">
             <i class="fa-regular fa-arrow-up-right-from-square fa-fw fa-lg"></i>
