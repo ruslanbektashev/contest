@@ -3,14 +3,6 @@ from io import BytesIO, StringIO
 from re import sub
 from tempfile import TemporaryFile
 
-try:
-    from aspose import slides as aspose_slides
-except ImportError:
-    aspose_slides = None
-try:
-    from aspose import words as aspose_words
-except ImportError:
-    aspose_words = None
 from mammoth import convert_to_html
 from openpyxl import Workbook, load_workbook
 from pygments import highlight
@@ -19,7 +11,17 @@ from pygments.lexers import CppLexer
 from xls2xlsx import XLS2XLSX
 from xlsx2html import xlsx2html
 
+try:
+    from aspose import slides as aspose_slides
+except ImportError:
+    aspose_slides = None
+try:
+    from aspose import words as aspose_words
+except ImportError:
+    aspose_words = None
+
 from contest.documents import replaces
+from contest.utils import try_decode
 
 
 def remove_ppt_watermarks(content):
@@ -42,7 +44,8 @@ def to_html(attachment):
     if attachment_ext in ('.h', '.hpp', '.c', '.cpp'):
         content = attachment.file.read()
         formatter = HtmlFormatter(linenos='inline', wrapcode=True)
-        result = highlight(content.decode(errors='replace').replace('\t', ' ' * 4), CppLexer(), formatter), False
+        content = try_decode(content)
+        result = highlight(content.replace('\t', ' ' * 4), CppLexer(), formatter), False
     elif attachment_ext in ('.ppt', '.pptx'):
         if aspose_slides is not None:
             ppt_file = aspose_slides.Presentation(attachment.file.path)

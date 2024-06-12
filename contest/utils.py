@@ -74,3 +74,10 @@ def transliterate(string):
     transtable = {ord(c): p for c, p in zip(alphabet_ru_a, translit_en_a)}
     transtable.update({ord(c): p for c, p in zip(alphabet_ru_s, translit_en_s)})
     return string.translate(transtable)
+
+
+def try_decode(data):
+    try:
+        return data.decode('utf-8')
+    except UnicodeDecodeError:
+        return data.decode('windows-1251')

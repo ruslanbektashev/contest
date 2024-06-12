@@ -8,26 +8,33 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.text import get_text_list
-from django.views.generic import (CreateView, DeleteView, DetailView, FormView, ListView, RedirectView, TemplateView,
-                                  UpdateView, View)
+from django.views.generic import (
+    CreateView, DeleteView, DetailView, FormView, ListView, RedirectView, TemplateView, UpdateView, View,
+)
 from django.views.generic.detail import BaseDetailView, SingleObjectMixin
 from django.views.generic.list import BaseListView
 
 from accounts.models import Account, Action, Announcement, Faculty, Notification
 from contest.documents.viewer import to_html
-from contest.mixins import (LeadershipOrMixin, LogAdditionMixin, LogChangeMixin, LogDeletionMixin, LoginRedirectMixin,
-                            OwnershipOrMixin, PaginatorMixin)
+from contest.mixins import (
+    LeadershipOrMixin, LogAdditionMixin, LogChangeMixin, LogDeletionMixin, LoginRedirectMixin, OwnershipOrMixin,
+    PaginatorMixin,
+)
 from contest.soft_deletion import SoftDeletionDeleteView, SoftDeletionUpdateView
-from contests.forms import (AssignmentEvaluateForm, AssignmentForm, AssignmentSetForm, AssignmentUpdateAttachmentForm,
-                            AssignmentUpdateForm, AttachmentUpdateForm, AttendanceDateForm, AttendanceForm, AttendanceFormSet,
-                            ContestAttachmentForm, ContestForm, ContestMoveForm, CourseFinishForm, CourseForm,
-                            CourseLeaderForm, CreditReportForm, CreditSetForm, CreditUpdateForm, FNTestForm,
-                            OptionBaseFormSet, OptionForm, ProblemAttachmentForm, ProblemCommonForm, ProblemMoveForm,
-                            ProblemProgramForm, ProblemRollbackResultsForm, ProblemTestForm, SubmissionFilesForm,
-                            SubmissionMossForm, SubmissionOptionsForm, SubmissionPatternForm, SubmissionProgramForm,
-                            SubmissionTextForm, SubmissionUpdateForm, SubmissionVerbalForm, SubProblemForm, UTTestForm)
-from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, Execution,
-                             Filter, FNTest, IOTest, Option, Problem, Submission, SubmissionPattern, SubProblem, UTTest)
+from contest.utils import try_decode
+from contests.forms import (
+    AssignmentEvaluateForm, AssignmentForm, AssignmentSetForm, AssignmentUpdateAttachmentForm, AssignmentUpdateForm,
+    AttachmentUpdateForm, AttendanceDateForm, AttendanceForm, AttendanceFormSet, ContestAttachmentForm, ContestForm,
+    ContestMoveForm, CourseFinishForm, CourseForm, CourseLeaderForm, CreditReportForm, CreditSetForm, CreditUpdateForm,
+    FNTestForm, OptionBaseFormSet, OptionForm, ProblemAttachmentForm, ProblemCommonForm, ProblemMoveForm,
+    ProblemProgramForm, ProblemRollbackResultsForm, ProblemTestForm, SubmissionFilesForm, SubmissionMossForm,
+    SubmissionOptionsForm, SubmissionPatternForm, SubmissionProgramForm, SubmissionTextForm, SubmissionUpdateForm,
+    SubmissionVerbalForm, SubProblemForm, UTTestForm,
+)
+from contests.models import (
+    Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, Execution, Filter, FNTest, IOTest,
+    Option, Problem, Submission, SubmissionPattern, SubProblem, UTTest,
+)
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.views import get_query_string, has_leader_permission
 from schedule.models import Schedule
@@ -103,8 +110,8 @@ class AttachmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, 
     
     def get_initial(self):
         initial = super().get_initial()
-        data = self.object.file.read()
-        initial['content'] = data.decode()
+        content = self.object.file.read()
+        initial['content'] = try_decode(content)
         return initial
     
     def form_valid(self, form):
