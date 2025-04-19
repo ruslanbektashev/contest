@@ -243,6 +243,8 @@ class AccountUpdateSet(LoginRedirectMixin, PermissionRequiredMixin, FormView):
     def get_form_class(self):
         if self.storage['type'] > 1:
             form = StaffForm
+            if not self.request.user.has_perm('auth.change_group'):
+                form.groups = None
         else:
             form = StudentForm
         forms_num = self.get_queryset().count()

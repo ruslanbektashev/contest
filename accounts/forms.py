@@ -83,6 +83,8 @@ class AccountForm(AccountPartialForm):
 
 
 class StudentForm(AccountForm):
+    groups = None
+
     class Meta:
         model = Account
         fields = ['patronymic', 'faculty', 'record_book_id', 'level', 'group', 'subgroup', 'admission_year', 'enrolled',

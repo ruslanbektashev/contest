@@ -36,6 +36,9 @@
                     <th><div style="width: 15em;">Ученое звание</div></th>
                     <th><div style="width: 10em;">Должность</div></th>
                     <th><div style="width: 10em;">Тип учетной записи</div></th>
+                    {% if perms.auth.change_group %}
+                    <th><div style="width: 10em;">Права доступа</div></th>
+                    {% endif %}
                     {% endif %}
                     <th class="text-center"><div style="width: 6em;">Активен</div></th>
                 </tr>
@@ -73,6 +76,9 @@
                     <td>{% render_field form.degree class+="form-control rounded-0" %}</td>
                     <td>{% render_field form.position class+="form-control rounded-0" %}</td>
                     <td>{% render_field form.type class+="form-control selectpicker" data-style="btn-light rounded-0" data-container="body" %}</td>
+                    {% if perms.auth.change_group %}
+                    <td>{% render_field form.groups class+="form-control selectpicker" data-style="btn-light rounded-0" data-container="body" %}</td>
+                    {% endif %}
                     {% endif %}
                     <td class="text-center">
                         <div class="form-check mt-2">
