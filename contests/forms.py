@@ -718,7 +718,7 @@ class SubmissionForm(forms.ModelForm):
             self.fields['secure_submission_key'].initial = self.assignment.secure_submission_key
 
     def clean(self):
-        if self.assignment is None and not self.owner.is_superuser:
+        if self.assignment is None and self.problem.course.faculty.short_name == "ПМиИ" and not self.owner.is_superuser:
             raise ValidationError("Посылку можно отправить к задаче только по заданию. "
                                   "Этой задачи нет среди Ваших заданий.", code='no_assignment')
         if self.problem.is_testable:
