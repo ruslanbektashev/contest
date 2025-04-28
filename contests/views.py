@@ -70,7 +70,7 @@ class AttachmentDetail(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         if isinstance(self.parent, Submission):
             has_ownership = hasattr(self.parent, 'course') and self.parent.course.owner_id == self.request.user.id
             has_leadership = hasattr(self.parent, 'course') and self.parent.course.leaders.filter(id=self.request.user.id).exists()
-            return has_ownership or has_leadership
+            return has_ownership or has_leadership or self.request.user.is_superuser
         else:
             visible = True
             if hasattr(self.parent, 'visible_to'):
