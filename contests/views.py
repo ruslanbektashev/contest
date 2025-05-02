@@ -1,3 +1,6 @@
+import mimetypes
+
+from django.apps import apps
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import NON_FIELD_ERRORS, PermissionDenied
@@ -6,6 +9,7 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.encoding import iri_to_uri
 from django.utils.crypto import get_random_string
 from django.utils.text import get_text_list
 from django.views.generic import (
@@ -69,6 +73,7 @@ class AttachmentDetail(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         self.parent = self.object.object
         if isinstance(self.parent, Submission):
             has_ownership = hasattr(self.parent, 'course') and self.parent.course.owner_id == self.request.user.id
+            has_ownership = has_ownership or self.parent.owner_id == self.request.user.id
             has_leadership = hasattr(self.parent, 'course') and self.parent.course.leaders.filter(id=self.request.user.id).exists()
             return has_ownership or has_leadership or self.request.user.is_superuser
         else:
@@ -92,6 +97,39 @@ class AttachmentDetail(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         except FileNotFoundError:
             raise Http404("File %s does not exist." % self.object.filename)
         return context
+
+
+class AttachmentDownload(LoginRequiredMixin, UserPassesTestMixin, View):
+    raise_exception = True
+
+    def get_object(self):
+        object_model = apps.get_model(self.kwargs['app_label'], self.kwargs['model_name'])
+        return get_object_or_404(object_model, pk=self.kwargs['pk'])
+    
+    def test_func(self):
+        self.parent = self.get_object()
+        if isinstance(self.parent, Submission):
+            has_ownership = hasattr(self.parent, 'course') and self.parent.course.owner_id == self.request.user.id
+            has_ownership = has_ownership or self.parent.owner_id == self.request.user.id
+            has_leadership = hasattr(self.parent, 'course') and self.parent.course.leaders.filter(id=self.request.user.id).exists()
+            return has_ownership or has_leadership or self.request.user.is_superuser
+        else:
+            visible = True
+            if hasattr(self.parent, 'visible_to'):
+                visible = self.parent.visible_to(self.request.user)
+            return not self.request.user.account.is_student or visible
+
+    def get(self, request, *args, **kwargs):
+        content_type, encoding = mimetypes.guess_type(request.path)
+        content_type = content_type or 'application/octet-stream'
+        response = HttpResponse(content_type=content_type)
+        if encoding:
+            response['Content-Encoding'] = encoding
+        try:
+            response['X-Accel-Redirect'] = '/protected/' + iri_to_uri(request.path)
+        except UnicodeEncodeError:
+            raise Http404("Страница не найдена")
+        return response
 
 
 class AttachmentUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
@@ -2022,7 +2060,7 @@ class SubmissionDownload(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin
     def has_ownership(self):
         if not hasattr(self, 'object'):
             self.object = self.get_object()
-        return self.object.course.owner_id == self.request.user.id
+        return self.object.course.owner_id == self.request.user.id or self.object.owner_id == self.request.user.id
 
     def has_leadership(self):
         if not hasattr(self, 'object'):

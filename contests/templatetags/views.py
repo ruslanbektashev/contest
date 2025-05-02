@@ -36,8 +36,8 @@ def breadcrumb_auto(object, subaction=None):
 
 
 @register.filter()
-def has_owner_permission(request, course):
-    return course.owner_id == request.user.id
+def has_owner_permission(request, object):
+    return object.owner_id == request.user.id
 
 
 @register.filter()

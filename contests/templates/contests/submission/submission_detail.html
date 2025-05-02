@@ -142,7 +142,7 @@
     <span class="d-flex justify-content-between">
         <span class="text-truncate">Файлы</span>
         <span class="d-flex justify-content-between gap-2">
-            {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
+            {% if perms.contests.download_submission or request|has_leader_permission:submission.course or request|has_owner_permission:submission %}
             <a href="{% url 'contests:submission-download' submission.id %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="left" title="Скачать все файлы">
                 <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/solid.svg' %}#download"></use></svg>
             </a>
@@ -153,7 +153,7 @@
 <div class="list-group mb-3">
     {% for attachment in submission.attachment_set.all %}
     <span class="list-group-item d-flex">
-        {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
+        {% if perms.contests.download_submission or request|has_leader_permission:submission.course or request|has_owner_permission:submission %}
         <a class="me-auto" href="{% url 'contests:attachment-detail' attachment.id %}{% if from_assignment %}?from_assignment=1{% endif %}"><samp>{{ attachment.filename }}</samp></a>
         {% if attachment.file|exists %}
         <a href="{{ attachment.file.url }}" download="{{ attachment.filename }}" data-bs-toggle="tooltip" data-bs-placement="left" title="Скачать"><i class="fa-solid fa-download fa-fw fa-lg"></i></a>

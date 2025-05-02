@@ -13,6 +13,7 @@ urlpatterns = [
             path('delete', views.AttachmentDelete.as_view(), name='attachment-delete')
         ]))
     ])),
+    path('upload/attachments/<str:app_label>/<str:model_name>/<int:pk>/<str:file_name>', views.AttachmentDownload.as_view(), name='attachment-download'),
     path('deleted/list', views.DeletedList.as_view(), name='deleted-list'),
     path('course/<int:course_id>/start', views.CourseStart.as_view(), name='course-start'),
     path('course/<int:course_id>/finish', views.CourseFinish.as_view(), name='course-finish'),

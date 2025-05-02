@@ -66,7 +66,7 @@
                 <h6 class="text-muted">
                     Файлы
                     <span class="float-end">
-                    {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
+                    {% if perms.contests.download_submission or request|has_leader_permission:submission.course or request|has_owner_permission:submission %}
                         <a href="{% url 'contests:submission-download' sub_form.instance.id %}" data-bs-toggle="tooltip" data-bs-placement="left" title="Скачать все файлы"><i class="fa-solid fa-download fa-fw"></i></a>
                     {% endif %}
                     </span>
@@ -74,7 +74,7 @@
                 <div class="list-group">
                     {% for attachment in sub_form.instance.attachment_set.all %}
                     <span class="list-group-item d-flex">
-                        {% if perms.contests.download_submission or request|has_leader_permission:submission.course %}
+                        {% if perms.contests.download_submission or request|has_leader_permission:submission.course or request|has_owner_permission:submission %}
                         <a class="me-auto" href="{% url 'contests:submission-attachment' sub_form.instance.id attachment.id %}"><samp>{{ attachment.filename }}</samp></a>
                         <a href="{{ attachment.file.url }}" data-bs-toggle="tooltip" data-bs-placement="left" title="Скачать"><i class="fa-solid fa-download fa-fw"></i></a>
                         {% else %}
