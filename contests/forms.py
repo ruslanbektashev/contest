@@ -156,15 +156,6 @@ class CourseForm(forms.ModelForm):
         fields = ['faculty', 'title_official', 'title_unofficial', 'description', 'level', 'soft_deleted']
 
 
-class CourseFinishForm(forms.Form):
-    level_ups = UserMultipleChoiceField(queryset=Account.objects.none(), required=True, label="Выберите студентов")
-
-    def __init__(self, level_ups_queryset, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['level_ups'].queryset = level_ups_queryset
-        self.fields['level_ups'].initial = level_ups_queryset.filter(credit_score__gte=3)
-
-
 """================================================== CourseLeader =================================================="""
 
 

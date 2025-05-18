@@ -34,7 +34,7 @@
             </a>
             {% endif %}
             {% if perms.contests.add_term or request|has_leader_permission:course %}
-            <a href="{% url 'contests:term-create' course.id %}{% get_updated_query_string request %}" class="btn btn-light" id="courseFinishButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Завершить семестр">
+            <a href="{% url 'contests:term-create' course.id %}{% get_updated_query_string request %}" class="btn btn-light" id="termCreateButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Завершить семестр">
                 <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/solid.svg' %}#stop"></use></svg>
             </a>
             {% endif %}

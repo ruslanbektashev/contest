@@ -29,11 +29,11 @@ from contest.utils import try_decode
 from contests.forms import (
     AssignmentEvaluateForm, AssignmentForm, AssignmentSetForm, AssignmentUpdateAttachmentForm, AssignmentUpdateForm,
     AttachmentUpdateForm, AttendanceDateForm, AttendanceForm, AttendanceFormSet, ContestAttachmentForm, ContestForm,
-    ContestMoveForm, CourseFinishForm, CourseForm, CourseLeaderForm, CreditReportForm, CreditSetForm, CreditUpdateForm,
-    FNTestForm, OptionBaseFormSet, OptionForm, ProblemAttachmentForm, ProblemCommonForm, ProblemMoveForm,
-    ProblemProgramForm, ProblemRollbackResultsForm, ProblemTestForm, SubmissionFilesForm, SubmissionMossForm,
-    SubmissionOptionsForm, SubmissionPatternForm, SubmissionProgramForm, SubmissionTextForm, SubmissionUpdateForm,
-    SubmissionVerbalForm, SubProblemForm, TermForm, UTTestForm,
+    ContestMoveForm, CourseForm, CourseLeaderForm, CreditReportForm, CreditSetForm, CreditUpdateForm, FNTestForm,
+    OptionBaseFormSet, OptionForm, ProblemAttachmentForm, ProblemCommonForm, ProblemMoveForm, ProblemProgramForm,
+    ProblemRollbackResultsForm, ProblemTestForm, SubmissionFilesForm, SubmissionMossForm, SubmissionOptionsForm,
+    SubmissionPatternForm, SubmissionProgramForm, SubmissionTextForm, SubmissionUpdateForm, SubmissionVerbalForm,
+    SubProblemForm, TermForm, UTTestForm,
 )
 from contests.models import (
     Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, Execution, Filter, FNTest, IOTest,
@@ -454,49 +454,6 @@ class CourseStart(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Permi
             }
         }]
         Action.objects.log_addition(self.request.user, details=details)
-        return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['course'] = self.storage['course']
-        return context
-
-    def get_success_url(self):
-        return reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
-
-
-class CourseFinish(LoginRedirectMixin, PermissionRequiredMixin, FormView):
-    form_class = CourseFinishForm
-    template_name = 'contests/course/course_finish_form.html'
-    permission_required = 'accounts.change_account'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.storage = dict()
-
-    def dispatch(self, request, *args, **kwargs):
-        course = get_object_or_404(Course, id=kwargs.pop('course_id'))
-        self.storage.update(get_students_filter_dict(course, request))
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        students = (Account.students.apply_common_filters(self.storage).filter(credit_score__gte=1)
-                    .order_by('faculty__short_name', '-level', 'user__last_name', 'user__first_name'))
-        kwargs['level_ups_queryset'] = students
-        return kwargs
-
-    def form_valid(self, form):
-        accounts = form.cleaned_data['level_ups']
-        accounts.level_up()
-        details = [{
-            'changed': {
-                'name': Account._meta.verbose_name,
-                'object': get_text_list(list(accounts), "и"),
-                'fields': ['level']
-            }
-        }]
-        Action.objects.log_change(self.request.user, details=details)
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
