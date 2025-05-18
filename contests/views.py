@@ -33,11 +33,11 @@ from contests.forms import (
     FNTestForm, OptionBaseFormSet, OptionForm, ProblemAttachmentForm, ProblemCommonForm, ProblemMoveForm,
     ProblemProgramForm, ProblemRollbackResultsForm, ProblemTestForm, SubmissionFilesForm, SubmissionMossForm,
     SubmissionOptionsForm, SubmissionPatternForm, SubmissionProgramForm, SubmissionTextForm, SubmissionUpdateForm,
-    SubmissionVerbalForm, SubProblemForm, UTTestForm,
+    SubmissionVerbalForm, SubProblemForm, TermForm, UTTestForm,
 )
 from contests.models import (
     Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, Execution, Filter, FNTest, IOTest,
-    Option, Problem, Submission, SubmissionPattern, SubProblem, UTTest,
+    Option, Problem, Submission, SubmissionPattern, SubProblem, Term, UTTest,
 )
 from contests.tasks import evaluate_submission, moss_submission
 from contests.templatetags.views import get_query_string, has_leader_permission
@@ -57,7 +57,7 @@ def get_students_filter_dict(course, request):
         filter_dict['faculty_id'] = int(request.GET.get('faculty_id') or default_faculty_id)
         filter_dict['group'] = int(request.GET.get('group') or default_group)
         filter_dict['subgroup'] = int(request.GET.get('subgroup') or default_subgroup)
-        filter_dict['debts'] = int(request.GET.get('debts') or 0)
+        filter_dict['term_id'] = int(request.GET.get('term_id') or 0)
     return filter_dict
 
 
@@ -578,6 +578,129 @@ class CreditDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
             self.object = self.get_object()
         return self.object.course.leaders.filter(id=self.request.user.id).exists()
 
+    def get_success_url(self):
+        return reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
+
+
+"""====================================================== Term ======================================================"""
+
+
+class TermCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, CreateView):
+    model = Term
+    form_class = TermForm
+    template_name = 'contests/term/term_form.html'
+    permission_required = 'contests.add_term'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        course = get_object_or_404(Course, id=kwargs.pop('course_id'))
+        self.storage.update(get_students_filter_dict(course, request))
+        self.storage['ongoing_term_students'] = Account.students.apply_common_filters(self.storage)
+        return super().dispatch(request, *args, **kwargs)
+    
+    def has_ownership(self):
+        return self.storage['course'].owner_id == self.request.user.id
+
+    def has_leadership(self):
+        return self.storage['course'].leaders.filter(id=self.request.user.id).exists()
+    
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['course'] = self.storage['course']
+        students_initial = self.storage['ongoing_term_students'].filter(credit_score__gt=2)
+        credits_initial = Credit.objects.filter(id__in=students_initial.values_list('credit_id'))
+        initial['credits'] = credits_initial
+        return initial
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        credits_queryset = Credit.objects.for_term(self.storage['course'])
+        kwargs['credits_queryset'] = credits_queryset
+        ongoing_term_students_ids = self.storage['ongoing_term_students'].values_list('user_id', flat=True)
+        credits_ongoing = Credit.objects.filter(course=self.storage['course'], user_id__in=ongoing_term_students_ids)
+        kwargs['credits_ongoing'] = credits_ongoing
+        kwargs['credits_past'] = credits_queryset.exclude(id__in=credits_ongoing.values_list('id', flat=True))
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['course'] = self.storage['course']
+        context['title'] = f"Завершение семестра курса {context['course']}"
+        return context
+
+    def get_success_url(self):
+        return reverse('contests:assignment-table', kwargs={'course_id': self.storage['course'].id})
+    
+
+class TermUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, UpdateView):
+    model = Term
+    form_class = TermForm
+    template_name = 'contests/term/term_form.html'
+    permission_required = 'contests.change_term'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.storage = dict()
+
+    def dispatch(self, request, *args, **kwargs):
+        term = self.get_object()
+        self.storage.update(get_students_filter_dict(term.course, request))
+        self.storage['ongoing_term_students'] = Account.students.apply_common_filters(self.storage)
+        return super().dispatch(request, *args, **kwargs)
+    
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        credits_queryset = Credit.objects.for_term(self.object.course, self.object)
+        kwargs['credits_queryset'] = credits_queryset
+        ongoing_term_students_ids = self.storage['ongoing_term_students'].values_list('user_id', flat=True)
+        credits_ongoing = Credit.objects.filter(course=self.storage['course'], user_id__in=ongoing_term_students_ids)
+        kwargs['credits_ongoing'] = credits_ongoing
+        kwargs['credits_past'] = credits_queryset.exclude(id__in=credits_ongoing.values_list('id', flat=True))
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['course'] = self.object.course
+        context['title'] = f"Редактирование семестра курса {context['course']}"
+        return context
+    
+    def get_success_url(self):
+        success_url = reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
+        return success_url + get_query_string(self.request)
+
+
+class TermDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, DeleteView):
+    model = Term
+    template_name = 'contests/term/term_delete.html'
+    permission_required = 'contests.delete_term'
+
+    def has_ownership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.owner_id == self.request.user.id
+
+    def has_leadership(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object.course.leaders.filter(id=self.request.user.id).exists()
+    
     def get_success_url(self):
         return reverse('contests:assignment-table', kwargs={'course_id': self.object.course_id})
 
@@ -1946,9 +2069,17 @@ class AssignmentCourseTable(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMi
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.storage['course'].faculty.is_interfaculty:
+        course = self.storage['course']
+        terms = Term.objects.filter(course=course)
+        faculty_id = self.storage.get('faculty_id', course.faculty_id)
+        if course.faculty.is_interfaculty:
+            if faculty_id == course.faculty_id:
+                faculty_id = 0
             if self.request.user.account.faculty.is_interfaculty or self.request.user.is_superuser:
                 context['faculties'] = Faculty.objects.exclude(short_name="МФК")
+        if faculty_id > 0:
+            terms = terms.filter(credits__user__account__faculty_id=faculty_id).distinct()
+        context['terms'] = terms
         context.update(self.storage)
         return context
 

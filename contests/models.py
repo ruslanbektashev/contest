@@ -16,6 +16,7 @@ from django.db.models import Q
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.formats import date_format
 
 from accounts.models import Account, Comment, Faculty, Notification
 from contest.abstract import CDEntry, CRDEntry, CRUDEntry
@@ -272,6 +273,16 @@ def generate_credit_report(group_name, students, report_type, examiners, faculty
     return target_stream.getvalue()
 
 
+class CreditQuerySet(models.QuerySet):
+    def for_term(self, course, term=None, **kwargs):
+        filters = models.Q(course=course, term__isnull=True)
+        if term is not None:
+            filters |= models.Q(term=term)
+        queryset = self.filter(filters).select_related('user', 'user__account')
+        queryset = queryset.order_by('-term', '-date_created__year', '-date_created__month', '-date_created__day', 'user__account')
+        return queryset
+
+
 class CreditManager(models.Manager):
     def create_set(self, owner, course, accounts):
         user_ids = accounts.values_list('user_id', flat=True)
@@ -329,7 +340,7 @@ class Credit(CRUDEntry):
 
     score = models.PositiveSmallIntegerField(choices=SCORE_CHOICES, default=DEFAULT_SCORE, verbose_name="Оценка")
 
-    objects = CreditManager()
+    objects = CreditManager.from_queryset(CreditQuerySet)()
 
     class Meta(CRUDEntry.Meta):
         unique_together = ('user', 'course')
@@ -342,6 +353,28 @@ class Credit(CRUDEntry):
 
     def __str__(self):
         return f"Зачет {self.user.account.get_short_name()} по курсу: {self.course}"
+
+
+"""====================================================== Term ======================================================"""
+
+
+class Term(CRUDEntry):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Курс")
+
+    date_started = models.DateField(verbose_name="Дата начала")
+    date_finished = models.DateField(verbose_name="Дата завершения")
+
+    credits = models.ManyToManyField(Credit, verbose_name="Зачеты")
+
+    class Meta(CRUDEntry.Meta):
+        ordering = ('-date_started',)
+        verbose_name = "Семестр"
+        verbose_name_plural = "Семестры"
+    
+    def __str__(self):
+        date_started = date_format(self.date_started, "d.m.Y")
+        date_finished = date_format(self.date_finished, "d.m.Y")
+        return f"Семестр {date_started} - {date_finished}"
 
 
 """=================================================== Attendance ==================================================="""

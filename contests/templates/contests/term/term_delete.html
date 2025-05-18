@@ -1,0 +1,17 @@
+{% extends 'base_main.html' %}
+{% load views forms %}
+
+{% block title %}Семестр{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb term.course term.course %}
+{% breadcrumb "Задания" 'contests:assignment-table' term.course.id query_string=request|get_query_string %}
+{% breadcrumb term %}
+{% breadcrumb "Удаление" %}
+{% endblock breadcrumbs %}
+
+{% block main_content %}
+<legend>Удаление семестра</legend>
+{% include 'forms/delete_form.html' with obj=term %}
+{% endblock main_content %}

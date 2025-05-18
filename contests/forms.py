@@ -14,7 +14,7 @@ from django.utils import timezone
 from accounts.models import Account
 from contest.widgets import BootstrapSelect, BootstrapSelectMultiple, OptionCheckboxSelect, OptionRadioSelect
 from contests.models import (Assignment, Attachment, Attendance, Contest, Course, CourseLeader, Credit, FNTest, Option,
-                             Problem, Submission, SubmissionPattern, SubProblem, UTTest)
+                             Problem, Submission, SubmissionPattern, SubProblem, Term, UTTest)
 
 
 class UserChoiceField(forms.ModelChoiceField):
@@ -268,6 +268,46 @@ class CreditReportForm(forms.Form):
                                                "списка", code='students_required'))
             self.add_error('group', ValidationError("Выберите группу или введите название группы и выберите студентов",
                                                     code='group_required'))
+        return self.cleaned_data
+
+
+class TermForm(forms.ModelForm):
+    class Meta:
+        model = Term
+        fields = ['course', 'date_started', 'date_finished', 'credits']
+        widgets = {'course': forms.HiddenInput}
+    
+    def __init__(self, credits_queryset=None, credits_ongoing=None, credits_past=None, **kwargs):
+        super().__init__(**kwargs)
+        self.fields['credits'].queryset = credits_queryset
+        self.fields['credits'].ongoing = credits_ongoing
+        self.fields['credits'].past = credits_past
+    
+    def clean_date_started(self):
+        date_started = self.cleaned_data['date_started']
+        if date_started > timezone.localdate():
+            raise ValidationError("Выбранная дата начала еще не наступила.", code='date_started_in_future')
+        if date_started < timezone.datetime(2006, 9, 1).date():
+            raise ValidationError("Выбранная дата начала раньше даты начала времен.", code='date_started_too_early')
+        return date_started
+    
+    def clean_credits(self):
+        credits = self.cleaned_data['credits']
+        course = self.cleaned_data['course']
+        students_faculty_ids = set(credits.values_list('user__account__faculty_id', flat=True))
+        if not credits:
+            raise ValidationError("Выберите хотя бы одного студента.", code='credits_empty')
+        if len(students_faculty_ids) > 1:
+            raise ValidationError("Все студенты должны быть с одного факультета.", code='students_from_different_faculties')
+        if not course.faculty.is_interfaculty and students_faculty_ids[0] != course.faculty_id:
+            raise ValidationError("Студенты должны быть с того же факультета, что и курс.", code='faculties_mismatch')
+        return credits
+    
+    def clean(self):
+        if 'date_started' in self.cleaned_data and 'date_finished' in self.cleaned_data:
+            if self.cleaned_data['date_started'] >= self.cleaned_data['date_finished']:
+                self.add_error('date_finished', ValidationError("Дата завершения должна быть позднее даты начала.",
+                                                            code='date_started_gt_date_finished'))
         return self.cleaned_data
 
 

@@ -16,7 +16,7 @@ urlpatterns = [
     path('upload/attachments/<str:app_label>/<str:model_name>/<int:pk>/<str:file_name>', views.AttachmentDownload.as_view(), name='attachment-download'),
     path('deleted/list', views.DeletedList.as_view(), name='deleted-list'),
     path('course/<int:course_id>/start', views.CourseStart.as_view(), name='course-start'),
-    path('course/<int:course_id>/finish', views.CourseFinish.as_view(), name='course-finish'),
+    path('course/<int:course_id>/term/create', views.TermCreate.as_view(), name='term-create'),
     path('course/', include([
         path('create', views.CourseCreate.as_view(), name='course-create'),
         path('<int:pk>/', include([
@@ -33,6 +33,12 @@ urlpatterns = [
         path('<int:pk>/', include([
             path('update', views.CreditUpdate.as_view(), name='credit-update'),
             path('delete', views.CreditDelete.as_view(), name='credit-delete')
+        ]))
+    ])),
+    path('term/', include([
+        path('<int:pk>/', include([
+            path('update', views.TermUpdate.as_view(), name='term-update'),
+            path('delete', views.TermDelete.as_view(), name='term-delete')
         ]))
     ])),
     path('course/<int:course_id>/attendance/', include([

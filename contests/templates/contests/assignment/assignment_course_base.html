@@ -12,8 +12,9 @@
 {% block main_content %}
 <legend>
     <span class="d-flex justify-content-between flex-column flex-md-row">
-        <span class="text-truncate">Таблица заданий {% if debts %}должников{% endif %}</span>
+        <span class="text-truncate">Таблица заданий</span>
         <span class="d-flex justify-content-between gap-2" id="assignment_table_controls">
+            {% if not term_id or term_id < 1 %}
             {% if perms.contests.add_assignment or request|has_leader_permission:course %}
             <a href="{% url 'contests:assignment-create' course.id %}{% get_updated_query_string request %}" class="btn btn-light" id="assignmentCreateButton" data-bs-toggle="tooltip" data-bs-placement="left" title="Назначить новое задание">
                 <svg class="contest-icon text-success"><use href="{% static 'icons/sprites/solid.svg' %}#plus"></use></svg>
@@ -32,8 +33,8 @@
                 <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#calendar"></use></svg>
             </a>
             {% endif %}
-            {% if perms.accounts.change_account %}
-            <a href="{% url 'contests:course-finish' course.id %}{% get_updated_query_string request %}" class="btn btn-light" id="courseFinishButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Завершить курс">
+            {% if perms.contests.add_term or request|has_leader_permission:course %}
+            <a href="{% url 'contests:term-create' course.id %}{% get_updated_query_string request %}" class="btn btn-light" id="courseFinishButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Завершить семестр">
                 <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/solid.svg' %}#stop"></use></svg>
             </a>
             {% endif %}
@@ -42,10 +43,23 @@
                 <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/solid.svg' %}#play"></use></svg>
             </a>
             {% endif %}
+            {% endif %}
             {% if perms.contests.report_credit or request|has_leader_permission:course %}
             <a href="{% url 'contests:credit-report' course.id %}{% get_updated_query_string request %}" class="btn btn-light" id="creditReportButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Создать ведомость">
                 <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/regular.svg' %}#file-word"></use></svg>
             </a>
+            {% endif %}
+            {% if term_id and term_id > 0 %}
+            {% if perms.contests.change_term or request|has_leader_permission:course %}
+            <a href="{% url 'contests:term-update' term_id %}{% get_updated_query_string request %}" class="btn btn-light" id="termUpdateButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Редактировать семестр">
+                <svg class="contest-icon text-primary"><use href="{% static 'icons/sprites/solid.svg' %}#pen-to-square"></use></svg>
+            </a>
+            {% endif %}
+            {% if perms.contests.delete_term or request|has_leader_permission:course %}
+            <a href="{% url 'contests:term-delete' term_id %}{% get_updated_query_string request %}" class="btn btn-light" id="termDeleteButton" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить семестр">
+                <svg class="contest-icon text-danger"><use href="{% static 'icons/sprites/regular.svg' %}#trash-can"></use></svg>
+            </a>
+            {% endif %}
             {% endif %}
         </span>
     </span>
@@ -79,9 +93,12 @@
             </select>
         </div>
         <div class="col-6 col-md-{% if faculties %}3{% else %}4{% endif %}">
-            <select class="form-control selectpicker" id="debts_select" name="type" onchange="document.location=this.options[this.selectedIndex].value;" aria-label="Должники">
-                <option value="{% get_full_path_with_updated_query_string request debts=0 %}" {% if debts == 0 %}selected{% endif %}>Без должников</option>
-                <option value="{% get_full_path_with_updated_query_string request debts=1 %}" {% if debts == 1 %}selected{% endif %}>Должники</option>
+            <select class="form-control selectpicker" id="term_select" name="type" onchange="document.location=this.options[this.selectedIndex].value;" aria-label="Должники">
+                <option value="{% get_full_path_with_updated_query_string request term_id=0 %}" {% if term_id == 0 %}selected{% endif %}>Текущий семестр</option>
+                <option value="{% get_full_path_with_updated_query_string request term_id=-1 %}" {% if term_id == -1 %}selected{% endif %}>Должники</option>
+                {% for term in terms %}
+                <option value="{% get_full_path_with_updated_query_string request term_id=term.id %}" {% if term_id == term.id %}selected{% endif %}>{{ term }}</option>
+                {% endfor %}
             </select>
         </div>
     </div>

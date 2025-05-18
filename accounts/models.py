@@ -87,6 +87,9 @@ class StudentQuerySet(AccountQuerySet):
 
     def debtors(self, course):
         return self.with_credits(course).filter(level__gt=course.level).filter(credit_score__lte=2)
+    
+    def finished(self, course, term_id):
+        return self.with_credits(course).filter(user__credit__term__id=term_id)
 
     def level_up(self):
         return self.filter(level__lt=Account.LEVEL_MAX).update(level=models.F('level') + 1)
@@ -110,7 +113,7 @@ class StudentQuerySet(AccountQuerySet):
         return self.order_by().values_list('group', flat=True).distinct()
 
     def apply_common_filters(self, filters, with_credits=True):
-        queryset = self.enrolled()
+        queryset = self.all()
         if filters['faculty_id'] > 0:
             queryset = queryset.filter(faculty_id=filters['faculty_id'])
         if filters['group'] > 0:
@@ -118,10 +121,14 @@ class StudentQuerySet(AccountQuerySet):
         if filters['subgroup'] > 0:
             queryset = queryset.filter(subgroup=filters['subgroup'])
         if with_credits:
-            if filters['debts']:
+            if filters['term_id'] == -1:
                 queryset = queryset.debtors(filters['course'])
-            else:
+            elif filters['term_id'] == 0:
                 queryset = queryset.current(filters['course'])
+            else:
+                queryset = queryset.finished(filters['course'], filters['term_id'])
+        if filters['term_id'] < 1:
+            queryset = queryset.enrolled()
         return queryset
 
 

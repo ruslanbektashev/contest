@@ -1,0 +1,183 @@
+{% extends 'base_main.html' %}
+{% load views forms contests static %}
+
+{% block title %}{{ title }}{% endblock title %}
+
+{% block main_links %}
+<link href="{% static 'tempus-dominus/css/tempus-dominus.css' %}" rel="stylesheet">
+<link href="{% static 'tempus-dominus/css/tempus-dominus.patch.css' %}" rel="stylesheet">
+{% endblock main_links %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% breadcrumb course course %}
+{% breadcrumb "Задания" 'contests:assignment-table' course.id query_string=request|get_query_string %}
+{% if term %}
+{% breadcrumb term %}
+{% breadcrumb "Редактирование" %}
+{% else %}
+{% breadcrumb "Завершение семестра" %}
+{% endif %}
+{% endblock breadcrumbs %}
+
+{% block main_content %}
+<legend>{{ title }}</legend>
+{% if not term %}
+<div class="alert alert-info alert-dismissible fade show">
+    В таблице ниже представлены студенты курса &laquo;{{ course }}&raquo;, которым ранее был назначен зачет.<br>
+    Выберите тех студентов из списка, кого Вы хотите <strong>исключить из таблицы заданий текущего семестра</strong> и <strong>сохранить в истории семестров</strong>, заполните даты начала и завершения семестра и нажмите кнопку &laquo;Завершить&raquo;.
+    <hr>
+    Студенты текущего семестра с оценкой в зачет выше &laquo;2&raquo; отмечены по-умолчанию.
+</div>
+{% endif %}
+<form action="" method="post">
+    {% csrf_token %}
+    {% include 'forms/errors/non_field_errors.html' %}
+    {% render_field form.course %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field_left_labeled.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.date_started class+="form-control" %}
+    {% render_field form.date_finished class+="form-control" %}
+    {% endwith %}
+    {% include 'forms/errors/field_errors.html' with field=form.credits %}
+    <table class="table table-bordered table-sm table-hover">
+        <thead>
+            <tr>
+                <th style="width: 2%;">
+                    <div class="form-check ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Выбрать всех пользователей">
+                        <input class="form-check-input" id="ongoing_check_all" type="checkbox" {% if form.initial.credits %}checked="checked"{% endif %} aria-label="Выбрать всех студентов">
+                    </div>
+                </th>
+                <th class="text-end" style="width: 3%;">№</th>
+                <th class="text-center">Ф.И.О.</th>
+                <th class="text-center" style="width: 12%;">Факультет</th>
+                <th class="text-center" style="width: 17%;">Уровень</th>
+                <th class="text-center" style="width: 17%;">Дата назначения</th>
+                <th class="text-center" style="width: 6%;">Зачет</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for credit in form.credits.field.ongoing %}
+            {% with account=credit.user.account %}
+            <tr class="credits-row" data-control-id="check_{{ credit.id }}">
+                <td>
+                    <div class="form-check ms-2">
+                        <input id="check_{{ credit.id }}" type="checkbox" class="credits-ongoing form-check-input check" name="credits" value="{{ credit.id }}" {% if credit in form.initial.credits %}checked="checked"{% endif %} data-date-created="{{ credit.date_created|date:'d.m.Y' }}" aria-label="Выбрать студента">
+                    </div>
+                </td>
+                <td class="text-end font-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
+                <td class="text-nowrap"><a href="{{ account.get_absolute_url }}">{{ account }}</a></td>
+                <td class="text-center">{{ account.faculty.short_name }}</td>
+                <td class="text-center text-nowrap">{% if account.is_student %}{{ account.get_level_display }}{% else %}{{ account.get_type_display }}{% endif %}</td>
+                <td class="text-center text-nowrap check-group" data-date-created="{{ credit.date_created|date:'d.m.Y' }}">{{ credit.date_created|date:'d E Y' }}</td>
+                <td class="text-center">
+                    <a href="{% url 'contests:credit-update' credit.id %}" class="contest-status-number contest-status-{{ credit.score|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Оценка">
+                        {{ credit.score|default:'-' }}
+                    </a>
+                </td>
+            </tr>
+            {% endwith %}
+            {% empty %}
+            <tr>
+                <td class="text-center" colspan="7"><div class="alert alert-info mb-0">Студентов, которые могут завершить семестр курса, не найдено</div></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% for credit in form.credits.field.past %}
+    {% ifchanged credit.date_created.year %}
+    {% if forloop.counter != 1 %}
+        </tbody>
+    </table>
+    {% endif %}
+    <legend>{{ credit.date_created.year }}</legend>
+    <table class="table table-bordered table-sm table-hover">
+        <thead>
+            <tr>
+                <th style="width: 2%;">
+                    <div class="form-check ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Выбрать всех пользователей">
+                        <input class="form-check-input check-all" type="checkbox" data-control-class="credits-past-{{ credit.date_created.year }}" aria-label="Выбрать всех студентов">
+                    </div>
+                </th>
+                <th class="text-end" style="width: 3%;">№</th>
+                <th class="text-center">Ф.И.О.</th>
+                <th class="text-center" style="width: 12%;">Факультет</th>
+                <th class="text-center" style="width: 17%;">Уровень</th>
+                <th class="text-center" style="width: 17%;">Дата назначения</th>
+                <th class="text-center" style="width: 6%;">Зачет</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% endifchanged %}
+    {% with account=credit.user.account %}
+            <tr class="credits-row" data-control-id="check_{{ credit.id }}">
+                <td>
+                    <div class="form-check ms-2">
+                        <input id="check_{{ credit.id }}" type="checkbox" class="credits-past-{{ credit.date_created.year }} form-check-input check" name="credits" value="{{ credit.id }}" data-date-created="{{ credit.date_created|date:'d.m.Y' }}" aria-label="Выбрать студента">
+                    </div>
+                </td>
+                <td class="text-end font-monospace">{{ forloop.counter|stringformat:"02d" }}</td>
+                <td class="text-nowrap"><a href="{{ account.get_absolute_url }}">{{ account }}</a></td>
+                <td class="text-center">{{ account.faculty.short_name }}</td>
+                <td class="text-center text-nowrap">{% if account.is_student %}{{ account.get_level_display }}{% else %}{{ account.get_type_display }}{% endif %}</td>
+                <td class="text-center text-nowrap check-group" data-date-created="{{ credit.date_created|date:'d.m.Y' }}">{{ credit.date_created|date:'d E Y' }}</td>
+                <td class="text-center">
+                    <a href="{% url 'contests:credit-update' credit.id %}" class="contest-status-number contest-status-{{ credit.score|colorize }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Оценка">
+                        {{ credit.score|default:'-' }}
+                    </a>
+                </td>
+            </tr>
+    {% endwith %}
+    {% if forloop.last %}
+        </tbody>
+    </table>
+    {% endif %}
+    {% endfor %}
+
+    {% if not term %}
+    {% include 'forms/submit_button.html' with value="Завершить" %}
+    {% else %}
+    {% include 'forms/submit_button.html' with value="Сохранить" %}
+    {% endif %}
+</form>
+{% endblock main_content %}
+
+{% block main_scripts %}
+<script src="{% static 'popper/popper.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'tempus-dominus/js/tempus-dominus.js' %}" type="text/javascript"></script>
+<script src="{% static 'tempus-dominus/js/tempus-dominus.options.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function() {
+    tdOptions.display.components.clock = false;
+    const picker1 = new tempusDominus.TempusDominus(document.getElementById('id_date_started'), tdOptions);
+    const picker2 = new tempusDominus.TempusDominus(document.getElementById('id_date_finished'), tdOptions);
+});
+
+document.getElementById('ongoing_check_all').addEventListener('click', function (e) {
+    let checkboxes = Array.from(document.getElementsByClassName('credits-ongoing'));
+    checkboxes.forEach(function (value) {
+        value.checked = e.target.checked;
+    });
+});
+
+Array.from(document.getElementsByClassName('check-all')).forEach(function (element) {
+    element.addEventListener('click', function (event) {
+        let controlClass = this.getAttribute('data-control-class');
+        let checkboxes = Array.from(document.getElementsByClassName(controlClass));
+        checkboxes.forEach(function (value) {
+            value.checked = event.target.checked;
+        });
+    });
+});
+
+Array.from(document.getElementsByClassName('credits-row')).forEach(function (element) {
+    element.addEventListener('click', function (event) {
+        if (event.target.tagName == "A" || event.target.tagName == "INPUT")
+            return;
+        let controlId = this.getAttribute('data-control-id');
+        let checkbox = document.getElementById(controlId);
+        checkbox.checked = !checkbox.checked;
+    });
+});
+</script>
+{% endblock main_scripts %}

@@ -57,8 +57,10 @@
             <tr>
                 <td colspan="{{ contests|length|add:"4" }}" class="text-center">
                     <div class="alert alert-info mb-0">Заданий нет.
+                    {% if term_id == 0 %}
                     {% if perms.contests.change_course or request|has_leader_permission:course %}
                         Вы можете <a href="{% url 'contests:course-start' course.id %}{% get_updated_query_string request %}">начать курс</a>, чтобы здесь появились студенты.
+                    {% endif %}
                     {% endif %}
                     </div>
                 </td>
