@@ -1,5 +1,8 @@
-# Подарзумевается что git и python3.9+ уже установлены.
-# Инструкция проверена на Ubuntu 22.04.
+## Инструкция для развертывания локального dev-сервера
+
+Подарзумевается что git и python3.8+ уже установлены.  
+Инструкция проверена на Ubuntu 22.04.
+```
 git clone https://github.com/ruslanbektashev/contest.git
 cd contest
 git checkout stable
@@ -16,3 +19,4 @@ python3 manage.py migrate
 python3 manage.py createsuperuser
 python3 manage.py createsuperaccount
 python3 manage.py runserver
+```
