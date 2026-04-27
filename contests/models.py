@@ -1046,7 +1046,34 @@ class SubmissionManager(models.Manager):
                     except FileNotFoundError:
                         pass
         return stream.getvalue()
-
+    
+    def dump(self, course):
+        stream = io.BytesIO()
+        metadata = dict(title=course.title, contest_num=0, problem_num=0, submission_num=0, file_num=0)
+        with zipfile.ZipFile(stream, 'w', compression=zipfile.ZIP_DEFLATED) as zip_file:
+            for contest in course.contest_set.all():
+                metadata["contest_num"] += 1
+                for problem in contest.problem_set.all():
+                    metadata["problem_num"] += 1
+                    for submission in problem.submission_set.all():
+                        metadata["submission_num"] += 1
+                        for file_path in submission.files:
+                            try:
+                                _, filename = os.path.split(file_path)
+                                submission_dir_in_zip = "{contest_id}/{problem_num}/{user_id}/{submission_id}/".format(
+                                    contest_id=submission.problem.contest_id,
+                                    problem_num=submission.problem.number,
+                                    user_id=submission.owner_id,
+                                    submission_id=submission.id
+                                )
+                                file_path_in_zip = submission_dir_in_zip + f"{filename}"
+                                zip_file.write(file_path, file_path_in_zip)
+                                metadata["file_num"] += 1
+                            except FileNotFoundError:
+                                pass
+            zip_file.writestr("meta.txt", json.dumps(metadata, indent=2, ensure_ascii=False))
+        return stream.getvalue()
+                    
 
 class Submission(CRDEntry):
     STATUS_CHOICES = (

@@ -310,6 +310,17 @@ class CourseList(LoginRedirectMixin, ListView):
         return context
 
 
+class CourseDump(LoginRedirectMixin, PermissionRequiredMixin, BaseDetailView):
+    model = Course
+    permission_required = 'contests.dump_course'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        response = HttpResponse(Submission.objects.dump(self.object), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename={}.zip'.format(self.object.title)
+        return response
+
+
 """================================================== CourseLeader =================================================="""
 
 
