@@ -167,6 +167,9 @@
     {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.difficulty class+="form-control selectpicker" %}
     {% endwith %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.is_public class+="form-check-input" autocomplete="off" %}
+    {% endwith %}
 
     {% if type == 'Program' %}
     {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}

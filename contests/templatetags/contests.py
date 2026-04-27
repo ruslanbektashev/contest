@@ -6,6 +6,7 @@ from django.conf import settings
 
 register = template.Library()
 Assignment = apps.get_model('contests', 'Assignment')
+Submission = apps.get_model('contests', 'Submission')
 
 STATE_COLORS = {
     'OK': 'success',
@@ -124,11 +125,15 @@ def course_difficulty(value):
 
 @register.filter()
 def course_filtered(request, course):
+    if not request.user.is_authenticated:
+        return False
     return request.user.filter_set.filter(course=course).exists()
 
 
 @register.filter()
 def get_latest_submissions(course, request):
+    if not request.user.is_authenticated:
+        return Submission.objects.none()
     latest_submissions = course.get_latest_submissions()
     if not request.user.account.faculty.is_interfaculty:
         latest_submissions = latest_submissions.filter(owner__account__faculty=request.user.account.faculty)
@@ -171,16 +176,24 @@ def get_problem_subproblems(problem):
 
 @register.filter()
 def is_hidden_from_user(obj, request):
+    if not request.user.is_authenticated:
+        return False
     return request.user.account.is_student and obj.hidden_from_students
 
 
 @register.filter()
 def is_visible_to_user(obj, request):
+    if not request.user.is_authenticated:
+        if hasattr(obj, 'is_publicly_visible'):
+            return obj.is_publicly_visible()
+        return getattr(obj, 'is_public', False)
     return not request.user.account.is_student or obj.visible_to(request.user)
 
 
 @register.filter()
 def get_submission_status(submission, request):
+    if not request.user.is_authenticated:
+        return submission.status
     if submission.status != 'UN' and is_hidden_from_user(submission, request):
         return 'EV'
     return submission.status
@@ -188,6 +201,8 @@ def get_submission_status(submission, request):
 
 @register.filter()
 def get_submission_status_display(submission, request):
+    if not request.user.is_authenticated:
+        return submission.get_status_display()
     if submission.status != 'UN' and is_hidden_from_user(submission, request):
         return "Посылка проверяется"
     return submission.get_status_display()
@@ -195,6 +210,8 @@ def get_submission_status_display(submission, request):
 
 @register.filter()
 def get_submission_score(submission, request):
+    if not request.user.is_authenticated:
+        return submission.score
     if submission.score != 0 and is_hidden_from_user(submission, request):
         return 0
     return submission.score

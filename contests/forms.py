@@ -153,7 +153,7 @@ class AttachmentUpdateForm(forms.ModelForm):
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
-        fields = ['faculty', 'title_official', 'title_unofficial', 'description', 'level', 'soft_deleted']
+        fields = ['faculty', 'title_official', 'title_unofficial', 'description', 'level', 'is_public', 'soft_deleted']
 
 
 """================================================== CourseLeader =================================================="""
@@ -393,7 +393,7 @@ class ContestAttachmentForm(MediaAttachmentMixin, AttachmentForm):
 class ContestForm(ContestAttachmentForm):
     class Meta:
         model = Contest
-        fields = ['course', 'title', 'description', 'number', 'hidden', 'soft_deleted']
+        fields = ['course', 'title', 'description', 'number', 'hidden', 'is_public', 'soft_deleted']
         widgets = {'course': forms.HiddenInput}
         error_messages = {
             NON_FIELD_ERRORS: {
@@ -429,7 +429,7 @@ class ProblemAttachmentForm(MediaAttachmentMixin, AttachmentForm):
 class ProblemForm(ProblemAttachmentForm):
     class Meta(ProblemAttachmentForm.Meta):
         fields = ['contest', 'type', 'title', 'description', 'number', 'soft_deleted', 'score_max', 'score_for_5',
-                  'score_for_4', 'score_for_3', 'difficulty']
+                  'score_for_4', 'score_for_3', 'difficulty', 'is_public']
         widgets = {'contest': forms.HiddenInput, 'type': forms.HiddenInput}
         error_messages = {
             NON_FIELD_ERRORS: {

@@ -107,6 +107,8 @@ class Course(SoftDeletionModel, CRUDEntry):
                                         help_text="Неофициальное название будет отображено для пользователей сайта")
     description = models.TextField(verbose_name="Описание", blank=True)
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, verbose_name="Уровень")
+    is_public = models.BooleanField(default=False, verbose_name="Публичный доступ",
+                                    help_text="Разрешить просмотр курса без авторизации")
 
     comment_set = GenericRelation(Comment, content_type_field='object_type')
 
@@ -135,6 +137,9 @@ class Course(SoftDeletionModel, CRUDEntry):
 
     def __str__(self):
         return self.title
+
+    def is_publicly_visible(self):
+        return self.is_public
 
 
 """================================================== CourseLeader =================================================="""
@@ -436,6 +441,8 @@ class Contest(SoftDeletionModel, CRUDEntry):
     hidden = models.BooleanField(default=False, verbose_name="Скрыть",
                                  help_text="Скрытый раздел отображается только тем студентам, которым назначено хотя бы"
                                            " одно задание по задаче из этого раздела")
+    is_public = models.BooleanField(default=False, verbose_name="Публичный доступ",
+                                    help_text="Разрешить просмотр раздела без авторизации")
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
@@ -461,6 +468,9 @@ class Contest(SoftDeletionModel, CRUDEntry):
 
     def visible_to(self, student):
         return not self.hidden or Assignment.objects.filter(user=student, problem__contest=self).exists()
+
+    def is_publicly_visible(self):
+        return self.is_public and self.course.is_public
 
     def get_discussion_url(self):
         return reverse('contests:contest-discussion', kwargs={'pk': self.pk})
@@ -550,6 +560,8 @@ class Problem(SoftDeletionModel, CRUDEntry):
     is_testable = models.BooleanField(default=True, verbose_name="Проверять автоматически",
                                       help_text="Разрешить системе автоматически проверять посылки и обновлять оценку "
                                                 "задания")
+    is_public = models.BooleanField(default=False, verbose_name="Публичный доступ",
+                                    help_text="Разрешить просмотр задачи без авторизации")
 
     attachment_set = GenericRelation(Attachment, content_type_field='object_type')
     comment_set = GenericRelation(Comment, content_type_field='object_type')
@@ -575,6 +587,9 @@ class Problem(SoftDeletionModel, CRUDEntry):
 
     def visible_to(self, student):
         return self.contest.visible_to(student)
+
+    def is_publicly_visible(self):
+        return self.is_public and self.contest.is_public and self.course.is_public
 
     def save(self, *args, **kwargs):
         if self.type not in {'Program', 'Options'}:

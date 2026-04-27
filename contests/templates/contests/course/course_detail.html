@@ -108,12 +108,14 @@
         <div class="col-12 text-muted text-start text-md-end">Добавил(а): <a href="{{ course.owner.account.get_absolute_url }}" class="text-muted">{{ course.owner.account }}</a></div>
     </div>
 </div>
+{% if request.user.is_authenticated %}
 <div class="d-grid">
     <a class="btn btn-light border mb-3" href="{% url 'contests:course-discussion' course.id %}">
         {% unread_comments_count request.user.account course as ucc %}
         <i class="fa-regular fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
     </a>
 </div>
+{% endif %}
 <legend>
     <span class="d-flex justify-content-between">
         <span class="text-truncate">Преподаватели</span>
@@ -144,6 +146,7 @@
 {% block main_scripts %}
 <script src="{% static 'mathjax/es5/tex-chtml.js' %}" type="text/javascript" defer></script>
 <script type="text/javascript">
+{% if request.user.is_authenticated %}
 driverObj.setSteps([
     {% if request.user.account.is_instructor or request.user.is_superuser %}
     {% if not request|have_passed_step:'course_description' %}
@@ -202,5 +205,6 @@ driverObj.setSteps([
     {% endif %}
     {% endif %}
 ])
+{% endif %}
 </script>
 {% endblock main_scripts %}

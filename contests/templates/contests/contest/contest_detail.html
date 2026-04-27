@@ -92,7 +92,7 @@
         </div>
     </div>
 </div>
-{% if not request.user.account.is_student and contest.hidden_from_students %}
+{% if request.user.is_authenticated and not request.user.account.is_student and contest.hidden_from_students %}
 <div class="alert alert-warning">
     <strong><i class="fa-regular fa-eye-slash fa-fw"></i> Раздел скрыт.</strong> Чтобы раздел стал видимым для студента, Вы можете назначить ему задание по задаче из этого раздела.<br>
     Вы также можете <a href="{% url 'contests:contest-update' contest.id %}">отключить</a> сокрытие раздела на странице редактирования.
@@ -108,17 +108,20 @@
         <div class="col-12 text-muted text-start text-md-end">Добавил(а): <a href="{{ contest.owner.account.get_absolute_url }}" class="text-muted">{{ contest.owner.account }}</a></div>
     </div>
 </div>
+{% if request.user.is_authenticated %}
 <div class="d-grid">
     <a class="btn btn-light border" href="{% url 'contests:contest-discussion' contest.id %}">
         {% unread_comments_count request.user.account contest as ucc %}
         <i class="fa-regular fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
     </a>
 </div>
+{% endif %}
 {% endblock main_content %}
 
 {% block main_scripts %}
 <script src="{% static 'mathjax/es5/tex-chtml.js' %}" type="text/javascript" defer></script>
 <script type="text/javascript">
+{% if request.user.is_authenticated %}
 driverObj.setSteps([
     {% if request.user.account.is_instructor or request.user.is_superuser %}
     {% if not request|have_passed_step:'contest_detail' %}
@@ -185,5 +188,6 @@ driverObj.setSteps([
     {% endif %}
     {% endif %}
 ])
+{% endif %}
 </script>
 {% endblock main_scripts %}
