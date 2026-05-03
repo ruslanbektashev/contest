@@ -151,6 +151,21 @@ class AttachmentUpdateForm(forms.ModelForm):
 
 
 class CourseForm(forms.ModelForm):
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        can_manage_public_access = bool(
+            user and user.is_authenticated and (
+                user.is_superuser or (hasattr(user, 'account') and user.account.is_moderator)
+            )
+        )
+        if can_manage_public_access:
+            self.fields['is_public'].help_text = (
+                "Разрешить просмотр курса без авторизации. При включении этого параметра без авторизации "
+                "станут доступны курс, все его разделы и задачи."
+            )
+        else:
+            self.fields.pop('is_public')
+
     class Meta:
         model = Course
         fields = ['faculty', 'title_official', 'title_unofficial', 'description', 'level', 'is_public', 'soft_deleted']

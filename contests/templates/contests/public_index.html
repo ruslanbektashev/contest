@@ -15,11 +15,11 @@
 
 {% if faculties %}
 <div class="d-flex flex-wrap gap-2 mb-3">
-    <a href="{% url 'contests:index' %}" class="btn {% if faculty_id == 0 %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm">
+    <a href="{% url 'contests:index' %}" class="btn {% if faculty_id == 0 %}btn-light border-secondary text-dark{% else %}btn-outline-secondary{% endif %} btn-sm">
         Все факультеты
     </a>
     {% for faculty in faculties %}
-    <a href="{% url 'contests:index' %}?faculty_id={{ faculty.id }}" class="btn {% if faculty_id == faculty.id %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm">
+    <a href="{% url 'contests:index' %}?faculty_id={{ faculty.id }}" class="btn {% if faculty_id == faculty.id %}btn-light border-secondary text-dark{% else %}btn-outline-secondary{% endif %} btn-sm">
         {{ faculty.short_name }}
     </a>
     {% endfor %}

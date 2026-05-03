@@ -3,6 +3,7 @@ import mimetypes
 from django.apps import apps
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
+from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import NON_FIELD_ERRORS, PermissionDenied
 from django.forms.models import inlineformset_factory, modelformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect
@@ -72,8 +73,10 @@ class AttachmentDetail(UserPassesTestMixin, DetailView):
     def test_func(self):
         self.object = self.get_object()
         self.parent = self.object.object
+        if hasattr(self.parent, 'is_publicly_visible') and self.parent.is_publicly_visible():
+            return True
         if not self.request.user.is_authenticated:
-            return hasattr(self.parent, 'is_publicly_visible') and self.parent.is_publicly_visible()
+            return False
         if isinstance(self.parent, Submission):
             has_ownership = hasattr(self.parent, 'course') and self.parent.course.owner_id == self.request.user.id
             has_ownership = has_ownership or self.parent.owner_id == self.request.user.id
@@ -111,8 +114,10 @@ class AttachmentDownload(UserPassesTestMixin, View):
     
     def test_func(self):
         self.parent = self.get_object()
+        if hasattr(self.parent, 'is_publicly_visible') and self.parent.is_publicly_visible():
+            return True
         if not self.request.user.is_authenticated:
-            return hasattr(self.parent, 'is_publicly_visible') and self.parent.is_publicly_visible()
+            return False
         if isinstance(self.parent, Submission):
             has_ownership = hasattr(self.parent, 'course') and self.parent.course.owner_id == self.request.user.id
             has_ownership = has_ownership or self.parent.owner_id == self.request.user.id
@@ -211,14 +216,37 @@ class DeletedList(LoginRedirectMixin, PermissionRequiredMixin, TemplateView):
 """===================================================== Course ====================================================="""
 
 
+class CoursePublicAccessMixin:
+    def can_manage_public_access(self):
+        return self.request.user.is_superuser or self.request.user.account.is_moderator
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['can_manage_public_access'] = self.can_manage_public_access()
+        return context
+
+    def preserve_public_access(self, form):
+        if self.can_manage_public_access():
+            return
+        form.instance.is_public = self.object.is_public if getattr(self, 'object', None) else False
+
+
 class CourseDetail(UserPassesTestMixin, DetailView):
     model = Course
     template_name = 'contests/course/course_detail.html'
 
     def test_func(self):
-        if self.request.user.is_authenticated:
-            return True
-        return self.get_object().is_public
+        return self.request.user.is_authenticated or self.get_object().is_publicly_visible()
+
+    def handle_no_permission(self):
+        if not self.request.user.is_authenticated:
+            return redirect_to_login(self.request.get_full_path(), self.get_login_url(), self.get_redirect_field_name())
+        return super().handle_no_permission()
 
 
 class CourseDiscussion(LoginRedirectMixin, PaginatorMixin, DetailView):
@@ -230,7 +258,7 @@ class CourseDiscussion(LoginRedirectMixin, PaginatorMixin, DetailView):
         return self.object.comment_set.actual().select_related('author', 'author__account')
 
 
-class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, LogAdditionMixin, CreateView):
+class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, LogAdditionMixin, CoursePublicAccessMixin, CreateView):
     model = Course
     form_class = CourseForm
     template_name = 'contests/course/course_form.html'
@@ -252,6 +280,7 @@ class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, LogAdditionMixin
         return initial
 
     def form_valid(self, form):
+        self.preserve_public_access(form)
         form.instance.owner = self.request.user
         return super().form_valid(form)
 
@@ -262,7 +291,7 @@ class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, LogAdditionMixin
 
 
 class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
-                   SoftDeletionUpdateView):
+                   CoursePublicAccessMixin, SoftDeletionUpdateView):
     model = Course
     form_class = CourseForm
     template_name = 'contests/course/course_form.html'
@@ -277,6 +306,10 @@ class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         if not hasattr(self, 'object'):
             self.object = self.get_object()
         return self.object.leaders.filter(id=self.request.user.id).exists()
+
+    def form_valid(self, form):
+        self.preserve_public_access(form)
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -869,9 +902,12 @@ class ContestDetail(UserPassesTestMixin, DetailView):
     template_name = 'contests/contest/contest_detail.html'
 
     def test_func(self):
+        obj = self.get_object()
+        if obj.is_publicly_visible():
+            return True
         if not self.request.user.is_authenticated:
-            return self.get_object().is_publicly_visible()
-        return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
+            return False
+        return not self.request.user.account.is_student or obj.visible_to(self.request.user)
 
 
 class ContestDiscussion(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin, DetailView):
@@ -1006,9 +1042,12 @@ class ProblemDetail(UserPassesTestMixin, PaginatorMixin, DetailView):
     paginate_by = 10
 
     def test_func(self):
+        obj = self.get_object()
+        if obj.is_publicly_visible():
+            return True
         if not self.request.user.is_authenticated:
-            return self.get_object().is_publicly_visible()
-        return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
+            return False
+        return not self.request.user.account.is_student or obj.visible_to(self.request.user)
 
     def get_queryset_for_paginator(self):
         if not self.request.user.is_authenticated:

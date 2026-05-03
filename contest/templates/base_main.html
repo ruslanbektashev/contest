@@ -46,13 +46,11 @@
     </div>
 </nav>
 <div class="container-xl d-flex flex-column" id="contest_main" style="min-height: 100vh;">
-    {% if request.user.is_authenticated %}
     <nav class="d-flex mt-2" aria-label="breadcrumb">
         <ol class="breadcrumb w-100">
             {% block breadcrumbs %}{% endblock breadcrumbs %}
         </ol>
     </nav>
-    {% endif %}
     <div class="mb-3">
         {% block main_content %}{% endblock main_content %}
     </div>

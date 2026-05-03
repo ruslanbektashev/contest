@@ -44,9 +44,11 @@
         {% render_field form.level class+="form-control selectpicker" %}
     </div>
     {% endwith %}
+    {% if can_manage_public_access %}
     {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch.html" %}
     {% render_field form.is_public class+="form-check-input" %}
     {% endwith %}
+    {% endif %}
     <div id="formSubmitButton">
         {% include 'forms/submit_button.html' with value="Сохранить" %}
     </div>

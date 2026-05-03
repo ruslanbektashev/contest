@@ -183,9 +183,9 @@ def is_hidden_from_user(obj, request):
 
 @register.filter()
 def is_visible_to_user(obj, request):
+    if hasattr(obj, 'is_publicly_visible') and obj.is_publicly_visible():
+        return True
     if not request.user.is_authenticated:
-        if hasattr(obj, 'is_publicly_visible'):
-            return obj.is_publicly_visible()
         return getattr(obj, 'is_public', False)
     return not request.user.account.is_student or obj.visible_to(request.user)
 

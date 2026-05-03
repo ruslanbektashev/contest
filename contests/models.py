@@ -470,7 +470,7 @@ class Contest(SoftDeletionModel, CRUDEntry):
         return not self.hidden or Assignment.objects.filter(user=student, problem__contest=self).exists()
 
     def is_publicly_visible(self):
-        return self.is_public and self.course.is_public
+        return self.course.is_public
 
     def get_discussion_url(self):
         return reverse('contests:contest-discussion', kwargs={'pk': self.pk})
@@ -589,7 +589,7 @@ class Problem(SoftDeletionModel, CRUDEntry):
         return self.contest.visible_to(student)
 
     def is_publicly_visible(self):
-        return self.is_public and self.contest.is_public and self.course.is_public
+        return self.contest.is_publicly_visible()
 
     def save(self, *args, **kwargs):
         if self.type not in {'Program', 'Options'}:
