@@ -30,6 +30,24 @@ class LeadershipOrMixin:
         return self.has_leadership() or super().has_permission()
 
 
+class PublicAccessMixin:
+    public_access_permission = 'contests.make_public_course'
+
+    def can_manage_public_access(self):
+        return self.request.user.has_perm(self.public_access_permission)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if getattr(self.get_form_class(), 'accepts_public_access_user', False):
+            kwargs['user'] = self.request.user
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['can_manage_public_access'] = self.can_manage_public_access()
+        return context
+
+
 class PaginatorMixin:
     page_kwarg = 'page'
     paginate_by = None

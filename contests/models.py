@@ -107,8 +107,11 @@ class Course(SoftDeletionModel, CRUDEntry):
                                         help_text="Неофициальное название будет отображено для пользователей сайта")
     description = models.TextField(verbose_name="Описание", blank=True)
     level = models.PositiveSmallIntegerField(choices=LEVEL_CHOICES, verbose_name="Уровень")
-    is_public = models.BooleanField(default=False, verbose_name="Публичный доступ",
-                                    help_text="Разрешить просмотр курса без авторизации")
+    is_public = models.BooleanField(
+        default=False, verbose_name="Публичный доступ",
+        help_text="Разрешить просмотр курса без авторизации. При включении этого параметра без авторизации станут "
+                  "доступны курс, все его разделы и задачи."
+    )
 
     comment_set = GenericRelation(Comment, content_type_field='object_type')
 
@@ -116,6 +119,9 @@ class Course(SoftDeletionModel, CRUDEntry):
 
     class Meta(CRUDEntry.Meta):
         ordering = ('level', 'id')
+        permissions = [
+            ("make_public_course", "Открывать публичный доступ к курсу"),
+        ]
         verbose_name = "Курс"
         verbose_name_plural = "Курсы"
 

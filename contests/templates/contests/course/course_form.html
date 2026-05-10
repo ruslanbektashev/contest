@@ -44,7 +44,7 @@
         {% render_field form.level class+="form-control selectpicker" %}
     </div>
     {% endwith %}
-    {% if can_manage_public_access %}
+    {% if perms.contests.make_public_course %}
     {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch.html" %}
     {% render_field form.is_public class+="form-check-input" %}
     {% endwith %}

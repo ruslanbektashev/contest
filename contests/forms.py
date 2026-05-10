@@ -150,21 +150,17 @@ class AttachmentUpdateForm(forms.ModelForm):
 """===================================================== Course ====================================================="""
 
 
-class CourseForm(forms.ModelForm):
+class PublicAccessFormMixin:
+    accepts_public_access_user = True
+    public_access_permission = 'contests.make_public_course'
+
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        can_manage_public_access = bool(
-            user and user.is_authenticated and (
-                user.is_superuser or (hasattr(user, 'account') and user.account.is_moderator)
-            )
-        )
-        if can_manage_public_access:
-            self.fields['is_public'].help_text = (
-                "Разрешить просмотр курса без авторизации. При включении этого параметра без авторизации "
-                "станут доступны курс, все его разделы и задачи."
-            )
-        else:
-            self.fields.pop('is_public')
+        if not (user and user.has_perm(self.public_access_permission)):
+            self.fields.pop('is_public', None)
+
+
+class CourseForm(PublicAccessFormMixin, forms.ModelForm):
 
     class Meta:
         model = Course
@@ -405,7 +401,7 @@ class ContestAttachmentForm(MediaAttachmentMixin, AttachmentForm):
         fields = []
 
 
-class ContestForm(ContestAttachmentForm):
+class ContestForm(PublicAccessFormMixin, ContestAttachmentForm):
     class Meta:
         model = Contest
         fields = ['course', 'title', 'description', 'number', 'hidden', 'is_public', 'soft_deleted']
@@ -441,7 +437,7 @@ class ProblemAttachmentForm(MediaAttachmentMixin, AttachmentForm):
         fields = []
 
 
-class ProblemForm(ProblemAttachmentForm):
+class ProblemForm(PublicAccessFormMixin, ProblemAttachmentForm):
     class Meta(ProblemAttachmentForm.Meta):
         fields = ['contest', 'type', 'title', 'description', 'number', 'soft_deleted', 'score_max', 'score_for_5',
                   'score_for_4', 'score_for_3', 'difficulty', 'is_public']

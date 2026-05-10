@@ -186,14 +186,12 @@ def is_visible_to_user(obj, request):
     if hasattr(obj, 'is_publicly_visible') and obj.is_publicly_visible():
         return True
     if not request.user.is_authenticated:
-        return getattr(obj, 'is_public', False)
+        return False
     return not request.user.account.is_student or obj.visible_to(request.user)
 
 
 @register.filter()
 def get_submission_status(submission, request):
-    if not request.user.is_authenticated:
-        return submission.status
     if submission.status != 'UN' and is_hidden_from_user(submission, request):
         return 'EV'
     return submission.status
@@ -201,8 +199,6 @@ def get_submission_status(submission, request):
 
 @register.filter()
 def get_submission_status_display(submission, request):
-    if not request.user.is_authenticated:
-        return submission.get_status_display()
     if submission.status != 'UN' and is_hidden_from_user(submission, request):
         return "Посылка проверяется"
     return submission.get_status_display()
@@ -210,8 +206,6 @@ def get_submission_status_display(submission, request):
 
 @register.filter()
 def get_submission_score(submission, request):
-    if not request.user.is_authenticated:
-        return submission.score
     if submission.score != 0 and is_hidden_from_user(submission, request):
         return 0
     return submission.score

@@ -24,7 +24,7 @@ from accounts.models import Account, Action, Announcement, Faculty, Notification
 from contest.documents.viewer import to_html
 from contest.mixins import (
     LeadershipOrMixin, LogAdditionMixin, LogChangeMixin, LogDeletionMixin, LoginRedirectMixin, OwnershipOrMixin,
-    PaginatorMixin,
+    PaginatorMixin, PublicAccessMixin,
 )
 from contest.soft_deletion import SoftDeletionDeleteView, SoftDeletionUpdateView
 from contest.utils import try_decode
@@ -216,26 +216,6 @@ class DeletedList(LoginRedirectMixin, PermissionRequiredMixin, TemplateView):
 """===================================================== Course ====================================================="""
 
 
-class CoursePublicAccessMixin:
-    def can_manage_public_access(self):
-        return self.request.user.is_superuser or self.request.user.account.is_moderator
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['can_manage_public_access'] = self.can_manage_public_access()
-        return context
-
-    def preserve_public_access(self, form):
-        if self.can_manage_public_access():
-            return
-        form.instance.is_public = self.object.is_public if getattr(self, 'object', None) else False
-
-
 class CourseDetail(UserPassesTestMixin, DetailView):
     model = Course
     template_name = 'contests/course/course_detail.html'
@@ -258,7 +238,7 @@ class CourseDiscussion(LoginRedirectMixin, PaginatorMixin, DetailView):
         return self.object.comment_set.actual().select_related('author', 'author__account')
 
 
-class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, LogAdditionMixin, CoursePublicAccessMixin, CreateView):
+class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, LogAdditionMixin, PublicAccessMixin, CreateView):
     model = Course
     form_class = CourseForm
     template_name = 'contests/course/course_form.html'
@@ -280,7 +260,6 @@ class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, LogAdditionMixin
         return initial
 
     def form_valid(self, form):
-        self.preserve_public_access(form)
         form.instance.owner = self.request.user
         return super().form_valid(form)
 
@@ -291,7 +270,7 @@ class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, LogAdditionMixin
 
 
 class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
-                   CoursePublicAccessMixin, SoftDeletionUpdateView):
+                   PublicAccessMixin, SoftDeletionUpdateView):
     model = Course
     form_class = CourseForm
     template_name = 'contests/course/course_form.html'
@@ -306,10 +285,6 @@ class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Perm
         if not hasattr(self, 'object'):
             self.object = self.get_object()
         return self.object.leaders.filter(id=self.request.user.id).exists()
-
-    def form_valid(self, form):
-        self.preserve_public_access(form)
-        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -923,7 +898,7 @@ class ContestDiscussion(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin,
 
 
 class ContestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogAdditionMixin,
-                    CreateView):
+                    PublicAccessMixin, CreateView):
     model = Contest
     form_class = ContestForm
     template_name = 'contests/contest/contest_form.html'
@@ -962,7 +937,7 @@ class ContestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 
 
 class ContestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
-                    SoftDeletionUpdateView):
+                    PublicAccessMixin, SoftDeletionUpdateView):
     model = Contest
     template_name = 'contests/contest/contest_form.html'
     permission_required = 'contests.change_contest'
@@ -1130,7 +1105,7 @@ class ProblemRollbackResults(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrM
 
 
 class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogAdditionMixin,
-                    CreateView):
+                    PublicAccessMixin, CreateView):
     model = Problem
     template_name = 'contests/problem/problem_form.html'
     permission_required = 'contests.add_problem'
@@ -1206,7 +1181,7 @@ class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 
 
 class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
-                    SoftDeletionUpdateView):
+                    PublicAccessMixin, SoftDeletionUpdateView):
     model = Problem
     template_name = 'contests/problem/problem_form.html'
     permission_required = 'contests.change_problem'
