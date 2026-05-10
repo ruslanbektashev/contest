@@ -6,6 +6,7 @@ from django.conf import settings
 
 register = template.Library()
 Assignment = apps.get_model('contests', 'Assignment')
+Submission = apps.get_model('contests', 'Submission')
 
 STATE_COLORS = {
     'OK': 'success',
@@ -124,11 +125,15 @@ def course_difficulty(value):
 
 @register.filter()
 def course_filtered(request, course):
+    if not request.user.is_authenticated:
+        return False
     return request.user.filter_set.filter(course=course).exists()
 
 
 @register.filter()
 def get_latest_submissions(course, request):
+    if not request.user.is_authenticated:
+        return Submission.objects.none()
     latest_submissions = course.get_latest_submissions()
     if not request.user.account.faculty.is_interfaculty:
         latest_submissions = latest_submissions.filter(owner__account__faculty=request.user.account.faculty)
@@ -171,11 +176,17 @@ def get_problem_subproblems(problem):
 
 @register.filter()
 def is_hidden_from_user(obj, request):
+    if not request.user.is_authenticated:
+        return False
     return request.user.account.is_student and obj.hidden_from_students
 
 
 @register.filter()
 def is_visible_to_user(obj, request):
+    if hasattr(obj, 'is_publicly_visible') and obj.is_publicly_visible():
+        return True
+    if not request.user.is_authenticated:
+        return False
     return not request.user.account.is_student or obj.visible_to(request.user)
 
 

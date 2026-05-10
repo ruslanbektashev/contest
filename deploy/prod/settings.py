@@ -16,6 +16,9 @@ SECURE_SSL_REDIRECT = True
 
 TIME_ZONE = 'Asia/Tashkent'
 
+# Изменил разрешения для загрузки/скачивания файлов
+FILE_UPLOAD_PERMISSIONS = 0o644
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",

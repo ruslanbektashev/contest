@@ -167,6 +167,11 @@
     {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}
     {% render_field form.difficulty class+="form-control selectpicker" %}
     {% endwith %}
+    {% if perms.contests.make_public_course %}
+    {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch.html" WIDGET_ERROR_CLASS="is-invalid" %}
+    {% render_field form.is_public class+="form-check-input" autocomplete="off" %}
+    {% endwith %}
+    {% endif %}
 
     {% if type == 'Program' %}
     {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/field.html" WIDGET_ERROR_CLASS="is-invalid" %}

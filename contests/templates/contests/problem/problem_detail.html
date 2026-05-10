@@ -206,6 +206,7 @@
             </div>
         </div>
     </div>
+    {% if request.user.is_authenticated %}
     <div class="accordion-item">
         <h2 class="accordion-header" id="problemSubmissionsHeader">
             <button class="accordion-button" type="button" data-bs-toggle="collapse"
@@ -219,6 +220,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
     {% if problem.type == 'Program' %}
     {% if perms.contests.view_submission_pattern or request|has_leader_permission:problem.course %}
     <div class="accordion-item">
@@ -270,12 +272,14 @@
         <div class="col-12 text-muted text-start text-md-end">Добавил(а): <a href="{{ problem.owner.account.get_absolute_url }}" class="text-muted">{{ problem.owner.account }}</a></div>
     </div>
 </div>
+{% if request.user.is_authenticated %}
 <div class="d-grid">
     <a class="btn btn-light border" href="{% url 'contests:problem-discussion' problem.id %}">
         {% unread_comments_count request.user.account problem as ucc %}
         <i class="fa-regular fa-comments fa-fw"></i> Обсуждение{% if ucc > 0 %} <span id="unread_comments_count" class="badge rounded-pill bg-secondary align-middle">{{ ucc }}</span>{% endif %}
     </a>
 </div>
+{% endif %}
 {% endblock main_content %}
 
 {% block main_scripts %}

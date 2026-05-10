@@ -3,10 +3,12 @@ import mimetypes
 from django.apps import apps
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
+from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import NON_FIELD_ERRORS, PermissionDenied
 from django.forms.models import inlineformset_factory, modelformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.encoding import iri_to_uri
@@ -22,7 +24,7 @@ from accounts.models import Account, Action, Announcement, Faculty, Notification
 from contest.documents.viewer import to_html
 from contest.mixins import (
     LeadershipOrMixin, LogAdditionMixin, LogChangeMixin, LogDeletionMixin, LoginRedirectMixin, OwnershipOrMixin,
-    PaginatorMixin,
+    PaginatorMixin, PublicAccessMixin,
 )
 from contest.soft_deletion import SoftDeletionDeleteView, SoftDeletionUpdateView
 from contest.utils import try_decode
@@ -64,13 +66,17 @@ def get_students_filter_dict(course, request):
 """=================================================== Attachment ==================================================="""
 
 
-class AttachmentDetail(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+class AttachmentDetail(UserPassesTestMixin, DetailView):
     model = Attachment
     template_name = 'contests/attachment/attachment_detail.html'
 
     def test_func(self):
         self.object = self.get_object()
         self.parent = self.object.object
+        if hasattr(self.parent, 'is_publicly_visible') and self.parent.is_publicly_visible():
+            return True
+        if not self.request.user.is_authenticated:
+            return False
         if isinstance(self.parent, Submission):
             has_ownership = hasattr(self.parent, 'course') and self.parent.course.owner_id == self.request.user.id
             has_ownership = has_ownership or self.parent.owner_id == self.request.user.id
@@ -99,8 +105,8 @@ class AttachmentDetail(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         return context
 
 
-class AttachmentDownload(LoginRequiredMixin, UserPassesTestMixin, View):
-    raise_exception = True
+class AttachmentDownload(UserPassesTestMixin, View):
+    raise_exception = False
 
     def get_object(self):
         object_model = apps.get_model(self.kwargs['app_label'], self.kwargs['model_name'])
@@ -108,6 +114,10 @@ class AttachmentDownload(LoginRequiredMixin, UserPassesTestMixin, View):
     
     def test_func(self):
         self.parent = self.get_object()
+        if hasattr(self.parent, 'is_publicly_visible') and self.parent.is_publicly_visible():
+            return True
+        if not self.request.user.is_authenticated:
+            return False
         if isinstance(self.parent, Submission):
             has_ownership = hasattr(self.parent, 'course') and self.parent.course.owner_id == self.request.user.id
             has_ownership = has_ownership or self.parent.owner_id == self.request.user.id
@@ -126,7 +136,13 @@ class AttachmentDownload(LoginRequiredMixin, UserPassesTestMixin, View):
         if encoding:
             response['Content-Encoding'] = encoding
         try:
-            response['X-Accel-Redirect'] = '/protected/' + iri_to_uri(request.path)
+            media_url = settings.MEDIA_URL.rstrip('/') + '/'
+            path = request.path
+            if path.startswith(media_url):
+                path = path[len(media_url):]
+            else:
+                path = path.lstrip('/')
+            response['X-Accel-Redirect'] = '/protected/' + iri_to_uri(path)
         except UnicodeEncodeError:
             raise Http404("Страница не найдена")
         return response
@@ -200,9 +216,17 @@ class DeletedList(LoginRedirectMixin, PermissionRequiredMixin, TemplateView):
 """===================================================== Course ====================================================="""
 
 
-class CourseDetail(LoginRedirectMixin, DetailView):
+class CourseDetail(UserPassesTestMixin, DetailView):
     model = Course
     template_name = 'contests/course/course_detail.html'
+
+    def test_func(self):
+        return self.request.user.is_authenticated or self.get_object().is_publicly_visible()
+
+    def handle_no_permission(self):
+        if not self.request.user.is_authenticated:
+            return redirect_to_login(self.request.get_full_path(), self.get_login_url(), self.get_redirect_field_name())
+        return super().handle_no_permission()
 
 
 class CourseDiscussion(LoginRedirectMixin, PaginatorMixin, DetailView):
@@ -214,7 +238,7 @@ class CourseDiscussion(LoginRedirectMixin, PaginatorMixin, DetailView):
         return self.object.comment_set.actual().select_related('author', 'author__account')
 
 
-class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, LogAdditionMixin, CreateView):
+class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, LogAdditionMixin, PublicAccessMixin, CreateView):
     model = Course
     form_class = CourseForm
     template_name = 'contests/course/course_form.html'
@@ -246,7 +270,7 @@ class CourseCreate(LoginRedirectMixin, PermissionRequiredMixin, LogAdditionMixin
 
 
 class CourseUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
-                   SoftDeletionUpdateView):
+                   PublicAccessMixin, SoftDeletionUpdateView):
     model = Course
     form_class = CourseForm
     template_name = 'contests/course/course_form.html'
@@ -859,12 +883,17 @@ class FilterTable(LoginRedirectMixin, PermissionRequiredMixin, TemplateView):
 """===================================================== Contest ===================================================="""
 
 
-class ContestDetail(LoginRedirectMixin, UserPassesTestMixin, DetailView):
+class ContestDetail(UserPassesTestMixin, DetailView):
     model = Contest
     template_name = 'contests/contest/contest_detail.html'
 
     def test_func(self):
-        return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
+        obj = self.get_object()
+        if obj.is_publicly_visible():
+            return True
+        if not self.request.user.is_authenticated:
+            return False
+        return not self.request.user.account.is_student or obj.visible_to(self.request.user)
 
 
 class ContestDiscussion(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin, DetailView):
@@ -880,7 +909,7 @@ class ContestDiscussion(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin,
 
 
 class ContestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogAdditionMixin,
-                    CreateView):
+                    PublicAccessMixin, CreateView):
     model = Contest
     form_class = ContestForm
     template_name = 'contests/contest/contest_form.html'
@@ -919,7 +948,7 @@ class ContestCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 
 
 class ContestUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
-                    SoftDeletionUpdateView):
+                    PublicAccessMixin, SoftDeletionUpdateView):
     model = Contest
     template_name = 'contests/contest/contest_form.html'
     permission_required = 'contests.change_contest'
@@ -993,15 +1022,22 @@ class ContestDelete(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 """===================================================== Problem ===================================================="""
 
 
-class ProblemDetail(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin, DetailView):
+class ProblemDetail(UserPassesTestMixin, PaginatorMixin, DetailView):
     model = Problem
     template_name = 'contests/problem/problem_detail.html'
     paginate_by = 10
 
     def test_func(self):
-        return not self.request.user.account.is_student or self.get_object().visible_to(self.request.user)
+        obj = self.get_object()
+        if obj.is_publicly_visible():
+            return True
+        if not self.request.user.is_authenticated:
+            return False
+        return not self.request.user.account.is_student or obj.visible_to(self.request.user)
 
     def get_queryset_for_paginator(self):
+        if not self.request.user.is_authenticated:
+            return Submission.objects.none()
         if self.request.user.has_perm('contests.view_submission_list') or has_leader_permission(self.request,
                                                                                                 self.object.course):
             submissions = self.object.submission_set.all()
@@ -1013,9 +1049,12 @@ class ProblemDetail(LoginRedirectMixin, UserPassesTestMixin, PaginatorMixin, Det
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        try:
-            context['assignment'] = Assignment.objects.get(user=self.request.user, problem=self.object)
-        except Assignment.DoesNotExist:
+        if self.request.user.is_authenticated:
+            try:
+                context['assignment'] = Assignment.objects.get(user=self.request.user, problem=self.object)
+            except Assignment.DoesNotExist:
+                context['assignment'] = None
+        else:
             context['assignment'] = None
         if self.object.type == 'Test':
             context['subproblems'] = SubProblem.objects.filter(problem=self.object).select_related('sub_problem')
@@ -1077,7 +1116,7 @@ class ProblemRollbackResults(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrM
 
 
 class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogAdditionMixin,
-                    CreateView):
+                    PublicAccessMixin, CreateView):
     model = Problem
     template_name = 'contests/problem/problem_form.html'
     permission_required = 'contests.add_problem'
@@ -1153,7 +1192,7 @@ class ProblemCreate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, Per
 
 
 class ProblemUpdate(LoginRedirectMixin, LeadershipOrMixin, OwnershipOrMixin, PermissionRequiredMixin, LogChangeMixin,
-                    SoftDeletionUpdateView):
+                    PublicAccessMixin, SoftDeletionUpdateView):
     model = Problem
     template_name = 'contests/problem/problem_form.html'
     permission_required = 'contests.change_problem'
@@ -2574,3 +2613,29 @@ class Main(LoginRedirectMixin, TemplateView):
         context['announcements'] = Announcement.objects.proper_group(self.request.user).actual()
         context['latest_submissions'] = self.get_latest_submissions()
         return context
+
+
+class PublicIndex(TemplateView):
+    template_name = 'contests/public_index.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        courses = Course.objects.filter(is_public=True).select_related('faculty')
+        faculties = Faculty.objects.filter(id__in=courses.values('faculty_id')).distinct().order_by('short_name')
+        try:
+            faculty_id = int(self.request.GET.get('faculty_id') or 0)
+        except ValueError:
+            faculty_id = 0
+        if faculty_id:
+            courses = courses.filter(faculty_id=faculty_id)
+        context['faculties'] = faculties
+        context['faculty_id'] = faculty_id
+        context['courses'] = courses
+        return context
+
+
+class Index(View):
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return Main.as_view()(request, *args, **kwargs)
+        return PublicIndex.as_view()(request, *args, **kwargs)

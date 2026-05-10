@@ -6,15 +6,15 @@
         {{ contest }}
         {% if contest.hidden_from_students %}
         <span class="ms-auto">
-            {% if request.user.account.is_student %}
+            {% if request.user.is_authenticated and request.user.account.is_student %}
             <i class="fa-solid fa-eye fa-fw"></i></span>
-            {% else %}
+            {% elif request.user.is_authenticated %}
             <span class="ms-auto" data-bs-toggle="tooltip" data-bs-placement="left" title="Раздел скрыт от студентов"><i class="fa-regular fa-eye-slash fa-fw"></i>
             {% endif %}
         </span>
         {% endif %}
     </a>
-    {% else %}
+    {% elif request.user.is_authenticated %}
     <span class="list-group-item d-flex text-muted">#{{ contest.number }}. Скрытый раздел <span class="ms-auto"><i class="fa-regular fa-eye-slash fa-fw"></i></span></span>
     {% endif %}
     {% empty %}

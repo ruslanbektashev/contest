@@ -61,6 +61,9 @@
     {% if action == 'restore' or action == None %}
     {% with WIDGET_RENDER_TO_TEMPLATE="forms/fields/switch.html" %}
     {% render_field form.hidden class+="form-check-input" autocomplete="off" %}
+    {% if perms.contests.make_public_course %}
+    {% render_field form.is_public class+="form-check-input" autocomplete="off" %}
+    {% endif %}
     {% endwith %}
     {% endif %}
     <div id="formSubmitButton">

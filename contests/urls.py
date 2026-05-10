@@ -5,7 +5,7 @@ from contests import api, views
 app_name = 'contests'
 
 urlpatterns = [
-    path('', views.Main.as_view(), name='index'),
+    path('', views.Index.as_view(), name='index'),
     path('attachment/', include([
         path('<int:pk>/', include([
             path('', views.AttachmentDetail.as_view(), name='attachment-detail'),

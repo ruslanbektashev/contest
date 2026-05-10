@@ -1,0 +1,44 @@
+{% extends 'base_main.html' %}
+{% load views %}
+
+{% block title %}Публичные курсы{% endblock title %}
+
+{% block breadcrumbs %}
+{% breadcrumb "Главная" 'contests:index' %}
+{% endblock breadcrumbs %}
+
+{% block main_content %}
+<div class="mb-3">
+    <h2 class="mb-1">Публичные курсы</h2>
+    <div class="text-muted">Эти курсы доступны без авторизации. Для полного доступа войдите в систему.</div>
+</div>
+
+{% if faculties %}
+<div class="d-flex flex-wrap gap-2 mb-3">
+    <a href="{% url 'contests:index' %}" class="btn {% if faculty_id == 0 %}btn-light border-secondary text-dark{% else %}btn-outline-secondary{% endif %} btn-sm">
+        Все факультеты
+    </a>
+    {% for faculty in faculties %}
+    <a href="{% url 'contests:index' %}?faculty_id={{ faculty.id }}" class="btn {% if faculty_id == faculty.id %}btn-light border-secondary text-dark{% else %}btn-outline-secondary{% endif %} btn-sm">
+        {{ faculty.short_name }}
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="list-group">
+    {% for course in courses %}
+    <a href="{{ course.get_absolute_url }}" class="list-group-item list-group-item-action">
+        <div class="d-flex justify-content-between">
+            <div class="fw-semibold text-truncate">{{ course.title }}</div>
+            <div class="text-muted text-nowrap ms-3">{{ course.faculty.short_name }} · {{ course.get_level_display }}</div>
+        </div>
+        {% if course.description %}
+        <div class="text-muted small mt-1">{{ course.description|striptags|truncatechars:180 }}</div>
+        {% endif %}
+    </a>
+    {% empty %}
+    <div class="alert alert-info mb-0">Публичных курсов пока нет.</div>
+    {% endfor %}
+</div>
+{% endblock main_content %}
